@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build and test output
+dist/
+build/
+coverage/
+*.tsbuildinfo
+*.tgz
+
+# Local configuration and tooling
+.env
+.env.*
+!.env.example
+.DS_Store
+.tmp/
+.openchamber/
+.opencode/
+npm-debug.log*
+pnpm-debug.log*
