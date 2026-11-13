@@ -1,0 +1,33 @@
+{
+  "name": "@katakit/core",
+  "version": "0.0.0",
+  "description": "Framework-independent Katakit primitives.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/katabase-ai/katakit.git",
+    "directory": "pkgs/core"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "prepack": "pnpm build",
+    "test": "vitest",
+    "test:ci": "vitest run --passWithNoTests"
+  }
+}
