@@ -1,14 +1,7 @@
 import { defineConfig } from 'tsdown';
 
 export default defineConfig({
-  entry: {
-    index: 'src/index.ts',
-    plugin: 'src/plugin.ts',
-    katakit: 'src/katakit.ts',
-    effect: 'src/effect.ts',
-    'utils/reactive/eager': 'src/utils/reactive/eager.ts',
-    'utils/reactive/skipReplay': 'src/utils/reactive/skipReplay.ts',
-  },
+  entry: ['src/index.ts'],
   format: 'esm',
   platform: 'neutral',
   target: 'es2022',
