@@ -2,6 +2,7 @@ import { startEffects } from './effect';
 import { GetMethods, makeGetMethods } from './methods';
 import { GetObservables, makeGetObservables } from './observables';
 import { ConfiguredKatakitPlugin } from './plugin';
+import { assert } from './utils/assert';
 
 export type KatakitConfig<TConfiguredKatakitPlugins extends ConfiguredKatakitPlugin<any, any>[]> = {
   plugins: TConfiguredKatakitPlugins;
@@ -24,7 +25,12 @@ export const makeKatakit = <TConfiguredKatakitPlugins extends ConfiguredKatakitP
 
   const getObservables = makeGetObservables({ plugins });
 
+  let alive = false;
+
   const start = (): AliveKatakit => {
+    assert(!alive, 'Katakit is already started');
+    alive = true;
+
     const getMethods = makeGetMethods({ plugins, getObservables });
     startEffects({ plugins, getObservables, getMethods });
 
