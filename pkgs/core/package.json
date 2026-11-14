@@ -20,31 +20,6 @@
       "source": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    },
-    "./plugin": {
-      "source": "./src/plugin.ts",
-      "types": "./dist/plugin.d.ts",
-      "default": "./dist/plugin.js"
-    },
-    "./katakit": {
-      "source": "./src/katakit.ts",
-      "types": "./dist/katakit.d.ts",
-      "default": "./dist/katakit.js"
-    },
-    "./effect": {
-      "source": "./src/effect.ts",
-      "types": "./dist/effect.d.ts",
-      "default": "./dist/effect.js"
-    },
-    "./utils/reactive/eager": {
-      "source": "./src/utils/reactive/eager.ts",
-      "types": "./dist/utils/reactive/eager.d.ts",
-      "default": "./dist/utils/reactive/eager.js"
-    },
-    "./utils/reactive/skipReplay": {
-      "source": "./src/utils/reactive/skipReplay.ts",
-      "types": "./dist/utils/reactive/skipReplay.d.ts",
-      "default": "./dist/utils/reactive/skipReplay.js"
     }
   },
   "publishConfig": {
@@ -52,6 +27,7 @@
   },
   "scripts": {
     "build": "tsdown",
+    "tsc": "tsc --project tsconfig.json",
     "prepack": "pnpm build",
     "test": "vitest",
     "test:ci": "vitest run --passWithNoTests"

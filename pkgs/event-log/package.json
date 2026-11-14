@@ -1,7 +1,7 @@
 {
   "name": "@katakit/event-log",
   "version": "0.0.0",
-  "description": "Replayable event log plugin for Katakit.",
+  "description": "Event log plugin for Katakit.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/katabase-ai/katakit.git",
@@ -13,13 +13,13 @@
   ],
   "type": "module",
   "sideEffects": false,
-  "main": "./dist/plugin.js",
-  "types": "./dist/plugin.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "source": "./src/plugin.ts",
-      "types": "./dist/plugin.d.ts",
-      "default": "./dist/plugin.js"
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     }
   },
   "publishConfig": {
@@ -27,6 +27,7 @@
   },
   "scripts": {
     "build": "tsdown",
+    "tsc": "tsc --project tsconfig.json",
     "prepack": "pnpm build",
     "test": "vitest",
     "test:ci": "vitest run --passWithNoTests"

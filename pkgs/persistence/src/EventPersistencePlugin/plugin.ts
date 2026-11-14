@@ -1,5 +1,4 @@
-import { makeKatakitPlugin } from '@katakit/core/plugin';
-import { skipReplay } from '@katakit/core/utils/reactive/skipReplay';
+import { makeKatakitPlugin, skipReplay } from '@katakit/core';
 import type { makeEventLogPlugin } from '@katakit/event-log';
 import pLimit from 'p-limit';
 

@@ -13,13 +13,13 @@
   ],
   "type": "module",
   "sideEffects": false,
-  "main": "./dist/plugin.js",
-  "types": "./dist/plugin.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "source": "./src/plugin.ts",
-      "types": "./dist/plugin.d.ts",
-      "default": "./dist/plugin.js"
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     }
   },
   "publishConfig": {
@@ -27,6 +27,7 @@
   },
   "scripts": {
     "build": "tsdown",
+    "tsc": "tsc --project tsconfig.json",
     "prepack": "pnpm build",
     "test": "vitest",
     "test:ci": "vitest run --passWithNoTests"

@@ -1,14 +1,14 @@
 # Persistence plugin
 
-Generic append-only event persistence. `src/plugin.ts` owns the adapter contract,
-serialized flush loop, cursor, and automatic event-driven saves.
+`src/EventPersistencePlugin/plugin.ts` owns periodic append-only event persistence.
+`src/LocalStorageEventPersistencePlugin/plugin.ts` specializes its callback for
+browser local storage. `src/index.ts` is the public package entry point.
 
-- The event log is authoritative. Keep pending events in its unsaved suffix, not a second queue.
-- Advance the cursor only after the adapter acknowledges a complete batch.
-- Automatic saves and public flushes share one per-runtime method collection and in-flight promise.
-- Use `p-limit(1)` for write serialization; the in-flight promise only coalesces callers.
-- Hydration and storage identity belong to the host; do not guess the durable prefix from log length.
-- Adapters must handle same-position retries safely, including uncertain acknowledgements.
-- Start no timers or storage work during observable/method construction.
-- Do not add a database, serialization format, retry scheduler, or implicit shutdown guarantee.
+- Skip hydrated history; collect only events accepted after the persistence subscription starts.
+- Restore a failed batch ahead of newer pending events without changing their order.
+- Keep one per-runtime method collection and use `p-limit(1)` for write serialization.
+- Hydration, storage identity, and uncertain-acknowledgement handling belong to the host/adapter.
+- Periodic persistence currently owns a timer and subscription in its method collection.
+  Do not claim that `kill()` disposes the subscription or rejects a failed final save.
+- Keep browser storage and JSON handling in the local-storage specialization.
 - Tests use workspace source exports and controlled promises rather than built artifacts or sleeps.

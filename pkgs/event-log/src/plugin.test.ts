@@ -1,4 +1,4 @@
-import { makeKatakit } from '@katakit/core/katakit';
+import { makeKatakit } from '@katakit/core';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import type { Observable } from 'rxjs';
 import * as v from 'valibot';

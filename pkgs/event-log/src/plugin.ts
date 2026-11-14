@@ -1,6 +1,5 @@
 import { Observable, ReplaySubject } from 'rxjs';
-import { makeKatakitPlugin } from '@katakit/core/plugin';
-import { eager, type WithEager } from '@katakit/core/utils/reactive/eager';
+import { makeKatakitPlugin, eager, type WithEager } from '@katakit/core';
 import { StandardSchemaV1 } from '@standard-schema/spec';
 
 export const makeEventLogPlugin = <TEvent>({

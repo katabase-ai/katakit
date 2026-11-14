@@ -1,0 +1,1 @@
+export { makeEventLogPlugin } from './plugin';

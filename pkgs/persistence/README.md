@@ -1,57 +1,66 @@
 # @katakit/persistence
 
-Persists an event log through an application-supplied append adapter. The plugin
-does not choose a database, identify your stored log, or serialize event values.
+Persists new event-log entries through an application-supplied append callback.
+The package also supplies a browser local-storage adapter.
 
 ```ts
-import { makePersistencePlugin } from '@katakit/persistence';
+import { makeEventPersistencePlugin } from '@katakit/persistence';
 
-const PersistencePlugin = makePersistencePlugin({ eventLogPlugin: EventLogPlugin });
-const persistence = PersistencePlugin.configure({
-  persistedEventCount: loadedEvents.length,
-  appendEvents: async ({ startIndex, events }) => {
-    await storage.appendEvents({ logId, startIndex, events });
+const PersistencePlugin = makeEventPersistencePlugin({
+  EventLogPlugin,
+  persistInterval: 5000,
+  appendEvents: async events => {
+    await storage.appendEvents({ logId, events });
   },
 });
+const persistence = PersistencePlugin.configure({});
 ```
 
 Load events before constructing Katakit, supply them to the event-log plugin, and
-register both configured plugins. `persistedEventCount` is the number already
-durable, not necessarily the entire in-memory history. It must identify an
-existing prefix. The adapter captures application identity such as `logId`.
+register both configured plugins. Initial history is treated as already durable
+and is not appended again. The callback captures application identity such as
+`logId`; the plugin does not load history or choose a database.
 
 ## Writing and recovery
 
-Starting Katakit saves any unsaved suffix. Later events trigger another flush.
-A per-runtime `p-limit(1)` serializes flushes. Concurrent callers join the same
-flush result; events arriving during a write are collected into the next batch.
-The plugin starts no timers.
+Starting Katakit creates the persistence method collection, which subscribes to
+new events and starts a timer. `persistInterval` defaults to 5000 milliseconds.
+`p-limit(1)` serializes batches; events arriving during a write remain pending
+for a later batch.
 
-Each batch contains a zero-based `startIndex` and an ordered `events` array.
-The adapter resolves only after the whole batch is durable. It must safely
-recognize retries at the same positions: a request can commit and then lose its
-acknowledgement. The plugin does not promise exactly-once external side effects.
+The callback receives an ordered event array and resolves after the entire batch
+is durable. On failure, the batch is returned ahead of newer pending events and
+the error is logged. A later timer tick retries it. The adapter must account for
+uncertain acknowledgements; the plugin does not supply deduplication or promise
+exactly-once writes.
 
-A failed batch leaves the durable cursor unchanged. New events or an explicit
-`flush()` retry the pending suffix in order. There is no background retry timer.
-Status exposes the last failure; automatic effect failures also follow core's
-error reporting. A successful drain clears the failure.
+Stop producers before shutting down, then stop the timer and request a final
+serialized flush:
 
 ```ts
-const methods = runtime.getMethods(PersistencePlugin);
-await methods.flush();
-const status = methods.getPersistenceStatus();
+await runtime.getMethods(PersistencePlugin).kill();
 ```
 
-`flush()` joins an active flush and drains events accepted while it runs.
-Status reports `persistedEventCount`, `pendingEventCount`, `isPersisting`, and
-`error`. These are runtime diagnostics, not additional domain events.
+The current implementation logs storage failures, including a failed final
+flush; successful `kill()` completion is not proof that every event is durable.
+It also retains the event subscription after stopping the timer. Core does not
+yet provide a general disposal lifecycle.
 
-Before shutdown, stop producers and await `flush()`. Core does not yet expose a
-general disposal lifecycle, so this plugin cannot automatically guarantee an
-end-of-process drain. Unacknowledged writes are recovered by reloading the
-durable history on the next run. One runtime owns writes to one stored log;
-cross-process writer coordination belongs to the adapter/host.
+## Browser local storage
+
+```ts
+import { makeLocalStorageEventPersistencePlugin } from '@katakit/persistence';
+
+const PersistencePlugin = makeLocalStorageEventPersistencePlugin({
+  EventLogPlugin,
+  localStorageKey: 'meeting-events',
+});
+```
+
+This adapter appends batches to a JSON array at the supplied key. Load the
+existing array into the event log before starting. Event values must support a
+JSON round trip; date decoding and validation belong to the host. The adapter
+uses browser `localStorage` when saving and does not coordinate concurrent tabs.
 
 ## Development
 
