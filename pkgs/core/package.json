@@ -31,10 +31,20 @@
       "types": "./dist/katakit.d.ts",
       "default": "./dist/katakit.js"
     },
+    "./effect": {
+      "source": "./src/effect.ts",
+      "types": "./dist/effect.d.ts",
+      "default": "./dist/effect.js"
+    },
     "./utils/reactive/eager": {
       "source": "./src/utils/reactive/eager.ts",
       "types": "./dist/utils/reactive/eager.d.ts",
       "default": "./dist/utils/reactive/eager.js"
+    },
+    "./utils/reactive/skipReplay": {
+      "source": "./src/utils/reactive/skipReplay.ts",
+      "types": "./dist/utils/reactive/skipReplay.d.ts",
+      "default": "./dist/utils/reactive/skipReplay.js"
     }
   },
   "publishConfig": {

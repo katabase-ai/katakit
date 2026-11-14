@@ -15,12 +15,23 @@ export const makeGetMethods = ({
   plugins: ConfiguredKatakitPlugin<any, any>[];
   getObservables: GetObservables;
 }) => {
+  // Effects and callers must share method-owned resources such as an in-flight write.
+  const methodsByPlugin = new Map<ConfiguredKatakitPlugin<any, any>, MethodsObj>();
   const getMethods = <TMethods extends MethodsObj>(
     plugin: KatakitPlugin<any, any, TMethods> | ConfiguredKatakitPlugin<any, TMethods>
   ): TMethods => {
     const found = plugins.find(p => p.type === plugin.type);
     assert(found, `Plugin not found: ${plugin.type}`);
-    return found.methods({ observables: getObservables(found), getObservables, getMethods });
+    const cached = methodsByPlugin.get(found);
+    if (cached) return cached as TMethods;
+
+    const methods = found.methods({
+      observables: getObservables(found),
+      getObservables,
+      getMethods,
+    });
+    methodsByPlugin.set(found, methods);
+    return methods;
   };
   return getMethods;
 };
