@@ -2,7 +2,10 @@ import { type Observable } from 'rxjs';
 import { type GetMethods } from './methods';
 import { type GetObservables } from './observables';
 import { type ConfiguredKatakitPlugin } from './plugin';
-import { subscribeWithBackpressure, type BackpressureStrategy } from './backpressure';
+import {
+  subscribeWithBackpressure,
+  type BackpressureStrategy,
+} from './utils/reactive/backpressure';
 
 /**
  * Brand symbol on `Effect<T>` --

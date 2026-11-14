@@ -8,21 +8,35 @@ export type KatakitConfig<TConfiguredKatakitPlugins extends ConfiguredKatakitPlu
 };
 
 export type Katakit = {
+  start: () => AliveKatakit;
+  getObservables: GetObservables;
+};
+
+export type AliveKatakit = {
   getObservables: GetObservables;
   getMethods: GetMethods;
 };
 
-export const startKatakit = <TConfiguredKatakitPlugins extends ConfiguredKatakitPlugin<any, any>[]>(
+export const makeKatakit = <TConfiguredKatakitPlugins extends ConfiguredKatakitPlugin<any, any>[]>(
   config: KatakitConfig<TConfiguredKatakitPlugins>
-) => {
+): Katakit => {
   const { plugins } = config;
 
   const getObservables = makeGetObservables({ plugins });
-  const getMethods = makeGetMethods({ plugins, getObservables });
-  startEffects({ plugins, getObservables, getMethods });
+
+  const start = (): AliveKatakit => {
+    const getMethods = makeGetMethods({ plugins, getObservables });
+    startEffects({ plugins, getObservables, getMethods });
+
+    return { getObservables, getMethods };
+  };
 
   return {
+    start,
+    /**
+     * Use this if you just want to run the observable logic
+     * without starting the full katakit instance, and subscribing effects.
+     */
     getObservables,
-    getMethods,
   };
 };
