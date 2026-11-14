@@ -1,12 +1,11 @@
-/**
- * #CARE: These tests are hand-written
- */
-
-import { map, ReplaySubject } from 'rxjs';
+import { BehaviorSubject, EMPTY, map, of, ReplaySubject } from 'rxjs';
 import { describe, test } from 'vitest';
 import { optionalProperty, property } from './property';
-import { expect } from 'vitest';
+import { expect, expectTypeOf } from 'vitest';
 
+/**
+ * #CARE: These tests are hand-written.
+ */
 describe('property', () => {
   test.each([optionalProperty, property])('rejects an incomplete replay', wrap => {
     const source = new ReplaySubject<number>();
@@ -81,5 +80,42 @@ describe('property', () => {
 
     observable.next(2);
     expect(p.get()).toBe(4);
+  });
+});
+
+describe('property initialization and completion contracts', () => {
+  test('required properties reject an empty synchronous replay', () => {
+    expect(() => property(EMPTY)).toThrow(/undefined|initial|value/i);
+  });
+
+  test.each([0, false, ''])('a falsy first value is initialized: %s', value => {
+    const current$ = property(of(value));
+    expect(current$.get()).toBe(value);
+    expect(current$.get()).toBe(value);
+  });
+
+  test('completion preserves the most recent synchronous value', () => {
+    const source$ = new ReplaySubject<number>();
+    source$.next(1);
+    const current$ = property(source$);
+    source$.next(2);
+    source$.complete();
+    expect(current$.get()).toBe(2);
+    expect(current$.get()).toBe(2);
+  });
+
+  test('an optional property remains empty after completion without a value', () => {
+    expect(optionalProperty(EMPTY).get()).toBeUndefined();
+  });
+
+  test('property augmentation preserves the original observable subtype and methods', () => {
+    const source$ = new BehaviorSubject({ count: 1 });
+    const current$ = property(source$);
+    expect(current$).toBe(source$);
+    current$.next({ count: 2 });
+    expect(current$.get()).toEqual({ count: 2 });
+    expect(current$.getValue()).toBe(current$.get());
+    expectTypeOf(current$.get()).toEqualTypeOf<{ count: number }>();
+    source$.complete();
   });
 });

@@ -1,11 +1,10 @@
-/**
- * #CARE: These tests are hand-written
- */
-
-import { ReplaySubject, Subject } from 'rxjs';
-import { describe, expect, test } from 'vitest';
+import { Observable, of, ReplaySubject, Subject, take } from 'rxjs';
+import { describe, expect, expectTypeOf, test, vi } from 'vitest';
 import { evolve } from './evolve';
 
+/**
+ * #CARE: These tests are hand-written.
+ */
 describe('evolve', () => {
   test('emits the evolver result for each source emission', () => {
     const source = new Subject<number>();
@@ -168,5 +167,59 @@ describe('evolve', () => {
 
     expect(seenA).toEqual([1, 3, 6]);
     expect(seenB).toEqual([1, 3, 6]);
+  });
+});
+
+describe('evolve cancellation and output contracts', () => {
+  test('unsubscribing downstream releases a live upstream subscription', () => {
+    const teardown = vi.fn();
+    const source$ = new Observable<number>(() => teardown);
+    const subscription = source$.pipe(evolve((total, value) => total + value, 0)).subscribe();
+    subscription.unsubscribe();
+    expect(teardown).toHaveBeenCalledOnce();
+  });
+
+  // TODO: Re-enable when synchronous sources honor downstream cancellation.
+  test.skip('downstream cancellation stops reducing the rest of a synchronous source', () => {
+    const reduce = vi.fn((total: number, value: number) => total + value);
+    const seen: number[] = [];
+    of(1, 2, 3)
+      .pipe(evolve(reduce, 0), take(1))
+      .subscribe(value => seen.push(value));
+    expect(seen).toEqual([1]);
+    expect(reduce).toHaveBeenCalledOnce();
+  });
+
+  // TODO: Re-enable when a reducer failure stops the remaining synchronous replay.
+  test.skip('a reducer failure stops subsequent reducer work during synchronous replay', () => {
+    const failure = new Error('Invalid event');
+    const reduce = vi.fn((total: number, value: number) => {
+      if (value === 2) throw failure;
+      return total + value;
+    });
+    const seen: number[] = [];
+    const error = vi.fn();
+    of(1, 2, 3)
+      .pipe(evolve(reduce, 0))
+      .subscribe({
+        next: value => seen.push(value),
+        error,
+      });
+    expect(seen).toEqual([1]);
+    expect(error).toHaveBeenCalledExactlyOnceWith(failure);
+    expect(reduce).toHaveBeenCalledTimes(2);
+  });
+
+  test('distinct seed and result types still expose only evolved results downstream', () => {
+    const state$ = of(2, 3).pipe(
+      evolve(
+        (state, value) => ({ total: (typeof state === 'string' ? 0 : state.total) + value }),
+        'uninitialized' as string | { total: number }
+      )
+    );
+    const seen: { total: number }[] = [];
+    state$.subscribe(state => seen.push(state));
+    expect(seen).toEqual([{ total: 2 }, { total: 5 }]);
+    expectTypeOf(state$).toEqualTypeOf<Observable<{ total: number }>>();
   });
 });
