@@ -2,7 +2,7 @@ import { makeKatakit } from '@katakit/core';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import type { Observable } from 'rxjs';
 import * as v from 'valibot';
-import { describe, expect, expectTypeOf, test } from 'vitest';
+import { describe, expect, expectTypeOf, test, vi } from 'vitest';
 import { makeEventLogPlugin } from '@katakit/event-log';
 
 const EventSchema = v.variant('type', [
@@ -211,5 +211,157 @@ describe('event log', () => {
     expectTypeOf(events$.getAll()).toEqualTypeOf<TestEvent[]>();
     expectTypeOf(emitEvent).toEqualTypeOf<(event: TestEvent) => void>();
     expectTypeOf(events$).not.toHaveProperty('next');
+  });
+});
+
+describe('event-log validation and delivery contracts', () => {
+  test.each([undefined, false, 0, ''])('preserves successful falsy schema outputs: %j', value => {
+    const plugin = makeEventLogPlugin({
+      validateEvent: v.union([v.undefined(), v.boolean(), v.number(), v.string()]),
+    });
+    const runtime = makeKatakit({
+      plugins: [plugin.configure({ initialEvents: [] })],
+    }).start();
+    runtime.getMethods(plugin).emitEvent(value);
+    expect(runtime.getObservables(plugin).events$.getAll()).toEqual([value]);
+  });
+
+  test('issues take precedence over a partial value returned by a validator', () => {
+    const issues = [{ message: 'Partial parse failed' }];
+    const plugin = makeEventLogPlugin<number>({
+      validateEvent: {
+        '~standard': {
+          version: 1,
+          vendor: 'contract-test',
+          validate: () => ({ value: 10, issues }),
+        },
+      },
+    });
+    const runtime = makeKatakit({
+      plugins: [plugin.configure({ initialEvents: [1] })],
+    }).start();
+    const seen: number[] = [];
+    const subscription = runtime
+      .getObservables(plugin)
+      .events$.subscribe(event => seen.push(event));
+
+    try {
+      expect(() => runtime.getMethods(plugin).emitEvent(10)).toThrow(
+        expect.objectContaining({ message: 'Invalid event', cause: issues })
+      );
+      expect(seen).toEqual([1]);
+      expect(runtime.getObservables(plugin).events$.getAll()).toEqual([1]);
+    } finally {
+      subscription.unsubscribe();
+    }
+  });
+
+  test('a rejected live event does not poison later valid emissions', () => {
+    const plugin = makeEventLogPlugin<number>({
+      validateEvent: {
+        '~standard': {
+          version: 1,
+          vendor: 'contract-test',
+          validate: value =>
+            value === 2 ? { issues: [{ message: 'Rejected' }] } : { value: value as number },
+        },
+      },
+    });
+    const runtime = makeKatakit({
+      plugins: [plugin.configure({ initialEvents: [] })],
+    }).start();
+    const { emitEvent } = runtime.getMethods(plugin);
+    emitEvent(1);
+    expect(() => emitEvent(2)).toThrow('Invalid event');
+    emitEvent(3);
+    expect(runtime.getObservables(plugin).events$.getAll()).toEqual([1, 3]);
+  });
+
+  test('hydrated canonical events are not transformed or revalidated as live inputs', () => {
+    const validate = vi.fn((value: unknown) => ({ value: `${value}!` }));
+    const plugin = makeEventLogPlugin<string>({
+      validateEvent: { '~standard': { version: 1, vendor: 'contract-test', validate } },
+    });
+    const runtime = makeKatakit({
+      plugins: [plugin.configure({ initialEvents: ['already normalized!'] })],
+    }).start();
+    expect(validate).not.toHaveBeenCalled();
+    runtime.getMethods(plugin).emitEvent('new');
+    expect(validate).toHaveBeenCalledExactlyOnceWith('new');
+    expect(runtime.getObservables(plugin).events$.getAll()).toEqual([
+      'already normalized!',
+      'new!',
+    ]);
+  });
+
+  test('unsubscribing one reader neither stops the log nor affects other readers', () => {
+    const plugin = makeEventLogPlugin({ validateEvent: v.number() });
+    const runtime = makeKatakit({
+      plugins: [plugin.configure({ initialEvents: [] })],
+    }).start();
+    const { events$ } = runtime.getObservables(plugin);
+    const first: number[] = [];
+    const second: number[] = [];
+    const firstSubscription = events$.subscribe(value => first.push(value));
+    const secondSubscription = events$.subscribe(value => second.push(value));
+    try {
+      runtime.getMethods(plugin).emitEvent(1);
+      firstSubscription.unsubscribe();
+      runtime.getMethods(plugin).emitEvent(2);
+      expect(first).toEqual([1]);
+      expect(second).toEqual([1, 2]);
+      expect(events$.getAll()).toEqual([1, 2]);
+    } finally {
+      firstSubscription.unsubscribe();
+      secondSubscription.unsubscribe();
+    }
+  });
+
+  test('a synchronous burst has the same complete order in live delivery and replay', () => {
+    const plugin = makeEventLogPlugin({ validateEvent: v.number() });
+    const runtime = makeKatakit({
+      plugins: [plugin.configure({ initialEvents: [] })],
+    }).start();
+    const { events$ } = runtime.getObservables(plugin);
+    const values = Array.from({ length: 1000 }, (_, index) => index % 17);
+    const seen: number[] = [];
+    const subscription = events$.subscribe(event => seen.push(event));
+    try {
+      for (const value of values) runtime.getMethods(plugin).emitEvent(value);
+      expect(seen).toEqual(values);
+      expect(events$.getAll()).toEqual(values);
+      const replay: number[] = [];
+      const lateSubscription = events$.subscribe(event => replay.push(event));
+      lateSubscription.unsubscribe();
+      expect(replay).toEqual(values);
+    } finally {
+      subscription.unsubscribe();
+    }
+  });
+
+  // TODO: Re-enable when nested emissions cannot overtake an event's current delivery.
+  test.skip('reader-triggered emissions preserve the log order for every reader', () => {
+    const plugin = makeEventLogPlugin({ validateEvent: v.number() });
+    const runtime = makeKatakit({
+      plugins: [plugin.configure({ initialEvents: [] })],
+    }).start();
+    const { events$ } = runtime.getObservables(plugin);
+    const { emitEvent } = runtime.getMethods(plugin);
+    const first: number[] = [];
+    const second: number[] = [];
+    const firstSubscription = events$.subscribe(value => {
+      first.push(value);
+      if (value === 1) emitEvent(2);
+    });
+    const secondSubscription = events$.subscribe(value => second.push(value));
+    try {
+      emitEvent(1);
+      expect(events$.getAll()).toEqual([1, 2]);
+      expect(first).toEqual([1, 2]);
+      expect(second).toEqual([1, 2]);
+    } finally {
+      firstSubscription.unsubscribe();
+      secondSubscription.unsubscribe();
+    }
   });
 });

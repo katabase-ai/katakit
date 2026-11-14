@@ -1,5 +1,5 @@
-import { of, ReplaySubject, Subject } from 'rxjs';
-import { describe, expect, test } from 'vitest';
+import { Observable, of, ReplaySubject, Subject } from 'rxjs';
+import { describe, expect, expectTypeOf, test, vi } from 'vitest';
 import { collectReplay } from './collectReplay';
 
 describe('collectReplay', () => {
@@ -56,5 +56,25 @@ describe('collectReplay', () => {
     subject.next(1);
 
     expect(collectReplay(subject)).toEqual([]);
+  });
+});
+
+describe('collectReplay subscription ownership', () => {
+  test('immediately releases the subscription without waiting for source completion', () => {
+    const teardown = vi.fn();
+    const source$ = new Observable<number>(subscriber => {
+      subscriber.next(1);
+      return teardown;
+    });
+    expect(collectReplay(source$)).toEqual([1]);
+    expect(teardown).toHaveBeenCalledOnce();
+  });
+
+  test('returns independent arrays while preserving duplicate and falsy events', () => {
+    const source$ = of(0, 0, 1);
+    const first = collectReplay(source$);
+    first.length = 0;
+    expect(collectReplay(source$)).toEqual([0, 0, 1]);
+    expectTypeOf(collectReplay(source$)).toEqualTypeOf<number[]>();
   });
 });
