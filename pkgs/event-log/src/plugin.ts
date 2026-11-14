@@ -32,7 +32,7 @@ export const makeEventLogPlugin = <TEvent>({
         if (validationResult instanceof Promise) {
           throw new Error('Event validation must be synchronous');
         }
-        if (!('value' in validationResult)) {
+        if (validationResult.issues) {
           throw new Error('Invalid event', { cause: validationResult.issues });
         }
         const validEvent = validationResult.value;
