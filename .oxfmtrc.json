@@ -7,7 +7,7 @@
   "printWidth": 100,
   "bracketSpacing": true,
   "arrowParens": "avoid",
-  "sortPackageJson": false,
+  "sortPackageJson": true,
   "ignorePatterns": [
     "pnpm-lock.yaml",
     "*.lock",

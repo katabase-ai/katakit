@@ -18,6 +18,8 @@
     "noEmit": true,
     "paths": {
       "@katakit/core": ["./pkgs/core/src/index.ts"],
+      "@katakit/core/*": ["./pkgs/core/src/*"],
+      "@katakit/event-log": ["./pkgs/event-log/src/plugin.ts"],
       "@katakit/react": ["./pkgs/react/src/index.ts"]
     }
   }

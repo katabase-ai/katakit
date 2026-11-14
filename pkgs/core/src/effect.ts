@@ -39,7 +39,12 @@ export const startEffects = ({
   getMethods: GetMethods;
 }) => {
   for (const plugin of plugins) {
-    for (const effect of plugin.effects({ getObservables, getMethods })) {
+    for (const effect of plugin.effects({
+      observables: getObservables(plugin),
+      methods: getMethods(plugin),
+      getObservables,
+      getMethods,
+    })) {
       subscribeWithBackpressure(effect.backpressure, effect.on, effect.handler);
     }
   }

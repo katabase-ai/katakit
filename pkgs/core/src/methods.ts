@@ -5,7 +5,7 @@ import { assert } from './utils/assert';
 export type MethodsObj = Record<string, (...args: any[]) => unknown>;
 
 export type GetMethods = <TMethods extends MethodsObj>(
-  plugin: KatakitPlugin<any, any, TMethods>
+  plugin: KatakitPlugin<any, any, TMethods> | ConfiguredKatakitPlugin<any, TMethods>
 ) => TMethods;
 
 export const makeGetMethods = ({
@@ -20,7 +20,7 @@ export const makeGetMethods = ({
   ): TMethods => {
     const found = plugins.find(p => p.type === plugin.type);
     assert(found, `Plugin not found: ${plugin.type}`);
-    return found.methods({ getObservables, getMethods });
+    return found.methods({ observables: getObservables(found), getObservables, getMethods });
   };
   return getMethods;
 };
