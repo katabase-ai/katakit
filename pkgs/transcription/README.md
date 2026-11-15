@@ -85,6 +85,7 @@ is requested only on `start()`. Construction has no side effects.
 
 `transcriptionModels` from `@katakit/transcription/browser` is the shared catalog for application model
 pickers. Its entries include `id`, `label`, `language`, and `provisional`.
+`defaultTranscriptionModel` identifies the model used when `model` is omitted.
 
 | Model ID                    | Language | Behavior                                                                                              |
 | --------------------------- | -------- | ----------------------------------------------------------------------------------------------------- |

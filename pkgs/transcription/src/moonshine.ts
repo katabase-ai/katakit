@@ -32,7 +32,7 @@ export type MoonshineOptions = {
   loadSdk: () => Promise<MoonshineSdk>;
 };
 
-export const loadMoonshine = async (
+const loadMoonshine = async (
   options: MoonshineOptions,
   events: EngineEvents
 ): Promise<EngineSession> => {

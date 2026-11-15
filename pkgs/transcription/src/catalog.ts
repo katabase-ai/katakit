@@ -11,3 +11,5 @@ export const transcriptionModels = [
 ] as const;
 
 export type TranscriptionModelId = (typeof transcriptionModels)[number]['id'];
+
+export const defaultTranscriptionModel: TranscriptionModelId = 'moonshine-small';
