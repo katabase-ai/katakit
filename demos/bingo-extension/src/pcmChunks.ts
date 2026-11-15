@@ -1,5 +1,5 @@
-/** Collect contiguous 16 kHz PCM into roughly ten-second inference windows. */
-export const createWhisperChunks = (size = 160_000) => {
+/** Batch resampled PCM to avoid posting a worker message for every worklet frame. */
+export const createPcmChunks = (size = 1_600) => {
   let buffers: Float32Array[] = [];
   let count = 0;
   const take = (length: number) => {

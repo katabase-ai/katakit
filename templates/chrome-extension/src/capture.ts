@@ -1,14 +1,20 @@
 /** Host-only capture. Consumers receive 16 kHz mono samples, never browser APIs. */
-export const createCapture = (onSamples: (samples: Float32Array) => void) => {
+export const createCapture = (
+  onSamples: (samples: Float32Array) => void,
+  onMicSamples?: (samples: Float32Array) => void
+) => {
   let tab: MediaStream | undefined;
   let mic: MediaStream | undefined;
   let context: AudioContext | undefined;
   let processor: AudioWorkletNode | undefined;
   let sink: GainNode | undefined;
+  let micMeter: ReturnType<typeof setInterval> | undefined;
   let position = 0;
   let previous = 0;
 
   const stop = async () => {
+    if (micMeter) clearInterval(micMeter);
+    micMeter = undefined;
     processor?.disconnect();
     processor?.port.close();
     sink?.disconnect();
@@ -43,7 +49,22 @@ export const createCapture = (onSamples: (samples: Float32Array) => void) => {
         tabSource.connect(processor);
         // tabCapture mutes the tab: route it back to the speakers, but do not play the mic.
         tabSource.connect(context.destination);
-        if (mic) context.createMediaStreamSource(mic).connect(processor);
+        if (mic) {
+          const micSource = context.createMediaStreamSource(mic);
+          micSource.connect(processor);
+          if (onMicSamples) {
+            const analyser = context.createAnalyser();
+            analyser.fftSize = 2048;
+            micSource.connect(analyser);
+            const samples = new Float32Array(analyser.fftSize);
+            micMeter = setInterval(() => {
+              if (context?.state === 'running') {
+                analyser.getFloatTimeDomainData(samples);
+                onMicSamples(samples);
+              }
+            }, 100);
+          }
+        }
         processor.connect(sink).connect(context.destination);
         position = 0;
         previous = 0;

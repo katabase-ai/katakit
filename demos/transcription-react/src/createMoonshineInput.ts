@@ -1,5 +1,6 @@
 import type { TranscriptLine, Transcriber } from '@moonshine-ai/moonshine-wasm';
 import type { TranscriptSegment } from '@katakit/transcription';
+import { createAudioLevelReporter } from '@katakit/site-ui/audio-level';
 import { moonshineAssetBase } from './moonshineAssets';
 import { createMicrophoneCapture } from './createMicrophoneCapture';
 import { moonshineArchitecture, type ModelId } from './models';
@@ -21,6 +22,7 @@ export const createMoonshineInput = (params: {
   onProvisional: (text: string) => void;
   onFinal: (segment: TranscriptSegment) => void;
   onStop: () => void;
+  onLevel?: (level: number) => void;
 }) => {
   let model: Transcriber | undefined;
   let loading: Promise<void> | undefined;
@@ -77,7 +79,10 @@ export const createMoonshineInput = (params: {
         update({ phase: 'starting' });
         const sourceId = crypto.randomUUID();
         const completed = new Set<TranscriptLine['id']>();
-        const current = createMicrophoneCapture(() => model!.createStream());
+        const current = createMicrophoneCapture(
+          () => model!.createStream(),
+          params.onLevel ? createAudioLevelReporter(params.onLevel, 16_000) : undefined
+        );
         capture = current;
         current.addListener({
           onLineStarted: ({ line }) => params.onProvisional(line.text),

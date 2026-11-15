@@ -1,28 +1,46 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { makeKatakit } from '@katakit/core';
+import {
+  bingoPacks,
+  defaultSquares,
+  drawBingoPack,
+  makeBingoPlugin,
+  type BingoBoard,
+  type BingoPackId,
+} from '@katakit/bingo';
 import { useKatakitObservable } from '@katakit/react';
 import { makeTranscriptionPlugin, type TranscriptSegment } from '@katakit/transcription';
-import { defaultSquares, matchPhrase, parseSquares, winningLines } from './bingo';
+import { AudioLevelMeter } from '@katakit/site-ui';
 
 const transcription = makeTranscriptionPlugin();
-const kit = makeKatakit({ plugins: [transcription.configure({})] });
-const methods = kit.start().getMethods(transcription);
+const bingo = makeBingoPlugin();
+const kit = makeKatakit({ plugins: [transcription.configure({}), bingo.configure({})] });
+const running = kit.start();
+const methods = running.getMethods(transcription);
+const bingoMethods = running.getMethods(bingo);
 const transcript$ = kit.getObservables(transcription).state$;
+const board$ = kit.getObservables(bingo).state$;
 
 type Phase = 'idle' | 'loading' | 'recording' | 'error';
 type CaptureState = { phase: Phase; progress?: number; error?: string; micConnected?: boolean };
-type StoredBoard = { squares: string[]; overrides: Record<number, boolean> };
 
 export const Bingo = () => {
   const transcript = useKatakitObservable(transcript$);
+  const board = useKatakitObservable(board$);
   const [capture, setCapture] = useState<CaptureState>({ phase: 'idle' });
-  const [squares, setSquares] = useState(defaultSquares);
-  const [overrides, setOverrides] = useState<Record<number, boolean>>({});
+  const [micLevel, setMicLevel] = useState(0);
+  const [tabLevel, setTabLevel] = useState(0);
   const [loaded, setLoaded] = useState(false);
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState('');
-  const [editError, setEditError] = useState('');
+  const [packId, setPackId] = useState<BingoPackId | 'custom'>('meeting');
+  const [customSquares, setCustomSquares] = useState([...defaultSquares]);
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    const subscription = transcript$.subscribe(state =>
+      bingoMethods.setTurns(state.current ? [...state.turns, state.current] : state.turns)
+    );
+    return () => subscription.unsubscribe();
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -33,9 +51,18 @@ export const Bingo = () => {
       progress?: number;
       error?: string;
       micConnected?: boolean;
+      source?: 'mic' | 'tab';
+      level?: number;
+      text?: string;
     }) => {
       if (message.type === 'TRANSCRIPT_SEGMENT' && message.segment)
         methods.ingestSegment(message.segment);
+      if (message.type === 'TRANSCRIPT_PROVISIONAL' && typeof message.text === 'string')
+        methods.updateProvisional(message.text);
+      if (message.type === 'CAPTURE_LEVEL' && typeof message.level === 'number') {
+        if (message.source === 'mic') setMicLevel(message.level);
+        if (message.source === 'tab') setTabLevel(message.level);
+      }
       if (message.type === 'CAPTURE_STATUS' && message.phase) {
         setCapture({
           phase: message.phase,
@@ -50,13 +77,27 @@ export const Bingo = () => {
     void (async () => {
       try {
         const [local, session] = await Promise.all([
-          chrome.storage.local.get('board'),
+          chrome.storage.local.get(['board', 'packId', 'customSquares']),
           chrome.storage.session.get(['segments', 'capture']),
         ]);
         if (!mounted) return;
-        const board = local.board as StoredBoard | undefined;
-        if (board?.squares?.length === 25) setSquares(board.squares);
-        if (board?.overrides) setOverrides(board.overrides);
+        const storedBoard = local.board as BingoBoard | undefined;
+        if (storedBoard?.squares?.length === 25) {
+          try {
+            bingoMethods.restoreBoard(storedBoard);
+            const savedPack = local.packId;
+            if (savedPack === 'custom' || bingoPacks.some(pack => pack.id === savedPack))
+              setPackId(savedPack as BingoPackId | 'custom');
+            else if (storedBoard.squares.some((phrase, index) => phrase !== defaultSquares[index]))
+              setPackId('custom');
+            if (Array.isArray(local.customSquares) && local.customSquares.length === 25)
+              setCustomSquares(local.customSquares as string[]);
+            else if (!savedPack || savedPack === 'custom')
+              setCustomSquares([...storedBoard.squares]);
+          } catch {
+            // Keep the default card if saved settings were from an incompatible version.
+          }
+        }
         for (const segment of (session.segments ?? []) as TranscriptSegment[])
           methods.ingestSegment(segment);
         if (session.capture) setCapture(session.capture as CaptureState);
@@ -74,19 +115,15 @@ export const Bingo = () => {
 
   useEffect(() => {
     if (loaded)
-      void chrome.storage.local.set({ board: { squares, overrides } satisfies StoredBoard });
-  }, [squares, overrides, loaded]);
+      void chrome.storage.local.set({
+        board: { squares: board.squares, overrides: board.overrides } satisfies BingoBoard,
+        packId,
+        customSquares,
+      });
+  }, [board.squares, board.overrides, packId, customSquares, loaded]);
 
   const turns = transcript.current ? [...transcript.turns, transcript.current] : transcript.turns;
-  const evidence = useMemo(
-    () =>
-      squares.map((phrase, index) =>
-        index === 12 ? undefined : turns.find(turn => matchPhrase(phrase, turn.text))?.text
-      ),
-    [squares, turns]
-  );
-  const marked = squares.map((_, index) => overrides[index] ?? (index === 12 || !!evidence[index]));
-  const wins = winningLines(marked);
+  const { squares, evidence, marked, winningLines: wins } = board;
   const count = marked.filter(Boolean).length - 1;
 
   const toggleCapture = async () => {
@@ -103,14 +140,13 @@ export const Bingo = () => {
     }
   };
 
-  const saveSquares = () => {
-    const next = parseSquares(draft);
-    if (!next) return setEditError('Enter exactly 24 phrases, one per line. The center is free.');
-    setSquares(next);
-    setOverrides({});
-    setEditError('');
-    setEditing(false);
+  const choosePack = (next: BingoPackId | 'custom') => {
+    if (next === packId) return;
+    bingoMethods.setSquares(next === 'custom' ? customSquares : drawBingoPack(next));
+    setPackId(next);
   };
+  const hasSavedCustomCard =
+    packId === 'custom' || customSquares.some((phrase, index) => phrase !== defaultSquares[index]);
 
   return (
     <main className="panel">
@@ -119,15 +155,6 @@ export const Bingo = () => {
           <h1>Conversation bingo</h1>
           <p>Hear a phrase. Claim a square.</p>
         </div>
-        <button
-          className="quiet"
-          onClick={() => {
-            setDraft(squares.filter((_, i) => i !== 12).join('\n'));
-            setEditing(!editing);
-          }}
-        >
-          {editing ? 'Close editor' : 'Edit card'}
-        </button>
       </header>
       <section className="play" aria-label="Bingo board">
         <div className="board-head">
@@ -146,11 +173,17 @@ export const Bingo = () => {
               className="square"
               data-marked={marked[index]}
               data-free={index === 12}
+              data-long={phrase.length > 22}
               aria-pressed={marked[index]}
-              title={evidence[index] ? `Heard: ${evidence[index]}` : undefined}
+              title={
+                evidence[index]
+                  ? `Heard: ${evidence[index]}`
+                  : phrase.length > 22
+                    ? phrase
+                    : undefined
+              }
               onClick={() => {
-                if (index !== 12)
-                  setOverrides(current => ({ ...current, [index]: !marked[index] }));
+                if (index !== 12) bingoMethods.setOverride(index, !marked[index]);
               }}
             >
               <span>{phrase}</span>
@@ -159,21 +192,33 @@ export const Bingo = () => {
           ))}
         </div>
       </section>
-      {editing && (
-        <section className="editor" aria-label="Edit bingo card">
-          <label htmlFor="phrases">Your 24 phrases</label>
-          <textarea
-            id="phrases"
-            value={draft}
-            onChange={event => setDraft(event.target.value)}
-            rows={8}
-          />
-          {editError && <p role="alert">{editError}</p>}
-          <button className="primary" onClick={saveSquares}>
-            Use these squares
-          </button>
-        </section>
-      )}
+      <section className="pack-picker" aria-label="Bingo word list">
+        <label htmlFor="bingo-pack">Word list</label>
+        <div>
+          <span className="pack-select">
+            <select
+              id="bingo-pack"
+              value={packId}
+              onChange={event => choosePack(event.target.value as BingoPackId | 'custom')}
+            >
+              {bingoPacks.map(pack => (
+                <option key={pack.id} value={pack.id}>
+                  {pack.label}
+                </option>
+              ))}
+              {hasSavedCustomCard && <option value="custom">Saved custom card</option>}
+            </select>
+          </span>
+          {packId !== 'custom' && (
+            <button
+              className="quiet"
+              onClick={() => bingoMethods.setSquares(drawBingoPack(packId))}
+            >
+              Shuffle
+            </button>
+          )}
+        </div>
+      </section>
       <section className="capture" aria-label="Conversation capture">
         <div className="capture-head">
           <h2>Listen to your call</h2>
@@ -188,8 +233,8 @@ export const Bingo = () => {
           </span>
         </div>
         <p>
-          Start on a browser meeting tab. English speech is transcribed on this device; the first
-          run downloads a model.
+          Start on a browser meeting tab. Moonshine Tiny streams English speech on this device; the
+          first run downloads a model.
         </p>
         <button
           className="primary"
@@ -198,6 +243,11 @@ export const Bingo = () => {
         >
           {busy ? 'Working…' : capture.phase === 'recording' ? 'Stop listening' : 'Start listening'}
         </button>
+        <AudioLevelMeter
+          active={capture.phase === 'recording'}
+          level={capture.micConnected ? micLevel : tabLevel}
+          label={capture.micConnected ? 'Microphone' : 'Tab audio'}
+        />
         {capture.phase === 'loading' && (
           <p role="status">
             Preparing transcription
@@ -213,7 +263,9 @@ export const Bingo = () => {
       <section className="heard-list" aria-label="Transcript">
         <h2>Last heard</h2>
         <p aria-live="polite">
-          {turns.at(-1)?.text || 'The transcript will appear here as you speak.'}
+          {transcript.provisional ||
+            turns.at(-1)?.text ||
+            'The transcript will appear here as you speak.'}
         </p>
       </section>
     </main>

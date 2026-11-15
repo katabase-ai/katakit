@@ -35,18 +35,24 @@ importers:
 
   demos/bingo-extension:
     dependencies:
+      '@katakit/bingo':
+        specifier: workspace:*
+        version: link:../../pkgs/bingo
       '@katakit/core':
         specifier: workspace:*
         version: link:../../pkgs/core
       '@katakit/react':
         specifier: workspace:*
         version: link:../../pkgs/react
+      '@katakit/site-ui':
+        specifier: workspace:*
+        version: link:../../pkgs/site-ui
       '@katakit/transcription':
         specifier: workspace:*
         version: link:../../pkgs/transcription
-      '@xenova/transformers':
-        specifier: ^2.17.2
-        version: 2.17.2(bare-buffer@3.7.2)
+      '@moonshine-ai/moonshine-wasm':
+        specifier: ^0.1.5
+        version: 0.1.5
       react:
         specifier: ^19.0.0
         version: 19.3.1
@@ -57,6 +63,52 @@ importers:
       '@types/chrome':
         specifier: ^0.1.37
         version: 0.1.43
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.0.0
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.0.0
+      '@vitejs/plugin-react':
+        specifier: ^4.4.0
+        version: 4.7.0(vite@6.4.6(@types/node@24.13.3))
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
+      vite:
+        specifier: ^6.0.0
+        version: 6.4.6(@types/node@24.13.3)
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/debug@4.1.13)(@types/node@24.13.3)(happy-dom@18.0.1)
+
+  demos/bingo-react:
+    dependencies:
+      '@katakit/bingo':
+        specifier: workspace:*
+        version: link:../../pkgs/bingo
+      '@katakit/core':
+        specifier: workspace:*
+        version: link:../../pkgs/core
+      '@katakit/react':
+        specifier: workspace:*
+        version: link:../../pkgs/react
+      '@katakit/site-ui':
+        specifier: workspace:*
+        version: link:../../pkgs/site-ui
+      '@katakit/transcription':
+        specifier: workspace:*
+        version: link:../../pkgs/transcription
+      '@moonshine-ai/moonshine-wasm':
+        specifier: ^0.1.5
+        version: 0.1.5
+      react:
+        specifier: ^19.0.0
+        version: 19.3.1
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.3.1(react@19.3.1)
+    devDependencies:
       '@types/react':
         specifier: ^19.0.0
         version: 19.0.0
@@ -195,6 +247,15 @@ importers:
       vite:
         specifier: ^6.0.0
         version: 6.4.6(@types/node@24.13.3)
+
+  pkgs/bingo:
+    dependencies:
+      '@katakit/core':
+        specifier: workspace:*
+        version: link:../core
+      rxjs:
+        specifier: ^7.8.2
+        version: 7.8.2
 
   pkgs/core:
     dependencies:

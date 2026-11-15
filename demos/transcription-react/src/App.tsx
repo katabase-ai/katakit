@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { makeKatakit } from '@katakit/core';
 import { useKatakitObservable } from '@katakit/react';
 import { makeTranscriptionPlugin } from '@katakit/transcription';
-import { Button, Notice, SelectField } from '@katakit/site-ui';
+import { AudioLevelMeter, Button, Notice, SelectField } from '@katakit/site-ui';
 import { createMoonshineInput, type InputState } from './createMoonshineInput';
 import { createWhisperInput } from './createWhisperInput';
 import { defaultModel, models, type ModelId } from './models';
@@ -22,6 +22,7 @@ const formatTime = (ms?: number) => {
 export const TranscriptionDemo = () => {
   const transcript = useKatakitObservable(state$);
   const [input, setInput] = useState<InputState>({ phase: 'idle' });
+  const [audioLevel, setAudioLevel] = useState(0);
   const [modelId, setModelId] = useState<ModelId>(defaultModel);
   const [switching, setSwitching] = useState(false);
   const owner = useRef<ReturnType<typeof createModelSwitcher> | null>(null);
@@ -30,6 +31,7 @@ export const TranscriptionDemo = () => {
   const makeInput = (id: ModelId) => {
     const callbacks = {
       onState: setInput,
+      onLevel: setAudioLevel,
       onFinal: methods.ingestSegment,
       onStop: methods.flush,
     };
@@ -57,6 +59,7 @@ export const TranscriptionDemo = () => {
     setSwitching(true);
     try {
       if (await owner.current.select(id)) {
+        setAudioLevel(0);
         methods.flush();
         setModelId(id);
         setInput({ phase: 'idle' });
@@ -128,6 +131,10 @@ export const TranscriptionDemo = () => {
                 ? 'Recording unavailable'
                 : 'Mic is off'}
         </span>
+      </div>
+
+      <div className="transcription-audio-level">
+        <AudioLevelMeter active={recording} level={audioLevel} />
       </div>
 
       {!available && (

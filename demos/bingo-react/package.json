@@ -1,0 +1,30 @@
+{
+  "name": "@katakit/demo-bingo-react",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "tsc": "tsc --noEmit",
+    "test": "vitest",
+    "test:ci": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@katakit/bingo": "workspace:*",
+    "@katakit/core": "workspace:*",
+    "@katakit/react": "workspace:*",
+    "@katakit/site-ui": "workspace:*",
+    "@katakit/transcription": "workspace:*",
+    "@moonshine-ai/moonshine-wasm": "^0.1.5",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.4.0",
+    "typescript": "^7.0.2",
+    "vite": "^6.0.0",
+    "vitest": "^3.2.4"
+  }
+}

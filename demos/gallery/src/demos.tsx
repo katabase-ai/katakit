@@ -18,10 +18,20 @@ export const demos: Demo[] = [
     }),
   },
   {
+    kind: 'react',
+    path: '/demos/bingo',
+    title: 'Conversation bingo',
+    description: 'Play a live bingo board using on-device microphone transcription.',
+    component: lazy(async () => {
+      const { BrowserBingoDemo } = await import('../../bingo-react/src/App');
+      return { default: BrowserBingoDemo };
+    }),
+  },
+  {
     kind: 'landing',
     path: '/demos/conversation-bingo',
-    title: 'Conversation bingo',
-    description: 'Play a bingo board that listens to your browser meeting.',
+    title: 'Conversation bingo for Chrome',
+    description: 'Play bingo with tab and microphone audio in a Chrome extension side panel.',
     content: () => (
       <div>
         <h1>Conversation bingo</h1>

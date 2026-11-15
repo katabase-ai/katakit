@@ -7,6 +7,7 @@
 .shell {
   min-height: 100svh;
 }
+.transcription-audio-level { max-width: 26rem; margin-top: var(--space-md); }
 .topbar {
   display: flex;
   justify-content: space-between;

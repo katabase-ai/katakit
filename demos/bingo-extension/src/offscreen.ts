@@ -1,32 +1,60 @@
 import { createCapture } from '../../../templates/chrome-extension/src/capture';
-import { createWhisperChunks } from './whisperChunks';
-import type { WhisperRequest, WhisperResponse } from './whisperProtocol';
+import { moonshineAssetBase } from '../../transcription-react/src/moonshineAssets';
+import { audioLevel, createAudioLevelReporter } from '@katakit/site-ui/audio-level';
+import { createPcmChunks } from './pcmChunks';
+import type { MoonshineRequest, MoonshineResponse } from './moonshineProtocol';
 // oxlint-disable-next-line import/default
-import WhisperWorker from './whisperWorker?worker';
+import MoonshineWorker from './moonshineWorker?worker';
 
 let capture: ReturnType<typeof createCapture> | undefined;
 let worker: Worker | undefined;
-let chunks = createWhisperChunks();
-let queued: { id: number; audio: Float32Array }[] = [];
-let nextId = 0;
-let inFlight = false;
+let chunks = createPcmChunks();
 let sessionId = '';
-let ready: ((value: void) => void) | undefined;
-let drained: (() => void) | undefined;
+let ready: (() => void) | undefined;
+let stopped: (() => void) | undefined;
 let error: string | undefined;
+let modelReady = false;
 
 const status = (phase: string, extra: object = {}) =>
   void chrome.runtime.sendMessage({ type: 'CAPTURE_STATUS', phase, ...extra });
 
-const sendNext = () => {
-  if (inFlight || !queued.length || !worker || error) return;
-  const item = queued.shift()!;
-  inFlight = true;
-  worker.postMessage({ type: 'transcribe', ...item } satisfies WhisperRequest, [item.audio.buffer]);
+const fail = (message: string) => {
+  error = message;
+  ready?.();
+  stopped?.();
+  status('error', { error });
+  const active = capture;
+  capture = undefined;
+  void active?.stop();
+  worker?.terminate();
+  worker = undefined;
+  modelReady = false;
 };
-const enqueue = (audio: Float32Array) => {
-  queued.push({ id: nextId++, audio });
-  sendNext();
+
+const getWorker = () => {
+  if (worker) return worker;
+  worker = new MoonshineWorker();
+  worker.onerror = event => fail(event.message || 'Speech recognition failed.');
+  worker.onmessage = ({ data }: MessageEvent<MoonshineResponse>) => {
+    if (data.type === 'progress') status('loading', { progress: data.progress });
+    if (data.type === 'ready') ready?.();
+    if (data.type === 'stopped') stopped?.();
+    if (data.type === 'error') fail(data.message);
+    if (data.type === 'provisional')
+      void chrome.runtime.sendMessage({ type: 'TRANSCRIPT_PROVISIONAL', text: data.text });
+    if (data.type === 'final')
+      void chrome.runtime.sendMessage({
+        type: 'TRANSCRIPT_SEGMENT',
+        segment: {
+          sourceId: sessionId,
+          id: data.line.id,
+          text: data.line.text,
+          startMs: data.line.startTime * 1000,
+          endMs: (data.line.startTime + data.line.duration) * 1000,
+        },
+      });
+  };
+  return worker;
 };
 
 chrome.runtime.onMessage.addListener((message, _sender, respond) => {
@@ -35,60 +63,51 @@ chrome.runtime.onMessage.addListener((message, _sender, respond) => {
       try {
         if (capture) throw new Error('Capture already running.');
         error = undefined;
-        chunks = createWhisperChunks();
-        queued = [];
-        nextId = 0;
+        chunks = createPcmChunks();
         sessionId = crypto.randomUUID();
         status('loading');
-        worker = new WhisperWorker();
-        worker.onerror = event => {
-          error = event.message || 'Speech recognition failed.';
-          ready?.();
-          drained?.();
-          status('error', { error });
-          void capture?.stop();
-        };
-        worker.onmessage = ({ data }: MessageEvent<WhisperResponse>) => {
-          if (data.type === 'progress') status('loading', { progress: data.progress });
-          if (data.type === 'ready') ready?.();
-          if (data.type === 'error') {
-            error = data.message;
-            ready?.();
-            drained?.();
-            status('error', { error });
-            void capture?.stop();
-          }
-          if (data.type === 'transcript') {
-            inFlight = false;
-            if (data.text.trim())
-              void chrome.runtime.sendMessage({
-                type: 'TRANSCRIPT_SEGMENT',
-                segment: { sourceId: sessionId, id: String(data.id), text: data.text },
-              });
-            sendNext();
-            if (!inFlight && !queued.length) drained?.();
-          }
-        };
-        await new Promise<void>(resolve => {
-          ready = resolve;
-          worker!.postMessage({
-            type: 'warmup',
-            wasmPath: chrome.runtime.getURL('ort/'),
-          } satisfies WhisperRequest);
-        });
-        ready = undefined;
-        if (error) throw new Error(error);
-        capture = createCapture(samples => {
-          for (const chunk of chunks.push(samples)) enqueue(chunk);
-        });
+        const recognizer = getWorker();
+        if (!modelReady) {
+          await new Promise<void>(resolve => {
+            ready = resolve;
+            recognizer.postMessage({
+              type: 'warmup',
+              assetUrl: chrome.runtime.getURL(`${moonshineAssetBase.slice(1)}index.js`),
+            } satisfies MoonshineRequest);
+          });
+          ready = undefined;
+          if (error) throw new Error(error);
+          modelReady = true;
+        }
+        recognizer.postMessage({ type: 'start' } satisfies MoonshineRequest);
+        const reportInputLevel = createAudioLevelReporter(level => {
+          void chrome.runtime.sendMessage({ type: 'CAPTURE_LEVEL', source: 'tab', level });
+        }, 16_000);
+        capture = createCapture(
+          samples => {
+            reportInputLevel(samples);
+            for (const chunk of chunks.push(samples))
+              recognizer.postMessage({ type: 'audio', samples: chunk } satisfies MoonshineRequest, [
+                chunk.buffer,
+              ]);
+          },
+          samples =>
+            void chrome.runtime.sendMessage({
+              type: 'CAPTURE_LEVEL',
+              source: 'mic',
+              level: audioLevel(samples),
+            })
+        );
         const { micConnected } = await capture.start(message.streamId);
+        if (error) throw new Error(error);
         status('recording', { micConnected });
         respond({ ok: true });
       } catch (error_) {
         await capture?.stop();
-        worker?.terminate();
         capture = undefined;
+        worker?.terminate();
         worker = undefined;
+        modelReady = false;
         status('error', { error: String(error_) });
         respond({ ok: false, error: String(error_) });
       }
@@ -101,19 +120,26 @@ chrome.runtime.onMessage.addListener((message, _sender, respond) => {
         await capture?.stop();
         capture = undefined;
         const last = chunks.flush();
-        if (last && !error) enqueue(last);
-        if ((inFlight || queued.length) && !error)
+        if (last && !error)
+          worker?.postMessage({ type: 'audio', samples: last } satisfies MoonshineRequest, [
+            last.buffer,
+          ]);
+        if (worker && !error)
           await new Promise<void>(resolve => {
-            drained = resolve;
+            stopped = resolve;
+            worker!.postMessage({ type: 'stop' } satisfies MoonshineRequest);
           });
-        drained = undefined;
-        status('idle');
+        stopped = undefined;
+        if (!error) status('idle');
         respond({ ok: true });
       } catch (error_) {
         respond({ ok: false, error: String(error_) });
       } finally {
-        worker?.terminate();
-        worker = undefined;
+        if (error) {
+          worker?.terminate();
+          worker = undefined;
+          modelReady = false;
+        }
       }
     })();
     return true;
