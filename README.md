@@ -8,7 +8,7 @@ are reserved under `@katakit/react` and are not implemented yet.
 
 - `pnpm tsc` checks every package, including tests, using its own `tsconfig.json`.
 - `pnpm test:ci` runs workspace tests.
-- `pnpm build` builds each package's JavaScript and declarations in dependency order.
+- `pnpm build` builds each library's JavaScript and declarations and the docs site.
 
 Package configs select the `source` export condition for typechecking. Event-log
 and persistence tests also select it, so editing core requires no intervening
@@ -16,3 +16,14 @@ build. Vite consumers can select it through `resolve.conditions` and, for SSR,
 `ssr.resolve.conditions`. Default package imports use the built `dist/` entry.
 
 There is no root TypeScript config or workspace source-path alias.
+
+## Documentation site
+
+The documentation site lives in `docs/`, with Getting started, Concepts, and
+Reference pages. Run `pnpm docs:dev` to preview it locally or `pnpm docs:build`
+to generate `docs/dist/` for a static host. Pages in `docs/pages/` define the
+navigation hierarchy; each section's `README.md` is its landing page. Run
+`pnpm --filter @katakit/docs exec node scripts/generate-nav.mjs` after adding
+or moving a page, and commit `docs/src/nav.json`. `pnpm docs:check` checks
+generated navigation, local Markdown links, and tests. The static host must
+serve `docs/dist/index.html` for unknown paths to support direct page URLs.

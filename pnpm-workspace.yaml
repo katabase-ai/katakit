@@ -1,5 +1,6 @@
 packages:
   - 'pkgs/*'
+  - 'docs'
 
 allowBuilds:
   esbuild: true
