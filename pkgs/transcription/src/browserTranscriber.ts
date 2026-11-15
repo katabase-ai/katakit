@@ -1,6 +1,6 @@
 import { createTranscriber } from './index';
 import { workerEngine } from './workerEngine';
-import { browserEngine } from './browserEngine';
+import { createProviderEngine } from './providerEngine';
 import {
   defaultTranscriptionModel,
   transcriptionModels,
@@ -16,21 +16,25 @@ import type { TranscriptionCallbacks, TranscriptionEngine } from './types';
 export { defaultTranscriptionModel, transcriptionModels, defaultTranscriptionAssetsBaseUrl };
 export type { TranscriptionModelId };
 
-export type BrowserTranscriberOptions = TranscriptionCallbacks & {
+type BrowserEngineOptions = {
   model?: TranscriptionModelId;
   /** Directory served/copied by transcriptionAssetsPlugin or copyTranscriptionAssets. */
   assetsBaseUrl?: string;
 };
 
-/** Browser engine setup for callers that already have mono PCM. */
-export const createBrowserEngine = (options: BrowserTranscriberOptions): TranscriptionEngine => {
+export type BrowserTranscriberOptions = TranscriptionCallbacks & BrowserEngineOptions;
+
+/** Choose the browser execution context and own its packaged recognition worker. */
+export const createBrowserRecognitionEngine = (
+  options: BrowserEngineOptions
+): TranscriptionEngine => {
   const model = options.model ?? defaultTranscriptionModel;
   const base = options.assetsBaseUrl ?? defaultTranscriptionAssetsBaseUrl;
   return async events => {
     checkBrowserSupport(model);
     return (
       model === 'whisper-tiny'
-        ? browserEngine(model, base)
+        ? createProviderEngine(model, base)
         : workerEngine({
             model,
             assetsBaseUrl: transcriptionAssetUrl(base, ''),
@@ -44,4 +48,4 @@ export const createBrowserEngine = (options: BrowserTranscriberOptions): Transcr
 };
 
 export const createBrowserTranscriber = (options: BrowserTranscriberOptions) =>
-  createTranscriber({ ...options, engine: createBrowserEngine(options) });
+  createTranscriber({ ...options, engine: createBrowserRecognitionEngine(options) });

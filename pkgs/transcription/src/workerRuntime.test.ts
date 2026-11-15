@@ -5,7 +5,7 @@ import type { EngineEvents, EngineSession } from './types';
 import type { TranscriptionWorkerRequest, TranscriptionWorkerResponse } from './workerProtocol';
 
 const mocks = vi.hoisted(() => ({ engine: vi.fn() }));
-vi.mock('./browserEngine', () => ({ browserEngine: mocks.engine }));
+vi.mock('./providerEngine', () => ({ createProviderEngine: mocks.engine }));
 beforeEach(() => vi.clearAllMocks());
 
 describe('generic transcription worker runtime', () => {

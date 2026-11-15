@@ -1,5 +1,5 @@
 import { createTranscriber } from './index';
-import { browserEngine } from './browserEngine';
+import { createProviderEngine } from './providerEngine';
 import { transcriptionError } from './errors';
 import type { Transcriber } from './types';
 import type { TranscriptionWorkerRequest, TranscriptionWorkerResponse } from './workerProtocol';
@@ -29,7 +29,7 @@ export const installTranscriptionWorker = (scope: WorkerScope) => {
           failed = false;
           await transcriber?.dispose();
           transcriber = createTranscriber({
-            engine: browserEngine(data.model, data.assetsBaseUrl),
+            engine: createProviderEngine(data.model, data.assetsBaseUrl),
             onState: state => {
               if (state.phase === 'loading')
                 scope.postMessage({ type: 'progress', progress: state.progress });

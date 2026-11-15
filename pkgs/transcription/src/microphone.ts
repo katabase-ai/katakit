@@ -1,4 +1,7 @@
-import { createBrowserEngine, type BrowserTranscriberOptions } from './browserTranscriber';
+import {
+  createBrowserRecognitionEngine,
+  type BrowserTranscriberOptions,
+} from './browserTranscriber';
 import {
   checkBrowserSupport,
   defaultTranscriptionAssetsBaseUrl,
@@ -19,10 +22,11 @@ export type MicrophoneTranscriber = Omit<Transcriber, 'write'>;
 
 /** Capture is an engine adapter: the PCM transcriber owns the only lifecycle. */
 export const createMicrophoneTranscriber = (options: MicrophoneOptions): MicrophoneTranscriber => {
-  const browserEngine = createBrowserEngine(options);
+  let disposed = false;
+  const recognitionEngine = createBrowserRecognitionEngine(options);
   const engine: TranscriptionEngine = async events => {
     checkBrowserSupport(options.model ?? defaultTranscriptionModel, true);
-    const model = await browserEngine(events);
+    const model = await recognitionEngine(events);
     let capture: ReturnType<typeof createMicrophoneCapture> | undefined;
     return {
       start: async sourceId => {
@@ -35,7 +39,7 @@ export const createMicrophoneTranscriber = (options: MicrophoneOptions): Microph
             'microphone-worklet.js'
           ),
           (audio, sampleRate) => {
-            if (options.onLevel) {
+            if (!disposed && options.onLevel) {
               for (const sample of audio) energy += sample * sample;
               count += audio.length;
               if (count >= sampleRate / 10) {
@@ -73,7 +77,7 @@ export const createMicrophoneTranscriber = (options: MicrophoneOptions): Microph
           try {
             await model.stop();
           } finally {
-            options.onLevel?.(0);
+            if (!disposed) options.onLevel?.(0);
           }
         }
       },
@@ -85,6 +89,9 @@ export const createMicrophoneTranscriber = (options: MicrophoneOptions): Microph
     load: transcriber.load,
     start: transcriber.start,
     stop: transcriber.stop,
-    dispose: transcriber.dispose,
+    dispose: () => {
+      disposed = true;
+      return transcriber.dispose();
+    },
   };
 };

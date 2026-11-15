@@ -7,12 +7,13 @@ const mocks = vi.hoisted(() => ({
   createEngine: vi.fn(),
   createCapture: vi.fn(),
 }));
-vi.mock('./browserTranscriber', () => ({ createBrowserEngine: mocks.createEngine }));
+vi.mock('./browserTranscriber', () => ({ createBrowserRecognitionEngine: mocks.createEngine }));
 vi.mock('./microphoneCapture', () => ({ createMicrophoneCapture: mocks.createCapture }));
 
 const setup = (onLevel?: (level: number) => void) => {
   const events: string[] = [];
   let callbacks: EngineEvents;
+  let onAudio: Transcriber['write'];
   const model: EngineSession = {
     start: vi.fn(async () => {
       events.push('model start');
@@ -33,7 +34,7 @@ const setup = (onLevel?: (level: number) => void) => {
     }),
     stop: vi.fn(async () => {
       events.push('capture stop');
-      model.write(new Float32Array(1), 16_000);
+      onAudio(new Float32Array(1600).fill(0.5), 16_000);
     }),
   };
   const load = vi.fn(async (events: EngineEvents) => {
@@ -41,7 +42,10 @@ const setup = (onLevel?: (level: number) => void) => {
     return model;
   });
   mocks.createEngine.mockReturnValue(load);
-  mocks.createCapture.mockReturnValue(capture);
+  mocks.createCapture.mockImplementation((_url, callback) => {
+    onAudio = callback;
+    return capture;
+  });
   const states: TranscriptionState[] = [];
   const onFinal = vi.fn();
   const onProvisional = vi.fn();
@@ -93,6 +97,23 @@ describe('microphone host adapter', () => {
     expect(model.write).toHaveBeenCalledWith(audio, 16_000);
     expect(onLevel).toHaveBeenCalledWith(1);
     await input.dispose();
+  });
+
+  it('suppresses level callbacks from pending audio and capture flushing after disposal begins', async () => {
+    const onLevel = vi.fn();
+    const { input, model } = setup(onLevel);
+    await input.start();
+    const onAudio = mocks.createCapture.mock.calls[0]![1] as Transcriber['write'];
+    const audio = new Float32Array(1600).fill(0.5);
+    onAudio(audio, 16_000);
+    expect(onLevel).toHaveBeenCalledWith(1);
+    onLevel.mockClear();
+    const disposal = input.dispose();
+    onAudio(audio, 16_000);
+    await disposal;
+    expect(onLevel).not.toHaveBeenCalled();
+    expect(model.stop).toHaveBeenCalledOnce();
+    expect(model.close).toHaveBeenCalledOnce();
   });
 
   it('delivers the final capture buffer before draining recognition and flushing turns', async () => {
