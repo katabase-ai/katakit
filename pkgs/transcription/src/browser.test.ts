@@ -25,6 +25,31 @@ describe('browser setup', () => {
     expect(() => checkBrowserSupport('whisper-tiny')).not.toThrow();
   });
 
+  it('classifies worker construction failures at the shared model boundary', async () => {
+    vi.stubGlobal('location', new URL('https://example.test/app/'));
+    vi.stubGlobal(
+      'Worker',
+      class {
+        constructor() {
+          throw new Error('worker blocked');
+        }
+      }
+    );
+    const onState = vi.fn();
+    const model = createBrowserTranscriber({ model: 'whisper-tiny', onFinal: vi.fn(), onState });
+    await expect(model.load()).rejects.toMatchObject({
+      code: 'model-load-failed',
+      message: 'worker blocked',
+    });
+    expect(onState).toHaveBeenCalledWith(
+      expect.objectContaining({
+        phase: 'error',
+        error: expect.objectContaining({ code: 'model-load-failed' }),
+      })
+    );
+    await model.dispose();
+  });
+
   it('creates the packaged module worker from an application-relative asset base', async () => {
     vi.stubGlobal('location', new URL('https://example.test/app/'));
     const workers: {
