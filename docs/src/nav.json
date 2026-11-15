@@ -48,6 +48,10 @@
         "slug": "reference/core"
       },
       {
+        "label": "Speech utilities",
+        "slug": "reference/speech"
+      },
+      {
         "label": "Plugins",
         "slug": "reference/plugins",
         "children": [

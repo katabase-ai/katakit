@@ -14,8 +14,8 @@ rechecks finalized turns and clears manual square corrections.
 Built static hosting needs cross-origin isolation (COOP/COEP headers), as in the
 transcription demo.
 
-The browser host supplies finalized segments to `@katakit/transcription`; a bingo plugin runtime effect follows its conversation turns. It uses the microphone input
-from `demos/transcription-react/`; it does not load any Chrome extension APIs.
+The browser host supplies finalized segments to `@katakit/transcription`; a bingo plugin runtime effect follows its conversation turns. It uses `createMicrophoneTranscriber` from
+[`@katakit/speech`](../../pkgs/speech/README.md); it does not load any Chrome extension APIs.
 The extension demo uses the same bingo plugin with a different audio host.
 
 The view binds only `lastHeard$` and the board with React-RxJS.

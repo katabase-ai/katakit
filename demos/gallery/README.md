@@ -18,3 +18,7 @@ transcription route needs `Cross-Origin-Opener-Policy: same-origin` and
 `Cross-Origin-Embedder-Policy: require-corp` on the document (and COEP on its
 Moonshine assets). Vite dev and preview set these headers locally. The first
 recording downloads a model; microphone input and transcript remain in-browser.
+
+The microphone demos use `@katakit/speech` and `speechAssetsPlugin` for recognition and
+runtime assets. Deploy the generated `speech-assets/` directory alongside the application.
+The development command builds the workspace utility before starting Vite.

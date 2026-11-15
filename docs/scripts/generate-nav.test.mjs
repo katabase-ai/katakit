@@ -26,6 +26,7 @@ test('navigation follows the section order and uses directory READMEs as landing
       slug: 'reference',
       children: [
         { label: 'Core', slug: 'reference/core' },
+        { label: 'Speech utilities', slug: 'reference/speech' },
         {
           label: 'Plugins',
           slug: 'reference/plugins',

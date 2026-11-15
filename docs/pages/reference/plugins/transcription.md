@@ -33,3 +33,10 @@ const Transcription = makeTranscriptionPlugin({
 The callback is invoked synchronously after the local event is published; returning `undefined` from `createEvent` skips forwarding. This is a **forward-only** integration: `conversationTurns$` derives from local events, not from the host's persisted or hydrated event log. The host must handle rehydration separately if it needs saved turns after a reload. Provisional text can be consumed locally without persisting it.
 
 `demos/transcription-react/` is a host-specific demonstration, not a template; [Templates and hosts](../../concepts/templates.md) explains that distinction.
+
+## Microphone and model integration
+
+Use the standalone [speech utilities](../speech.md) for Moonshine/Whisper model loading,
+microphone capture, and WASM/worker asset setup. Connect `onFinal` to `ingestSegment`,
+`onProvisional` to `updateProvisional`, and `onStop` to `flush`. Neither package depends on
+the other at runtime; the application composes them through structural callback types.

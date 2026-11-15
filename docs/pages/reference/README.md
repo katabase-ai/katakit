@@ -3,6 +3,7 @@
 Reference is the catalog of Katakit's concrete building blocks: the core API, plugins, and runnable form-factor templates. A plugin describes reusable behavior; a template is a host-specific starting point, not a library dependency.
 
 - [Core](core.md): runtime construction, plugin composition, effects, and reactive helpers.
+- [Speech utilities](speech.md): standalone recognition, microphone capture, and WASM/worker setup.
 - [Plugins](plugins/README.md): each plugin's inputs, outputs, options, and lifecycle.
 - [Templates](templates/README.md): runnable host starters and their setup, starting with Chrome extensions.
 

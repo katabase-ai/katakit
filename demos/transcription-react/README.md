@@ -18,12 +18,15 @@ that renders the latest property value, and a `Subscribe` boundary owns the shar
 UI subscription and releases it on unmount. Microphone and model disposal remain
 owned by the host effect. See the [React integration guide](../../docs/pages/getting-started/react.md).
 
-Both providers use the [shared model utilities](../../pkgs/transcription/README.md#shared-model-utilities)
-for model loading, recognition, normalized results, and cleanup. `createMicrophoneInput`
-owns microphone capture and feeds PCM to that source-neutral API; `whisperWorker.ts`
-installs the shared worker runtime. `moonshineAssetsPlugin` serves and copies the SDK's
-ESM, WASM, and pthread files without changing their sibling layout.
+Both providers use [`@katakit/speech`](../../pkgs/speech/README.md).
+`createMicrophoneTranscriber` owns microphone capture, model loading, worker communication,
+normalized recognition results, audio levels, and cleanup. The application owns the UI
+and connects callbacks to the transcription plugin. There are no demo-owned workers,
+worklets, or provider SDK loaders. `speechAssetsPlugin` serves/copies all runtime files;
+the development command builds the workspace utility first.
 
-Built static hosting also needs
-`Cross-Origin-Opener-Policy: same-origin` on the document and
-`Cross-Origin-Embedder-Policy: require-corp` on the document and Moonshine assets.
+Built static hosting needs `Cross-Origin-Opener-Policy: same-origin` and
+`Cross-Origin-Embedder-Policy: require-corp` for Moonshine's default threaded runtime.
+Whisper itself uses one inference thread and does not require those isolation headers;
+the demo configures them so either provider can be selected. For a Vite `base` other
+than `/`, set `assetsBaseUrl` to `${import.meta.env.BASE_URL}speech-assets/` in the helper options.

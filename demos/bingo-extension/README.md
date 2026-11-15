@@ -30,3 +30,7 @@ The panel binds only `lastHeard$` and the board with React-RxJS.
 A `Subscribe` boundary owns those UI subscriptions and releases them on unmount.
 The bingo plugin effect keeps matching independently; the host manages extension listeners.
 See the [React integration guide](../../docs/pages/getting-started/react.md).
+
+Recognition uses the standalone `@katakit/speech` PCM API inside the existing extension worker.
+`speechAssetsPlugin` packages Moonshine's runtime files; capture, permissions, and extension
+messages remain owned by the extension host. See the [speech utility guide](../../pkgs/speech/README.md).
