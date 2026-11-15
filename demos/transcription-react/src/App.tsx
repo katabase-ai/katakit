@@ -1,6 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { makeKatakit } from '@katakit/core';
-import { useKatakitObservable } from '@katakit/react';
 import { makeTranscriptionPlugin } from '@katakit/transcription';
 import { AudioLevelMeter, Button, Notice, SelectField } from '@katakit/site-ui';
 import { createMoonshineInput, type InputState } from './createMoonshineInput';
@@ -12,6 +11,11 @@ const Transcription = makeTranscriptionPlugin({ turnSilenceMs: 1400 });
 const kit = makeKatakit({ plugins: [Transcription.configure({})] });
 const methods = kit.start().getMethods(Transcription);
 const state$ = kit.getObservables(Transcription).state$;
+const subscribeToTranscript = (onChange: () => void) => {
+  const subscription = state$.subscribe(onChange);
+  return () => subscription.unsubscribe();
+};
+const getTranscript = () => state$.get();
 
 const formatTime = (ms?: number) => {
   if (ms === undefined) return undefined;
@@ -20,7 +24,7 @@ const formatTime = (ms?: number) => {
 };
 
 export const TranscriptionDemo = () => {
-  const transcript = useKatakitObservable(state$);
+  const transcript = useSyncExternalStore(subscribeToTranscript, getTranscript, getTranscript);
   const [input, setInput] = useState<InputState>({ phase: 'idle' });
   const [audioLevel, setAudioLevel] = useState(0);
   const [modelId, setModelId] = useState<ModelId>(defaultModel);
