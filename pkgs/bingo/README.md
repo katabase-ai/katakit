@@ -2,16 +2,20 @@
 
 A source-neutral bingo card for conversation turns. Register `makeBingoPlugin().configure({})`
 with `makeKatakit`, then use `getMethods(Bingo).setTurns(turns)` to supply the complete
-current turn list (`{ id, text }[]`). It can include a transcription plugin's
-`current` turn, whose words are finalized, but not provisional text. Replacing the
-list recomputes matches; duplicates and removed turns cannot leave stale matches.
+current turn list (`{ id, text }[]`). Alternatively, pass a `TranscriptionPlugin` to
+`makeBingoPlugin({ TranscriptionPlugin })` when both are registered in one runtime.
+The bingo plugin then reacts to finalized segments, completed turns, and resets
+through a runtime effect, including when no UI is mounted. It includes the current
+turn, whose words are finalized, but not provisional text. Replacing the list
+recomputes matches; duplicates and removed turns cannot leave stale matches.
 
 `state$` exposes the 25 squares, manual `overrides`, matched `evidence`, `marked`
 flags, and `winningLines`. The center is always free. `setOverride(index, value)`
 sets or clears a manual correction; `setSquares(makeSquares(phrases))` replaces a
 card of 24 phrases. `restoreBoard({ squares, overrides })` restores host-owned
 board state. The plugin holds no audio, UI, storage, network access, or timers;
-the host connects transcript state and persists board settings if desired.
+the host persists board settings if desired. Runtime effects currently have no
+whole-runtime disposal hook; unmounting React does not stop the bingo effect.
 
 `bingoPacks` provides meeting phrases, animals, US states, world capitals,
 tricky-to-pronounce words, corporate jargon, and AI technical jargon. Each

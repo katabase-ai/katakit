@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@katakit/core": "workspace:*",
+    "@katakit/transcription": "workspace:*",
     "rxjs": "^7.8.2"
   }
 }

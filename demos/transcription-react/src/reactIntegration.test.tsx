@@ -3,7 +3,8 @@ import { StrictMode } from 'react';
 import { act, cleanup, render } from '@testing-library/react';
 import { bind, Subscribe } from '@react-rxjs/core';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
-import { property } from '@katakit/core';
+import { makeKatakit, property } from '@katakit/core';
+import { makeTranscriptionPlugin } from '@katakit/transcription';
 import { afterEach, expect, test } from 'vitest';
 
 afterEach(cleanup);
@@ -71,4 +72,45 @@ test('one boundary owns multiple bound streams and renders updates from each', (
   view.unmount();
   expect(transcript$.observed).toBe(false);
   expect(board$.observed).toBe(false);
+});
+
+test('transcription bindings render initially undefined values and update across resets', () => {
+  const Transcription = makeTranscriptionPlugin();
+  const kit = makeKatakit({ plugins: [Transcription.configure({})] });
+  const methods = kit.start().getMethods(Transcription);
+  const { conversationTurns$, currentTurn$, provisional$, lastHeard$ } =
+    kit.getObservables(Transcription);
+  const [useTurns, turnsState$] = bind(conversationTurns$);
+  const [useCurrent, currentState$] = bind(currentTurn$);
+  const [useProvisional, provisionalState$] = bind(provisional$);
+  const [useLastHeard, lastHeardState$] = bind(lastHeard$);
+  const view$ = combineLatest([turnsState$, currentState$, provisionalState$, lastHeardState$]);
+  const View = () => (
+    <output>{`${useTurns().length}|${useCurrent()?.text ?? '-'}|${useProvisional() ?? '-'}|${useLastHeard() ?? '-'}`}</output>
+  );
+  const view = render(
+    <Subscribe source$={view$}>
+      <View />
+    </Subscribe>
+  );
+
+  expect(view.getByRole('status').textContent).toBe('0|-|-|-');
+  act(() => methods.updateProvisional('Hello'));
+  expect(view.getByRole('status').textContent).toBe('0|-|Hello|-');
+  act(() => methods.ingestSegment({ id: '1', sourceId: 'mic', text: 'Hello.' }));
+  expect(view.getByRole('status').textContent).toBe('0|Hello.|-|Hello.');
+  act(() => methods.flush());
+  expect(view.getByRole('status').textContent).toBe('1|-|-|Hello.');
+  act(() => methods.reset());
+  expect(view.getByRole('status').textContent).toBe('0|-|-|-');
+
+  view.unmount();
+  const remounted = render(
+    <Subscribe source$={view$}>
+      <View />
+    </Subscribe>
+  );
+  expect(remounted.getByRole('status').textContent).toBe('0|-|-|-');
+  remounted.unmount();
+  methods.close();
 });

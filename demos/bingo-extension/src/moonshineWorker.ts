@@ -24,8 +24,6 @@ self.onmessage = async ({ data }: MessageEvent<MoonshineRequest>) => {
       stream?.close();
       stream = model.createStream();
       stream.addListener({
-        onLineStarted: ({ line }) => send({ type: 'provisional', text: line.text }),
-        onLineTextChanged: ({ line }) => send({ type: 'provisional', text: line.text }),
         onLineCompleted: ({ line }) => send({ type: 'final', line }),
         onError: ({ error }) => send({ type: 'error', message: String(error) }),
       });
