@@ -22,7 +22,7 @@
         "slug": "concepts/event-history"
       },
       {
-        "label": "Persistence",
+        "label": "Event-log persistence",
         "slug": "concepts/persistence"
       },
       {
@@ -34,7 +34,7 @@
         "slug": "concepts/runtime"
       },
       {
-        "label": "Templates and hosts",
+        "label": "Templates and applications",
         "slug": "concepts/templates"
       }
     ]

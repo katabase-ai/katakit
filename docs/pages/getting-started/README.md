@@ -19,12 +19,11 @@ const EventLogPlugin = makeEventLogPlugin({
 });
 
 const eventLog = EventLogPlugin.configure({ initialEvents: [] });
-const runtime = makeKatakit({ plugins: [eventLog] });
-const running = runtime.start();
+const katakit = makeKatakit({ plugins: [eventLog] }).start();
 
-const { events$ } = running.getObservables(EventLogPlugin);
+const { events$ } = katakit.getObservables(EventLogPlugin);
 const subscription = events$.subscribe(event => console.log(event));
-running.getMethods(EventLogPlugin).emitEvent({ type: 'message', text: 'Hello' });
+katakit.getMethods(EventLogPlugin).emitEvent({ type: 'message', text: 'Hello' });
 
 console.log(events$.getAll()); // [{ type: 'message', text: 'Hello' }]
 subscription.unsubscribe();
