@@ -1,7 +1,11 @@
 import { createTranscriber } from './index';
 import { moonshine } from './moonshine';
 import { whisper } from './whisper';
-import { transcriptionModels, type TranscriptionModelId } from './catalog';
+import {
+  defaultTranscriptionModel,
+  transcriptionModels,
+  type TranscriptionModelId,
+} from './catalog';
 import {
   checkBrowserSupport,
   defaultTranscriptionAssetsBaseUrl,
@@ -9,7 +13,7 @@ import {
 } from './browserRuntime';
 import type { TranscriptionCallbacks, TranscriptionEngine } from './types';
 
-export { transcriptionModels, defaultTranscriptionAssetsBaseUrl };
+export { defaultTranscriptionModel, transcriptionModels, defaultTranscriptionAssetsBaseUrl };
 export type { TranscriptionModelId };
 
 export type BrowserTranscriberOptions = TranscriptionCallbacks & {
@@ -20,7 +24,7 @@ export type BrowserTranscriberOptions = TranscriptionCallbacks & {
 
 /** Browser engine setup for callers that already have mono PCM. */
 export const createBrowserEngine = (options: BrowserTranscriberOptions): TranscriptionEngine => {
-  const model = options.model ?? 'moonshine-small';
+  const model = options.model ?? defaultTranscriptionModel;
   const base = options.assetsBaseUrl ?? defaultTranscriptionAssetsBaseUrl;
   return async events => {
     checkBrowserSupport(model);

@@ -7,6 +7,7 @@ import {
 import { createMicrophoneCapture } from './microphoneCapture';
 import { createTranscriber } from './index';
 import { transcriptionError } from './errors';
+import { defaultTranscriptionModel } from './catalog';
 import type { Transcriber, TranscriptionEngine } from './types';
 
 export type MicrophoneOptions = BrowserTranscriberOptions & {
@@ -20,7 +21,7 @@ export type MicrophoneTranscriber = Omit<Transcriber, 'write'>;
 export const createMicrophoneTranscriber = (options: MicrophoneOptions): MicrophoneTranscriber => {
   const browserEngine = createBrowserEngine(options);
   const engine: TranscriptionEngine = async events => {
-    checkBrowserSupport(options.model ?? 'moonshine-small', true);
+    checkBrowserSupport(options.model ?? defaultTranscriptionModel, true);
     const model = await browserEngine(events);
     let capture: ReturnType<typeof createMicrophoneCapture> | undefined;
     return {

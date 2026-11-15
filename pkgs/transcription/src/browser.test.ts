@@ -1,10 +1,25 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createBrowserTranscriber, createMicrophoneTranscriber } from './browser';
+import {
+  createBrowserTranscriber,
+  createMicrophoneTranscriber,
+  defaultTranscriptionModel,
+} from './browser';
 import { checkBrowserSupport, transcriptionAssetUrl } from './browserRuntime';
 
 afterEach(() => vi.unstubAllGlobals());
 
 describe('browser setup', () => {
+  it('uses the catalog default for both PCM and microphone transcription', async () => {
+    expect(defaultTranscriptionModel).toBe('moonshine-small');
+    vi.stubGlobal('Worker', vi.fn());
+    vi.stubGlobal('crossOriginIsolated', false);
+    for (const create of [createBrowserTranscriber, createMicrophoneTranscriber]) {
+      const input = create({ onFinal: vi.fn() });
+      await expect(input.load()).rejects.toMatchObject({ code: 'cross-origin-isolation-required' });
+      await input.dispose();
+    }
+  });
+
   it('can be imported and constructed without touching browser APIs', async () => {
     const Worker = vi.fn();
     vi.stubGlobal('Worker', Worker);

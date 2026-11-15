@@ -4,6 +4,7 @@ import type { MoonshineRequest, MoonshineResponse } from './moonshineProtocol';
 
 const send = (message: MoonshineResponse) => self.postMessage(message);
 let transcriber: Transcriber | undefined;
+let reportedError: unknown;
 self.onmessage = async ({ data }: MessageEvent<MoonshineRequest>) => {
   try {
     if (data.type === 'warmup') {
@@ -15,8 +16,10 @@ self.onmessage = async ({ data }: MessageEvent<MoonshineRequest>) => {
         }),
         onState: state => {
           if (state.phase === 'loading') send({ type: 'progress', progress: state.progress ?? 0 });
-          if (state.phase === 'error')
+          if (state.phase === 'error') {
+            reportedError = state.error;
             send({ type: 'error', message: state.error?.message ?? 'Recognition failed.' });
+          }
         },
         onFinal: segment => send({ type: 'final', segment }),
       });
@@ -31,6 +34,9 @@ self.onmessage = async ({ data }: MessageEvent<MoonshineRequest>) => {
       send({ type: 'stopped' });
     }
   } catch (error) {
-    send({ type: 'error', message: error instanceof Error ? error.message : String(error) });
+    // Lifecycle failures have already been reported by onState. Still report errors
+    // outside the transcriber (such as a start before warmup).
+    if (error !== reportedError)
+      send({ type: 'error', message: error instanceof Error ? error.message : String(error) });
   }
 };
