@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "demo:transcription": "pnpm --filter @katakit/demo-transcription dev",
     "build": "pnpm -r build",
     "tsc": "pnpm -r tsc",
     "lint": "oxlint --deny-warnings",

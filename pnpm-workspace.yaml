@@ -1,5 +1,7 @@
 packages:
   - 'pkgs/*'
+  - 'demos/*'
+  - 'templates/*'
 
 allowBuilds:
   esbuild: true
