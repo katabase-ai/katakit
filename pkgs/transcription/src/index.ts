@@ -66,6 +66,18 @@ export const createTranscriber = (
     provider = undefined;
     await current?.close();
   };
+  const cleanupFailure = async () => {
+    if (!failure) return;
+    try {
+      try {
+        await finish();
+      } finally {
+        await release();
+      }
+    } catch {
+      // Preserve the original failure already reported through onState.
+    }
+  };
   const fail = (error: unknown) => {
     if (failure) return;
     failure = transcriptionError(
@@ -73,24 +85,14 @@ export const createTranscriber = (
       phase === 'loading' ? 'model-load-failed' : 'recognition-failed'
     );
     update({ phase: 'error', error: failure });
-    // Async worker failures also stop recognition and release the failed model.
-    void (async () => {
-      try {
-        await serialize(async () => {
-          try {
-            await finish();
-          } finally {
-            await release();
-          }
-        });
-      } catch {
-        // The original failure was already reported through onState.
-      }
-    })();
+    // Handle async failures even when no lifecycle operation follows them.
+    void serialize(cleanupFailure);
   };
   const run = (action: () => Promise<void>) =>
     serialize(async () => {
       try {
+        // A retry already in the queue must release the failed owner before loading another.
+        if (failure) await cleanupFailure();
         await action();
       } catch (error) {
         const cause = transcriptionError(error, 'recognition-failed');

@@ -169,6 +169,45 @@ describe('shared transcription model', () => {
     await model.dispose();
   });
 
+  it.each(['rejection', 'error event'] as const)(
+    'keeps a queued start running after a preload %s',
+    async mode => {
+      const failedClose = vi.fn();
+      const replacement = { start: vi.fn(), write: vi.fn(), stop: vi.fn(), close: vi.fn() };
+      const engine = vi.fn(async (events: import('./types').EngineEvents) => {
+        if (engine.mock.calls.length > 1) return replacement;
+        const error = new Error('temporary load failure');
+        if (mode === 'rejection') throw error;
+        events.onError(error);
+        return { start: vi.fn(), write: vi.fn(), stop: vi.fn(), close: failedClose };
+      });
+      const onStop = vi.fn();
+      const states: TranscriptionState[] = [];
+      const model = createTranscriber({
+        engine,
+        onFinal: vi.fn(),
+        onStop,
+        onState: state => states.push(state),
+      });
+      const preload = model.load();
+      const start = model.start();
+      const results = await Promise.allSettled([preload, start]);
+      expect(results.map(result => result.status)).toEqual(['rejected', 'fulfilled']);
+      // A subsequent operation waits for any cleanup queued by the earlier failure.
+      await model.load();
+      const audio = new Float32Array(16);
+      model.write(audio, 16_000);
+      expect(replacement.write).toHaveBeenCalledWith(audio, 16_000);
+      expect(replacement.close).not.toHaveBeenCalled();
+      expect(onStop).not.toHaveBeenCalled();
+      expect(states.at(-1)).toEqual({ phase: 'running' });
+      expect(failedClose).toHaveBeenCalledTimes(mode === 'error event' ? 1 : 0);
+      await model.dispose();
+      expect(replacement.close).toHaveBeenCalledOnce();
+      expect(onStop).toHaveBeenCalledOnce();
+    }
+  );
+
   it('does not start a model that reports an error while loading', async () => {
     const close = vi.fn();
     const start = vi.fn();
