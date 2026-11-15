@@ -1,17 +1,16 @@
-import type { Provider, ProviderEvents } from './types';
+import type { EngineSession, EngineEvents, SpeechEngine } from './types';
 import { createWhisperChunks } from './whisperChunks';
 import type { WhisperRequest, WhisperResponse } from './whisperProtocol';
 
 export type WhisperOptions = {
-  provider: 'whisper';
   /** A dedicated worker running installWhisperWorker from the whisper-worker entry. */
   createWorker: () => Worker;
 };
 
 export const loadWhisper = async (
   options: WhisperOptions,
-  events: ProviderEvents
-): Promise<Provider> => {
+  events: EngineEvents
+): Promise<EngineSession> => {
   const worker = options.createWorker();
   const ready = Promise.withResolvers<void>();
   let drain: ReturnType<typeof Promise.withResolvers<void>> | undefined;
@@ -111,3 +110,8 @@ export const loadWhisper = async (
     },
   };
 };
+
+export const whisper =
+  (options: WhisperOptions): SpeechEngine =>
+  events =>
+    loadWhisper(options, events);

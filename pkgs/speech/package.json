@@ -1,0 +1,67 @@
+{
+  "name": "@katakit/speech",
+  "version": "0.0.0",
+  "description": "Framework-independent speech recognition utilities.",
+  "license": "Apache-2.0",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./moonshine": {
+      "source": "./src/moonshine.ts",
+      "types": "./dist/moonshine.d.ts",
+      "default": "./dist/moonshine.js"
+    },
+    "./whisper": {
+      "source": "./src/whisper.ts",
+      "types": "./dist/whisper.d.ts",
+      "default": "./dist/whisper.js"
+    },
+    "./whisper-worker": {
+      "source": "./src/whisperWorker.ts",
+      "types": "./dist/whisperWorker.d.ts",
+      "default": "./dist/whisperWorker.js"
+    }
+  },
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./moonshine": {
+        "types": "./dist/moonshine.d.ts",
+        "default": "./dist/moonshine.js"
+      },
+      "./whisper": {
+        "types": "./dist/whisper.d.ts",
+        "default": "./dist/whisper.js"
+      },
+      "./whisper-worker": {
+        "types": "./dist/whisperWorker.d.ts",
+        "default": "./dist/whisperWorker.js"
+      }
+    },
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "tsc": "tsc --project tsconfig.json",
+    "test": "vitest",
+    "test:ci": "vitest run --passWithNoTests",
+    "prepack": "pnpm build"
+  },
+  "devDependencies": {
+    "@moonshine-ai/moonshine-wasm": "0.1.5",
+    "@xenova/transformers": "^2.17.2"
+  }
+}

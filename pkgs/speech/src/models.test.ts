@@ -1,8 +1,8 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest';
 import type { TranscriptEventListener, TranscriptLine } from '@moonshine-ai/moonshine-wasm';
-import { makeKatakit } from '@katakit/core';
-import { makeTranscriptionPlugin } from '../plugin';
-import { createTranscriptionModel, type ModelState, type MoonshineOptions } from './index';
+import { createTranscriber, type SpeechState } from './index';
+import { moonshine as moonshineEngine, type MoonshineOptions } from './moonshine';
+import { whisper } from './whisper';
 import type { WhisperRequest, WhisperResponse } from './whisperProtocol';
 import { createWhisperChunks } from './whisperChunks';
 
@@ -21,7 +21,7 @@ const moonshine = () => {
   const sdk = { Transcriber: { load } } as unknown as Awaited<
     ReturnType<MoonshineOptions['loadSdk']>
   >;
-  const options: MoonshineOptions = { provider: 'moonshine', loadSdk: async () => sdk };
+  const options: MoonshineOptions = { loadSdk: async () => sdk };
   const line = (text: string) =>
     ({ id: '1', text, startTime: 0.5, duration: 0.75 }) as TranscriptLine;
   return { options, sdk, load, stream, model, listeners, line };
@@ -46,30 +46,29 @@ class FakeWorker {
 }
 
 describe('shared transcription model', () => {
-  it('loads once, normalizes Moonshine results into the plugin, and drains before flushing', async () => {
+  it('loads once, normalizes Moonshine results, and drains before notifying stop', async () => {
     expectTypeOf<typeof import('@moonshine-ai/moonshine-wasm')>().toMatchTypeOf<
       Awaited<ReturnType<MoonshineOptions['loadSdk']>>
     >();
     const mock = moonshine();
-    const Transcription = makeTranscriptionPlugin();
-    const kit = makeKatakit({ plugins: [Transcription.configure({})] });
-    const methods = kit.start().getMethods(Transcription);
-    const observables = kit.getObservables(Transcription);
-    const state = () => ({
-      turns: observables.conversationTurns$.get(),
-      current: observables.currentTurn$.get(),
-      provisional: observables.provisional$.get(),
-    });
-    const phases: ModelState['phase'][] = [];
-    const model = createTranscriptionModel({
-      ...mock.options,
-      model: 'medium',
+    const finals: import('./types').SpeechSegment[] = [];
+    let provisional = '';
+    const onStop = vi.fn();
+    const phases: SpeechState['phase'][] = [];
+    const model = createTranscriber({
+      engine: moonshineEngine({ ...mock.options, model: 'medium' }),
       onState: ({ phase }) => phases.push(phase),
-      onProvisional: methods.updateProvisional,
-      onFinal: methods.ingestSegment,
-      onStop: methods.flush,
+      onProvisional: text => {
+        provisional = text;
+      },
+      onFinal: segment => finals.push(segment),
+      onStop,
     });
-    await Promise.all([model.load(), model.start('pcm-source'), model.start('ignored')]);
+    await Promise.all([
+      model.load(),
+      model.start({ sourceId: 'pcm-source' }),
+      model.start({ sourceId: 'ignored' }),
+    ]);
     expect(mock.load).toHaveBeenCalledTimes(1);
     expect(mock.load).toHaveBeenCalledWith(
       expect.objectContaining({ language: 'en', modelArch: 5 })
@@ -81,14 +80,15 @@ describe('shared transcription model', () => {
     expect(mock.stream.transcribe).toHaveBeenCalledOnce();
     const listener = mock.listeners[0]!;
     listener.onLineStarted?.({ line: mock.line('preview') });
-    expect(state().provisional).toBe('preview');
+    expect(provisional).toBe('preview');
     mock.stream.stop.mockImplementation(() => {
       listener.onLineCompleted?.({ line: mock.line('Final.') });
       listener.onLineCompleted?.({ line: mock.line('Final.') });
     });
     await Promise.all([model.stop(), model.stop()]);
-    expect(state().turns).toHaveLength(1);
-    expect(state().turns[0]).toMatchObject({
+    expect(finals).toHaveLength(1);
+    expect(onStop).toHaveBeenCalledOnce();
+    expect(finals[0]).toMatchObject({
       sourceId: 'pcm-source',
       text: 'Final.',
       startMs: 500,
@@ -96,7 +96,7 @@ describe('shared transcription model', () => {
     });
     expect(mock.stream.stop).toHaveBeenCalledOnce();
     expect(mock.stream.close).toHaveBeenCalledOnce();
-    await model.start('second-source');
+    await model.start({ sourceId: 'second-source' });
     await model.stop();
     expect(mock.load).toHaveBeenCalledOnce();
     await Promise.all([model.dispose(), model.dispose()]);
@@ -104,7 +104,6 @@ describe('shared transcription model', () => {
     expect(mock.model.close).toHaveBeenCalledOnce();
     expect(mock.model.createStream).toHaveBeenCalledTimes(2);
     expect(phases).toContain('running');
-    methods.close();
   });
 
   it('waits for a pending load on disposal and suppresses late results', async () => {
@@ -113,7 +112,11 @@ describe('shared transcription model', () => {
     const loadSdk = vi.fn(() => loading.promise);
     const onFinal = vi.fn();
     const onState = vi.fn();
-    const model = createTranscriptionModel({ ...mock.options, loadSdk, onFinal, onState });
+    const model = createTranscriber({
+      engine: moonshineEngine({ ...mock.options, loadSdk }),
+      onFinal,
+      onState,
+    });
     const start = model.start();
     await vi.waitFor(() => expect(loadSdk).toHaveBeenCalledOnce());
     const dispose = model.dispose();
@@ -128,9 +131,9 @@ describe('shared transcription model', () => {
 
   it('closes a failed Moonshine stream and allows model loading to be retried', async () => {
     const mock = moonshine();
-    const states: ModelState[] = [];
-    const model = createTranscriptionModel({
-      ...mock.options,
+    const states: SpeechState[] = [];
+    const model = createTranscriber({
+      engine: moonshineEngine(mock.options),
       onFinal: vi.fn(),
       onState: state => states.push(state),
     });
@@ -153,7 +156,10 @@ describe('shared transcription model', () => {
       .fn()
       .mockRejectedValueOnce(new Error('download failed'))
       .mockResolvedValue(mock.sdk);
-    const model = createTranscriptionModel({ ...mock.options, loadSdk, onFinal: vi.fn() });
+    const model = createTranscriber({
+      engine: moonshineEngine({ ...mock.options, loadSdk }),
+      onFinal: vi.fn(),
+    });
     await expect(model.load()).rejects.toThrow('download failed');
     await model.start();
     expect(loadSdk).toHaveBeenCalledTimes(2);
@@ -164,13 +170,12 @@ describe('shared transcription model', () => {
     const worker = new FakeWorker();
     const onFinal = vi.fn();
     const onStop = vi.fn();
-    const model = createTranscriptionModel({
-      provider: 'whisper',
-      createWorker: worker.asWorker,
+    const model = createTranscriber({
+      engine: whisper({ createWorker: worker.asWorker }),
       onFinal,
       onStop,
     });
-    await model.start('buffer-source');
+    await model.start({ sourceId: 'buffer-source' });
     const audio = new Float32Array(320_032).fill(0.5);
     model.write(audio, 16_000);
     audio.fill(0);
@@ -191,7 +196,7 @@ describe('shared transcription model', () => {
       { sourceId: 'buffer-source', id: '2', text: 'Tail.', startMs: 20_000, endMs: 20_002 },
     ]);
     expect(onStop).toHaveBeenCalledOnce();
-    await model.start('another-source');
+    await model.start({ sourceId: 'another-source' });
     model.write(new Float32Array(16), 16_000);
     const secondStop = model.stop();
     await vi.waitFor(() => expect(worker.requests).toHaveLength(5));
@@ -211,7 +216,7 @@ describe('shared transcription model', () => {
       .fn()
       .mockReturnValueOnce(first.asWorker())
       .mockReturnValue(next.asWorker());
-    const model = createTranscriptionModel({ provider: 'whisper', createWorker, onFinal: vi.fn() });
+    const model = createTranscriber({ engine: whisper({ createWorker }), onFinal: vi.fn() });
     const start = model.start();
     const rejection = (async () => {
       await expect(start).rejects.toThrow('worker crashed');
@@ -230,9 +235,8 @@ describe('shared transcription model', () => {
     const worker = new FakeWorker();
     worker.autoReady = false;
     const onFinal = vi.fn();
-    const model = createTranscriptionModel({
-      provider: 'whisper',
-      createWorker: worker.asWorker,
+    const model = createTranscriber({
+      engine: whisper({ createWorker: worker.asWorker }),
       onFinal,
     });
     const start = model.start();
@@ -249,9 +253,8 @@ describe('shared transcription model', () => {
   it('unblocks a failed Whisper drain and ignores subsequent results', async () => {
     const worker = new FakeWorker();
     const onFinal = vi.fn();
-    const model = createTranscriptionModel({
-      provider: 'whisper',
-      createWorker: worker.asWorker,
+    const model = createTranscriber({
+      engine: whisper({ createWorker: worker.asWorker }),
       onFinal,
     });
     await model.start();
@@ -271,9 +274,8 @@ describe('shared transcription model', () => {
 
   it('rejects unsupported Whisper sample rates and releases resources', async () => {
     const worker = new FakeWorker();
-    const model = createTranscriptionModel({
-      provider: 'whisper',
-      createWorker: worker.asWorker,
+    const model = createTranscriber({
+      engine: whisper({ createWorker: worker.asWorker }),
       onFinal: vi.fn(),
     });
     await model.start();

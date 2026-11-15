@@ -1,4 +1,4 @@
-import type { Provider, ProviderEvents } from './types';
+import type { EngineSession, EngineEvents, SpeechEngine } from './types';
 
 type MoonshineLine = { id: string; text: string; startTime: number; duration: number };
 type MoonshineStream = {
@@ -27,7 +27,6 @@ type MoonshineSdk = {
 };
 
 export type MoonshineOptions = {
-  provider: 'moonshine';
   model?: 'tiny' | 'small' | 'medium';
   /** Load the SDK with its ESM, WASM and pthread files preserved as siblings. */
   loadSdk: () => Promise<MoonshineSdk>;
@@ -35,8 +34,8 @@ export type MoonshineOptions = {
 
 export const loadMoonshine = async (
   options: MoonshineOptions,
-  events: ProviderEvents
-): Promise<Provider> => {
+  events: EngineEvents
+): Promise<EngineSession> => {
   const sdk = await options.loadSdk();
   const model = await sdk.Transcriber.load({
     language: 'en',
@@ -88,3 +87,8 @@ export const loadMoonshine = async (
     },
   };
 };
+
+export const moonshine =
+  (options: MoonshineOptions): SpeechEngine =>
+  events =>
+    loadMoonshine(options, events);
