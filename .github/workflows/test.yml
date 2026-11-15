@@ -33,6 +33,8 @@ jobs:
             script: test:ci
           - name: Build
             script: build
+          - name: Documentation
+            script: docs:check
     steps:
       - uses: actions/checkout@v4
       - name: Install pnpm

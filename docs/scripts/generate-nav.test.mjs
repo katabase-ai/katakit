@@ -1,0 +1,42 @@
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { buildNav, generateNav } from './generate-nav.mjs';
+
+test('navigation follows the section order and uses directory READMEs as landing pages', () => {
+  assert.deepEqual(buildNav(), [
+    { label: 'Why Katakit?', slug: 'why-katakit' },
+    { label: 'Getting started', slug: 'getting-started', children: [] },
+    {
+      label: 'Concepts',
+      slug: 'concepts',
+      children: [
+        { label: 'Event history', slug: 'concepts/event-history' },
+        { label: 'Persistence', slug: 'concepts/persistence' },
+        { label: 'Plugins', slug: 'concepts/plugins' },
+        { label: 'Runtime and lifecycle', slug: 'concepts/runtime' },
+        { label: 'Templates and hosts', slug: 'concepts/templates' },
+      ],
+    },
+    {
+      label: 'Reference',
+      slug: 'reference',
+      children: [
+        { label: 'Core', slug: 'reference/core' },
+        {
+          label: 'Plugins',
+          slug: 'reference/plugins',
+          children: [
+            { label: 'Event log', slug: 'reference/plugins/event-log' },
+            { label: 'Persistence', slug: 'reference/plugins/persistence' },
+            { label: 'Transcription', slug: 'reference/plugins/transcription' },
+          ],
+        },
+        { label: 'Templates', slug: 'reference/templates', children: [] },
+      ],
+    },
+  ]);
+});
+
+test('checked-in navigation is current', () => {
+  assert.doesNotThrow(() => generateNav({ check: true }));
+});

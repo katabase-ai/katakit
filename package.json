@@ -4,6 +4,9 @@
   "type": "module",
   "scripts": {
     "demo:transcription": "pnpm --filter @katakit/demo-transcription dev",
+    "docs:dev": "pnpm --filter @katakit/docs dev",
+    "docs:build": "pnpm --filter @katakit/docs build",
+    "docs:check": "pnpm --filter @katakit/docs check",
     "build": "pnpm -r build",
     "tsc": "pnpm -r tsc",
     "lint": "oxlint --deny-warnings",
@@ -13,7 +16,7 @@
     "prepare": "husky install",
     "test": "vitest",
     "test:ci": "vitest run --passWithNoTests",
-    "check": "pnpm format:check && pnpm lint && pnpm tsc && pnpm test:ci && pnpm build"
+    "check": "pnpm format:check && pnpm lint && pnpm tsc && pnpm test:ci && pnpm docs:check && pnpm build"
   },
   "devDependencies": {
     "@types/node": "24.13.3",
