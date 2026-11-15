@@ -2,6 +2,7 @@
   "name": "@katakit/transcription",
   "version": "0.0.0",
   "description": "Source-neutral conversation transcription plugin for Katakit.",
+  "license": "Apache-2.0",
   "files": [
     "dist",
     "README.md"
