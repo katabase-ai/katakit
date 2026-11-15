@@ -194,3 +194,31 @@ test('a failed load remains retryable without changing the selected model', asyn
   expect(owner.getSnapshot().model).toBe('moonshine-small');
   await owner.dispose();
 });
+
+test('root teardown disposes a helper immediately while an explicit preload is pending', async () => {
+  let finish!: () => void;
+  const dispose = vi.fn(async () => {
+    finish();
+  });
+  const owner = createGallerySpeech({
+    createTranscriber: callbacks => ({
+      load: async () => {
+        callbacks.onState?.({ phase: 'loading' });
+        await new Promise<void>(resolve => {
+          finish = resolve;
+        });
+      },
+      start: async () => undefined,
+      stop: async () => undefined,
+      dispose,
+    }),
+  });
+  const { sink } = fixture();
+  await owner.attach(() => sink('demo')).ready;
+  const loading = owner.load();
+  await vi.waitFor(() => expect(owner.getSnapshot().input.phase).toBe('loading'));
+  const disposal = owner.dispose();
+  await Promise.all([loading, disposal]);
+  expect(dispose).toHaveBeenCalledOnce();
+  expect(owner.getSnapshot().input.phase).toBe('disposed');
+});

@@ -37,6 +37,7 @@ export const GalleryPage = ({ demo }: { demo?: (typeof galleryDemos)[number] }) 
           }
         >
           <Suspense
+            key={demo?.id}
             fallback={
               <div>
                 <h1>{demo?.title}</h1>

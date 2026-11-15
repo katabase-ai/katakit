@@ -97,8 +97,8 @@ export const createGallerySpeech = ({
   };
   // stop() queues behind loading in the utility. Dispose cancels a pending start immediately,
   // so navigating away during model download cannot later request microphone permission.
-  const cancelPendingStart = () => {
-    if (!pendingStart || !helper || !['loading', 'starting'].includes(snapshot.input.phase)) return;
+  const cancelLoading = () => {
+    if (!helper || !['loading', 'starting'].includes(snapshot.input.phase)) return;
     const current = helper;
     helper = undefined;
     pendingDisposal = (async () => {
@@ -156,7 +156,7 @@ export const createGallerySpeech = ({
           if (lease.sink && active?.sink === lease.sink) {
             active.cancelled = true;
             wantsRecording = false;
-            cancelPendingStart();
+            if (pendingStart) cancelLoading();
           }
           return enqueue(async () => {
             if (lease.sink && active?.sink === lease.sink) await leave();
@@ -199,7 +199,7 @@ export const createGallerySpeech = ({
     },
     stop: () => {
       wantsRecording = false;
-      cancelPendingStart();
+      if (pendingStart) cancelLoading();
       return enqueue(finish);
     },
     select: (model: TranscriptionModelId) =>
@@ -212,14 +212,19 @@ export const createGallerySpeech = ({
         )
           return;
         await finish();
-        await helper?.dispose();
+        try {
+          await helper?.dispose();
+        } catch (error) {
+          update({ blocked: true });
+          throw error;
+        }
         helper = undefined;
         update({ model, input: { phase: 'idle' }, level: 0, error: undefined });
       }),
     dispose: () => {
       disposed = true;
       wantsRecording = false;
-      cancelPendingStart();
+      cancelLoading();
       return enqueue(async () => {
         try {
           await leave();
