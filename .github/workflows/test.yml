@@ -27,6 +27,8 @@ jobs:
             script: format:check
           - name: Lint
             script: lint
+          - name: Workspace licenses
+            script: licenses:check
           - name: Typecheck
             script: tsc
           - name: Unit tests
