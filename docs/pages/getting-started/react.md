@@ -46,7 +46,7 @@ The property observable replays its current value on subscription. The hook rend
 
 [`Subscribe`](https://react-rxjs.org/docs/api/core/subscribe) establishes the bound subscription before rendering its children and releases it when the boundary unmounts. For example, `root.unmount()` removes the UI subscription; remounting a boundary subscribes again and reads the source's latest replayed value. Several views under one boundary can share the hook. Do not recreate the runtime or call `bind` on every render.
 
-This cleanup covers React's subscriptions. It does not stop a runtime, release subscriptions created by core helpers, or dispose microphones, workers, or other host resources. Keep those resources under their existing host ownership; see [runtime and lifecycle](../concepts/runtime.md).
+This cleanup covers React's subscriptions. It does not stop a runtime, release subscriptions created by core helpers, or dispose microphones, workers, or other application resources. Keep those resources under application control; see [runtime and lifecycle](../concepts/runtime.md).
 
 For a view that reads several bound streams, create a stable `combineLatest([firstState$, secondState$])` from RxJS and pass it to the boundary's `source$`. The bingo demos use this pattern for `lastHeard$` and the board; unlike the transcription demo, they do not display provisional text or bind the full turn list. The bingo plugin's runtime effect consumes transcription events independently of these React subscriptions.
 

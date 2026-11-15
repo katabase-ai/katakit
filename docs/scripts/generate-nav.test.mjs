@@ -18,7 +18,7 @@ test('navigation follows the section order and uses directory READMEs as landing
         { label: 'Event-log persistence', slug: 'concepts/persistence' },
         { label: 'Plugins', slug: 'concepts/plugins' },
         { label: 'Runtime and lifecycle', slug: 'concepts/runtime' },
-        { label: 'Templates and hosts', slug: 'concepts/templates' },
+        { label: 'Templates and applications', slug: 'concepts/templates' },
       ],
     },
     {

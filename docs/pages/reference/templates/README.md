@@ -1,7 +1,7 @@
 # Templates
 
-Templates are minimal, runnable starting points for a specific host or form factor. A template documents how to start, build, and deploy or package that host, along with the permissions, asset loading, persistence adapter, and lifecycle wiring it supplies. It is not a plugin package or a feature demo.
+Templates are runnable starting points for building a Katakit application on a particular platform. A complete template assembles Katakit plugins and documents how to start, build, and deploy or package the application, along with its permissions, assets, storage, and lifecycle wiring. It is not a plugin package or a feature demo.
 
-The [Chrome extension template](https://github.com/katabase-ai/katakit/tree/main/templates/chrome-extension) is a runnable Manifest V3 audio host. The React transcription app is a demo of user-facing functionality, not a general React-web starter. React web and Electron remain possible future template subjects.
+The [Chrome extension starter](https://github.com/katabase-ai/katakit/tree/main/templates/chrome-extension) is **work in progress**: it runs Manifest V3 audio capture, but does not yet instantiate Katakit. The React transcription app is a demo of user-facing functionality, not a general web starter. React web and Electron remain possible future template subjects.
 
-See [Templates and hosts](../../concepts/templates.md) for the distinction and [Plugins](../plugins/README.md) for the reusable behavior a template may assemble.
+See [Templates and applications](../../concepts/templates.md) for the distinction and [Plugins](../plugins/README.md) for the reusable behavior an application can assemble.

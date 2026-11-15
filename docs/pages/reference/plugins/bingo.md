@@ -14,7 +14,7 @@ winningLines }`. The middle square is free. Matching is case-insensitive,
 ignores punctuation, and requires a whole phrase. `setSquares(makeSquares(phrases))`
 replaces the card using 24 nonblank phrases and clears manual corrections.
 `setOverride(index, true | false | undefined)` corrects a mark (or clears a
-correction). `restoreBoard({ squares, overrides })` accepts saved host-owned
+correction). `restoreBoard({ squares, overrides })` accepts saved application-owned
 board settings. Replacing the turn list recomputes evidence and marks, so
 removed or corrected turns do not leave stale matches.
 
@@ -25,10 +25,10 @@ world capitals, tricky-to-pronounce words, corporate jargon, and AI jargon.
 The geography lists cover 50 states and one capital or government seat for each
 of 195 countries (193 UN members plus Vatican City and Palestine); see
 `pkgs/bingo/README.md` for sources and edge cases.
-Speech recognition may miss unusual words; hosts can always use `setOverride`
+Speech recognition may miss unusual words; applications can always use `setOverride`
 to correct a square.
 
 The [browser bingo demo](https://github.com/katabase-ai/katakit/tree/main/demos/bingo-react)
 and [Chrome extension demo](https://github.com/katabase-ai/katakit/tree/main/demos/bingo-extension)
-use the same plugin with different audio hosts. See [Transcript ingestion](transcript-ingestion.md)
+use the same plugin with different audio inputs. See [Transcript ingestion](transcript-ingestion.md)
 for assembling text segments into turns.
