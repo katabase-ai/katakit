@@ -41,9 +41,6 @@ importers:
       '@katakit/core':
         specifier: workspace:*
         version: link:../../pkgs/core
-      '@katakit/react':
-        specifier: workspace:*
-        version: link:../../pkgs/react
       '@katakit/site-ui':
         specifier: workspace:*
         version: link:../../pkgs/site-ui
@@ -90,9 +87,6 @@ importers:
       '@katakit/core':
         specifier: workspace:*
         version: link:../../pkgs/core
-      '@katakit/react':
-        specifier: workspace:*
-        version: link:../../pkgs/react
       '@katakit/site-ui':
         specifier: workspace:*
         version: link:../../pkgs/site-ui

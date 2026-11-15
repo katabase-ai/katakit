@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { makeKatakit } from '@katakit/core';
 import { bingoPacks, drawBingoPack, makeBingoPlugin, type BingoPackId } from '@katakit/bingo';
-import { useKatakitObservable } from '@katakit/react';
 import { makeTranscriptionPlugin } from '@katakit/transcription';
 import { AudioLevelMeter, Button, SelectField } from '@katakit/site-ui';
 import {
@@ -18,10 +17,20 @@ const transcriptMethods = running.getMethods(transcription);
 const bingoMethods = running.getMethods(bingo);
 const transcript$ = kit.getObservables(transcription).state$;
 const board$ = kit.getObservables(bingo).state$;
+const subscribeToTranscript = (onChange: () => void) => {
+  const subscription = transcript$.subscribe(onChange);
+  return () => subscription.unsubscribe();
+};
+const getTranscript = () => transcript$.get();
+const subscribeToBoard = (onChange: () => void) => {
+  const subscription = board$.subscribe(onChange);
+  return () => subscription.unsubscribe();
+};
+const getBoard = () => board$.get();
 
 export const BrowserBingoDemo = () => {
-  const transcript = useKatakitObservable(transcript$);
-  const board = useKatakitObservable(board$);
+  const transcript = useSyncExternalStore(subscribeToTranscript, getTranscript, getTranscript);
+  const board = useSyncExternalStore(subscribeToBoard, getBoard, getBoard);
   const [input, setInput] = useState<InputState>({ phase: 'idle' });
   const [audioLevel, setAudioLevel] = useState(0);
   const [packId, setPackId] = useState<BingoPackId>('meeting');
