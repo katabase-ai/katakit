@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { makeKatakit } from '@katakit/core';
-import { makeTranscriptionPlugin } from '@katakit/transcription';
+import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
 import { makeBingoPlugin, makeSquares, matchPhrase, winningLines } from './plugin';
 
 const setup = () => {
@@ -11,12 +11,12 @@ const setup = () => {
 
 describe('Bingo plugin', () => {
   it('reacts to transcription events without a mounted UI subscription', async () => {
-    const transcription = makeTranscriptionPlugin();
-    const bingo = makeBingoPlugin({ TranscriptionPlugin: transcription });
-    const kit = makeKatakit({ plugins: [transcription.configure({}), bingo.configure({})] });
+    const transcriptIngestion = makeTranscriptIngestionPlugin();
+    const bingo = makeBingoPlugin({ TranscriptIngestionPlugin: transcriptIngestion });
+    const kit = makeKatakit({ plugins: [transcriptIngestion.configure({}), bingo.configure({})] });
     const running = kit.start();
     const { ingestSegment, updateProvisional, flush, reset, close } =
-      running.getMethods(transcription);
+      running.getMethods(transcriptIngestion);
     const state = kit.getObservables(bingo).state$;
 
     updateProvisional('Quick question');

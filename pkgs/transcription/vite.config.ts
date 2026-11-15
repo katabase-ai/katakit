@@ -7,6 +7,5 @@ export default defineConfig({
     name: 'transcription',
     environment: 'node',
     include: ['src/**/*.test.ts'],
-    server: { deps: { inline: ['@katakit/core'] } },
   },
 });

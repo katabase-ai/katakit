@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "pnpm --filter @katakit/speech build && vite",
+    "dev": "pnpm --filter @katakit/transcription build && vite",
     "build": "tsc --noEmit && vite build",
     "tsc": "tsc --noEmit",
     "test": "vitest",
@@ -13,7 +13,7 @@
     "@katakit/bingo": "workspace:*",
     "@katakit/core": "workspace:*",
     "@katakit/site-ui": "workspace:*",
-    "@katakit/speech": "workspace:*",
+    "@katakit/transcript-ingestion": "workspace:*",
     "@katakit/transcription": "workspace:*",
     "@react-rxjs/core": "^0.10.8",
     "react": "^19.0.0",

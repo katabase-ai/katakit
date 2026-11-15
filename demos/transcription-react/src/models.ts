@@ -1,7 +1,7 @@
-import { speechModels, type SpeechModelId } from '@katakit/speech/browser';
-export const models = speechModels.map(model => ({
+import { transcriptionModels, type TranscriptionModelId } from '@katakit/transcription/browser';
+export const models = transcriptionModels.map(model => ({
   ...model,
   detail: model.provisional ? 'Live transcription' : '10-second chunks; no live preview',
 }));
-export type ModelId = SpeechModelId;
+export type ModelId = TranscriptionModelId;
 export const defaultModel: ModelId = 'moonshine-small';

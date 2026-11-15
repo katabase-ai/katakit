@@ -1,4 +1,4 @@
-import type { SpeechSegment } from '@katakit/speech';
+import type { TranscriptionSegment } from '@katakit/transcription';
 
 export type MoonshineRequest =
   | { type: 'warmup'; assetUrl: string }
@@ -9,6 +9,6 @@ export type MoonshineRequest =
 export type MoonshineResponse =
   | { type: 'progress'; progress: number }
   | { type: 'ready' }
-  | { type: 'final'; segment: SpeechSegment }
+  | { type: 'final'; segment: TranscriptionSegment }
   | { type: 'stopped' }
   | { type: 'error'; message: string };

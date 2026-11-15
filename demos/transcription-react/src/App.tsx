@@ -2,17 +2,18 @@ import { useEffect, useRef, useState } from 'react';
 import { combineLatest } from 'rxjs';
 import { makeKatakit } from '@katakit/core';
 import { bind, Subscribe } from '@react-rxjs/core';
-import { makeTranscriptionPlugin } from '@katakit/transcription';
+import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
 import { AudioLevelMeter, Button, Notice, SelectField } from '@katakit/site-ui';
-import { createMicrophoneTranscriber } from '@katakit/speech/browser';
-import type { SpeechState } from '@katakit/speech';
+import { createMicrophoneTranscriber } from '@katakit/transcription/browser';
+import type { TranscriptionState } from '@katakit/transcription';
 import { defaultModel, models, type ModelId } from './models';
 import { createModelSwitcher } from './createModelSwitcher';
 
-const Transcription = makeTranscriptionPlugin({ turnSilenceMs: 1400 });
-const kit = makeKatakit({ plugins: [Transcription.configure({})] });
-const methods = kit.start().getMethods(Transcription);
-const { conversationTurns$, currentTurn$, provisional$ } = kit.getObservables(Transcription);
+const TranscriptIngestionPlugin = makeTranscriptIngestionPlugin({ turnSilenceMs: 1400 });
+const kit = makeKatakit({ plugins: [TranscriptIngestionPlugin.configure({})] });
+const methods = kit.start().getMethods(TranscriptIngestionPlugin);
+const { conversationTurns$, currentTurn$, provisional$ } =
+  kit.getObservables(TranscriptIngestionPlugin);
 const [useCompletedTurns, completedTurnsState$] = bind(conversationTurns$);
 const [useCurrentTurn, currentTurnState$] = bind(currentTurn$);
 const [useProvisional, provisionalState$] = bind(provisional$);
@@ -28,7 +29,7 @@ const TranscriptionView = () => {
   const completedTurns = useCompletedTurns();
   const currentTurn = useCurrentTurn();
   const provisional = useProvisional();
-  const [input, setInput] = useState<SpeechState>({ phase: 'idle' });
+  const [input, setInput] = useState<TranscriptionState>({ phase: 'idle' });
   const [audioLevel, setAudioLevel] = useState(0);
   const [modelId, setModelId] = useState<ModelId>(defaultModel);
   const [switching, setSwitching] = useState(false);

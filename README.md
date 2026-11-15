@@ -5,7 +5,7 @@ Workspace packages expose their public APIs through package-root imports:
 should use [React-RxJS bindings](docs/pages/getting-started/react.md) to render
 runtime observables. `@katakit/react` is reserved for future React-specific APIs.
 
-The standalone [`@katakit/speech`](pkgs/speech/README.md) package supplies Moonshine/Whisper
+The standalone [`@katakit/transcription`](pkgs/transcription/README.md) package supplies Moonshine/Whisper
 recognition, a browser microphone helper, and WASM/worker asset setup without React or
 a plugin-system dependency.
 

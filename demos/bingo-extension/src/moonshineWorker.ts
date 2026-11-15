@@ -1,5 +1,5 @@
-import { createTranscriber, type Transcriber } from '@katakit/speech';
-import { moonshine } from '@katakit/speech/moonshine';
+import { createTranscriber, type Transcriber } from '@katakit/transcription';
+import { moonshine } from '@katakit/transcription/moonshine';
 import type { MoonshineRequest, MoonshineResponse } from './moonshineProtocol';
 
 const send = (message: MoonshineResponse) => self.postMessage(message);

@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { speechAssetsPlugin } from '@katakit/speech/vite';
+import { transcriptionAssetsPlugin } from '@katakit/transcription/vite';
 
 const root = import.meta.dirname;
 const starter = resolve(root, '../../templates/chrome-extension/public');
@@ -10,7 +10,7 @@ const starter = resolve(root, '../../templates/chrome-extension/public');
 export default defineConfig({
   plugins: [
     react(),
-    speechAssetsPlugin(),
+    transcriptionAssetsPlugin(),
     {
       name: 'extension-host-assets',
       generateBundle() {

@@ -1,9 +1,9 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { speechAssetsPlugin } from '@katakit/speech/vite';
+import { transcriptionAssetsPlugin } from '@katakit/transcription/vite';
 
 export default defineConfig({
-  plugins: [react(), speechAssetsPlugin()],
+  plugins: [react(), transcriptionAssetsPlugin()],
   resolve: { conditions: ['source'] },
   ssr: { resolve: { conditions: ['source'] } },
 });

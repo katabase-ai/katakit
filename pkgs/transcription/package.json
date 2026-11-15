@@ -1,7 +1,7 @@
 {
   "name": "@katakit/transcription",
   "version": "0.0.0",
-  "description": "Source-neutral conversation transcription plugin for Katakit.",
+  "description": "Framework-independent transcription utilities for Moonshine and Whisper.",
   "license": "Apache-2.0",
   "files": [
     "dist",
@@ -15,26 +15,84 @@
       "source": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    }
+    },
+    "./moonshine": {
+      "source": "./src/moonshine.ts",
+      "types": "./dist/moonshine.d.ts",
+      "default": "./dist/moonshine.js"
+    },
+    "./whisper": {
+      "source": "./src/whisper.ts",
+      "types": "./dist/whisper.d.ts",
+      "default": "./dist/whisper.js"
+    },
+    "./browser": {
+      "source": "./src/browser.ts",
+      "types": "./dist/browser.d.ts",
+      "default": "./dist/browser.js"
+    },
+    "./assets": {
+      "source": "./src/assets.ts",
+      "types": "./dist/assets.d.ts",
+      "default": "./dist/assets.js"
+    },
+    "./vite": {
+      "source": "./src/vite.ts",
+      "types": "./dist/vite.d.ts",
+      "default": "./dist/vite.js"
+    },
+    "./package.json": "./package.json"
   },
   "publishConfig": {
     "exports": {
       ".": {
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
-      }
+      },
+      "./moonshine": {
+        "types": "./dist/moonshine.d.ts",
+        "default": "./dist/moonshine.js"
+      },
+      "./whisper": {
+        "types": "./dist/whisper.d.ts",
+        "default": "./dist/whisper.js"
+      },
+      "./browser": {
+        "types": "./dist/browser.d.ts",
+        "default": "./dist/browser.js"
+      },
+      "./assets": {
+        "types": "./dist/assets.d.ts",
+        "default": "./dist/assets.js"
+      },
+      "./vite": {
+        "types": "./dist/vite.d.ts",
+        "default": "./dist/vite.js"
+      },
+      "./package.json": "./package.json"
     },
     "access": "public"
   },
   "scripts": {
-    "build": "tsdown",
+    "build": "tsdown && vite build --config runtime.vite.config.ts && node scripts/copy-runtime-assets.mjs",
     "tsc": "tsc --project tsconfig.json",
     "test": "vitest",
     "test:ci": "vitest run --passWithNoTests",
-    "prepack": "pnpm build"
+    "prepack": "pnpm build",
+    "test:runtime": "node scripts/verify-runtime.mjs",
+    "test:package": "node scripts/verify-package.mjs"
   },
-  "dependencies": {
-    "@katakit/core": "workspace:*",
-    "rxjs": "^7.8.2"
+  "devDependencies": {
+    "@moonshine-ai/moonshine-wasm": "0.1.5",
+    "@xenova/transformers": "^2.17.2",
+    "vite": "^6.0.0"
+  },
+  "peerDependencies": {
+    "vite": "^6.0.0"
+  },
+  "peerDependenciesMeta": {
+    "vite": {
+      "optional": true
+    }
   }
 }

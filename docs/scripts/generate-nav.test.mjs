@@ -26,7 +26,7 @@ test('navigation follows the section order and uses directory READMEs as landing
       slug: 'reference',
       children: [
         { label: 'Core', slug: 'reference/core' },
-        { label: 'Speech utilities', slug: 'reference/speech' },
+        { label: 'Transcription utilities', slug: 'reference/transcription' },
         {
           label: 'Plugins',
           slug: 'reference/plugins',
@@ -34,7 +34,7 @@ test('navigation follows the section order and uses directory READMEs as landing
             { label: 'Bingo', slug: 'reference/plugins/bingo' },
             { label: 'Event log', slug: 'reference/plugins/event-log' },
             { label: 'Persistence', slug: 'reference/plugins/persistence' },
-            { label: 'Transcription', slug: 'reference/plugins/transcription' },
+            { label: 'Transcript ingestion', slug: 'reference/plugins/transcript-ingestion' },
           ],
         },
         { label: 'Templates', slug: 'reference/templates', children: [] },

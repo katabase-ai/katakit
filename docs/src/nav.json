@@ -48,8 +48,8 @@
         "slug": "reference/core"
       },
       {
-        "label": "Speech utilities",
-        "slug": "reference/speech"
+        "label": "Transcription utilities",
+        "slug": "reference/transcription"
       },
       {
         "label": "Plugins",
@@ -68,8 +68,8 @@
             "slug": "reference/plugins/persistence"
           },
           {
-            "label": "Transcription",
-            "slug": "reference/plugins/transcription"
+            "label": "Transcript ingestion",
+            "slug": "reference/plugins/transcript-ingestion"
           }
         ]
       },

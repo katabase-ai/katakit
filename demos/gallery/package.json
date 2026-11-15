@@ -3,14 +3,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "pnpm --filter @katakit/speech build && vite",
+    "dev": "pnpm --filter @katakit/transcription build && vite",
     "preview": "vite preview",
     "build": "tsc --noEmit && vite build",
     "tsc": "tsc --noEmit"
   },
   "dependencies": {
     "@katakit/site-ui": "workspace:*",
-    "@katakit/speech": "workspace:*",
+    "@katakit/transcription": "workspace:*",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },

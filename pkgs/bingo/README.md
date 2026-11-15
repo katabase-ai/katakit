@@ -2,8 +2,8 @@
 
 A source-neutral bingo card for conversation turns. Register `makeBingoPlugin().configure({})`
 with `makeKatakit`, then use `getMethods(Bingo).setTurns(turns)` to supply the complete
-current turn list (`{ id, text }[]`). Alternatively, pass a `TranscriptionPlugin` to
-`makeBingoPlugin({ TranscriptionPlugin })` when both are registered in one runtime.
+current turn list (`{ id, text }[]`). Alternatively, pass a `TranscriptIngestionPlugin` to
+`makeBingoPlugin({ TranscriptIngestionPlugin })` when both are registered in one runtime.
 The bingo plugin then reacts to finalized segments, completed turns, and resets
 through a runtime effect, including when no UI is mounted. It includes the current
 turn, whose words are finalized, but not provisional text. Replacing the list

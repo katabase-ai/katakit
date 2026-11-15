@@ -1,5 +1,5 @@
 import { createCapture } from '../../../templates/chrome-extension/src/capture';
-import { defaultSpeechAssetsBaseUrl } from '@katakit/speech/browser';
+import { defaultTranscriptionAssetsBaseUrl } from '@katakit/transcription/browser';
 import { audioLevel, createAudioLevelReporter } from '@katakit/site-ui/audio-level';
 import { createPcmChunks } from './pcmChunks';
 import type { MoonshineRequest, MoonshineResponse } from './moonshineProtocol';
@@ -62,7 +62,7 @@ chrome.runtime.onMessage.addListener((message, _sender, respond) => {
             recognizer.postMessage({
               type: 'warmup',
               assetUrl: chrome.runtime.getURL(
-                `${defaultSpeechAssetsBaseUrl.slice(1)}moonshine/index.js`
+                `${defaultTranscriptionAssetsBaseUrl.slice(1)}moonshine/index.js`
               ),
             } satisfies MoonshineRequest);
           });

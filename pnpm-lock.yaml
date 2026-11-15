@@ -44,9 +44,9 @@ importers:
       '@katakit/site-ui':
         specifier: workspace:*
         version: link:../../pkgs/site-ui
-      '@katakit/speech':
+      '@katakit/transcript-ingestion':
         specifier: workspace:*
-        version: link:../../pkgs/speech
+        version: link:../../pkgs/transcript-ingestion
       '@katakit/transcription':
         specifier: workspace:*
         version: link:../../pkgs/transcription
@@ -96,9 +96,9 @@ importers:
       '@katakit/site-ui':
         specifier: workspace:*
         version: link:../../pkgs/site-ui
-      '@katakit/speech':
+      '@katakit/transcript-ingestion':
         specifier: workspace:*
-        version: link:../../pkgs/speech
+        version: link:../../pkgs/transcript-ingestion
       '@katakit/transcription':
         specifier: workspace:*
         version: link:../../pkgs/transcription
@@ -139,9 +139,9 @@ importers:
       '@katakit/site-ui':
         specifier: workspace:*
         version: link:../../pkgs/site-ui
-      '@katakit/speech':
+      '@katakit/transcription':
         specifier: workspace:*
-        version: link:../../pkgs/speech
+        version: link:../../pkgs/transcription
       react:
         specifier: ^19.0.0
         version: 19.3.1
@@ -173,9 +173,9 @@ importers:
       '@katakit/site-ui':
         specifier: workspace:*
         version: link:../../pkgs/site-ui
-      '@katakit/speech':
+      '@katakit/transcript-ingestion':
         specifier: workspace:*
-        version: link:../../pkgs/speech
+        version: link:../../pkgs/transcript-ingestion
       '@katakit/transcription':
         specifier: workspace:*
         version: link:../../pkgs/transcription
@@ -265,9 +265,9 @@ importers:
       '@katakit/core':
         specifier: workspace:*
         version: link:../core
-      '@katakit/transcription':
+      '@katakit/transcript-ingestion':
         specifier: workspace:*
-        version: link:../transcription
+        version: link:../transcript-ingestion
       rxjs:
         specifier: ^7.8.2
         version: 7.8.2
@@ -359,7 +359,16 @@ importers:
         specifier: ^7.0.2
         version: 7.0.2
 
-  pkgs/speech:
+  pkgs/transcript-ingestion:
+    dependencies:
+      '@katakit/core':
+        specifier: workspace:*
+        version: link:../core
+      rxjs:
+        specifier: ^7.8.2
+        version: 7.8.2
+
+  pkgs/transcription:
     devDependencies:
       '@moonshine-ai/moonshine-wasm':
         specifier: 0.1.5
@@ -370,15 +379,6 @@ importers:
       vite:
         specifier: ^6.0.0
         version: 6.4.6(@types/node@24.13.3)
-
-  pkgs/transcription:
-    dependencies:
-      '@katakit/core':
-        specifier: workspace:*
-        version: link:../core
-      rxjs:
-        specifier: ^7.8.2
-        version: 7.8.2
 
   templates/chrome-extension:
     devDependencies:
