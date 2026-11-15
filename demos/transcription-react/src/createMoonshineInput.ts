@@ -2,6 +2,7 @@ import type { TranscriptLine, Transcriber } from '@moonshine-ai/moonshine-wasm';
 import type { TranscriptSegment } from '@katakit/transcription';
 import { moonshineAssetBase } from './moonshineAssets';
 import { createMicrophoneCapture } from './createMicrophoneCapture';
+import { moonshineArchitecture, type ModelId } from './models';
 
 export type InputPhase =
   | 'idle'
@@ -15,6 +16,7 @@ export type InputState = { phase: InputPhase; progress?: number; error?: string 
 
 /** Own model and capture explicitly; Katakit owns only transcript state. */
 export const createMoonshineInput = (params: {
+  modelId: Exclude<ModelId, 'whisper-tiny'>;
   onState: (state: InputState) => void;
   onProvisional: (text: string) => void;
   onFinal: (segment: TranscriptSegment) => void;
@@ -48,7 +50,7 @@ export const createMoonshineInput = (params: {
         );
         const loaded = await sdk.Transcriber.load({
           language: 'en',
-          modelArch: sdk.ModelArch.SmallStreaming,
+          modelArch: moonshineArchitecture(params.modelId),
           onProgress: (bytes, total) =>
             update({ phase: 'loading', progress: total ? bytes / total : undefined }),
         });

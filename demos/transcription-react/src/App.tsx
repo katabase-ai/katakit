@@ -3,6 +3,9 @@ import { makeKatakit } from '@katakit/core';
 import { useKatakitObservable } from '@katakit/react';
 import { makeTranscriptionPlugin } from '@katakit/transcription';
 import { createMoonshineInput, type InputState } from './createMoonshineInput';
+import { createWhisperInput } from './createWhisperInput';
+import { defaultModel, models, type ModelId } from './models';
+import { createModelSwitcher } from './createModelSwitcher';
 
 const Transcription = makeTranscriptionPlugin({ turnSilenceMs: 1400 });
 const kit = makeKatakit({ plugins: [Transcription.configure({})] });
@@ -18,15 +21,28 @@ const formatTime = (ms?: number) => {
 export const App = () => {
   const transcript = useKatakitObservable(state$);
   const [input, setInput] = useState<InputState>({ phase: 'idle' });
-  const owner = useRef<ReturnType<typeof createMoonshineInput> | null>(null);
+  const [modelId, setModelId] = useState<ModelId>(defaultModel);
+  const [switching, setSwitching] = useState(false);
+  const owner = useRef<ReturnType<typeof createModelSwitcher> | null>(null);
+  const switchingRef = useRef(false);
 
-  useEffect(() => {
-    const current = createMoonshineInput({
+  const makeInput = (id: ModelId) => {
+    const callbacks = {
       onState: setInput,
-      onProvisional: methods.updateProvisional,
       onFinal: methods.ingestSegment,
       onStop: methods.flush,
-    });
+    };
+    return id === 'whisper-tiny'
+      ? createWhisperInput(callbacks)
+      : createMoonshineInput({
+          ...callbacks,
+          modelId: id,
+          onProvisional: methods.updateProvisional,
+        });
+  };
+
+  useEffect(() => {
+    const current = createModelSwitcher(defaultModel, makeInput);
     owner.current = current;
     return () => {
       owner.current = null;
@@ -34,8 +50,24 @@ export const App = () => {
     };
   }, []);
 
+  const selectModel = async (id: ModelId) => {
+    if (id === modelId || switchingRef.current || !owner.current) return;
+    switchingRef.current = true;
+    setSwitching(true);
+    try {
+      if (await owner.current.select(id)) {
+        methods.flush();
+        setModelId(id);
+        setInput({ phase: 'idle' });
+      }
+    } finally {
+      switchingRef.current = false;
+      setSwitching(false);
+    }
+  };
+
   const recording = input.phase === 'recording';
-  const busy = ['loading', 'starting', 'stopping'].includes(input.phase);
+  const busy = switching || ['loading', 'starting', 'stopping'].includes(input.phase);
   const available =
     window.isSecureContext &&
     window.crossOriginIsolated &&
@@ -55,16 +87,44 @@ export const App = () => {
           <p>Record in your browser. Read each conversation turn as it finishes.</p>
         </div>
 
+        <div className="model-picker">
+          <label htmlFor="transcription-model">Transcription model</label>
+          <select
+            id="transcription-model"
+            value={modelId}
+            disabled={busy || recording}
+            onChange={event => void selectModel(event.target.value as ModelId)}
+          >
+            {models.map(model => (
+              <option key={model.id} value={model.id}>
+                {model.label}
+              </option>
+            ))}
+          </select>
+          <span className="model-detail">
+            {models.find(model => model.id === modelId)?.detail}. Change models between recordings.
+          </span>
+        </div>
+
         <div className="controls">
           <button
             type="button"
             className="record-button"
             data-recording={recording}
             disabled={busy || !available}
-            onClick={() => void (recording ? owner.current?.stop() : owner.current?.start())}
+            onClick={() => {
+              if (switchingRef.current) return;
+              void (recording ? owner.current?.stop() : owner.current?.start());
+            }}
           >
             <span className="record-icon" aria-hidden="true" />
-            {recording ? 'Stop recording' : busy ? `${input.phase}…` : 'Start recording'}
+            {recording
+              ? 'Stop recording'
+              : switching
+                ? 'Switching…'
+                : busy
+                  ? `${input.phase}…`
+                  : 'Start recording'}
           </button>
           <span className="phase" role="status" aria-live="polite">
             {input.phase === 'loading'
@@ -125,7 +185,7 @@ export const App = () => {
           )}
         </section>
         <footer>
-          English-only model. Audio stays in this browser. Transcript is cleared on reload.
+          English-only models. Audio stays in this browser. Transcript is cleared on reload.
         </footer>
       </section>
     </main>
