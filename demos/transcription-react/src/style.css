@@ -1,51 +1,7 @@
-/* Hallmark · shape: app screen · theme: Ribbon (dawn) · screen: conversation transcript · signature: running turn list · v2.0.0 */
-/* critique: one recording control and unadorned transcript rows put the user's words ahead of chrome. */
-:root {
-  --color-paper: oklch(98.2% 0.008 82);
-  --color-paper-2: oklch(95.8% 0.011 82);
-  --color-paper-3: oklch(92.3% 0.014 82);
-  --color-ink: oklch(18% 0.006 80);
-  --color-ink-2: oklch(30% 0.008 80);
-  --color-muted: oklch(47% 0.012 80);
-  --color-rule: oklch(89.5% 0.011 82);
-  --color-accent: oklch(44% 0.075 190);
-  --color-accent-ink: oklch(98% 0.006 85);
-  --color-accent-soft: oklch(92% 0.028 190);
-  --color-focus: oklch(52% 0.09 190);
-  --color-error: oklch(44% 0.17 25);
-  --font-display: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
-  --font-body: 'Figtree', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, monospace;
-  --radius-control: 999px;
+/* Hallmark · shape: app screen · theme: shared site UI · screen: conversation transcript · signature: running turn list · v2.0.0 */
+/* critique: model selection and recording share the site's controls; transcript content stays primary. */
+.shell, .transcription-demo {
   --content-width: 780px;
-}
-
-* {
-  box-sizing: border-box;
-}
-html,
-body {
-  overflow-x: clip;
-  margin: 0;
-}
-body {
-  background: var(--color-paper);
-  color: var(--color-ink);
-  font: 1rem/1.55 var(--font-body);
-}
-html {
-  scrollbar-color: var(--color-rule) var(--color-paper);
-}
-::selection {
-  color: var(--color-ink);
-  background: var(--color-accent-soft);
-}
-button {
-  font: inherit;
-}
-button:focus-visible {
-  outline: 3px solid var(--color-focus);
-  outline-offset: 3px;
 }
 
 .shell {
@@ -75,8 +31,7 @@ button:focus-visible {
 }
 .intro h1 {
   margin: 0;
-  font: 400 clamp(2.2rem, 5vw, 3.5rem)/1.1 var(--font-display);
-  letter-spacing: -0.045em;
+  font-size: var(--text-3xl);
   overflow-wrap: break-word;
   min-width: 0;
   text-wrap: balance;
@@ -85,12 +40,7 @@ button:focus-visible {
   margin: 0.85rem 0 0;
   color: var(--color-muted);
 }
-.model-picker { display: grid; gap: 0.35rem; justify-items: start; margin-top: 2rem; }
-.model-picker label { font-size: 0.85rem; font-weight: 600; }
-.model-picker select { max-width: 100%; min-height: 2.8rem; border: 1px solid var(--color-rule); border-radius: 0.4rem; background: var(--color-paper); color: var(--color-ink); padding: 0.4rem 0.8rem; font: inherit; }
-.model-picker select:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
-.model-picker select:disabled { opacity: 0.6; }
-.model-detail { color: var(--color-muted); font-size: 0.85rem; }
+.model-picker { margin-top: 2rem; }
 .controls {
   display: flex;
   flex-wrap: wrap;
@@ -99,41 +49,25 @@ button:focus-visible {
   margin: 2rem 0 2.5rem;
 }
 .record-button {
-  display: inline-flex;
-  align-items: center;
   gap: 0.75rem;
   min-height: 3rem;
-  border: 1px solid var(--color-accent);
-  border-radius: var(--radius-control);
-  background: var(--color-accent);
-  color: var(--color-accent-ink);
   padding: 0.6rem 1.25rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition:
-    background-color 160ms ease,
-    transform 160ms ease;
 }
-.record-button:hover:not(:disabled) {
-  background: var(--color-ink-2);
+.record-button:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
 }
 .record-button:active:not(:disabled) {
   transform: translateY(1px);
 }
-.record-button:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
 .record-button[data-recording='true'] {
-  background: transparent;
-  color: var(--color-ink);
-  border-color: var(--color-ink);
+  border-color: var(--color-accent);
 }
 .record-icon {
   width: 0.75rem;
   height: 0.75rem;
   border: 2px solid currentColor;
-  border-radius: var(--radius-control);
+  border-radius: 50%;
 }
 .record-button[data-recording='true'] .record-icon {
   border-radius: 2px;
@@ -142,12 +76,6 @@ button:focus-visible {
 .phase {
   font-size: 0.9rem;
   color: var(--color-muted);
-}
-.message {
-  padding: 0.85rem 1rem;
-  background: var(--color-paper-2);
-  color: var(--color-error);
-  border: 1px solid var(--color-rule);
 }
 .transcript-heading {
   display: flex;
@@ -193,7 +121,7 @@ button:focus-visible {
 }
 .turn-index,
 .turn time {
-  font-family: var(--font-mono);
+  font-family: var(--font-outlier);
   font-variant-numeric: tabular-nums;
   padding-top: 0.2rem;
 }
@@ -204,7 +132,7 @@ button:focus-visible {
 .interim p {
   color: var(--color-muted);
 }
-footer {
+.transcription-demo footer {
   margin-top: 2.5rem;
   color: var(--color-muted);
   font-size: 0.85rem;
@@ -220,10 +148,5 @@ footer {
   .turn time {
     grid-column: 2;
     padding: 0;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .record-button {
-    transition: none;
   }
 }
