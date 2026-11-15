@@ -9,7 +9,7 @@ import {
   makeBingoPlugin,
   type BingoBoard,
   type BingoPackId,
-} from '@katakit/bingo';
+} from './bingo';
 import {
   makeTranscriptIngestionPlugin,
   type TranscriptSegment,

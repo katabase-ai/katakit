@@ -31,7 +31,6 @@ test('navigation follows the section order and uses directory READMEs as landing
           label: 'Plugins',
           slug: 'reference/plugins',
           children: [
-            { label: 'Bingo', slug: 'reference/plugins/bingo' },
             { label: 'Event log', slug: 'reference/plugins/event-log' },
             { label: 'Persistence', slug: 'reference/plugins/persistence' },
             { label: 'Transcript ingestion', slug: 'reference/plugins/transcript-ingestion' },

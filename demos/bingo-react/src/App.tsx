@@ -2,7 +2,7 @@ import { bind, Subscribe } from '@react-rxjs/core';
 import { combineLatest } from 'rxjs';
 import { useEffect, useRef, useState } from 'react';
 import { makeKatakit } from '@katakit/core';
-import { bingoPacks, drawBingoPack, makeBingoPlugin, type BingoPackId } from '@katakit/bingo';
+import { bingoPacks, drawBingoPack, makeBingoPlugin, type BingoPackId } from './bingo';
 import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
 import { AudioLevelMeter, Button, SelectField } from '@katakit/site-ui';
 import { createMicrophoneTranscriber } from '@katakit/transcription/browser';

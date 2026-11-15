@@ -5,4 +5,3 @@ These pages document the plugin factories available in this repository. Each pag
 - [Event log](event-log.md) — validated live events and replayable in-memory history.
 - [Persistence](persistence.md) — append new events with application-owned storage or browser local storage.
 - [Transcript ingestion](transcript-ingestion.md) — assemble finalized transcript segments into conversation turns.
-- [Bingo](bingo.md) — match conversation turns against a playable bingo card.

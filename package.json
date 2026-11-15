@@ -5,7 +5,7 @@
   "scripts": {
     "build": "pnpm -r build",
     "tsc": "pnpm -r tsc",
-    "lint": "oxlint --deny-warnings",
+    "lint": "oxlint --deny-warnings && pnpm bingo:check-copy",
     "licenses:check": "node scripts/check-licenses.mjs",
     "lint:fix": "oxlint --fix",
     "format": "oxfmt \"**/*.{js,jsx,ts,tsx,json,md}\"",
@@ -14,7 +14,8 @@
     "test": "vitest",
     "test:ci": "vitest run --passWithNoTests",
     "check": "pnpm format:check && pnpm lint && pnpm licenses:check && pnpm tsc && pnpm test:ci && pnpm -F @katakit/docs check && pnpm -F @katakit/docs-export test:ci && pnpm build",
-    "docs:export": "pnpm --filter @katakit/docs-export export"
+    "docs:export": "pnpm --filter @katakit/docs-export export",
+    "bingo:check-copy": "node scripts/check-bingo-copy.mjs"
   },
   "devDependencies": {
     "@types/node": "24.13.3",

@@ -10,7 +10,6 @@
     "test:ci": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@katakit/bingo": "workspace:*",
     "@katakit/core": "workspace:*",
     "@katakit/site-ui": "workspace:*",
     "@katakit/transcript-ingestion": "workspace:*",
