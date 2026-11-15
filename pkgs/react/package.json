@@ -2,6 +2,7 @@
   "name": "@katakit/react",
   "version": "0.0.0",
   "description": "React bindings for Katakit.",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/katabase-ai/katakit.git",
@@ -39,7 +40,8 @@
     "test:ci": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@katakit/core": "workspace:*"
+    "@katakit/core": "workspace:*",
+    "rxjs": "^7.8.2"
   },
   "devDependencies": {
     "@testing-library/react": "^16.1.0",

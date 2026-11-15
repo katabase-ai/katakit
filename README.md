@@ -27,3 +27,7 @@ navigation hierarchy; each section's `README.md` is its landing page. Run
 or moving a page, and commit `docs/src/nav.json`. `pnpm docs:check` checks
 generated navigation, local Markdown links, and tests. The static host must
 serve `docs/dist/index.html` for unknown paths to support direct page URLs.
+
+## License
+
+Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE).
