@@ -17,6 +17,8 @@
     "../event-log/src",
     "../persistence/src",
     "../transcription/src",
-    "../react/src"
-  ]
+    "../react/src",
+    "../transcript-ingestion/src"
+  ],
+  "exclude": ["../**/*.test.ts", "../**/*.test.tsx"]
 }

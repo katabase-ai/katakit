@@ -15,7 +15,14 @@ import { checkLinks } from '../../docs/scripts/check-links.mjs';
 
 const directory = dirname(fileURLToPath(import.meta.url));
 const root = resolve(directory, '../..');
-const packages = ['core', 'event-log', 'persistence', 'transcription', 'react'];
+const packages = [
+  'core',
+  'event-log',
+  'persistence',
+  'transcript-ingestion',
+  'transcription',
+  'react',
+];
 const walk = (node, visit) => {
   visit(node);
   for (const child of node.children ?? []) walk(child, visit);
@@ -67,6 +74,7 @@ export const exportDocs = async ({ output }) => {
   await mkdir(join(output, 'content'), { recursive: true });
   const entryPoints = [];
   const coverage = [];
+  const nonCodeExports = [];
   const config = ts.readConfigFile(join(directory, 'tsconfig.reference.json'), ts.sys.readFile);
   const parsed = ts.parseJsonConfigFileContent(config.config, ts.sys, directory);
   for (const name of packages) {
@@ -74,6 +82,10 @@ export const exportDocs = async ({ output }) => {
     const manifest = JSON.parse(await readFile(join(packageRoot, 'package.json'), 'utf8'));
     const exports = Object.entries(manifest.exports);
     for (const [subpath, conditions] of exports) {
+      if (typeof conditions === 'string') {
+        nonCodeExports.push({ package: manifest.name, subpath, target: conditions });
+        continue;
+      }
       if (!conditions.source) throw new Error(`${manifest.name} ${subpath} has no source export`);
       entryPoints.push(join(packageRoot, conditions.source));
       coverage.push({
@@ -263,6 +275,7 @@ export const exportDocs = async ({ output }) => {
     tools: { typescript: ts.version, typedoc: Application.VERSION, markdown: '4.14.1' },
     timings: { extractionMs, exportMs: performance.now() - started },
     packages: coverage,
+    nonCodeExports,
     navigation: [...buildNav(), { label: 'API reference', slug: 'api', children: apiNavigation }],
     pages,
     assets,
