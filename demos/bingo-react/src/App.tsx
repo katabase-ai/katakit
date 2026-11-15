@@ -5,11 +5,8 @@ import { makeKatakit } from '@katakit/core';
 import { bingoPacks, drawBingoPack, makeBingoPlugin, type BingoPackId } from '@katakit/bingo';
 import { makeTranscriptionPlugin } from '@katakit/transcription';
 import { AudioLevelMeter, Button, SelectField } from '@katakit/site-ui';
-import {
-  createMicrophoneInput,
-  type InputState,
-} from '../../transcription-react/src/createMicrophoneInput';
-import { moonshineAssetBase } from '../../transcription-react/src/moonshineAssets';
+import { createMicrophoneTranscriber } from '@katakit/speech/browser';
+import type { SpeechState } from '@katakit/speech';
 import './style.css';
 
 const transcription = makeTranscriptionPlugin();
@@ -27,18 +24,14 @@ const view$ = combineLatest([lastHeardState$, boardState$]);
 const BrowserBingoView = () => {
   const lastHeard = useLastHeard();
   const board = useBoard();
-  const [input, setInput] = useState<InputState>({ phase: 'idle' });
+  const [input, setInput] = useState<SpeechState>({ phase: 'idle' });
   const [audioLevel, setAudioLevel] = useState(0);
   const [packId, setPackId] = useState<BingoPackId>('meeting');
-  const source = useRef<ReturnType<typeof createMicrophoneInput> | null>(null);
+  const source = useRef<ReturnType<typeof createMicrophoneTranscriber> | null>(null);
 
   useEffect(() => {
-    const input = createMicrophoneInput({
-      model: {
-        provider: 'moonshine',
-        model: 'tiny',
-        loadSdk: () => import(/* @vite-ignore */ `${moonshineAssetBase}index.js`),
-      },
+    const input = createMicrophoneTranscriber({
+      model: 'moonshine-tiny',
       onState: setInput,
       onLevel: setAudioLevel,
       onFinal: transcriptMethods.ingestSegment,
@@ -51,7 +44,15 @@ const BrowserBingoView = () => {
     };
   }, []);
 
-  const recording = input.phase === 'recording';
+  const toggleRecording = async () => {
+    try {
+      await (input.phase === 'running' ? source.current?.stop() : source.current?.start());
+    } catch {
+      /* onState exposes the error in the application UI. */
+    }
+  };
+
+  const recording = input.phase === 'running';
   const busy = ['loading', 'starting', 'stopping'].includes(input.phase);
   const available =
     window.isSecureContext &&
@@ -141,7 +142,7 @@ const BrowserBingoView = () => {
             <Button
               variant={recording ? 'border' : 'blue'}
               disabled={busy || !available}
-              onClick={() => void (recording ? source.current?.stop() : source.current?.start())}
+              onClick={() => void toggleRecording()}
             >
               {recording ? 'Stop listening' : busy ? 'Preparing…' : 'Start listening'}
             </Button>
@@ -162,7 +163,7 @@ const BrowserBingoView = () => {
           )}
           {input.error && (
             <p className="bingo-error" role="alert">
-              {input.error}
+              {input.error.message}
             </p>
           )}
           <div className="bingo-transcript">

@@ -1,14 +1,14 @@
-import type { TranscriptLine } from '@moonshine-ai/moonshine-wasm';
+import type { SpeechSegment } from '@katakit/speech';
 
 export type MoonshineRequest =
   | { type: 'warmup'; assetUrl: string }
-  | { type: 'start' }
+  | { type: 'start'; sourceId: string }
   | { type: 'audio'; samples: Float32Array }
   | { type: 'stop' };
 
 export type MoonshineResponse =
   | { type: 'progress'; progress: number }
   | { type: 'ready' }
-  | { type: 'final'; line: TranscriptLine }
+  | { type: 'final'; segment: SpeechSegment }
   | { type: 'stopped' }
   | { type: 'error'; message: string };

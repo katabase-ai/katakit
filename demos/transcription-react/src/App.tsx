@@ -4,10 +4,8 @@ import { makeKatakit } from '@katakit/core';
 import { bind, Subscribe } from '@react-rxjs/core';
 import { makeTranscriptionPlugin } from '@katakit/transcription';
 import { AudioLevelMeter, Button, Notice, SelectField } from '@katakit/site-ui';
-import { createMicrophoneInput, type InputState } from './createMicrophoneInput';
-import { moonshineAssetBase } from './moonshineAssets';
-// oxlint-disable-next-line import/default
-import WhisperWorker from './whisperWorker?worker';
+import { createMicrophoneTranscriber } from '@katakit/speech/browser';
+import type { SpeechState } from '@katakit/speech';
 import { defaultModel, models, type ModelId } from './models';
 import { createModelSwitcher } from './createModelSwitcher';
 
@@ -30,7 +28,7 @@ const TranscriptionView = () => {
   const completedTurns = useCompletedTurns();
   const currentTurn = useCurrentTurn();
   const provisional = useProvisional();
-  const [input, setInput] = useState<InputState>({ phase: 'idle' });
+  const [input, setInput] = useState<SpeechState>({ phase: 'idle' });
   const [audioLevel, setAudioLevel] = useState(0);
   const [modelId, setModelId] = useState<ModelId>(defaultModel);
   const [switching, setSwitching] = useState(false);
@@ -44,18 +42,10 @@ const TranscriptionView = () => {
       onFinal: methods.ingestSegment,
       onStop: methods.flush,
     };
-    return createMicrophoneInput({
+    return createMicrophoneTranscriber({
       ...callbacks,
+      model: id,
       onProvisional: methods.updateProvisional,
-      model:
-        id === 'whisper-tiny'
-          ? { provider: 'whisper', createWorker: () => new WhisperWorker() }
-          : {
-              provider: 'moonshine',
-              model:
-                id === 'moonshine-tiny' ? 'tiny' : id === 'moonshine-medium' ? 'medium' : 'small',
-              loadSdk: () => import(/* @vite-ignore */ `${moonshineAssetBase}index.js`),
-            },
     });
   };
 
@@ -85,7 +75,15 @@ const TranscriptionView = () => {
     }
   };
 
-  const recording = input.phase === 'recording';
+  const toggleRecording = async () => {
+    try {
+      await (input.phase === 'running' ? owner.current?.stop() : owner.current?.start());
+    } catch {
+      /* onState exposes an actionable error in the UI. */
+    }
+  };
+
+  const recording = input.phase === 'running';
   const busy = switching || ['loading', 'starting', 'stopping'].includes(input.phase);
   const available =
     window.isSecureContext &&
@@ -125,7 +123,7 @@ const TranscriptionView = () => {
           disabled={busy || !available}
           onClick={() => {
             if (switchingRef.current) return;
-            void (recording ? owner.current?.stop() : owner.current?.start());
+            void toggleRecording();
           }}
         >
           <span className="record-icon" aria-hidden="true" />
@@ -140,7 +138,7 @@ const TranscriptionView = () => {
         <span className="phase" role="status" aria-live="polite">
           {input.phase === 'loading'
             ? `Loading on-device model${input.progress === undefined ? '' : ` · ${Math.round(input.progress * 100)}%`}`
-            : input.phase === 'recording'
+            : input.phase === 'running'
               ? 'Listening locally'
               : input.phase === 'error'
                 ? 'Recording unavailable'
@@ -160,7 +158,7 @@ const TranscriptionView = () => {
       )}
       {input.error && (
         <Notice tone="error">
-          {input.error} Try starting again or check microphone permission.
+          {input.error.message} Try starting again or check microphone permission.
         </Notice>
       )}
 

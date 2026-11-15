@@ -1,5 +1,5 @@
 import { createCapture } from '../../../templates/chrome-extension/src/capture';
-import { moonshineAssetBase } from '../../transcription-react/src/moonshineAssets';
+import { defaultSpeechAssetsBaseUrl } from '@katakit/speech/browser';
 import { audioLevel, createAudioLevelReporter } from '@katakit/site-ui/audio-level';
 import { createPcmChunks } from './pcmChunks';
 import type { MoonshineRequest, MoonshineResponse } from './moonshineProtocol';
@@ -41,16 +41,7 @@ const getWorker = () => {
     if (data.type === 'stopped') stopped?.();
     if (data.type === 'error') fail(data.message);
     if (data.type === 'final')
-      void chrome.runtime.sendMessage({
-        type: 'TRANSCRIPT_SEGMENT',
-        segment: {
-          sourceId: sessionId,
-          id: data.line.id,
-          text: data.line.text,
-          startMs: data.line.startTime * 1000,
-          endMs: (data.line.startTime + data.line.duration) * 1000,
-        },
-      });
+      void chrome.runtime.sendMessage({ type: 'TRANSCRIPT_SEGMENT', segment: data.segment });
   };
   return worker;
 };
@@ -70,14 +61,16 @@ chrome.runtime.onMessage.addListener((message, _sender, respond) => {
             ready = resolve;
             recognizer.postMessage({
               type: 'warmup',
-              assetUrl: chrome.runtime.getURL(`${moonshineAssetBase.slice(1)}index.js`),
+              assetUrl: chrome.runtime.getURL(
+                `${defaultSpeechAssetsBaseUrl.slice(1)}moonshine/index.js`
+              ),
             } satisfies MoonshineRequest);
           });
           ready = undefined;
           if (error) throw new Error(error);
           modelReady = true;
         }
-        recognizer.postMessage({ type: 'start' } satisfies MoonshineRequest);
+        recognizer.postMessage({ type: 'start', sourceId: sessionId } satisfies MoonshineRequest);
         const reportInputLevel = createAudioLevelReporter(level => {
           void chrome.runtime.sendMessage({ type: 'CAPTURE_LEVEL', source: 'tab', level });
         }, 16_000);

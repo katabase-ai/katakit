@@ -44,12 +44,12 @@ importers:
       '@katakit/site-ui':
         specifier: workspace:*
         version: link:../../pkgs/site-ui
+      '@katakit/speech':
+        specifier: workspace:*
+        version: link:../../pkgs/speech
       '@katakit/transcription':
         specifier: workspace:*
         version: link:../../pkgs/transcription
-      '@moonshine-ai/moonshine-wasm':
-        specifier: ^0.1.5
-        version: 0.1.5
       '@react-rxjs/core':
         specifier: ^0.10.8
         version: 0.10.8(react@19.3.1)(rxjs@7.8.2)
@@ -96,12 +96,12 @@ importers:
       '@katakit/site-ui':
         specifier: workspace:*
         version: link:../../pkgs/site-ui
+      '@katakit/speech':
+        specifier: workspace:*
+        version: link:../../pkgs/speech
       '@katakit/transcription':
         specifier: workspace:*
         version: link:../../pkgs/transcription
-      '@moonshine-ai/moonshine-wasm':
-        specifier: ^0.1.5
-        version: 0.1.5
       '@react-rxjs/core':
         specifier: ^0.10.8
         version: 0.10.8(react@19.3.1)(rxjs@7.8.2)
@@ -139,9 +139,9 @@ importers:
       '@katakit/site-ui':
         specifier: workspace:*
         version: link:../../pkgs/site-ui
-      '@moonshine-ai/moonshine-wasm':
-        specifier: 0.1.5
-        version: 0.1.5
+      '@katakit/speech':
+        specifier: workspace:*
+        version: link:../../pkgs/speech
       react:
         specifier: ^19.0.0
         version: 19.3.1
@@ -173,18 +173,15 @@ importers:
       '@katakit/site-ui':
         specifier: workspace:*
         version: link:../../pkgs/site-ui
+      '@katakit/speech':
+        specifier: workspace:*
+        version: link:../../pkgs/speech
       '@katakit/transcription':
         specifier: workspace:*
         version: link:../../pkgs/transcription
-      '@moonshine-ai/moonshine-wasm':
-        specifier: 0.1.5
-        version: 0.1.5
       '@react-rxjs/core':
         specifier: ^0.10.8
         version: 0.10.8(react@19.3.1)(rxjs@7.8.2)
-      '@xenova/transformers':
-        specifier: ^2.17.2
-        version: 2.17.2(bare-buffer@3.7.2)
       react:
         specifier: ^19.0.0
         version: 19.3.1
@@ -379,9 +376,6 @@ importers:
       '@katakit/core':
         specifier: workspace:*
         version: link:../core
-      '@katakit/speech':
-        specifier: workspace:*
-        version: link:../speech
       rxjs:
         specifier: ^7.8.2
         version: 7.8.2

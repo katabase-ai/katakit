@@ -1,3 +1,4 @@
+import { deferred } from './deferred';
 import type { EngineSession, EngineEvents, SpeechEngine } from './types';
 import { createWhisperChunks } from './whisperChunks';
 import type { WhisperRequest, WhisperResponse } from './whisperProtocol';
@@ -13,8 +14,8 @@ export const loadWhisper = async (
   events: EngineEvents
 ): Promise<EngineSession> => {
   const worker = options.createWorker();
-  const ready = Promise.withResolvers<void>();
-  let drain: ReturnType<typeof Promise.withResolvers<void>> | undefined;
+  const ready = deferred<void>();
+  let drain: ReturnType<typeof deferred<void>> | undefined;
   let failure: Error | undefined;
   let chunks = createWhisperChunks();
   let sourceId = '';
@@ -94,7 +95,7 @@ export const loadWhisper = async (
       const last = chunks.flush();
       if (last) enqueue(last);
       if (inFlight || queued.length) {
-        drain = Promise.withResolvers<void>();
+        drain = deferred<void>();
         try {
           await drain.promise;
         } finally {

@@ -1,3 +1,4 @@
+import { deferred } from './deferred';
 import type { MicrophoneCaptureMessage } from './runtime/microphone-worklet';
 
 /** One recording owns one microphone and audio graph. Recognition is source-neutral. */
@@ -77,7 +78,7 @@ export const createMicrophoneCapture = (
       source?.disconnect();
       try {
         if (!failed && processor && context?.state === 'running') {
-          const pending = Promise.withResolvers<void>();
+          const pending = deferred<void>();
           const recordingContext = context;
           const onStateChange = () => {
             if (recordingContext.state !== 'running') pending.resolve();

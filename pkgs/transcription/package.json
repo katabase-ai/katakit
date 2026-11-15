@@ -15,16 +15,6 @@
       "source": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    },
-    "./models": {
-      "source": "./src/models/index.ts",
-      "types": "./dist/models/index.d.ts",
-      "default": "./dist/models/index.js"
-    },
-    "./whisper-worker": {
-      "source": "./src/models/whisperWorker.ts",
-      "types": "./dist/models/whisperWorker.d.ts",
-      "default": "./dist/models/whisperWorker.js"
     }
   },
   "publishConfig": {
@@ -32,14 +22,6 @@
       ".": {
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
-      },
-      "./models": {
-        "types": "./dist/models/index.d.ts",
-        "default": "./dist/models/index.js"
-      },
-      "./whisper-worker": {
-        "types": "./dist/models/whisperWorker.d.ts",
-        "default": "./dist/models/whisperWorker.js"
       }
     },
     "access": "public"
@@ -53,7 +35,6 @@
   },
   "dependencies": {
     "@katakit/core": "workspace:*",
-    "@katakit/speech": "workspace:*",
     "rxjs": "^7.8.2"
   }
 }

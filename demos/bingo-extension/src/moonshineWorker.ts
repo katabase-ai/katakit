@@ -1,40 +1,33 @@
-import type { Stream, Transcriber } from '@moonshine-ai/moonshine-wasm';
+import { createTranscriber, type Transcriber } from '@katakit/speech';
+import { moonshine } from '@katakit/speech/moonshine';
 import type { MoonshineRequest, MoonshineResponse } from './moonshineProtocol';
 
 const send = (message: MoonshineResponse) => self.postMessage(message);
-let model: Transcriber | undefined;
-let stream: Stream | undefined;
-
+let transcriber: Transcriber | undefined;
 self.onmessage = async ({ data }: MessageEvent<MoonshineRequest>) => {
   try {
     if (data.type === 'warmup') {
-      // The SDK's ESM, worker and WASM files must be siblings under the extension origin.
-      const sdk: typeof import('@moonshine-ai/moonshine-wasm') = await import(
-        /* @vite-ignore */ data.assetUrl
-      );
-      model = await sdk.Transcriber.load({
-        language: 'en',
-        modelArch: sdk.ModelArch.TinyStreaming,
-        onProgress: (bytes, total) =>
-          send({ type: 'progress', progress: total ? bytes / total : 0 }),
+      await transcriber?.dispose();
+      transcriber = createTranscriber({
+        engine: moonshine({
+          model: 'tiny',
+          loadSdk: () => import(/* @vite-ignore */ data.assetUrl),
+        }),
+        onState: state => {
+          if (state.phase === 'loading') send({ type: 'progress', progress: state.progress ?? 0 });
+          if (state.phase === 'error')
+            send({ type: 'error', message: state.error?.message ?? 'Recognition failed.' });
+        },
+        onFinal: segment => send({ type: 'final', segment }),
       });
+      await transcriber.load();
       send({ type: 'ready' });
     } else if (data.type === 'start') {
-      if (!model) throw new Error('Moonshine model is not loaded.');
-      stream?.close();
-      stream = model.createStream();
-      stream.addListener({
-        onLineCompleted: ({ line }) => send({ type: 'final', line }),
-        onError: ({ error }) => send({ type: 'error', message: String(error) }),
-      });
-      stream.start();
-    } else if (data.type === 'audio') {
-      stream?.addAudio(data.samples, 16_000);
-      stream?.transcribe();
-    } else if (data.type === 'stop') {
-      stream?.stop();
-      stream?.close();
-      stream = undefined;
+      if (!transcriber) throw new Error('The model has not loaded.');
+      await transcriber.start({ sourceId: data.sourceId });
+    } else if (data.type === 'audio') transcriber?.write(data.samples, 16_000);
+    else if (data.type === 'stop') {
+      await transcriber?.stop();
       send({ type: 'stopped' });
     }
   } catch (error) {
