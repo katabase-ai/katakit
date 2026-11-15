@@ -68,7 +68,7 @@ export const createTranscriber = (
   };
   const fail = (error: unknown) => {
     if (failure) return;
-    failure = speechError(error, 'recognition-failed');
+    failure = speechError(error, phase === 'loading' ? 'model-load-failed' : 'recognition-failed');
     update({ phase: 'error', error: failure });
     // Async worker failures also stop recognition and release the failed model.
     void (async () => {
@@ -90,8 +90,9 @@ export const createTranscriber = (
       try {
         await action();
       } catch (error) {
-        fail(error);
-        throw error;
+        const cause = speechError(error, 'recognition-failed');
+        fail(cause);
+        throw cause;
       }
     });
   const load = async () => {
@@ -146,11 +147,12 @@ export const createTranscriber = (
       if (!active || failure) return;
       try {
         if (!Number.isFinite(sampleRate) || sampleRate <= 0)
-          throw new Error('sampleRate must be a positive number');
+          throw new SpeechError('audio-format-unsupported', 'sampleRate must be a positive number');
         provider!.write(audio, sampleRate);
       } catch (error) {
-        fail(error);
-        throw error;
+        const cause = speechError(error, 'recognition-failed');
+        fail(cause);
+        throw cause;
       }
     },
     stop: () => run(finish),

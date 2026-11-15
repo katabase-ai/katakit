@@ -59,9 +59,17 @@ export const createMicrophoneTranscriber = (options: MicrophoneOptions): Microph
   };
   const load = async () => {
     assertOpen();
+    if (starting) {
+      await starting;
+      return;
+    }
+    if (stopping) await stopping;
+    if (phase === 'running') return;
+    failure = undefined;
     try {
       checkBrowserSupport(options.model ?? 'moonshine-small', true);
       await model.load();
+      if (!disposed && !failure && !starting && !stopping) update({ phase: 'ready' });
     } catch (error) {
       fail(error);
       throw failure;
@@ -153,7 +161,7 @@ export const createMicrophoneTranscriber = (options: MicrophoneOptions): Microph
           failure = speechError(error, 'recognition-failed');
           update({ phase: 'error', error: failure });
         }
-        throw error;
+        throw failure;
       } finally {
         if (!disposed) options.onLevel?.(0);
         stopping = undefined;

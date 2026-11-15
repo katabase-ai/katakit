@@ -131,8 +131,9 @@ describe('microphone host adapter', () => {
   });
 
   it('preloads without creating capture or requesting microphone permission', async () => {
-    const { input, model } = setup();
+    const { input, model, states } = setup();
     await input.load();
+    expect(states.at(-1)).toEqual({ phase: 'ready' });
     expect(model.load).toHaveBeenCalledOnce();
     expect(mocks.createCapture).not.toHaveBeenCalled();
     expect(navigator.mediaDevices.getUserMedia).not.toHaveBeenCalled();
