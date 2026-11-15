@@ -11,7 +11,7 @@
     "isolatedModules": true,
     "customConditions": ["source"],
     "noEmit": true,
-    "types": ["vite/client"]
+    "types": ["vite/client", "node"]
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "*.ts"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "*.ts", "shared/**/*.ts", "shared/**/*.tsx"]
 }
