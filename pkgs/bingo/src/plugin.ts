@@ -1,5 +1,6 @@
-import { makeKatakitPlugin, property } from '@katakit/core';
-import { BehaviorSubject } from 'rxjs';
+import { makeEffect, makeKatakitPlugin, property } from '@katakit/core';
+import type { makeTranscriptionPlugin } from '@katakit/transcription';
+import { BehaviorSubject, filter } from 'rxjs';
 
 export type BingoTurn = { id: string; text: string };
 export type BingoBoard = { squares: string[]; overrides: Record<number, boolean> };
@@ -113,7 +114,9 @@ const calculate = (board: BingoBoard, turns: BingoTurn[]): BingoState => {
 };
 
 /** A headless card driven by source-neutral transcript turns, not audio or React. */
-export const makeBingoPlugin = () =>
+export const makeBingoPlugin = ({
+  TranscriptionPlugin,
+}: { TranscriptionPlugin?: ReturnType<typeof makeTranscriptionPlugin> } = {}) =>
   makeKatakitPlugin({
     type: 'Bingo',
     configure: (_options: {}) => ({
@@ -161,5 +164,20 @@ export const makeBingoPlugin = () =>
           update();
         },
       };
+    },
+    effects: ({ methods, getObservables }) => {
+      if (!TranscriptionPlugin) return [];
+      const { events$, conversationTurns$, currentTurn$ } = getObservables(TranscriptionPlugin);
+      return [
+        makeEffect({
+          on: events$.pipe(filter(event => event.type !== 'provisional')),
+          backpressure: 'latest',
+          handler: () => {
+            const turns = conversationTurns$.get();
+            const current = currentTurn$.get();
+            methods.setTurns(current ? [...turns, current] : turns);
+          },
+        }),
+      ];
     },
   });

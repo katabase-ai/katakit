@@ -40,8 +40,6 @@ const getWorker = () => {
     if (data.type === 'ready') ready?.();
     if (data.type === 'stopped') stopped?.();
     if (data.type === 'error') fail(data.message);
-    if (data.type === 'provisional')
-      void chrome.runtime.sendMessage({ type: 'TRANSCRIPT_PROVISIONAL', text: data.text });
     if (data.type === 'final')
       void chrome.runtime.sendMessage({
         type: 'TRANSCRIPT_SEGMENT',

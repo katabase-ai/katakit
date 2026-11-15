@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { combineLatest } from 'rxjs';
 import { makeKatakit } from '@katakit/core';
 import { bind, Subscribe } from '@react-rxjs/core';
 import { makeTranscriptionPlugin } from '@katakit/transcription';
@@ -11,9 +12,11 @@ import { createModelSwitcher } from './createModelSwitcher';
 const Transcription = makeTranscriptionPlugin({ turnSilenceMs: 1400 });
 const kit = makeKatakit({ plugins: [Transcription.configure({})] });
 const methods = kit.start().getMethods(Transcription);
-const state$ = kit.getObservables(Transcription).state$;
-// Bind once for this runtime. Subscribe owns the UI subscription, including cleanup.
-const [useTranscript, transcript$] = bind(state$);
+const { conversationTurns$, currentTurn$, provisional$ } = kit.getObservables(Transcription);
+const [useCompletedTurns, completedTurnsState$] = bind(conversationTurns$);
+const [useCurrentTurn, currentTurnState$] = bind(currentTurn$);
+const [useProvisional, provisionalState$] = bind(provisional$);
+const view$ = combineLatest([completedTurnsState$, currentTurnState$, provisionalState$]);
 
 const formatTime = (ms?: number) => {
   if (ms === undefined) return undefined;
@@ -22,7 +25,9 @@ const formatTime = (ms?: number) => {
 };
 
 const TranscriptionView = () => {
-  const transcript = useTranscript();
+  const completedTurns = useCompletedTurns();
+  const currentTurn = useCurrentTurn();
+  const provisional = useProvisional();
   const [input, setInput] = useState<InputState>({ phase: 'idle' });
   const [audioLevel, setAudioLevel] = useState(0);
   const [modelId, setModelId] = useState<ModelId>(defaultModel);
@@ -78,7 +83,7 @@ const TranscriptionView = () => {
     window.isSecureContext &&
     window.crossOriginIsolated &&
     typeof navigator.mediaDevices?.getUserMedia === 'function';
-  const turns = transcript.current ? [...transcript.turns, transcript.current] : transcript.turns;
+  const turns = currentTurn ? [...completedTurns, currentTurn] : completedTurns;
 
   return (
     <section className="workspace transcription-demo" aria-labelledby="title">
@@ -154,10 +159,10 @@ const TranscriptionView = () => {
       <section className="transcript" aria-labelledby="transcript-heading">
         <div className="transcript-heading">
           <h2 id="transcript-heading">Transcript</h2>
-          <span>{transcript.turns.length} completed turns</span>
+          <span>{completedTurns.length} completed turns</span>
         </div>
 
-        {!turns.length && !transcript.provisional ? (
+        {!turns.length && !provisional ? (
           <div className="empty-state">
             <p>Your conversation will appear here.</p>
             <span>Speak naturally; short transcript fragments will be grouped into turns.</span>
@@ -169,15 +174,15 @@ const TranscriptionView = () => {
                 <span className="turn-index">{String(index + 1).padStart(2, '0')}</span>
                 <div>
                   <p>{turn.text}</p>
-                  {turn === transcript.current && <span className="working">Turn in progress</span>}
+                  {turn === currentTurn && <span className="working">Turn in progress</span>}
                 </div>
                 <time>{formatTime(turn.startMs)}</time>
               </article>
             ))}
-            {transcript.provisional && (
+            {provisional && (
               <div className="turn interim">
                 <span className="turn-index">··</span>
-                <p>{transcript.provisional}</p>
+                <p>{provisional}</p>
                 <span className="working">Listening</span>
               </div>
             )}
@@ -192,7 +197,7 @@ const TranscriptionView = () => {
 };
 
 export const TranscriptionDemo = () => (
-  <Subscribe source$={transcript$}>
+  <Subscribe source$={view$}>
     <TranscriptionView />
   </Subscribe>
 );

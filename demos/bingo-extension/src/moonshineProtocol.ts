@@ -9,7 +9,6 @@ export type MoonshineRequest =
 export type MoonshineResponse =
   | { type: 'progress'; progress: number }
   | { type: 'ready' }
-  | { type: 'provisional'; text: string }
   | { type: 'final'; line: TranscriptLine }
   | { type: 'stopped' }
   | { type: 'error'; message: string };

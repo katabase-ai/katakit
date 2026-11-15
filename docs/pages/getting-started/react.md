@@ -40,7 +40,7 @@ root.render(
 );
 ```
 
-The property observable replays its current value on subscription. The hook renders that value and updates when `increment()` emits a new one; calling `count$.get()` alone in a component would not subscribe it to changes. The [transcription demo](https://github.com/katabase-ai/katakit/blob/main/demos/transcription-react/src/App.tsx) uses this same pattern for its `state$` property.
+The property observable replays its current value on subscription. The hook renders that value and updates when `increment()` emits a new one; calling `count$.get()` alone in a component would not subscribe it to changes. The [transcription demo](https://github.com/katabase-ai/katakit/blob/main/demos/transcription-react/src/App.tsx) binds `conversationTurns$`, `currentTurn$`, and `provisional$` separately. The latter two initially emit `undefined` until there is an unfinished turn or provisional text.
 
 ## Subscription ownership
 
@@ -48,7 +48,7 @@ The property observable replays its current value on subscription. The hook rend
 
 This cleanup covers React's subscriptions. It does not stop a runtime, release subscriptions created by core helpers, or dispose microphones, workers, or other host resources. Keep those resources under their existing host ownership; see [runtime and lifecycle](../concepts/runtime.md).
 
-For a view that reads several bound streams, create a stable `combineLatest([firstState$, secondState$])` from RxJS and pass it to the boundary's `source$`. The bingo demos use this pattern for transcript and board properties. Subscriptions that forward data between plugins remain application logic with their own cleanup.
+For a view that reads several bound streams, create a stable `combineLatest([firstState$, secondState$])` from RxJS and pass it to the boundary's `source$`. The bingo demos use this pattern for `lastHeard$` and the board; unlike the transcription demo, they do not display provisional text or bind the full turn list. The bingo plugin's runtime effect consumes transcription events independently of these React subscriptions.
 
 For a source without a synchronous initial emission, [`bind`](https://react-rxjs.org/docs/api/core/bind) accepts a default value, or `Subscribe` can display a `fallback` while waiting. Choose an intentional initial UI. The example above uses a replaying property and needs neither a fabricated default nor custom Suspense handling.
 

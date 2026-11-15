@@ -12,20 +12,19 @@ import {
 import './style.css';
 
 const transcription = makeTranscriptionPlugin();
-const bingo = makeBingoPlugin();
+const bingo = makeBingoPlugin({ TranscriptionPlugin: transcription });
 const kit = makeKatakit({ plugins: [transcription.configure({}), bingo.configure({})] });
 const running = kit.start();
 const transcriptMethods = running.getMethods(transcription);
 const bingoMethods = running.getMethods(bingo);
-const transcript$ = kit.getObservables(transcription).state$;
+const { lastHeard$ } = kit.getObservables(transcription);
 const board$ = kit.getObservables(bingo).state$;
-// Bind once; the boundary owns both UI subscriptions.
-const [useTranscript, transcriptState$] = bind(transcript$);
+const [useLastHeard, lastHeardState$] = bind(lastHeard$);
 const [useBoard, boardState$] = bind(board$);
-const view$ = combineLatest([transcriptState$, boardState$]);
+const view$ = combineLatest([lastHeardState$, boardState$]);
 
 const BrowserBingoView = () => {
-  const transcript = useTranscript();
+  const lastHeard = useLastHeard();
   const board = useBoard();
   const [input, setInput] = useState<InputState>({ phase: 'idle' });
   const [audioLevel, setAudioLevel] = useState(0);
@@ -33,21 +32,16 @@ const BrowserBingoView = () => {
   const source = useRef<ReturnType<typeof createMoonshineInput> | null>(null);
 
   useEffect(() => {
-    const subscription = transcript$.subscribe(state =>
-      bingoMethods.setTurns(state.current ? [...state.turns, state.current] : state.turns)
-    );
     const input = createMoonshineInput({
       modelId: 'moonshine-tiny',
       onState: setInput,
       onLevel: setAudioLevel,
-      onProvisional: transcriptMethods.updateProvisional,
       onFinal: transcriptMethods.ingestSegment,
       onStop: transcriptMethods.flush,
     });
     source.current = input;
     return () => {
       source.current = null;
-      subscription.unsubscribe();
       void input.dispose();
     };
   }, []);
@@ -58,7 +52,6 @@ const BrowserBingoView = () => {
     window.isSecureContext &&
     window.crossOriginIsolated &&
     typeof navigator.mediaDevices?.getUserMedia === 'function';
-  const turns = transcript.current ? [...transcript.turns, transcript.current] : transcript.turns;
   const markedCount = board.marked.filter(Boolean).length - 1;
 
   const choosePack = (next: BingoPackId) => {
@@ -169,11 +162,7 @@ const BrowserBingoView = () => {
           )}
           <div className="bingo-transcript">
             <h2>Last heard</h2>
-            <p aria-live="polite">
-              {transcript.provisional ||
-                turns.at(-1)?.text ||
-                'Your conversation will appear here.'}
-            </p>
+            <p aria-live="polite">{lastHeard || 'Your conversation will appear here.'}</p>
           </div>
         </aside>
       </div>

@@ -15,11 +15,11 @@ export type InputPhase =
   | 'error';
 export type InputState = { phase: InputPhase; progress?: number; error?: string };
 
-/** Own model and capture explicitly; Katakit owns only transcript state. */
+/** Own model and capture explicitly; Katakit owns transcript events and projections. */
 export const createMoonshineInput = (params: {
   modelId: Exclude<ModelId, 'whisper-tiny'>;
   onState: (state: InputState) => void;
-  onProvisional: (text: string) => void;
+  onProvisional?: (text: string) => void;
   onFinal: (segment: TranscriptSegment) => void;
   onStop: () => void;
   onLevel?: (level: number) => void;
@@ -85,8 +85,8 @@ export const createMoonshineInput = (params: {
         );
         capture = current;
         current.addListener({
-          onLineStarted: ({ line }) => params.onProvisional(line.text),
-          onLineTextChanged: ({ line }) => params.onProvisional(line.text),
+          onLineStarted: ({ line }) => params.onProvisional?.(line.text),
+          onLineTextChanged: ({ line }) => params.onProvisional?.(line.text),
           onLineCompleted: ({ line }) => {
             if (completed.has(line.id) || disposed) return;
             completed.add(line.id);

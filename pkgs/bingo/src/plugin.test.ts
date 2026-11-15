@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { makeKatakit } from '@katakit/core';
+import { makeTranscriptionPlugin } from '@katakit/transcription';
 import { makeBingoPlugin, makeSquares, matchPhrase, winningLines } from './plugin';
 
 const setup = () => {
@@ -9,6 +10,28 @@ const setup = () => {
 };
 
 describe('Bingo plugin', () => {
+  it('reacts to transcription events without a mounted UI subscription', async () => {
+    const transcription = makeTranscriptionPlugin();
+    const bingo = makeBingoPlugin({ TranscriptionPlugin: transcription });
+    const kit = makeKatakit({ plugins: [transcription.configure({}), bingo.configure({})] });
+    const running = kit.start();
+    const { ingestSegment, updateProvisional, flush, reset, close } =
+      running.getMethods(transcription);
+    const state = kit.getObservables(bingo).state$;
+
+    updateProvisional('Quick question');
+    expect(state.get().marked[0]).toBe(false);
+    ingestSegment({ sourceId: 'mic', id: '1', text: 'Quick question' });
+    await vi.waitFor(() => expect(state.get().marked[0]).toBe(true));
+    flush();
+    await vi.waitFor(() => expect(state.get().evidence[0]).toBe('Quick question'));
+    reset();
+    await vi.waitFor(() => expect(state.get().marked[0]).toBe(false));
+
+    ingestSegment({ sourceId: 'mic', id: '1', text: 'Can you hear me?' });
+    await vi.waitFor(() => expect(state.get().marked[2]).toBe(true));
+    close();
+  });
   it('matches complete phrases across punctuation and case, not substrings', () => {
     expect(matchPhrase('circle back', 'Can we circle, back tomorrow?')).toBe(true);
     expect(matchPhrase('plan', 'planet')).toBe(false);

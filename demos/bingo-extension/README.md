@@ -18,15 +18,15 @@ current transcript and clears manual square corrections.
 Rare names and tricky words may require manual correction. Board edits and the
 selected pack are stored in extension local storage, while
 transcript history lasts for the browser session. Stop capture before reloading
-the extension. Model download needs access to download.moonshine.ai. Live words
-are previewed; bingo squares match only finalized words.
+the extension. Model download needs access to download.moonshine.ai. Last heard
+previews finalized words only; bingo squares also match only finalized words.
 
 This demo uses the audio capture implementation from
 `templates/chrome-extension/src/capture.ts`, the template's background and
 worklet assets, and `@katakit/transcription` for turn assembly. Browser audio
 and model setup stay in the host. No account or external bingo API is required.
 
-The panel binds transcript and board properties with React-RxJS. A `Subscribe`
-boundary owns the UI subscriptions and releases both on unmount. Host effects
-separately manage extension listeners and forward transcript turns to the game.
+The panel binds only `lastHeard$` and the board with React-RxJS.
+A `Subscribe` boundary owns those UI subscriptions and releases them on unmount.
+The bingo plugin effect keeps matching independently; the host manages extension listeners.
 See the [React integration guide](../../docs/pages/getting-started/react.md).
