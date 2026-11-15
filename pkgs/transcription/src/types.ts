@@ -44,10 +44,10 @@ export type EngineEvents = {
 };
 
 export type EngineSession = {
-  start: (sourceId: string) => void;
+  start: (sourceId: string) => void | Promise<void>;
   write: (audio: Float32Array, sampleRate: number) => void;
   stop: () => void | Promise<void>;
-  close: () => void;
+  close: () => void | Promise<void>;
 };
 
 /** An engine loads one recognizer and returns a reusable session owner. */

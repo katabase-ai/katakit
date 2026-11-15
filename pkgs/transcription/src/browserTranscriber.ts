@@ -1,6 +1,6 @@
 import { createTranscriber } from './index';
-import { moonshine } from './moonshine';
-import { whisper } from './whisper';
+import { workerEngine } from './workerEngine';
+import { browserEngine } from './browserEngine';
 import { transcriptionModels, type TranscriptionModelId } from './catalog';
 import {
   checkBrowserSupport,
@@ -28,19 +28,14 @@ export const createBrowserTranscriber = (options: BrowserTranscriberOptions) => 
     try {
       return await (
         model === 'whisper-tiny'
-          ? whisper({
+          ? browserEngine(model, base)
+          : workerEngine({
+              model,
+              assetsBaseUrl: transcriptionAssetUrl(base, ''),
               createWorker: () =>
-                new Worker(transcriptionAssetUrl(base, 'whisper-worker.js'), { type: 'module' }),
-            })
-          : moonshine({
-              model:
-                model === 'moonshine-tiny'
-                  ? 'tiny'
-                  : model === 'moonshine-medium'
-                    ? 'medium'
-                    : 'small',
-              loadSdk: () =>
-                import(/* @vite-ignore */ transcriptionAssetUrl(base, 'moonshine/index.js')),
+                new Worker(transcriptionAssetUrl(base, 'transcription-worker.js'), {
+                  type: 'module',
+                }),
             })
       )(events);
     } catch (error) {

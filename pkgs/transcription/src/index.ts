@@ -61,10 +61,10 @@ export const createTranscriber = (
     }
     if (!failure) update({ phase: 'ready' });
   };
-  const release = () => {
+  const release = async () => {
     const current = provider;
     provider = undefined;
-    current?.close();
+    await current?.close();
   };
   const fail = (error: unknown) => {
     if (failure) return;
@@ -80,7 +80,7 @@ export const createTranscriber = (
           try {
             await finish();
           } finally {
-            release();
+            await release();
           }
         });
       } catch {
@@ -141,7 +141,7 @@ export const createTranscriber = (
         if (disposed) return;
         update({ phase: 'starting' });
         active = true;
-        provider!.start(startOptions?.sourceId ?? crypto.randomUUID());
+        await provider!.start(startOptions?.sourceId ?? crypto.randomUUID());
         if (failure) throw failure;
         update({ phase: 'running' });
       }),
@@ -169,7 +169,7 @@ export const createTranscriber = (
         try {
           await finish();
         } finally {
-          release();
+          await release();
         }
       });
       return disposal;
