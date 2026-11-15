@@ -10,10 +10,13 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "type": "module",
-  "sideEffects": false,
+  "sideEffects": [
+    "**/*.css"
+  ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -21,6 +24,15 @@
       "source": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./dev-tools": {
+      "source": "./src/dev-tools/index.tsx",
+      "types": "./dist/dev-tools.d.ts",
+      "default": "./dist/dev-tools.js"
+    },
+    "./dev-tools.css": {
+      "source": "./src/dev-tools/styles.css",
+      "default": "./dist/dev-tools.css"
     }
   },
   "publishConfig": {
@@ -28,18 +40,24 @@
       ".": {
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
-      }
+      },
+      "./dev-tools": {
+        "types": "./dist/dev-tools.d.ts",
+        "default": "./dist/dev-tools.js"
+      },
+      "./dev-tools.css": "./dist/dev-tools.css"
     },
     "access": "public"
   },
   "scripts": {
-    "build": "tsdown",
+    "build": "tsdown && node build-styles.mjs",
     "tsc": "tsc --project tsconfig.json",
     "prepack": "pnpm build",
     "test": "vitest",
     "test:ci": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@base-ui/react": "^1.9.0",
     "@katakit/core": "workspace:*"
   },
   "devDependencies": {
@@ -47,10 +65,12 @@
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
     "happy-dom": "^18.0.1",
+    "lightningcss": "^1.33.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "peerDependencies": {
-    "react": "^19.0.0"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   }
 }

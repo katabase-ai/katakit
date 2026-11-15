@@ -1,0 +1,155 @@
+/* Scoped adaptation of shadcn/ui base-nova styles. No preflight or host theme required. */
+.kk-devtools {
+  box-sizing: border-box;
+  color: #18181b;
+  background: #fff;
+  font:
+    400 14px/1.5 ui-sans-serif,
+    system-ui,
+    sans-serif;
+  text-align: left;
+  color-scheme: light;
+  letter-spacing: normal;
+}
+.kk-devtools *,
+.kk-devtools *::before,
+.kk-devtools *::after {
+  box-sizing: border-box;
+}
+.kk-devtools-root {
+  margin: 24px 0;
+  padding: 12px;
+  border: 1px solid #d4d4d8;
+  border-radius: 12px;
+}
+.kk-devtools .kk-devtools-button,
+.kk-devtools .kk-devtools-tab {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: auto;
+  min-height: 32px;
+  margin: 0;
+  padding: 4px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font:
+    500 14px/1.5 ui-sans-serif,
+    system-ui,
+    sans-serif;
+  letter-spacing: normal;
+  text-transform: none;
+  cursor: pointer;
+  box-shadow: none;
+}
+.kk-devtools .kk-devtools-button {
+  background: #18181b;
+  color: #fafafa;
+}
+.kk-devtools .kk-devtools-button:hover {
+  background: #3f3f46;
+}
+.kk-devtools .kk-devtools-button:focus-visible,
+.kk-devtools .kk-devtools-tab:focus-visible,
+.kk-devtools .kk-devtools-panel:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+}
+.kk-devtools .kk-devtools-button:disabled,
+.kk-devtools .kk-devtools-tab:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.kk-devtools-body {
+  display: grid;
+  gap: 12px;
+  padding-top: 12px;
+}
+.kk-devtools-inspector {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid #e4e4e7;
+  border-radius: 8px;
+}
+.kk-devtools-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 8px;
+  overflow-wrap: anywhere;
+}
+.kk-devtools-heading strong {
+  font-weight: 600;
+}
+.kk-devtools-status {
+  font-size: 12px;
+  color: #52525b;
+}
+.kk-devtools-tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.kk-devtools-tabs-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 3px;
+  border-radius: 10px;
+  background: #f4f4f5;
+}
+.kk-devtools .kk-devtools-tab {
+  background: transparent;
+  color: #52525b;
+  white-space: normal;
+}
+.kk-devtools .kk-devtools-tab:hover {
+  color: #18181b;
+}
+.kk-devtools .kk-devtools-tab[data-active] {
+  background: #fff;
+  color: #18181b;
+  box-shadow: 0 1px 3px #0000001a;
+}
+.kk-devtools-panel {
+  min-width: 0;
+}
+.kk-devtools pre {
+  margin: 0;
+  padding: 12px;
+  max-height: 320px;
+  overflow: auto;
+  border-radius: 6px;
+  background: #f4f4f5;
+  color: #18181b;
+  font:
+    12px/1.6 ui-monospace,
+    SFMono-Regular,
+    Consolas,
+    monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.kk-devtools pre[role='alert'] {
+  margin-bottom: 8px;
+  color: #991b1b;
+  background: #fef2f2;
+}
+.kk-devtools .kk-devtools-hint {
+  margin: 0 0 8px;
+  color: #52525b;
+  font-size: 12px;
+}
+.kk-devtools-history {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 24px;
+  max-height: 400px;
+  overflow: auto;
+}
