@@ -11,6 +11,6 @@ test('reference is compiled from the public event-log export and its inferred pl
   assert.match(page, /emitEvent: \(event: TEvent\) => void/);
 });
 
-test('checked-in event-log reference is current', () => {
+test('generated event-log reference matches its sources', () => {
   assert.doesNotThrow(() => generateReference({ check: true }));
 });
