@@ -100,7 +100,7 @@ describe('shared transcription model', () => {
     await model.stop();
     expect(mock.load).toHaveBeenCalledOnce();
     await Promise.all([model.dispose(), model.dispose()]);
-    await model.start();
+    await expect(model.start()).rejects.toMatchObject({ code: 'disposed' });
     expect(mock.model.close).toHaveBeenCalledOnce();
     expect(mock.model.createStream).toHaveBeenCalledTimes(2);
     expect(phases).toContain('running');
@@ -144,7 +144,10 @@ describe('shared transcription model', () => {
     expect(() => model.write(new Float32Array(8), 16_000)).toThrow('recognition failed');
     await vi.waitFor(() => expect(mock.model.close).toHaveBeenCalledOnce());
     expect(mock.stream.close).toHaveBeenCalledOnce();
-    expect(states.at(-1)).toEqual({ phase: 'error', error: 'recognition failed' });
+    expect(states.at(-1)).toMatchObject({
+      phase: 'error',
+      error: { code: 'recognition-failed', message: 'recognition failed' },
+    });
     await model.start();
     expect(mock.load).toHaveBeenCalledTimes(2);
     await model.dispose();
@@ -244,7 +247,7 @@ describe('shared transcription model', () => {
     const dispose = model.dispose();
     worker.send({ type: 'ready' });
     await Promise.all([start, dispose, model.dispose()]);
-    model.write(new Float32Array(160_000), 16_000);
+    expect(() => model.write(new Float32Array(160_000), 16_000)).toThrow('disposed');
     expect(worker.requests).toHaveLength(1);
     expect(worker.terminate).toHaveBeenCalledOnce();
     expect(onFinal).not.toHaveBeenCalled();

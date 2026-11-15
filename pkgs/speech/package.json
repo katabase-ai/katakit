@@ -30,7 +30,23 @@
       "source": "./src/whisperWorker.ts",
       "types": "./dist/whisperWorker.d.ts",
       "default": "./dist/whisperWorker.js"
-    }
+    },
+    "./browser": {
+      "source": "./src/browser.ts",
+      "types": "./dist/browser.d.ts",
+      "default": "./dist/browser.js"
+    },
+    "./assets": {
+      "source": "./src/assets.ts",
+      "types": "./dist/assets.d.ts",
+      "default": "./dist/assets.js"
+    },
+    "./vite": {
+      "source": "./src/vite.ts",
+      "types": "./dist/vite.d.ts",
+      "default": "./dist/vite.js"
+    },
+    "./package.json": "./package.json"
   },
   "publishConfig": {
     "exports": {
@@ -49,12 +65,25 @@
       "./whisper-worker": {
         "types": "./dist/whisperWorker.d.ts",
         "default": "./dist/whisperWorker.js"
-      }
+      },
+      "./browser": {
+        "types": "./dist/browser.d.ts",
+        "default": "./dist/browser.js"
+      },
+      "./assets": {
+        "types": "./dist/assets.d.ts",
+        "default": "./dist/assets.js"
+      },
+      "./vite": {
+        "types": "./dist/vite.d.ts",
+        "default": "./dist/vite.js"
+      },
+      "./package.json": "./package.json"
     },
     "access": "public"
   },
   "scripts": {
-    "build": "tsdown",
+    "build": "tsdown && vite build --config runtime.vite.config.ts && node scripts/copy-runtime-assets.mjs",
     "tsc": "tsc --project tsconfig.json",
     "test": "vitest",
     "test:ci": "vitest run --passWithNoTests",
@@ -62,6 +91,15 @@
   },
   "devDependencies": {
     "@moonshine-ai/moonshine-wasm": "0.1.5",
-    "@xenova/transformers": "^2.17.2"
+    "@xenova/transformers": "^2.17.2",
+    "vite": "^6.0.0"
+  },
+  "peerDependencies": {
+    "vite": "^6.0.0"
+  },
+  "peerDependenciesMeta": {
+    "vite": {
+      "optional": true
+    }
   }
 }

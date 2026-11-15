@@ -5,6 +5,9 @@ import type {
   Transcriber,
   SpeechEngine,
 } from './types';
+import { SpeechError, speechError } from './errors';
+export { SpeechError } from './errors';
+export type { SpeechErrorCode } from './errors';
 
 export type {
   SpeechSegment,
@@ -23,7 +26,7 @@ export const createTranscriber = (
   let provider: EngineSession | undefined;
   let active = false;
   let disposed = false;
-  let failure: Error | undefined;
+  let failure: SpeechError | undefined;
   let queue = Promise.resolve();
   let disposal: Promise<void> | undefined;
   let phase: SpeechState['phase'] = 'idle';
@@ -65,8 +68,8 @@ export const createTranscriber = (
   };
   const fail = (error: unknown) => {
     if (failure) return;
-    failure = error instanceof Error ? error : new Error(String(error));
-    update({ phase: 'error', error: failure.message });
+    failure = speechError(error, 'recognition-failed');
+    update({ phase: 'error', error: failure });
     // Async worker failures also stop recognition and release the failed model.
     void (async () => {
       try {
@@ -92,7 +95,12 @@ export const createTranscriber = (
       }
     });
   const load = async () => {
-    if (provider || disposed) return;
+    if (disposed)
+      throw new SpeechError(
+        'disposed',
+        'This transcriber has been disposed. Create a new instance.'
+      );
+    if (provider) return;
     failure = undefined;
     update({ phase: 'loading' });
     const events = {
@@ -107,7 +115,11 @@ export const createTranscriber = (
       },
       onError: fail,
     };
-    provider = await options.engine(events);
+    try {
+      provider = await options.engine(events);
+    } catch (error) {
+      throw speechError(error, 'model-load-failed');
+    }
     if (!failure) update({ phase: 'ready' });
   };
 
@@ -115,7 +127,12 @@ export const createTranscriber = (
     load: () => run(load),
     start: startOptions =>
       run(async () => {
-        if (disposed || active) return;
+        if (disposed)
+          throw new SpeechError(
+            'disposed',
+            'This transcriber has been disposed. Create a new instance.'
+          );
+        if (active) return;
         await load();
         if (disposed) return;
         update({ phase: 'starting' });
@@ -125,7 +142,8 @@ export const createTranscriber = (
         update({ phase: 'running' });
       }),
     write: (audio, sampleRate) => {
-      if (disposed || !active || failure) return;
+      if (disposed) throw new SpeechError('disposed', 'This transcriber has been disposed.');
+      if (!active || failure) return;
       try {
         if (!Number.isFinite(sampleRate) || sampleRate <= 0)
           throw new Error('sampleRate must be a positive number');
@@ -137,6 +155,7 @@ export const createTranscriber = (
     },
     stop: () => run(finish),
     dispose: () => {
+      if (!disposed) update({ phase: 'disposed' });
       disposed = true;
       disposal ??= serialize(async () => {
         try {

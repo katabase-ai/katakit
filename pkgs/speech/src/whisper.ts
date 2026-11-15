@@ -1,6 +1,7 @@
 import type { EngineSession, EngineEvents, SpeechEngine } from './types';
 import { createWhisperChunks } from './whisperChunks';
 import type { WhisperRequest, WhisperResponse } from './whisperProtocol';
+import { SpeechError } from './errors';
 
 export type WhisperOptions = {
   /** A dedicated worker running installWhisperWorker from the whisper-worker entry. */
@@ -83,7 +84,8 @@ export const loadWhisper = async (
     },
     write: (audio, sampleRate) => {
       if (failure) throw failure;
-      if (sampleRate !== 16_000) throw new Error('Whisper requires 16 kHz audio.');
+      if (sampleRate !== 16_000)
+        throw new SpeechError('audio-format-unsupported', 'Whisper requires 16 kHz mono PCM.');
       // Copy before buffering: sources may reuse their PCM arrays after write returns.
       for (const chunk of chunks.push(audio.slice())) enqueue(chunk);
     },

@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => {
   return {
     recognize,
     pipeline: vi.fn(async () => recognize),
-    env: { allowLocalModels: true },
+    env: { allowLocalModels: true, backends: { onnx: { wasm: { wasmPaths: '', numThreads: 0 } } } },
   };
 });
 vi.mock('@xenova/transformers', () => mocks);
@@ -18,9 +18,13 @@ describe('Whisper worker runtime', () => {
       postMessage: vi.fn(),
       onmessage: null,
     };
-    installWhisperWorker(scope);
+    installWhisperWorker(scope, '/speech-assets/onnx/');
     await scope.onmessage!({ data: { type: 'warmup' } } as MessageEvent);
     expect(mocks.env.allowLocalModels).toBe(false);
+    expect(mocks.env.backends.onnx.wasm).toEqual({
+      wasmPaths: '/speech-assets/onnx/',
+      numThreads: 1,
+    });
     expect(mocks.pipeline).toHaveBeenCalledWith(
       'automatic-speech-recognition',
       'Xenova/whisper-tiny.en',

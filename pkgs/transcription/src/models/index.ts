@@ -1,9 +1,8 @@
 import { createTranscriber } from '@katakit/speech';
 import { moonshine, type MoonshineOptions as Moonshine } from '@katakit/speech/moonshine';
 import { whisper, type WhisperOptions as Whisper } from '@katakit/speech/whisper';
-import type { SpeechCallbacks } from '@katakit/speech';
+import type { SpeechCallbacks, SpeechState } from '@katakit/speech';
 export type {
-  SpeechState as ModelState,
   SpeechCallbacks as TranscriptionCallbacks,
   Transcriber as TranscriptionModel,
 } from '@katakit/speech';
@@ -18,3 +17,5 @@ export const createTranscriptionModel = (
   });
   return { ...model, start: (sourceId?: string) => model.start({ sourceId }) };
 };
+
+export type ModelState = Omit<SpeechState, 'error'> & { error?: string };

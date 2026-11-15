@@ -1,3 +1,5 @@
+import type { SpeechError } from './errors';
+
 /** Final recognition result. Times are milliseconds relative to a session. */
 export type SpeechSegment = {
   id: string;
@@ -8,9 +10,9 @@ export type SpeechSegment = {
 };
 
 export type SpeechState = {
-  phase: 'idle' | 'loading' | 'ready' | 'starting' | 'running' | 'stopping' | 'error';
+  phase: 'idle' | 'loading' | 'ready' | 'starting' | 'running' | 'stopping' | 'error' | 'disposed';
   progress?: number;
-  error?: string;
+  error?: SpeechError;
 };
 
 /** The same result callbacks work for streaming and chunked recognizers. */

@@ -7,8 +7,11 @@ type WorkerScope = {
 };
 
 /** Install in a dedicated module worker; terminate that worker to release its model. */
-export const installWhisperWorker = (scope: WorkerScope) => {
+export const installWhisperWorker = (scope: WorkerScope, wasmBaseUrl?: string) => {
   env.allowLocalModels = false;
+  if (wasmBaseUrl) env.backends.onnx.wasm.wasmPaths = wasmBaseUrl;
+  // A single inference thread keeps Whisper usable without cross-origin isolation.
+  env.backends.onnx.wasm.numThreads = 1;
   let instance: ReturnType<typeof pipeline> | undefined;
   const load = () => {
     instance ??= pipeline('automatic-speech-recognition', 'Xenova/whisper-tiny.en', {

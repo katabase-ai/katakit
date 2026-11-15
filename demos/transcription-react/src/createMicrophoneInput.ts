@@ -45,7 +45,7 @@ export const createMicrophoneInput = (
     },
     onStop: params.onStop,
     onState: state => {
-      if (state.phase === 'loading') update({ ...state, phase: 'loading' });
+      if (state.phase === 'loading') update({ ...state, phase: 'loading', error: undefined });
       if (state.phase === 'error') fail(state.error);
     },
   });
