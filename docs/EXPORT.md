@@ -13,7 +13,7 @@ The portable output has `manifest.json` format version 1 and a `content/` tree o
 documentation assets. All manifest paths are relative to the bundle directory. Pages contain
 `slug`, `kind`, `title`, `file`, heading IDs, and an authored `sourcePath` where applicable.
 `navigation` retains guide order and groups API pages by package. `packages` records each public
-entry point and its exported symbol names. `assets` lists exported documentation files. `nonCodeExports` records package metadata/asset
+entry point and its exported symbol names. `assets` lists exported documentation files. `nonCodeExports` records package metadata
 exports that do not expose TypeScript declarations; these are not invented API pages. The
 transcript-ingestion package is documented separately from the speech transcription utilities.
 

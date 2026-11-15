@@ -82,7 +82,7 @@ export const exportDocs = async ({ output }) => {
     const manifest = JSON.parse(await readFile(join(packageRoot, 'package.json'), 'utf8'));
     const exports = Object.entries(manifest.exports);
     for (const [subpath, conditions] of exports) {
-      if (typeof conditions === 'string') {
+      if (typeof conditions === 'string' && conditions.endsWith('.json')) {
         nonCodeExports.push({ package: manifest.name, subpath, target: conditions });
         continue;
       }
@@ -99,7 +99,8 @@ export const exportDocs = async ({ output }) => {
   const checker = program.getTypeChecker();
   coverage.forEach((entry, index) => {
     const source = program.getSourceFile(entryPoints[index]);
-    const symbol = source && checker.getSymbolAtLocation(source);
+    if (!source) throw new Error(`Missing TypeScript public entry point ${entry.sourcePath}`);
+    const symbol = checker.getSymbolAtLocation(source);
     entry.symbols = symbol
       ? checker
           .getExportsOfModule(symbol)
