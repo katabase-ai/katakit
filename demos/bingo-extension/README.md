@@ -25,3 +25,8 @@ This demo uses the audio capture implementation from
 `templates/chrome-extension/src/capture.ts`, the template's background and
 worklet assets, and `@katakit/transcription` for turn assembly. Browser audio
 and model setup stay in the host. No account or external bingo API is required.
+
+The panel binds transcript and board properties with React-RxJS. A `Subscribe`
+boundary owns the UI subscriptions and releases both on unmount. Host effects
+separately manage extension listeners and forward transcript turns to the game.
+See the [React integration guide](../../docs/pages/getting-started/react.md).

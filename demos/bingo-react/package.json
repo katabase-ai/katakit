@@ -15,8 +15,10 @@
     "@katakit/site-ui": "workspace:*",
     "@katakit/transcription": "workspace:*",
     "@moonshine-ai/moonshine-wasm": "^0.1.5",
+    "@react-rxjs/core": "^0.10.8",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "rxjs": "^7.8.2"
   },
   "devDependencies": {
     "@types/react": "^19.0.0",

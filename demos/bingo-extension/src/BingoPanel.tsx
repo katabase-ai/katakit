@@ -1,4 +1,6 @@
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { bind, Subscribe } from '@react-rxjs/core';
+import { combineLatest } from 'rxjs';
+import { useEffect, useState } from 'react';
 import { makeKatakit } from '@katakit/core';
 import {
   bingoPacks,
@@ -19,23 +21,17 @@ const methods = running.getMethods(transcription);
 const bingoMethods = running.getMethods(bingo);
 const transcript$ = kit.getObservables(transcription).state$;
 const board$ = kit.getObservables(bingo).state$;
-const subscribeToTranscript = (onChange: () => void) => {
-  const subscription = transcript$.subscribe(onChange);
-  return () => subscription.unsubscribe();
-};
-const getTranscript = () => transcript$.get();
-const subscribeToBoard = (onChange: () => void) => {
-  const subscription = board$.subscribe(onChange);
-  return () => subscription.unsubscribe();
-};
-const getBoard = () => board$.get();
+// Bind once; the boundary owns both UI subscriptions.
+const [useTranscript, transcriptState$] = bind(transcript$);
+const [useBoard, boardState$] = bind(board$);
+const view$ = combineLatest([transcriptState$, boardState$]);
 
 type Phase = 'idle' | 'loading' | 'recording' | 'error';
 type CaptureState = { phase: Phase; progress?: number; error?: string; micConnected?: boolean };
 
-export const Bingo = () => {
-  const transcript = useSyncExternalStore(subscribeToTranscript, getTranscript, getTranscript);
-  const board = useSyncExternalStore(subscribeToBoard, getBoard, getBoard);
+const BingoView = () => {
+  const transcript = useTranscript();
+  const board = useBoard();
   const [capture, setCapture] = useState<CaptureState>({ phase: 'idle' });
   const [micLevel, setMicLevel] = useState(0);
   const [tabLevel, setTabLevel] = useState(0);
@@ -288,3 +284,9 @@ export const Bingo = () => {
     </main>
   );
 };
+
+export const Bingo = () => (
+  <Subscribe source$={view$}>
+    <BingoView />
+  </Subscribe>
+);

@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { makeKatakit } from '@katakit/core';
+import { bind, Subscribe } from '@react-rxjs/core';
 import { makeTranscriptionPlugin } from '@katakit/transcription';
 import { AudioLevelMeter, Button, Notice, SelectField } from '@katakit/site-ui';
 import { createMoonshineInput, type InputState } from './createMoonshineInput';
@@ -11,11 +12,8 @@ const Transcription = makeTranscriptionPlugin({ turnSilenceMs: 1400 });
 const kit = makeKatakit({ plugins: [Transcription.configure({})] });
 const methods = kit.start().getMethods(Transcription);
 const state$ = kit.getObservables(Transcription).state$;
-const subscribeToTranscript = (onChange: () => void) => {
-  const subscription = state$.subscribe(onChange);
-  return () => subscription.unsubscribe();
-};
-const getTranscript = () => state$.get();
+// Bind once for this runtime. Subscribe owns the UI subscription, including cleanup.
+const [useTranscript, transcript$] = bind(state$);
 
 const formatTime = (ms?: number) => {
   if (ms === undefined) return undefined;
@@ -23,8 +21,8 @@ const formatTime = (ms?: number) => {
   return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
 };
 
-export const TranscriptionDemo = () => {
-  const transcript = useSyncExternalStore(subscribeToTranscript, getTranscript, getTranscript);
+const TranscriptionView = () => {
+  const transcript = useTranscript();
   const [input, setInput] = useState<InputState>({ phase: 'idle' });
   const [audioLevel, setAudioLevel] = useState(0);
   const [modelId, setModelId] = useState<ModelId>(defaultModel);
@@ -192,6 +190,12 @@ export const TranscriptionDemo = () => {
     </section>
   );
 };
+
+export const TranscriptionDemo = () => (
+  <Subscribe source$={transcript$}>
+    <TranscriptionView />
+  </Subscribe>
+);
 
 export const App = () => (
   <main className="shell">

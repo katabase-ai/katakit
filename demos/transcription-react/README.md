@@ -13,6 +13,11 @@ cleared on reload. Stop drains pending recognition and flushes the current turn.
 models only between recordings: the old model is closed, existing turns remain visible,
 and each recording gets a distinct source ID.
 
+The transcript view uses React-RxJS: a module-scoped `bind(state$)` creates the hook
+that renders the latest property value, and a `Subscribe` boundary owns the shared
+UI subscription and releases it on unmount. Microphone and model disposal remain
+owned by the host effect. See the [React integration guide](../../docs/pages/getting-started/react.md).
+
 The Moonshine host integration ports `createMicrophoneModel`, `createMicrophoneCapture`,
 `microphoneCaptureWorklet`, and `moonshineAssetsPlugin` from protozoa-app's in-meeting
 developer tools. Board IDs, speaker attribution, server clock alignment, and delivery

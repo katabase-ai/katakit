@@ -1,8 +1,9 @@
 # katakit
 
 Workspace packages expose their public APIs through package-root imports:
-`@katakit/core`, `@katakit/event-log`, and `@katakit/persistence`. React bindings
-are reserved under `@katakit/react` and are not implemented yet.
+`@katakit/core`, `@katakit/event-log`, and `@katakit/persistence`. React applications
+should use [React-RxJS bindings](docs/pages/getting-started/react.md) to render
+runtime observables. `@katakit/react` is reserved for future React-specific APIs.
 
 ## Development
 

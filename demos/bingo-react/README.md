@@ -18,3 +18,8 @@ The browser host supplies finalized segments to `@katakit/transcription` and
 passes its conversation turns to `@katakit/bingo`. It uses the microphone input
 from `demos/transcription-react/`; it does not load any Chrome extension APIs.
 The extension demo uses the same bingo plugin with a different audio host.
+
+The view binds transcript and board properties with React-RxJS. A `Subscribe`
+boundary owns the UI subscriptions and releases both on unmount; the host effect
+separately owns microphone disposal and the subscription that forwards turns to the game.
+See the [React integration guide](../../docs/pages/getting-started/react.md).
