@@ -65,39 +65,53 @@ describe('browser setup', () => {
     await model.dispose();
   });
 
-  it('creates the packaged module worker from an application-relative asset base', async () => {
-    vi.stubGlobal('location', new URL('https://example.test/app/'));
-    const workers: {
-      onmessage: ((event: { data: object }) => void) | null;
-      terminate: ReturnType<typeof vi.fn>;
-    }[] = [];
-    const Worker = vi.fn(
-      function (this: {
+  it.each([
+    ['whisper-tiny', 'whisper-worker.js'],
+    ['moonshine-tiny', 'transcription-worker.js'],
+  ] as const)(
+    'creates the packaged %s worker from an application-relative asset base',
+    async (modelId, filename) => {
+      vi.stubGlobal('location', new URL('https://example.test/app/'));
+      vi.stubGlobal('crossOriginIsolated', true);
+      const workers: {
         onmessage: ((event: { data: object }) => void) | null;
-        postMessage: () => void;
         terminate: ReturnType<typeof vi.fn>;
-      }) {
-        this.onmessage = null;
-        this.postMessage = () =>
-          queueMicrotask(() => this.onmessage?.({ data: { type: 'ready' } }));
-        this.terminate = vi.fn();
-        workers.push(this);
-      }
-    );
-    vi.stubGlobal('Worker', Worker);
-    const model = createBrowserTranscriber({
-      model: 'whisper-tiny',
-      assetsBaseUrl: './runtime',
-      onFinal: vi.fn(),
-    });
-    await model.load();
-    expect(Worker).toHaveBeenCalledWith('https://example.test/app/runtime/whisper-worker.js', {
-      type: 'module',
-    });
-    expect(transcriptionAssetUrl('./runtime/', 'microphone-worklet.js')).toBe(
-      'https://example.test/app/runtime/microphone-worklet.js'
-    );
-    await model.dispose();
-    expect(workers[0]?.terminate).toHaveBeenCalledOnce();
-  });
+      }[] = [];
+      const Worker = vi.fn(
+        function (this: {
+          onmessage: ((event: { data: object }) => void) | null;
+          postMessage: (request: { id?: number }) => void;
+          terminate: ReturnType<typeof vi.fn>;
+        }) {
+          this.onmessage = null;
+          this.postMessage = request =>
+            queueMicrotask(() =>
+              this.onmessage?.({
+                data:
+                  request.id === undefined
+                    ? { type: 'ready' }
+                    : { type: 'complete', id: request.id },
+              })
+            );
+          this.terminate = vi.fn();
+          workers.push(this);
+        }
+      );
+      vi.stubGlobal('Worker', Worker);
+      const model = createBrowserTranscriber({
+        model: modelId,
+        assetsBaseUrl: './runtime',
+        onFinal: vi.fn(),
+      });
+      await model.load();
+      expect(Worker).toHaveBeenCalledWith(`https://example.test/app/runtime/${filename}`, {
+        type: 'module',
+      });
+      expect(transcriptionAssetUrl('./runtime/', 'microphone-worklet.js')).toBe(
+        'https://example.test/app/runtime/microphone-worklet.js'
+      );
+      await model.dispose();
+      expect(workers[0]?.terminate).toHaveBeenCalledOnce();
+    }
+  );
 });

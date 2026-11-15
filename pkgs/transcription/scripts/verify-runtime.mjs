@@ -15,6 +15,7 @@ try {
   );
   const files = await listTranscriptionAssets();
   for (const file of [
+    'transcription-worker.js',
     'whisper-worker.js',
     'microphone-worklet.js',
     'moonshine/index.js',
@@ -43,6 +44,7 @@ try {
   const address = server.httpServer.address();
   const base = `http://127.0.0.1:${address.port}/nested/`;
   for (const file of [
+    'transcription-worker.js',
     'whisper-worker.js',
     'microphone-worklet.js',
     'moonshine/index.js',

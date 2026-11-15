@@ -6,6 +6,7 @@ export default defineConfig({
     emptyOutDir: false,
     lib: {
       entry: {
+        'transcription-worker': 'src/runtime/transcription-worker.ts',
         'whisper-worker': 'src/runtime/whisper-worker.ts',
         'microphone-worklet': 'src/runtime/microphone-worklet.ts',
       },

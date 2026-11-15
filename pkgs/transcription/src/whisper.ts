@@ -1,6 +1,6 @@
 import { deferred } from './deferred';
 import type { EngineSession, EngineEvents, TranscriptionEngine } from './types';
-import { createWhisperChunks } from './whisperChunks';
+import { createPcmChunks } from './pcmChunks';
 import type { WhisperRequest, WhisperResponse } from './whisperProtocol';
 import { TranscriptionError } from './errors';
 
@@ -17,7 +17,7 @@ const loadWhisper = async (
   const ready = deferred<void>();
   let drain: ReturnType<typeof deferred<void>> | undefined;
   let failure: Error | undefined;
-  let chunks = createWhisperChunks();
+  let chunks = createPcmChunks(160_000);
   let sourceId = '';
   let nextId = 0;
   let queued: { id: number; audio: Float32Array }[] = [];
@@ -80,7 +80,7 @@ const loadWhisper = async (
   return {
     start: id => {
       sourceId = id;
-      chunks = createWhisperChunks();
+      chunks = createPcmChunks(160_000);
       nextId = 0;
     },
     write: (audio, sampleRate) => {
@@ -111,7 +111,7 @@ const loadWhisper = async (
       worker.onerror = null;
       worker.onmessageerror = null;
       queued = [];
-      chunks = createWhisperChunks();
+      chunks = createPcmChunks(160_000);
       worker.terminate();
     },
   };

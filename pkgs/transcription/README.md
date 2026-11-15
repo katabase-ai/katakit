@@ -24,7 +24,7 @@ export default defineConfig({ plugins: [transcriptionAssetsPlugin({ isolate: tru
 The helper serves `/transcription-assets/` in development, copies files to that directory in the
 build output. Pass `isolate: true` for Moonshine to set COOP/COEP headers in development and
 preview; leave it off for Whisper-only apps or hosts that manage isolation themselves. It preserves
-Moonshine's SDK/WASM/pthread sibling layout and supplies a bundled Whisper module worker,
+Moonshine's SDK/WASM/pthread sibling layout and supplies bundled Whisper and PCM recognition workers,
 ONNX WASM files, and the microphone AudioWorklet. Runtime files are loaded on demand;
 model weights download from their providers on first use, using the providers' caches.
 Audio is processed locally. Model weights are not included in the package, and first use
@@ -140,8 +140,11 @@ also stop that source when an asynchronous recognition error arrives.
 
 ## Existing PCM and custom hosts
 
-For mono `Float32Array` samples you already own, browser engine setup is available without
-microphone capture:
+For mono `Float32Array` samples you already own, `createBrowserTranscriber` owns model
+loading and background recognition without microphone capture. Moonshine runs in the packaged
+PCM worker; Whisper uses its packaged inference worker. Both expose the same callbacks and
+lifecycle. Worker messages, SDK-specific types, batching, and startup/stop acknowledgments
+are private utility implementation details; applications do not author a protocol or worker:
 
 ```ts
 import { createBrowserTranscriber } from '@katakit/transcription/browser';
@@ -171,7 +174,7 @@ host integration. Ordinary browser applications use the convenience entry points
 | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
 | React browser app            | Use the browser helper; React owns only the UI.                                                                                                |
 | Non-React browser app        | Identical helper and asset setup.                                                                                                              |
-| Browser extension            | Existing demo uses the PCM engine in its worker, with extension-owned capture and permissions.                                                 |
+| Browser extension            | Existing demo feeds PCM to the browser helper; capture and permissions remain extension-owned.                                                 |
 | Electron renderer            | Candidate for browser helpers when runtime APIs, permissions, and asset/isolation requirements are satisfied; no verified Electron recipe yet. |
 | Electron main process / Node | The base orchestrator works with an injected compatible engine; no built-in Node model adapter or microphone implementation.                   |
 | Obsidian desktop/mobile      | No verified recipe. Embedded runtime capabilities, packaging, microphone access, and Moonshine isolation must be validated for each host.      |

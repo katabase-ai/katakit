@@ -4,7 +4,7 @@ import { createTranscriber, type TranscriptionState } from './index';
 import { moonshine as moonshineEngine, type MoonshineOptions } from './moonshine';
 import { whisper } from './whisper';
 import type { WhisperRequest, WhisperResponse } from './whisperProtocol';
-import { createWhisperChunks } from './whisperChunks';
+import { createPcmChunks } from './pcmChunks';
 
 const moonshine = () => {
   const listeners: TranscriptEventListener[] = [];
@@ -309,7 +309,7 @@ describe('shared transcription model', () => {
   });
 
   it('keeps contiguous PCM across buffer boundaries and flushes once', () => {
-    const chunks = createWhisperChunks(4);
+    const chunks = createPcmChunks(4);
     expect(chunks.push(new Float32Array([1, 2, 3]))).toEqual([]);
     expect(chunks.push(new Float32Array([4, 5, 6, 7, 8, 9]))).toEqual([
       new Float32Array([1, 2, 3, 4]),
