@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      try {
+        const saved = localStorage.getItem('katakit-docs-theme');
+        if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
+      } catch {
+        /* Storage may be unavailable; use the system preference. */
+      }
+    </script>
+    <title>Katakit documentation</title>
+  </head>
+  <body>
+    <noscript
+      >Documentation needs JavaScript to display. The Markdown source is available in the
+      <a href="https://github.com/katabase-ai/katakit/tree/main/docs/pages">repository</a
+      >.</noscript
+    >
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
