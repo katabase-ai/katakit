@@ -124,7 +124,8 @@ export const createTranscriber = (
     } catch (error) {
       throw transcriptionError(error, 'model-load-failed');
     }
-    if (!failure) update({ phase: 'ready' });
+    if (failure) throw failure;
+    update({ phase: 'ready' });
   };
 
   return {
@@ -141,7 +142,7 @@ export const createTranscriber = (
         if (disposed) return;
         update({ phase: 'starting' });
         active = true;
-        provider!.start(startOptions?.sourceId ?? crypto.randomUUID());
+        await provider!.start(startOptions?.sourceId ?? crypto.randomUUID());
         if (failure) throw failure;
         update({ phase: 'running' });
       }),

@@ -1,20 +1,19 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMicrophoneTranscriber } from './microphone';
 import type { TranscriptionState } from './types';
-import type { TranscriptionCallbacks, Transcriber } from './types';
+import type { EngineEvents, EngineSession, Transcriber } from './types';
 
 const mocks = vi.hoisted(() => ({
-  createModel: vi.fn(),
+  createEngine: vi.fn(),
   createCapture: vi.fn(),
 }));
-vi.mock('./browserTranscriber', () => ({ createBrowserTranscriber: mocks.createModel }));
+vi.mock('./browserTranscriber', () => ({ createBrowserEngine: mocks.createEngine }));
 vi.mock('./microphoneCapture', () => ({ createMicrophoneCapture: mocks.createCapture }));
 
 const setup = (onLevel?: (level: number) => void) => {
   const events: string[] = [];
-  let callbacks: TranscriptionCallbacks;
-  const model: Transcriber = {
-    load: vi.fn(async () => {}),
+  let callbacks: EngineEvents;
+  const model: EngineSession = {
     start: vi.fn(async () => {
       events.push('model start');
     }),
@@ -23,9 +22,8 @@ const setup = (onLevel?: (level: number) => void) => {
     }),
     stop: vi.fn(async () => {
       events.push('model stop');
-      callbacks.onStop?.();
     }),
-    dispose: vi.fn(async () => {
+    close: vi.fn(() => {
       events.push('model dispose');
     }),
   };
@@ -38,10 +36,11 @@ const setup = (onLevel?: (level: number) => void) => {
       model.write(new Float32Array(1), 16_000);
     }),
   };
-  mocks.createModel.mockImplementation((options: TranscriptionCallbacks) => {
-    callbacks = options;
+  const load = vi.fn(async (events: EngineEvents) => {
+    callbacks = events;
     return model;
   });
+  mocks.createEngine.mockReturnValue(load);
   mocks.createCapture.mockReturnValue(capture);
   const states: TranscriptionState[] = [];
   const onFinal = vi.fn();
@@ -59,6 +58,7 @@ const setup = (onLevel?: (level: number) => void) => {
   return {
     input,
     model,
+    load,
     capture,
     states,
     events,
@@ -131,10 +131,10 @@ describe('microphone host adapter', () => {
   });
 
   it('preloads without creating capture or requesting microphone permission', async () => {
-    const { input, model, states } = setup();
+    const { input, load, states } = setup();
     await input.load();
     expect(states.at(-1)).toEqual({ phase: 'ready' });
-    expect(model.load).toHaveBeenCalledOnce();
+    expect(load).toHaveBeenCalledOnce();
     expect(mocks.createCapture).not.toHaveBeenCalled();
     expect(navigator.mediaDevices.getUserMedia).not.toHaveBeenCalled();
     await input.dispose();
@@ -142,10 +142,9 @@ describe('microphone host adapter', () => {
 
   it('rejects unavailable microphone APIs before loading a model', async () => {
     vi.stubGlobal('isSecureContext', false);
-    const { input, model, states } = setup();
+    const { input, load, states } = setup();
     await expect(input.start()).rejects.toMatchObject({ code: 'unsupported-environment' });
-    await vi.waitFor(() => expect(model.stop).toHaveBeenCalledOnce());
-    expect(model.start).not.toHaveBeenCalled();
+    expect(load).not.toHaveBeenCalled();
     expect(states.at(-1)).toMatchObject({
       phase: 'error',
       error: { code: 'unsupported-environment' },
@@ -178,12 +177,12 @@ describe('microphone host adapter', () => {
     const disposal = input.dispose();
     const stateCalls = states.length;
     mock.callbacks.onFinal({ sourceId: 'late', id: '1', text: 'late' });
-    mock.callbacks.onProvisional?.('late preview');
+    mock.callbacks.onProvisional('late preview');
     starting.resolve();
     await Promise.all([start, disposal, input.dispose()]);
     expect(states).toHaveLength(stateCalls);
     expect(capture.stop).toHaveBeenCalledOnce();
-    expect(model.dispose).toHaveBeenCalledOnce();
+    expect(model.close).toHaveBeenCalledOnce();
     expect(onFinal).not.toHaveBeenCalled();
     expect(onProvisional).not.toHaveBeenCalled();
   });

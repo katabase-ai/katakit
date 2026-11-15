@@ -169,6 +169,27 @@ describe('shared transcription model', () => {
     await model.dispose();
   });
 
+  it('does not start a model that reports an error while loading', async () => {
+    const close = vi.fn();
+    const start = vi.fn();
+    const onState = vi.fn();
+    const model = createTranscriber({
+      engine: async events => {
+        events.onError(new Error('initialization failed'));
+        return { start, write() {}, stop() {}, close };
+      },
+      onFinal: vi.fn(),
+      onState,
+    });
+    await expect(model.start()).rejects.toThrow('initialization failed');
+    expect(start).not.toHaveBeenCalled();
+    await model.dispose();
+    expect(close).toHaveBeenCalledOnce();
+    expect(onState).toHaveBeenCalledWith(
+      expect.objectContaining({ phase: 'error', error: expect.any(Error) })
+    );
+  });
+
   it('queues Whisper chunks in order, keeps source buffers intact, and drains the partial tail', async () => {
     const worker = new FakeWorker();
     const onFinal = vi.fn();

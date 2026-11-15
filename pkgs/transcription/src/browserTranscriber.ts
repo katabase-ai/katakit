@@ -20,10 +20,10 @@ export type BrowserTranscriberOptions = TranscriptionCallbacks & {
 };
 
 /** Browser engine setup for callers that already have mono PCM. */
-export const createBrowserTranscriber = (options: BrowserTranscriberOptions) => {
+export const createBrowserEngine = (options: BrowserTranscriberOptions): TranscriptionEngine => {
   const model = options.model ?? 'moonshine-small';
   const base = options.assetsBaseUrl ?? defaultTranscriptionAssetsBaseUrl;
-  const engine: TranscriptionEngine = async events => {
+  return async events => {
     checkBrowserSupport(model);
     try {
       return await (
@@ -47,5 +47,7 @@ export const createBrowserTranscriber = (options: BrowserTranscriberOptions) => 
       throw transcriptionError(error, 'model-load-failed');
     }
   };
-  return createTranscriber({ ...options, engine });
 };
+
+export const createBrowserTranscriber = (options: BrowserTranscriberOptions) =>
+  createTranscriber({ ...options, engine: createBrowserEngine(options) });

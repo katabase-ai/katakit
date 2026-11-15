@@ -44,7 +44,7 @@ export type EngineEvents = {
 };
 
 export type EngineSession = {
-  start: (sourceId: string) => void;
+  start: (sourceId: string) => void | Promise<void>;
   write: (audio: Float32Array, sampleRate: number) => void;
   stop: () => void | Promise<void>;
   close: () => void;
