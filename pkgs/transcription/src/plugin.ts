@@ -37,18 +37,20 @@ export const makeTranscriptionPlugin = ({
 
   return makeKatakitPlugin({
     type: 'Transcription',
-    configure: (options: {}) => options,
-    observables: () => ({
-      state$: property(new BehaviorSubject<TranscriptionState>({ turns: [] })),
+    configure: (_options: {}) => ({
+      state: new BehaviorSubject<TranscriptionState>({ turns: [] }),
     }),
-    methods: ({ observables }) => {
+    observables: ({ options }) => ({
+      state$: property(options.state.asObservable()),
+    }),
+    methods: ({ options, observables }) => {
       const { state$ } = observables;
       const seen = new Set<string>();
       let timer: ReturnType<typeof setTimeout> | undefined;
       let closed = false;
 
       const update = (patch: Partial<TranscriptionState>) => {
-        state$.next({ ...state$.get(), ...patch });
+        options.state.next({ ...state$.get(), ...patch });
       };
       const flush = () => {
         if (timer) clearTimeout(timer);

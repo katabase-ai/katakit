@@ -13,6 +13,17 @@ const setup = (turnSilenceMs = 1000) => {
 };
 
 describe('conversation transcription', () => {
+  it('exposes a readable but not writable state observable', () => {
+    const Transcription = makeTranscriptionPlugin();
+    const kit = makeKatakit({ plugins: [Transcription.configure({})] });
+    const state$ = kit.getObservables(Transcription).state$;
+    expect('next' in state$).toBe(false);
+    const methods = kit.start().getMethods(Transcription);
+    methods.ingestSegment({ sourceId: 'mic', id: '1', text: 'Hello.' });
+    expect(state$.get().current?.text).toBe('Hello.');
+    methods.close();
+  });
+
   it('assembles small finalized chunks into a turn while keeping interim text separate', () => {
     vi.useFakeTimers();
     const t = setup();
