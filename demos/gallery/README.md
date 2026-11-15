@@ -25,14 +25,14 @@ is needed. There are no production routes or deployment credentials in this app.
 `pnpm-workspace.yaml` build allowance for `workerd` installs the local runtime binary.
 
 Both dev and built responses set COOP `same-origin` and COEP `require-corp`. These apply to the
-first document, including the directory. The current Moonshine helper copies runtime files into
-`dist/client/assets/moonshine/0.1.5/`; workers and model files must remain accessible with the
+first document, including the directory. The transcription package supplies runtime files under
+`dist/client/transcription-assets/`; workers and model files must remain accessible with the
 expected content types. Models download on explicit recording; microphone audio stays local.
 
 ## Reuse from another host
 
 `shared/galleryDemoDetails.ts` is the eligible React catalogue, including stable IDs, names,
-descriptions, and required capabilities. `shared/galleryDemos.ts` adds lazy component loaders.
+descriptions, and required capabilities. `shared/galleryDemos.tsx` adds lazy component loaders.
 A host can select metadata and render `shared/Gallery.tsx` without importing recognizers or this
 app's bootstrap. Import `shared/gallery.css` for the scoped presentation; it inherits host colors
 and typography and does not import the global site-ui reset.
@@ -42,21 +42,28 @@ Each host owns its URLs, title metadata, not-found/loading/error handling, and r
 Adding an entry here makes it eligible; each consuming website still chooses what to include.
 Examples continue to own their code and never import private website components.
 
-## Pending shared-input handoff
+## Shared input and separate demo runtimes
 
-This branch prepares the gallery before the standalone utility in Katakit PR #28 is available.
-The local host still runs the existing demo implementations. They own separate legacy model
-selectors and module-level Katakit runtimes; there is no shared model session yet. Navigation
-between demos intentionally reloads the document to preserve the previous app's teardown behavior.
-The public and private hosts must not switch these legacy runtimes through client navigation.
+The mounted `GallerySpeechProvider` owns one `@katakit/transcription` microphone transcriber and
+selected model. Controls use the package catalogue/default. Models load only after Load/Start;
+changing models is disabled while recording. Navigation retains the loaded model but stops capture.
+Each view acquires a runtime lease. Release keeps the outgoing sink attached through stop/drain and
+flush, closes its runtime, then permits the next factory to run. The next demo starts idle with no
+previous transcript. Hiding the tab stops capture; root teardown disposes the helper. A pending
+start is cancelled through utility disposal so navigation during loading cannot later prompt for a
+microphone. Failed downloads remain visible and retryable.
 
-After PR #28, integrate `@katakit/transcription` and `@katakit/transcript-ingestion`, supply a shared
-microphone transcriber to instance-owned demo views, and verify stop/drain/detach/runtime cleanup
-before enabling client navigation. Core currently exposes no universal runtime disposal API;
-closing the ingestion plugin does not establish that effects or pending handlers are released.
-No replacement capture/recognition code or speculative disposal API is supplied here.
+Core has no universal runtime teardown API. These two demo factories start no asynchronous core
+effects: they own explicit subscriptions, complete their projections, and close transcript timers.
+Bingo uses its synchronous transcript bridge and state-completion method. Their focused tests verify
+separate histories, final-result ordering, timer cleanup, model retention/replacement, cancelled
+attachments, load retry, and Strict Mode cleanup. Standalone entry points own local capture using
+the same instance-owned views; they do not import this gallery.
 
-The local host currently resolves library workspace source, recorded by its Git revision and frozen
-lockfile. That is development provenance, not proof against released package versions. A consuming
-website must record its source SHA and actual library dependencies and test released versions when
-those are selected. Gallery-only source changes do not require a new library release.
+Run `pnpm --filter @katakit/gallery test:ci` from the root. Each host owns its route registration.
+No authentication or analytics service is required. Public defaults use site-ui controls; the
+private website can supply its own model-select renderer without changing the public examples.
+
+The local host resolves workspace source for development. A consuming website must record its
+source SHA and actual built library dependencies, test released versions when selected, and use
+one React runtime. Gallery-only source updates do not require a library release.

@@ -53,3 +53,6 @@ replaces Malabo for Equatorial Guinea. Jakarta remains Indonesia's capital
 
 The chosen English spellings are for card play; uncommon names and alternate
 transliterations may not be recognized by Moonshine. Hosts allow manual corrections.
+
+When an application releases a card, call its `close()` method to complete the state stream.
+The application owns any transcript bridge subscriptions and must unsubscribe those separately.

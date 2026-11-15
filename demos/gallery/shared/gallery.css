@@ -1,5 +1,29 @@
+@import '@katakit/site-ui/components.css';
 /* Portable presentation inherits the host's palette and typography; no global reset. */
 .katakit-gallery {
+  --font-display: var(--font-body, ui-sans-serif);
+  --font-outlier: ui-monospace, monospace;
+  --text-sm: 0.875rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.5rem;
+  --text-3xl: var(--text-8, 2.2rem);
+  --space-3xs: 2px;
+  --space-2xs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 40px;
+  --radius-input: 10px;
+  --dur-micro: 120ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --color-paper-2: var(--color-surface-muted, light-dark(#f9f9fb, #18191b));
+  --color-paper-3: var(--color-surface-muted, light-dark(#f0f0f3, #212225));
+  --color-rule-2: var(--color-rule);
+  --color-accent-deep: var(--color-link, light-dark(#085eac, #c2e6ff));
+  --color-accent-wash: var(--color-surface-muted, light-dark(#e6f4fe, #0d2847));
+  --color-error: light-dark(#d13415, #ff977d);
+  --color-success: light-dark(#287b3f, #6fcd8a);
   --gallery-gutter: 1.5rem;
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr);
@@ -67,4 +91,23 @@
   .katakit-gallery .gallery-nav > * {
     flex: 0 0 auto;
   }
+}
+
+.katakit-gallery .gallery-speech-controls {
+  margin-block: 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--color-rule);
+  border-radius: 0.5rem;
+}
+.katakit-gallery .gallery-speech-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-block: 1rem;
+}
+.katakit-gallery .gallery-processing-notice {
+  margin-top: 1rem;
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  max-width: 65ch;
 }

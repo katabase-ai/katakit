@@ -1,5 +1,6 @@
 import { createRootRoute, HeadContent, Scripts, Outlet, Link } from '@tanstack/react-router';
 import '../style.css';
+import { GallerySpeechProvider } from '../../shared/GallerySpeechProvider';
 
 export const Route = createRootRoute({
   head: () => ({
@@ -20,7 +21,9 @@ export const Route = createRootRoute({
             <Link to="/">Katakit · Demos</Link>
           </header>
           <main>
-            <Outlet />
+            <GallerySpeechProvider>
+              <Outlet />
+            </GallerySpeechProvider>
           </main>
         </div>
         <Scripts />

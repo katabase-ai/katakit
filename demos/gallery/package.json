@@ -6,21 +6,26 @@
     "dev": "pnpm --filter @katakit/transcription build && vite --host 127.0.0.1 --port 4347 --strictPort",
     "preview": "vite preview --host 127.0.0.1 --port 4348 --strictPort",
     "build": "pnpm --filter @katakit/transcription build && vite build",
-    "tsc": "tsc --noEmit"
+    "tsc": "tsc --noEmit",
+    "test:ci": "vitest run"
   },
   "dependencies": {
     "@katakit/site-ui": "workspace:*",
+    "@katakit/transcript-ingestion": "workspace:*",
     "@katakit/transcription": "workspace:*",
     "@tanstack/react-router": "1.170.0",
     "@tanstack/react-start": "1.168.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "rxjs": "^7.8.2"
   },
   "devDependencies": {
     "@cloudflare/vite-plugin": "1.69.1",
+    "@testing-library/react": "^16.1.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "6.1.1",
+    "happy-dom": "^18.0.1",
     "typescript": "^7.0.2",
     "vite": "8.2.2",
     "wrangler": "4.162.0"

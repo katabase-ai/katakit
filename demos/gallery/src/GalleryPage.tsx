@@ -12,26 +12,38 @@ export const GalleryPage = ({ demo }: { demo?: (typeof galleryDemos)[number] }) 
       activeDemo={demo}
       renderLink={({ demo: entry, children, current }) =>
         entry ? (
-          // Legacy demos have module-owned runtimes and separate capture owners. Preserve the
-          // old document teardown until the shared utility and runtime lifecycle are integrated.
           <Link
             to="/demos/$demoId"
             params={{ demoId: entry.id }}
-            reloadDocument
+
             aria-current={current ? 'page' : undefined}
           >
             {children}
           </Link>
         ) : (
-          <Link to="/" reloadDocument aria-current={current ? 'page' : undefined}>
+          <Link to="/" aria-current={current ? 'page' : undefined}>
             {children}
           </Link>
         )
       }
     >
       {Component && (
-        <ClientOnly fallback={<p role="status">Loading demo…</p>}>
-          <Suspense fallback={<p role="status">Loading demo…</p>}>
+        <ClientOnly
+          fallback={
+            <div>
+              <h1>{demo?.title}</h1>
+              <p role="status">Loading demo…</p>
+            </div>
+          }
+        >
+          <Suspense
+            fallback={
+              <div>
+                <h1>{demo?.title}</h1>
+                <p role="status">Loading demo…</p>
+              </div>
+            }
+          >
             <Component />
           </Suspense>
         </ClientOnly>
