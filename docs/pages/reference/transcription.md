@@ -73,6 +73,8 @@ and distinct within a source; timestamps are milliseconds relative to the sessio
 ## PCM and host boundaries
 
 `createBrowserTranscriber` from the browser entry provides the same engines without capture.
+It owns the packaged background recognition workers, batching, and transport protocol.
+Applications receive common callback types and do not author worker entries or SDK protocols.
 After `start()`, feed mono floats through `write(samples, sampleRate)`; Whisper requires
 16 kHz. The base `createTranscriber({ engine, ...callbacks })` accepts an injected
 `TranscriptionEngine` and has no browser or UI dependency. Advanced `moonshine` and `whisper`
@@ -82,8 +84,8 @@ React is optional. Electron renderer use depends on browser APIs, asset loading,
 and isolation; no Electron-specific recipe has been verified. Node/Electron main use
 requires an injected compatible engine; there is no built-in Node model adapter or microphone
 capture. Obsidian desktop/mobile have no verified recipe. Browser extensions retain their
-own capture and permission lifecycle; the existing extension demo uses the standalone PCM
-engine in its worker. A compatible application name alone does not establish runtime support.
+own capture and permission lifecycle; the existing extension demo feeds PCM to the browser helper and lets the utility own
+recognition workers. A compatible application name alone does not establish runtime support.
 
 To connect to a running [transcript ingestion plugin](plugins/transcript-ingestion.md), pass
 `onFinal: methods.ingestSegment`, `onProvisional: methods.updateProvisional`, and
