@@ -6,9 +6,10 @@ import { bingoPacks, drawBingoPack, makeBingoPlugin, type BingoPackId } from '@k
 import { makeTranscriptionPlugin } from '@katakit/transcription';
 import { AudioLevelMeter, Button, SelectField } from '@katakit/site-ui';
 import {
-  createMoonshineInput,
+  createMicrophoneInput,
   type InputState,
-} from '../../transcription-react/src/createMoonshineInput';
+} from '../../transcription-react/src/createMicrophoneInput';
+import { moonshineAssetBase } from '../../transcription-react/src/moonshineAssets';
 import './style.css';
 
 const transcription = makeTranscriptionPlugin();
@@ -29,11 +30,15 @@ const BrowserBingoView = () => {
   const [input, setInput] = useState<InputState>({ phase: 'idle' });
   const [audioLevel, setAudioLevel] = useState(0);
   const [packId, setPackId] = useState<BingoPackId>('meeting');
-  const source = useRef<ReturnType<typeof createMoonshineInput> | null>(null);
+  const source = useRef<ReturnType<typeof createMicrophoneInput> | null>(null);
 
   useEffect(() => {
-    const input = createMoonshineInput({
-      modelId: 'moonshine-tiny',
+    const input = createMicrophoneInput({
+      model: {
+        provider: 'moonshine',
+        model: 'tiny',
+        loadSdk: () => import(/* @vite-ignore */ `${moonshineAssetBase}index.js`),
+      },
       onState: setInput,
       onLevel: setAudioLevel,
       onFinal: transcriptMethods.ingestSegment,

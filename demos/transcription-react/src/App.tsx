@@ -4,8 +4,10 @@ import { makeKatakit } from '@katakit/core';
 import { bind, Subscribe } from '@react-rxjs/core';
 import { makeTranscriptionPlugin } from '@katakit/transcription';
 import { AudioLevelMeter, Button, Notice, SelectField } from '@katakit/site-ui';
-import { createMoonshineInput, type InputState } from './createMoonshineInput';
-import { createWhisperInput } from './createWhisperInput';
+import { createMicrophoneInput, type InputState } from './createMicrophoneInput';
+import { moonshineAssetBase } from './moonshineAssets';
+// oxlint-disable-next-line import/default
+import WhisperWorker from './whisperWorker?worker';
 import { defaultModel, models, type ModelId } from './models';
 import { createModelSwitcher } from './createModelSwitcher';
 
@@ -42,13 +44,19 @@ const TranscriptionView = () => {
       onFinal: methods.ingestSegment,
       onStop: methods.flush,
     };
-    return id === 'whisper-tiny'
-      ? createWhisperInput(callbacks)
-      : createMoonshineInput({
-          ...callbacks,
-          modelId: id,
-          onProvisional: methods.updateProvisional,
-        });
+    return createMicrophoneInput({
+      ...callbacks,
+      onProvisional: methods.updateProvisional,
+      model:
+        id === 'whisper-tiny'
+          ? { provider: 'whisper', createWorker: () => new WhisperWorker() }
+          : {
+              provider: 'moonshine',
+              model:
+                id === 'moonshine-tiny' ? 'tiny' : id === 'moonshine-medium' ? 'medium' : 'small',
+              loadSdk: () => import(/* @vite-ignore */ `${moonshineAssetBase}index.js`),
+            },
+    });
   };
 
   useEffect(() => {

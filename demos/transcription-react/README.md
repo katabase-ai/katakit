@@ -18,10 +18,12 @@ that renders the latest property value, and a `Subscribe` boundary owns the shar
 UI subscription and releases it on unmount. Microphone and model disposal remain
 owned by the host effect. See the [React integration guide](../../docs/pages/getting-started/react.md).
 
-The Moonshine host integration ports `createMicrophoneModel`, `createMicrophoneCapture`,
-`microphoneCaptureWorklet`, and `moonshineAssetsPlugin` from protozoa-app's in-meeting
-developer tools. Board IDs, speaker attribution, server clock alignment, and delivery
-queues are deliberately not part of this demo. Whisper's worker and chunking approach is
-adapted from protozoa-app's offscreen prototype. Built static hosting also needs
+Both providers use the [shared model utilities](../../pkgs/transcription/README.md#shared-model-utilities)
+for model loading, recognition, normalized results, and cleanup. `createMicrophoneInput`
+owns microphone capture and feeds PCM to that source-neutral API; `whisperWorker.ts`
+installs the shared worker runtime. `moonshineAssetsPlugin` serves and copies the SDK's
+ESM, WASM, and pthread files without changing their sibling layout.
+
+Built static hosting also needs
 `Cross-Origin-Opener-Policy: same-origin` on the document and
 `Cross-Origin-Embedder-Policy: require-corp` on the document and Moonshine assets.

@@ -11,6 +11,3 @@ export const models = [
 
 export type ModelId = (typeof models)[number]['id'];
 export const defaultModel: ModelId = 'moonshine-small';
-
-export const moonshineArchitecture = (id: Exclude<ModelId, 'whisper-tiny'>) =>
-  ({ 'moonshine-tiny': 2, 'moonshine-small': 4, 'moonshine-medium': 5 })[id];
