@@ -91,9 +91,15 @@ export const winningLines = (marked: boolean[]) => {
 };
 
 const calculate = (board: BingoBoard, turns: BingoTurn[]): BingoState => {
-  const evidence = board.squares.map((phrase, index) =>
-    index === 12 ? undefined : turns.find(turn => matchPhrase(phrase, turn.text))?.text
-  );
+  const normalizedTurns = turns.map(turn => ({
+    text: turn.text,
+    normalized: normalizePhrase(turn.text),
+  }));
+  const evidence = board.squares.map((phrase, index) => {
+    if (index === 12) return undefined;
+    const needle = ` ${normalizePhrase(phrase)} `;
+    return normalizedTurns.find(turn => ` ${turn.normalized} `.includes(needle))?.text;
+  });
   const marked = board.squares.map(
     (_, index) => index === 12 || (board.overrides[index] ?? !!evidence[index])
   );

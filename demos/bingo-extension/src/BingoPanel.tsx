@@ -44,6 +44,7 @@ export const Bingo = () => {
 
   useEffect(() => {
     let mounted = true;
+    let transcriptVersion = 0;
     const listener = (message: {
       type?: string;
       segment?: TranscriptSegment;
@@ -55,6 +56,10 @@ export const Bingo = () => {
       level?: number;
       text?: string;
     }) => {
+      if (message.type === 'CAPTURE_RESET') {
+        transcriptVersion++;
+        methods.reset();
+      }
       if (message.type === 'TRANSCRIPT_SEGMENT' && message.segment)
         methods.ingestSegment(message.segment);
       if (message.type === 'TRANSCRIPT_PROVISIONAL' && typeof message.text === 'string')
@@ -76,6 +81,7 @@ export const Bingo = () => {
     chrome.runtime.onMessage.addListener(listener);
     void (async () => {
       try {
+        const initialTranscriptVersion = transcriptVersion;
         const [local, session] = await Promise.all([
           chrome.storage.local.get(['board', 'packId', 'customSquares']),
           chrome.storage.session.get(['segments', 'capture']),
@@ -98,9 +104,11 @@ export const Bingo = () => {
             // Keep the default card if saved settings were from an incompatible version.
           }
         }
-        for (const segment of (session.segments ?? []) as TranscriptSegment[])
-          methods.ingestSegment(segment);
-        if (session.capture) setCapture(session.capture as CaptureState);
+        if (initialTranscriptVersion === transcriptVersion) {
+          for (const segment of (session.segments ?? []) as TranscriptSegment[])
+            methods.ingestSegment(segment);
+          if (session.capture) setCapture(session.capture as CaptureState);
+        }
       } catch {
         // A new install without stored state still has a playable default card.
       } finally {
