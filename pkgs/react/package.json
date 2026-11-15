@@ -2,6 +2,7 @@
   "name": "@katakit/react",
   "version": "0.0.0",
   "description": "React bindings for Katakit.",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/katabase-ai/katakit.git",
