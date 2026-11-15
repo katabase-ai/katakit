@@ -13,7 +13,8 @@
     "prepare": "husky install",
     "test": "vitest",
     "test:ci": "vitest run --passWithNoTests",
-    "check": "pnpm format:check && pnpm lint && pnpm licenses:check && pnpm tsc && pnpm test:ci && pnpm -F @katakit/docs check && pnpm build"
+    "check": "pnpm format:check && pnpm lint && pnpm licenses:check && pnpm tsc && pnpm test:ci && pnpm -F @katakit/docs check && pnpm -F @katakit/docs-export test:ci && pnpm build",
+    "docs:export": "pnpm --filter @katakit/docs-export export"
   },
   "devDependencies": {
     "@types/node": "24.13.3",
