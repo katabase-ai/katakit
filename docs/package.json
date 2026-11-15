@@ -1,0 +1,28 @@
+{
+  "name": "@katakit/docs",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/generate-nav.mjs && vite",
+    "build": "node scripts/generate-nav.mjs --check && tsc --noEmit && vite build",
+    "tsc": "tsc --noEmit",
+    "check": "node scripts/generate-nav.mjs --check && node scripts/check-links.mjs && node --test scripts/*.test.mjs"
+  },
+  "dependencies": {
+    "@tanstack/react-router": "^1.120.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-markdown": "^10.1.0",
+    "rehype-slug": "^6.0.0",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.4.0",
+    "github-slugger": "^2.0.0",
+    "mdast-util-from-markdown": "^2.0.0",
+    "typescript": "^7.0.2",
+    "vite": "^6.0.0"
+  }
+}
