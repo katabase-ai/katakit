@@ -2,17 +2,18 @@ import { useEffect, useRef, useState } from 'react';
 import { combineLatest } from 'rxjs';
 import { makeKatakit } from '@katakit/core';
 import { bind, Subscribe } from '@react-rxjs/core';
-import { makeTranscriptionPlugin } from '@katakit/transcription';
+import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
 import { AudioLevelMeter, Button, Notice, SelectField } from '@katakit/site-ui';
-import { createMoonshineInput, type InputState } from './createMoonshineInput';
-import { createWhisperInput } from './createWhisperInput';
+import { createMicrophoneTranscriber } from '@katakit/transcription/browser';
+import type { TranscriptionState } from '@katakit/transcription';
 import { defaultModel, models, type ModelId } from './models';
 import { createModelSwitcher } from './createModelSwitcher';
 
-const Transcription = makeTranscriptionPlugin({ turnSilenceMs: 1400 });
-const kit = makeKatakit({ plugins: [Transcription.configure({})] });
-const methods = kit.start().getMethods(Transcription);
-const { conversationTurns$, currentTurn$, provisional$ } = kit.getObservables(Transcription);
+const TranscriptIngestionPlugin = makeTranscriptIngestionPlugin({ turnSilenceMs: 1400 });
+const kit = makeKatakit({ plugins: [TranscriptIngestionPlugin.configure({})] });
+const methods = kit.start().getMethods(TranscriptIngestionPlugin);
+const { conversationTurns$, currentTurn$, provisional$ } =
+  kit.getObservables(TranscriptIngestionPlugin);
 const [useCompletedTurns, completedTurnsState$] = bind(conversationTurns$);
 const [useCurrentTurn, currentTurnState$] = bind(currentTurn$);
 const [useProvisional, provisionalState$] = bind(provisional$);
@@ -28,7 +29,7 @@ const TranscriptionView = () => {
   const completedTurns = useCompletedTurns();
   const currentTurn = useCurrentTurn();
   const provisional = useProvisional();
-  const [input, setInput] = useState<InputState>({ phase: 'idle' });
+  const [input, setInput] = useState<TranscriptionState>({ phase: 'idle' });
   const [audioLevel, setAudioLevel] = useState(0);
   const [modelId, setModelId] = useState<ModelId>(defaultModel);
   const [switching, setSwitching] = useState(false);
@@ -42,13 +43,11 @@ const TranscriptionView = () => {
       onFinal: methods.ingestSegment,
       onStop: methods.flush,
     };
-    return id === 'whisper-tiny'
-      ? createWhisperInput(callbacks)
-      : createMoonshineInput({
-          ...callbacks,
-          modelId: id,
-          onProvisional: methods.updateProvisional,
-        });
+    return createMicrophoneTranscriber({
+      ...callbacks,
+      model: id,
+      onProvisional: methods.updateProvisional,
+    });
   };
 
   useEffect(() => {
@@ -77,7 +76,15 @@ const TranscriptionView = () => {
     }
   };
 
-  const recording = input.phase === 'recording';
+  const toggleRecording = async () => {
+    try {
+      await (input.phase === 'running' ? owner.current?.stop() : owner.current?.start());
+    } catch {
+      /* onState exposes an actionable error in the UI. */
+    }
+  };
+
+  const recording = input.phase === 'running';
   const busy = switching || ['loading', 'starting', 'stopping'].includes(input.phase);
   const available =
     window.isSecureContext &&
@@ -117,7 +124,7 @@ const TranscriptionView = () => {
           disabled={busy || !available}
           onClick={() => {
             if (switchingRef.current) return;
-            void (recording ? owner.current?.stop() : owner.current?.start());
+            void toggleRecording();
           }}
         >
           <span className="record-icon" aria-hidden="true" />
@@ -132,7 +139,7 @@ const TranscriptionView = () => {
         <span className="phase" role="status" aria-live="polite">
           {input.phase === 'loading'
             ? `Loading on-device model${input.progress === undefined ? '' : ` · ${Math.round(input.progress * 100)}%`}`
-            : input.phase === 'recording'
+            : input.phase === 'running'
               ? 'Listening locally'
               : input.phase === 'error'
                 ? 'Recording unavailable'
@@ -152,7 +159,7 @@ const TranscriptionView = () => {
       )}
       {input.error && (
         <Notice tone="error">
-          {input.error} Try starting again or check microphone permission.
+          {input.error.message} Try starting again or check microphone permission.
         </Notice>
       )}
 

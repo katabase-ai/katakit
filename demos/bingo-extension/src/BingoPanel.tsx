@@ -10,16 +10,19 @@ import {
   type BingoBoard,
   type BingoPackId,
 } from '@katakit/bingo';
-import { makeTranscriptionPlugin, type TranscriptSegment } from '@katakit/transcription';
+import {
+  makeTranscriptIngestionPlugin,
+  type TranscriptSegment,
+} from '@katakit/transcript-ingestion';
 import { AudioLevelMeter } from '@katakit/site-ui';
 
-const transcription = makeTranscriptionPlugin();
-const bingo = makeBingoPlugin({ TranscriptionPlugin: transcription });
-const kit = makeKatakit({ plugins: [transcription.configure({}), bingo.configure({})] });
+const transcriptIngestion = makeTranscriptIngestionPlugin();
+const bingo = makeBingoPlugin({ TranscriptIngestionPlugin: transcriptIngestion });
+const kit = makeKatakit({ plugins: [transcriptIngestion.configure({}), bingo.configure({})] });
 const running = kit.start();
-const methods = running.getMethods(transcription);
+const methods = running.getMethods(transcriptIngestion);
 const bingoMethods = running.getMethods(bingo);
-const { lastHeard$ } = kit.getObservables(transcription);
+const { lastHeard$ } = kit.getObservables(transcriptIngestion);
 const board$ = kit.getObservables(bingo).state$;
 const [useLastHeard, lastHeardState$] = bind(lastHeard$);
 const [useBoard, boardState$] = bind(board$);

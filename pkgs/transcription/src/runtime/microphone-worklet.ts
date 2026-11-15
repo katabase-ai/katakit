@@ -7,7 +7,7 @@ declare class AudioWorkletProcessor {
 }
 declare const registerProcessor: (name: string, processor: typeof AudioWorkletProcessor) => void;
 
-// Ported from protozoa-app: batch 32ms of mono input and flush the final partial buffer.
+// Batch mono input and flush the final partial buffer before acknowledging stop.
 class MicrophoneCaptureProcessor extends AudioWorkletProcessor {
   samples = new Float32Array(512);
   used = 0;
@@ -41,4 +41,4 @@ class MicrophoneCaptureProcessor extends AudioWorkletProcessor {
   };
 }
 
-registerProcessor('katakit-microphone-capture', MicrophoneCaptureProcessor);
+registerProcessor('transcription-microphone-capture', MicrophoneCaptureProcessor);

@@ -1,14 +1,14 @@
 import { describe, expect, it, vi, afterEach } from 'vitest';
 import { makeKatakit } from '@katakit/core';
-import { makeTranscriptionPlugin, type TranscriptEvent } from './plugin';
+import { makeTranscriptIngestionPlugin, type TranscriptEvent } from './plugin';
 
 afterEach(() => vi.useRealTimers());
 
 const setup = (turnSilenceMs = 1000) => {
-  const Transcription = makeTranscriptionPlugin({ turnSilenceMs });
-  const kit = makeKatakit({ plugins: [Transcription.configure({})] });
-  const observables = kit.getObservables(Transcription);
-  const methods = kit.start().getMethods(Transcription);
+  const TranscriptIngestionPlugin = makeTranscriptIngestionPlugin({ turnSilenceMs });
+  const kit = makeKatakit({ plugins: [TranscriptIngestionPlugin.configure({})] });
+  const observables = kit.getObservables(TranscriptIngestionPlugin);
+  const methods = kit.start().getMethods(TranscriptIngestionPlugin);
   const state = () => ({
     turns: observables.conversationTurns$.get(),
     current: observables.currentTurn$.get(),
@@ -126,7 +126,7 @@ describe('conversation transcription', () => {
 
   it('forwards only selected host-shaped events, synchronously, without requiring a log', () => {
     const sent: { kind: string; text: string }[] = [];
-    const Transcription = makeTranscriptionPlugin({
+    const TranscriptIngestionPlugin = makeTranscriptIngestionPlugin({
       forward: {
         createEvent: (event: TranscriptEvent) => {
           if (event.type === 'segment')
@@ -137,8 +137,8 @@ describe('conversation transcription', () => {
         emitEvent: event => sent.push(event),
       },
     });
-    const kit = makeKatakit({ plugins: [Transcription.configure({})] });
-    const methods = kit.start().getMethods(Transcription);
+    const kit = makeKatakit({ plugins: [TranscriptIngestionPlugin.configure({})] });
+    const methods = kit.start().getMethods(TranscriptIngestionPlugin);
     methods.updateProvisional('hello');
     methods.ingestSegment({ sourceId: 'mic', id: '1', text: 'Hello.' });
     expect(sent).toEqual([{ kind: 'transcript-segment', text: 'Hello.' }]);
@@ -147,7 +147,9 @@ describe('conversation transcription', () => {
       { kind: 'transcript-segment', text: 'Hello.' },
       { kind: 'transcript-turn', text: 'Hello.' },
     ]);
-    expect(kit.getObservables(Transcription).conversationTurns$.get()[0]?.text).toBe('Hello.');
+    expect(kit.getObservables(TranscriptIngestionPlugin).conversationTurns$.get()[0]?.text).toBe(
+      'Hello.'
+    );
     methods.close();
   });
 

@@ -1,5 +1,5 @@
-/** Accumulate 16 kHz PCM into contiguous chunks without dropping partial worklet buffers. */
-export const createWhisperChunks = (size = 160_000) => {
+/** Accumulate contiguous mono PCM without dropping partial input buffers. */
+export const createPcmChunks = (size = 1_600) => {
   let pending: Float32Array[] = [];
   let count = 0;
   const take = (length: number) => {

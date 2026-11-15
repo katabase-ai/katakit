@@ -30,5 +30,5 @@ to correct a square.
 
 The [browser bingo demo](https://github.com/katabase-ai/katakit/tree/main/demos/bingo-react)
 and [Chrome extension demo](https://github.com/katabase-ai/katakit/tree/main/demos/bingo-extension)
-use the same plugin with different audio hosts. See [Transcription](transcription.md)
+use the same plugin with different audio hosts. See [Transcript ingestion](transcript-ingestion.md)
 for assembling text segments into turns.

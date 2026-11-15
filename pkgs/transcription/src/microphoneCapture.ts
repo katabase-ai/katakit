@@ -1,19 +1,12 @@
-import type { Stream, TranscriptEventListener } from '@moonshine-ai/moonshine-wasm';
-// Vite's worker URL query exports a URL, not the processor module's default export.
-// oxlint-disable-next-line import/default
-import workletUrl from './microphoneCaptureWorklet?worker&url';
-import type { MicrophoneCaptureMessage } from './microphoneCaptureWorklet';
+import { deferred } from './deferred';
+import type { MicrophoneCaptureMessage } from './runtime/microphone-worklet';
 
-/** One recording owns one capture stream and audio graph. Based on protozoa-app's adapter. */
+/** One recording owns one microphone and audio graph. Recognition is source-neutral. */
 export const createMicrophoneCapture = (
-  createStream: () => Pick<
-    Stream,
-    'start' | 'stop' | 'close' | 'addAudio' | 'transcribe' | 'addListener'
-  >,
-  onSamples?: (samples: Float32Array) => void
+  workletUrl: string,
+  onAudio: (audio: Float32Array, sampleRate: number) => void,
+  onError: (error: Error) => void
 ) => {
-  const listeners: TranscriptEventListener[] = [];
-  let stream: ReturnType<typeof createStream> | undefined;
   let device: MediaStream | undefined;
   let context: AudioContext | undefined;
   let source: MediaStreamAudioSourceNode | undefined;
@@ -27,7 +20,7 @@ export const createMicrophoneCapture = (
     failed = true;
     flushed?.();
     const cause = error instanceof Error ? error : new Error(String(error));
-    for (const listener of listeners) listener.onError?.({ error: cause });
+    onError(cause);
   };
 
   const releaseAudio = async () => {
@@ -52,14 +45,11 @@ export const createMicrophoneCapture = (
       if (context.state === 'suspended') await context.resume();
       await context.audioWorklet.addModule(workletUrl);
       source = context.createMediaStreamSource(device);
-      processor = new AudioWorkletNode(context, 'katakit-microphone-capture', {
+      processor = new AudioWorkletNode(context, 'transcription-microphone-capture', {
         channelCount: 1,
         channelCountMode: 'explicit',
       });
       processor.onprocessorerror = () => fail(new Error('Microphone audio processing failed.'));
-      stream = createStream();
-      for (const listener of listeners) stream.addListener(listener);
-      stream.start();
       const sampleRate = context.sampleRate;
       processor.port.onmessage = ({ data }: MessageEvent<MicrophoneCaptureMessage>) => {
         if (data.type === 'flushed') {
@@ -68,9 +58,7 @@ export const createMicrophoneCapture = (
         }
         if (failed) return;
         try {
-          onSamples?.(data.samples);
-          stream?.addAudio(data.samples, sampleRate);
-          stream?.transcribe();
+          onAudio(data.samples, sampleRate);
         } catch (error) {
           fail(error);
           void stop();
@@ -90,7 +78,7 @@ export const createMicrophoneCapture = (
       source?.disconnect();
       try {
         if (!failed && processor && context?.state === 'running') {
-          const pending = Promise.withResolvers<void>();
+          const pending = deferred<void>();
           const recordingContext = context;
           const onStateChange = () => {
             if (recordingContext.state !== 'running') pending.resolve();
@@ -105,7 +93,6 @@ export const createMicrophoneCapture = (
             recordingContext.removeEventListener('statechange', onStateChange);
           }
         }
-        stream?.stop();
       } finally {
         await releaseAudio();
       }
@@ -116,13 +103,5 @@ export const createMicrophoneCapture = (
   return {
     start,
     stop,
-    close: () => {
-      stream?.close();
-      stream = undefined;
-    },
-    addListener: (listener: TranscriptEventListener) => {
-      listeners.push(listener);
-      stream?.addListener(listener);
-    },
   };
 };

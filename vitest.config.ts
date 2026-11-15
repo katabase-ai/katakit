@@ -2,6 +2,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    projects: ['pkgs/*', 'demos/*'],
+    // Demo build configs load packaged runtime assets; unit tests use explicit configs.
+    projects: ['pkgs/*', 'demos/*/vitest.config.ts'],
   },
 });

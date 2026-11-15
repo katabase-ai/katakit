@@ -23,10 +23,16 @@ previews finalized words only; bingo squares also match only finalized words.
 
 This demo uses the audio capture implementation from
 `templates/chrome-extension/src/capture.ts`, the template's background and
-worklet assets, and `@katakit/transcription` for turn assembly. Browser audio
-and model setup stay in the host. No account or external bingo API is required.
+worklet assets, and `@katakit/transcript-ingestion` for turn assembly. Browser audio capture and permissions stay in the host; the transcription utility
+owns model and worker setup. No account or external bingo API is required.
 
 The panel binds only `lastHeard$` and the board with React-RxJS.
 A `Subscribe` boundary owns those UI subscriptions and releases them on unmount.
 The bingo plugin effect keeps matching independently; the host manages extension listeners.
 See the [React integration guide](../../docs/pages/getting-started/react.md).
+
+Recognition uses `createBrowserTranscriber` from `@katakit/transcription/browser`. The
+extension selects a model and feeds PCM through `write()`; model loading, recognition workers,
+worker protocols, and batching are owned by the utility. `transcriptionAssetsPlugin` packages
+the runtime files. Capture, permissions, and extension application messages remain owned
+by the extension host. See the [transcription utility guide](../../pkgs/transcription/README.md).

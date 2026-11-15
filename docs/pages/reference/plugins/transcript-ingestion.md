@@ -1,8 +1,8 @@
-# Transcription
+# Transcript ingestion
 
-`@katakit/transcription` groups finalized text segments from any source into conversation turns. It does **not** capture audio, load a speech model, or persist transcripts. The host owns the source and its lifecycle.
+`@katakit/transcript-ingestion` groups finalized text segments from any source into conversation turns. It does **not** capture audio, load a speech model, or persist transcripts. The host owns the source and its lifecycle.
 
-`makeTranscriptionPlugin({ turnSilenceMs?, forward? })` defaults to a 1400 ms silence threshold. It must be a nonnegative finite number. The plugin groups successive segments from the same source and speaker until a timestamped gap exceeds that threshold, the source or speaker changes, or no new segment arrives for that many milliseconds. A source that delivers a long turn only after it ends cannot be made more responsive by lowering this setting.
+`makeTranscriptIngestionPlugin({ turnSilenceMs?, forward? })` defaults to a 1400 ms silence threshold. It must be a nonnegative finite number. The plugin groups successive segments from the same source and speaker until a timestamped gap exceeds that threshold, the source or speaker changes, or no new segment arrives for that many milliseconds. A source that delivers a long turn only after it ends cannot be made more responsive by lowering this setting.
 
 ## Events and observables
 
@@ -20,7 +20,7 @@ Configure the plugin with `.configure({})` and register it with `makeKatakit`. T
 The plugin does not require an event log. To forward selected events into a host-owned log, provide `forward.createEvent` and `forward.emitEvent` when constructing the plugin:
 
 ```ts
-const Transcription = makeTranscriptionPlugin({
+const TranscriptIngestionPlugin = makeTranscriptIngestionPlugin({
   forward: {
     // Only completed turns are durable here; map them to your own validated event shape.
     createEvent: event =>
@@ -33,3 +33,10 @@ const Transcription = makeTranscriptionPlugin({
 The callback is invoked synchronously after the local event is published; returning `undefined` from `createEvent` skips forwarding. This is a **forward-only** integration: `conversationTurns$` derives from local events, not from the host's persisted or hydrated event log. The host must handle rehydration separately if it needs saved turns after a reload. Provisional text can be consumed locally without persisting it.
 
 `demos/transcription-react/` is a host-specific demonstration, not a template; [Templates and hosts](../../concepts/templates.md) explains that distinction.
+
+## Microphone and model integration
+
+Use the standalone [transcription utilities](../transcription.md) for Moonshine/Whisper model loading,
+microphone capture, and WASM/worker asset setup. Connect `onFinal` to `ingestSegment`,
+`onProvisional` to `updateProvisional`, and `onStop` to `flush`. Neither package depends on
+the other at runtime; the application composes them through structural callback types.

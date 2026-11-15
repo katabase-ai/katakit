@@ -1,5 +1,5 @@
 import { makeEffect, makeKatakitPlugin, property } from '@katakit/core';
-import type { makeTranscriptionPlugin } from '@katakit/transcription';
+import type { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
 import { BehaviorSubject, filter } from 'rxjs';
 
 export type BingoTurn = { id: string; text: string };
@@ -115,8 +115,8 @@ const calculate = (board: BingoBoard, turns: BingoTurn[]): BingoState => {
 
 /** A headless card driven by source-neutral transcript turns, not audio or React. */
 export const makeBingoPlugin = ({
-  TranscriptionPlugin,
-}: { TranscriptionPlugin?: ReturnType<typeof makeTranscriptionPlugin> } = {}) =>
+  TranscriptIngestionPlugin,
+}: { TranscriptIngestionPlugin?: ReturnType<typeof makeTranscriptIngestionPlugin> } = {}) =>
   makeKatakitPlugin({
     type: 'Bingo',
     configure: (_options: {}) => ({
@@ -166,8 +166,9 @@ export const makeBingoPlugin = ({
       };
     },
     effects: ({ methods, getObservables }) => {
-      if (!TranscriptionPlugin) return [];
-      const { events$, conversationTurns$, currentTurn$ } = getObservables(TranscriptionPlugin);
+      if (!TranscriptIngestionPlugin) return [];
+      const { events$, conversationTurns$, currentTurn$ } =
+        getObservables(TranscriptIngestionPlugin);
       return [
         makeEffect({
           on: events$.pipe(filter(event => event.type !== 'provisional')),

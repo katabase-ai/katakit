@@ -4,7 +4,7 @@ import { act, cleanup, render } from '@testing-library/react';
 import { bind, Subscribe } from '@react-rxjs/core';
 import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { makeKatakit, property } from '@katakit/core';
-import { makeTranscriptionPlugin } from '@katakit/transcription';
+import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
 import { afterEach, expect, test } from 'vitest';
 
 afterEach(cleanup);
@@ -75,11 +75,11 @@ test('one boundary owns multiple bound streams and renders updates from each', (
 });
 
 test('transcription bindings render initially undefined values and update across resets', () => {
-  const Transcription = makeTranscriptionPlugin();
-  const kit = makeKatakit({ plugins: [Transcription.configure({})] });
-  const methods = kit.start().getMethods(Transcription);
+  const TranscriptIngestionPlugin = makeTranscriptIngestionPlugin();
+  const kit = makeKatakit({ plugins: [TranscriptIngestionPlugin.configure({})] });
+  const methods = kit.start().getMethods(TranscriptIngestionPlugin);
   const { conversationTurns$, currentTurn$, provisional$, lastHeard$ } =
-    kit.getObservables(Transcription);
+    kit.getObservables(TranscriptIngestionPlugin);
   const [useTurns, turnsState$] = bind(conversationTurns$);
   const [useCurrent, currentState$] = bind(currentTurn$);
   const [useProvisional, provisionalState$] = bind(provisional$);

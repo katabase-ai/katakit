@@ -27,7 +27,7 @@ export type TranscriptEvent =
   | { type: 'turn'; turn: TranscriptTurn }
   | { type: 'reset' };
 
-export const makeTranscriptionPlugin = <TEvent = never>({
+export const makeTranscriptIngestionPlugin = <TEvent = never>({
   turnSilenceMs = 1400,
   forward,
 }: {
@@ -43,7 +43,7 @@ export const makeTranscriptionPlugin = <TEvent = never>({
   }
 
   return makeKatakitPlugin({
-    type: 'Transcription',
+    type: 'TranscriptIngestion',
     configure: (_options: {}) => ({ events: new Subject<TranscriptEvent>() }),
     observables: ({ options }) => {
       const events$ = options.events.asObservable();
