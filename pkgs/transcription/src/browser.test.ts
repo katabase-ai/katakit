@@ -1,10 +1,25 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createBrowserTranscriber, createMicrophoneTranscriber } from './browser';
+import {
+  createBrowserTranscriber,
+  createMicrophoneTranscriber,
+  defaultTranscriptionModel,
+} from './browser';
 import { checkBrowserSupport, transcriptionAssetUrl } from './browserRuntime';
 
 afterEach(() => vi.unstubAllGlobals());
 
 describe('browser setup', () => {
+  it('uses the catalog default for both PCM and microphone transcription', async () => {
+    expect(defaultTranscriptionModel).toBe('moonshine-small');
+    vi.stubGlobal('Worker', vi.fn());
+    vi.stubGlobal('crossOriginIsolated', false);
+    for (const create of [createBrowserTranscriber, createMicrophoneTranscriber]) {
+      const input = create({ onFinal: vi.fn() });
+      await expect(input.load()).rejects.toMatchObject({ code: 'cross-origin-isolation-required' });
+      await input.dispose();
+    }
+  });
+
   it('can be imported and constructed without touching browser APIs', async () => {
     const Worker = vi.fn();
     vi.stubGlobal('Worker', Worker);
@@ -23,6 +38,31 @@ describe('browser setup', () => {
     expect(Worker).not.toHaveBeenCalled();
     await model.dispose();
     expect(() => checkBrowserSupport('whisper-tiny')).not.toThrow();
+  });
+
+  it('classifies worker construction failures at the shared model boundary', async () => {
+    vi.stubGlobal('location', new URL('https://example.test/app/'));
+    vi.stubGlobal(
+      'Worker',
+      class {
+        constructor() {
+          throw new Error('worker blocked');
+        }
+      }
+    );
+    const onState = vi.fn();
+    const model = createBrowserTranscriber({ model: 'whisper-tiny', onFinal: vi.fn(), onState });
+    await expect(model.load()).rejects.toMatchObject({
+      code: 'model-load-failed',
+      message: 'worker blocked',
+    });
+    expect(onState).toHaveBeenCalledWith(
+      expect.objectContaining({
+        phase: 'error',
+        error: expect.objectContaining({ code: 'model-load-failed' }),
+      })
+    );
+    await model.dispose();
   });
 
   it.each([

@@ -1,5 +1,6 @@
 export {
   createBrowserTranscriber,
+  defaultTranscriptionModel,
   transcriptionModels,
   defaultTranscriptionAssetsBaseUrl,
 } from './browserTranscriber';

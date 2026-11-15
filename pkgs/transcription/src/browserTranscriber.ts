@@ -1,16 +1,19 @@
 import { createTranscriber } from './index';
 import { workerEngine } from './workerEngine';
 import { browserEngine } from './browserEngine';
-import { transcriptionModels, type TranscriptionModelId } from './catalog';
+import {
+  defaultTranscriptionModel,
+  transcriptionModels,
+  type TranscriptionModelId,
+} from './catalog';
 import {
   checkBrowserSupport,
   defaultTranscriptionAssetsBaseUrl,
   transcriptionAssetUrl,
 } from './browserRuntime';
-import { transcriptionError } from './errors';
 import type { TranscriptionCallbacks, TranscriptionEngine } from './types';
 
-export { transcriptionModels, defaultTranscriptionAssetsBaseUrl };
+export { defaultTranscriptionModel, transcriptionModels, defaultTranscriptionAssetsBaseUrl };
 export type { TranscriptionModelId };
 
 export type BrowserTranscriberOptions = TranscriptionCallbacks & {
@@ -20,27 +23,25 @@ export type BrowserTranscriberOptions = TranscriptionCallbacks & {
 };
 
 /** Browser engine setup for callers that already have mono PCM. */
-export const createBrowserTranscriber = (options: BrowserTranscriberOptions) => {
-  const model = options.model ?? 'moonshine-small';
+export const createBrowserEngine = (options: BrowserTranscriberOptions): TranscriptionEngine => {
+  const model = options.model ?? defaultTranscriptionModel;
   const base = options.assetsBaseUrl ?? defaultTranscriptionAssetsBaseUrl;
-  const engine: TranscriptionEngine = async events => {
+  return async events => {
     checkBrowserSupport(model);
-    try {
-      return await (
-        model === 'whisper-tiny'
-          ? browserEngine(model, base)
-          : workerEngine({
-              model,
-              assetsBaseUrl: transcriptionAssetUrl(base, ''),
-              createWorker: () =>
-                new Worker(transcriptionAssetUrl(base, 'transcription-worker.js'), {
-                  type: 'module',
-                }),
-            })
-      )(events);
-    } catch (error) {
-      throw transcriptionError(error, 'model-load-failed');
-    }
+    return (
+      model === 'whisper-tiny'
+        ? browserEngine(model, base)
+        : workerEngine({
+            model,
+            assetsBaseUrl: transcriptionAssetUrl(base, ''),
+            createWorker: () =>
+              new Worker(transcriptionAssetUrl(base, 'transcription-worker.js'), {
+                type: 'module',
+              }),
+          })
+    )(events);
   };
-  return createTranscriber({ ...options, engine });
 };
+
+export const createBrowserTranscriber = (options: BrowserTranscriberOptions) =>
+  createTranscriber({ ...options, engine: createBrowserEngine(options) });

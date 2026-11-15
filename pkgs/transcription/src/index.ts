@@ -124,7 +124,8 @@ export const createTranscriber = (
     } catch (error) {
       throw transcriptionError(error, 'model-load-failed');
     }
-    if (!failure) update({ phase: 'ready' });
+    if (failure) throw failure;
+    update({ phase: 'ready' });
   };
 
   return {

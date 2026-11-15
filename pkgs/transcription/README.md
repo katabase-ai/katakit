@@ -18,12 +18,13 @@ With Vite, add the asset helper once:
 import { defineConfig } from 'vite';
 import { transcriptionAssetsPlugin } from '@katakit/transcription/vite';
 
-export default defineConfig({ plugins: [transcriptionAssetsPlugin()] });
+export default defineConfig({ plugins: [transcriptionAssetsPlugin({ isolate: true })] });
 ```
 
 The helper serves `/transcription-assets/` in development, copies files to that directory in the
-build output, and configures COOP/COEP headers for development and preview. It preserves
-Moonshine's SDK/WASM/pthread sibling layout and supplies a bundled Whisper module worker, a generic PCM recognition worker,
+build output. Pass `isolate: true` for Moonshine to set COOP/COEP headers in development and
+preview; leave it off for Whisper-only apps or hosts that manage isolation themselves. It preserves
+Moonshine's SDK/WASM/pthread sibling layout and supplies bundled Whisper and PCM recognition workers,
 ONNX WASM files, and the microphone AudioWorklet. Runtime files are loaded on demand;
 model weights download from their providers on first use, using the providers' caches.
 Audio is processed locally. Model weights are not included in the package, and first use
@@ -84,6 +85,7 @@ is requested only on `start()`. Construction has no side effects.
 
 `transcriptionModels` from `@katakit/transcription/browser` is the shared catalog for application model
 pickers. Its entries include `id`, `label`, `language`, and `provisional`.
+`defaultTranscriptionModel` identifies the model used when `model` is omitted.
 
 | Model ID                    | Language | Behavior                                                                                              |
 | --------------------------- | -------- | ----------------------------------------------------------------------------------------------------- |

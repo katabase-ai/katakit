@@ -9,7 +9,7 @@ export type WhisperOptions = {
   createWorker: () => Worker;
 };
 
-export const loadWhisper = async (
+const loadWhisper = async (
   options: WhisperOptions,
   events: EngineEvents
 ): Promise<EngineSession> => {
