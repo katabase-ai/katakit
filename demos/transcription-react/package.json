@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "@katakit/core": "workspace:*",
-    "@katakit/react": "workspace:*",
     "@katakit/site-ui": "workspace:*",
     "@katakit/transcription": "workspace:*",
     "@moonshine-ai/moonshine-wasm": "0.1.5",
