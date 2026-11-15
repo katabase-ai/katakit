@@ -36,7 +36,7 @@ jobs:
           - name: Build
             script: build
           - name: Documentation
-            script: docs:check
+            script: -F @katakit/docs check
     steps:
       - uses: actions/checkout@v4
       - name: Install pnpm

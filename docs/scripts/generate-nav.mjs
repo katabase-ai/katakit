@@ -55,7 +55,7 @@ export const generateNav = ({ check = false } = {}) => {
   if (check) {
     if (readFileSync(output, 'utf8') !== content) {
       throw new Error(
-        'docs/src/nav.json is stale; run pnpm docs:dev or pnpm --filter @katakit/docs exec node scripts/generate-nav.mjs'
+        'docs/src/nav.json is stale; run pnpm -F @katakit/docs dev or pnpm --filter @katakit/docs exec node scripts/generate-nav.mjs'
       );
     }
   } else {

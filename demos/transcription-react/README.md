@@ -1,6 +1,6 @@
 # React transcription demo
 
-From the repository root, run `pnpm install` and `pnpm demo:transcription`.
+From the repository root, run `pnpm install` and `pnpm -F @katakit/demo-transcription dev`.
 Use a secure, cross-origin-isolated context; Vite serves the required headers on localhost.
 Choose Moonshine Tiny, Small (the default), or Medium Streaming, or Whisper Tiny English.
 Grant microphone access and speak; the Katakit transcript ingestion plugin groups finalized lines
