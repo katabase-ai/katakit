@@ -10,7 +10,7 @@ Then there are the engineering questions: where do events come from, how is stat
 
 ## A kit for experimenting
 
-Katakit is an open-source dev kit for exploring these interactions. Its headless runtime composes plugins that expose state, methods, and effects. A host application can connect those pieces to its own UI and inputs instead of inheriting a prescribed whiteboard or meeting app.
+Katakit is an open-source dev kit for exploring these interactions. It composes plugins that expose state, methods, and effects. A host application can connect those pieces to its own UI and inputs instead of inheriting a prescribed whiteboard or meeting app.
 
 That separation matters when you want to try a different source of input, change how an interaction behaves, or build for another form factor. It leaves room to experiment without treating one prototype as the finished product.
 

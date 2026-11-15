@@ -22,7 +22,7 @@
         "slug": "concepts/event-history"
       },
       {
-        "label": "Persistence",
+        "label": "Event-log persistence",
         "slug": "concepts/persistence"
       },
       {
