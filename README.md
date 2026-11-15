@@ -28,6 +28,13 @@ or moving a page, and commit `docs/src/nav.json`. `pnpm docs:check` checks
 generated navigation, local Markdown links, and tests. The static host must
 serve `docs/dist/index.html` for unknown paths to support direct page URLs.
 
+The event-log reference page is generated from its public TypeScript API and
+JSDoc, plus metadata and authored context in `pkgs/event-log/docs/`. Edit those
+sources rather than `docs/pages/reference/plugins/event-log.md`, then run
+`pnpm --filter @katakit/docs reference:generate` and commit the generated page.
+Links in the authored context are relative to the published page in `docs/pages/`.
+`pnpm docs:check` rejects stale reference output.
+
 ## Demo gallery
 
 Run `pnpm gallery:dev` for the demo index and individual demo pages, or

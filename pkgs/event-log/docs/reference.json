@@ -1,0 +1,10 @@
+{
+  "title": "Event log",
+  "package": "@katakit/event-log",
+  "pluginName": "EventLogPlugin",
+  "exports": ["makeEventLogPlugin"],
+  "related": [
+    { "label": "Event history", "href": "../../concepts/event-history.md" },
+    { "label": "Getting started", "href": "../../getting-started/README.md" }
+  ]
+}

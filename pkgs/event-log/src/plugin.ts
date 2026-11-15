@@ -2,14 +2,22 @@ import { Observable, ReplaySubject } from 'rxjs';
 import { makeKatakitPlugin, eager, type WithEager } from '@katakit/core';
 import { StandardSchemaV1 } from '@standard-schema/spec';
 
+/**
+ * Create an event-log plugin with replayable history and synchronous validated emissions.
+ * The host owns loading and validating initial history before configuration.
+ */
 export const makeEventLogPlugin = <TEvent>({
   validateEvent,
 }: {
+  /** Synchronous Standard Schema validator. Its output is the event type; invalid events throw. */
   validateEvent: StandardSchemaV1<unknown, TEvent>;
 }) =>
   makeKatakitPlugin({
     type: 'EventLog',
-    configure: (options: { initialEvents: TEvent[] }) => options,
+    configure: (options: {
+      /** Previously loaded events, replayed as supplied without revalidation. */
+      initialEvents: TEvent[];
+    }) => options,
     observables: ({ options }) => {
       // the combination of eager and replay subject represents
       // a stateful pushable array of events.
@@ -21,12 +29,14 @@ export const makeEventLogPlugin = <TEvent>({
       }
 
       return {
+        /** Replays the complete event history; getAll() returns a snapshot array. */
         // a fake type assertion just to prevent the usage
         // of `event$.next` directly
         events$: events$ as WithEager<Observable<TEvent>>,
       };
     },
     methods: ({ observables }) => ({
+      /** Validate and publish one event synchronously; asynchronous validators are rejected. */
       emitEvent: (event: TEvent) => {
         const validationResult = validateEvent['~standard'].validate(event);
         if (validationResult instanceof Promise) {
