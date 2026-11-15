@@ -7,9 +7,11 @@ afterEach(() => vi.useRealTimers());
 const setup = (turnSilenceMs = 1000) => {
   const Transcription = makeTranscriptionPlugin({ turnSilenceMs });
   const kit = makeKatakit({ plugins: [Transcription.configure({})] });
-  const { ingestSegment, updateProvisional, flush, close } = kit.start().getMethods(Transcription);
+  const { ingestSegment, updateProvisional, flush, reset, close } = kit
+    .start()
+    .getMethods(Transcription);
   const state = () => kit.getObservables(Transcription).state$.get();
-  return { ingestSegment, updateProvisional, flush, close, state };
+  return { ingestSegment, updateProvisional, flush, reset, close, state };
 };
 
 describe('conversation transcription', () => {
@@ -68,6 +70,19 @@ describe('conversation transcription', () => {
     t.updateProvisional('unfinished');
     t.close();
     expect(t.state()).toEqual({ turns: [], provisional: undefined });
+  });
+
+  it('resets turns, provisional text, pending flushes and deduplication for a new session', () => {
+    vi.useFakeTimers();
+    const t = setup();
+    t.ingestSegment({ sourceId: 'mic', id: '1', text: 'Old phrase' });
+    t.updateProvisional('old interim');
+    t.reset();
+    vi.advanceTimersByTime(1000);
+    expect(t.state()).toEqual({ turns: [] });
+    t.ingestSegment({ sourceId: 'mic', id: '1', text: 'New phrase' });
+    expect(t.state().current?.text).toBe('New phrase');
+    t.close();
   });
 
   it('preserves long source turns and distinguishes IDs across sources', () => {

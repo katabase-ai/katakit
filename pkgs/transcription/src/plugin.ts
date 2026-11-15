@@ -66,6 +66,13 @@ export const makeTranscriptionPlugin = ({
       };
 
       return {
+        reset: () => {
+          if (closed) return;
+          if (timer) clearTimeout(timer);
+          timer = undefined;
+          seen.clear();
+          options.state.next({ turns: [] });
+        },
         updateProvisional: (text: string) => {
           if (!closed) update({ provisional: text.trim() || undefined });
         },

@@ -47,6 +47,10 @@
         "slug": "reference/plugins",
         "children": [
           {
+            "label": "Bingo",
+            "slug": "reference/plugins/bingo"
+          },
+          {
             "label": "Event log",
             "slug": "reference/plugins/event-log"
           },

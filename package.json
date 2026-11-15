@@ -6,6 +6,8 @@
     "gallery:dev": "pnpm --filter @katakit/gallery dev",
     "gallery:build": "pnpm --filter @katakit/gallery build",
     "demo:transcription": "pnpm --filter @katakit/demo-transcription dev",
+    "demo:bingo:build": "pnpm --filter @katakit/demo-bingo-extension build",
+    "demo:bingo": "pnpm --filter @katakit/demo-bingo-react dev",
     "docs:dev": "pnpm --filter @katakit/docs dev",
     "docs:build": "pnpm --filter @katakit/docs build",
     "docs:check": "pnpm --filter @katakit/docs check",

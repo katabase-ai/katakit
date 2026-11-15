@@ -9,7 +9,8 @@ export const createMicrophoneCapture = (
   createStream: () => Pick<
     Stream,
     'start' | 'stop' | 'close' | 'addAudio' | 'transcribe' | 'addListener'
-  >
+  >,
+  onSamples?: (samples: Float32Array) => void
 ) => {
   const listeners: TranscriptEventListener[] = [];
   let stream: ReturnType<typeof createStream> | undefined;
@@ -67,6 +68,7 @@ export const createMicrophoneCapture = (
         }
         if (failed) return;
         try {
+          onSamples?.(data.samples);
           stream?.addAudio(data.samples, sampleRate);
           stream?.transcribe();
         } catch (error) {

@@ -1,4 +1,5 @@
 import type { TranscriptSegment } from '@katakit/transcription';
+import { createAudioLevelReporter } from '@katakit/site-ui/audio-level';
 // Vite query imports expose generated worker URLs/constructors.
 // oxlint-disable-next-line import/default
 import workletUrl from './microphoneCaptureWorklet?worker&url';
@@ -13,6 +14,7 @@ export const createWhisperInput = (params: {
   onState: (state: InputState) => void;
   onFinal: (segment: TranscriptSegment) => void;
   onStop: () => void;
+  onLevel?: (level: number) => void;
 }) => {
   let worker: Worker | undefined;
   let device: MediaStream | undefined;
@@ -34,6 +36,7 @@ export const createWhisperInput = (params: {
   let nextId = 0;
   let sourceId = '';
   let inFlight = false;
+  let reportLevel: ((samples: Float32Array) => void) | undefined;
 
   const update = (state: InputState) => {
     phase = state.phase;
@@ -110,6 +113,7 @@ export const createWhisperInput = (params: {
         chunkDurations = new Map();
         nextId = 0;
         sourceId = crypto.randomUUID();
+        reportLevel = params.onLevel ? createAudioLevelReporter(params.onLevel, 16_000) : undefined;
         device = await navigator.mediaDevices.getUserMedia({ audio: true });
         context = new AudioContext({ sampleRate: 16_000 });
         if (context.state === 'suspended') await context.resume();
@@ -126,7 +130,10 @@ export const createWhisperInput = (params: {
             flushed?.resolve();
             return;
           }
-          if (!failed) for (const chunk of chunks.push(data.samples)) enqueue(chunk);
+          if (!failed) {
+            reportLevel?.(data.samples);
+            for (const chunk of chunks.push(data.samples)) enqueue(chunk);
+          }
         };
         source.connect(processor);
         processor.connect(context.destination);

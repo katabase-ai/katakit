@@ -1,4 +1,6 @@
 import type { ButtonHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react';
+export { AudioLevelMeter } from './AudioLevelMeter';
+export { audioLevel, createAudioLevelReporter } from './audioLevel';
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: 'slate' | 'blue' | 'ghost' | 'border' | 'red';
