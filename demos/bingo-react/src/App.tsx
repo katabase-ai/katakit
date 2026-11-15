@@ -1,4 +1,6 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { bind, Subscribe } from '@react-rxjs/core';
+import { combineLatest } from 'rxjs';
+import { useEffect, useRef, useState } from 'react';
 import { makeKatakit } from '@katakit/core';
 import { bingoPacks, drawBingoPack, makeBingoPlugin, type BingoPackId } from '@katakit/bingo';
 import { makeTranscriptionPlugin } from '@katakit/transcription';
@@ -17,20 +19,14 @@ const transcriptMethods = running.getMethods(transcription);
 const bingoMethods = running.getMethods(bingo);
 const transcript$ = kit.getObservables(transcription).state$;
 const board$ = kit.getObservables(bingo).state$;
-const subscribeToTranscript = (onChange: () => void) => {
-  const subscription = transcript$.subscribe(onChange);
-  return () => subscription.unsubscribe();
-};
-const getTranscript = () => transcript$.get();
-const subscribeToBoard = (onChange: () => void) => {
-  const subscription = board$.subscribe(onChange);
-  return () => subscription.unsubscribe();
-};
-const getBoard = () => board$.get();
+// Bind once; the boundary owns both UI subscriptions.
+const [useTranscript, transcriptState$] = bind(transcript$);
+const [useBoard, boardState$] = bind(board$);
+const view$ = combineLatest([transcriptState$, boardState$]);
 
-export const BrowserBingoDemo = () => {
-  const transcript = useSyncExternalStore(subscribeToTranscript, getTranscript, getTranscript);
-  const board = useSyncExternalStore(subscribeToBoard, getBoard, getBoard);
+const BrowserBingoView = () => {
+  const transcript = useTranscript();
+  const board = useBoard();
   const [input, setInput] = useState<InputState>({ phase: 'idle' });
   const [audioLevel, setAudioLevel] = useState(0);
   const [packId, setPackId] = useState<BingoPackId>('meeting');
@@ -184,6 +180,12 @@ export const BrowserBingoDemo = () => {
     </section>
   );
 };
+
+export const BrowserBingoDemo = () => (
+  <Subscribe source$={view$}>
+    <BrowserBingoView />
+  </Subscribe>
+);
 
 export const App = () => (
   <main>

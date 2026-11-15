@@ -22,7 +22,12 @@ Register the configured plugin with Katakit. Read its observable through
 `events$.getAll()` returns a copy of the history.
 
 The schema determines the event type and transformations applied to live emissions.
-Asynchronous validation is unsupported.
+Any synchronous Standard Schema v1 validator can be used; Valibot above is only an example.
+Promise-returning validation, including async refinements and transforms, is unsupported.
+Validation issues make `emitEvent` throw without publishing; successful output is published.
+The output type also determines the `emitEvent` argument type. Loaded `initialEvents` bypass
+validation, so validate stored data before configuration. See the
+[validation requirements](../../docs/pages/reference/plugins/event-log.md#validation-requirements).
 
 ## Development
 

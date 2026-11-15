@@ -5,7 +5,11 @@ import { buildNav, generateNav } from './generate-nav.mjs';
 test('navigation follows the section order and uses directory READMEs as landing pages', () => {
   assert.deepEqual(buildNav(), [
     { label: 'Why Katakit?', slug: 'why-katakit' },
-    { label: 'Getting started', slug: 'getting-started', children: [] },
+    {
+      label: 'Getting started',
+      slug: 'getting-started',
+      children: [{ label: 'React integration', slug: 'getting-started/react' }],
+    },
     {
       label: 'Concepts',
       slug: 'concepts',

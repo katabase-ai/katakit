@@ -6,7 +6,12 @@
   {
     "label": "Getting started",
     "slug": "getting-started",
-    "children": []
+    "children": [
+      {
+        "label": "React integration",
+        "slug": "getting-started/react"
+      }
+    ]
   },
   {
     "label": "Concepts",
