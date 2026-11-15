@@ -13,13 +13,14 @@ install SDKs or write worker/worklet entries. With Vite, configure assets once:
 ```ts
 import { defineConfig } from 'vite';
 import { transcriptionAssetsPlugin } from '@katakit/transcription/vite';
-export default defineConfig({ plugins: [transcriptionAssetsPlugin()] });
+export default defineConfig({ plugins: [transcriptionAssetsPlugin({ isolate: true })] });
 ```
 
 This serves `/transcription-assets/` during development and copies the files into production
 output. It preserves Moonshine's JavaScript/WASM/pthread sibling layout, bundles the
 Whisper module worker, supplies ONNX WASM files, and includes the capture AudioWorklet.
-Development and preview receive COOP/COEP headers. Production hosting must set those headers
+Pass `isolate: true` to set COOP/COEP headers in development and preview. Without it, the plugin
+only serves/copies assets. Production hosting must set those headers
 for Moonshine's default threaded SDK. Whisper uses one inference thread and does not itself
 require cross-origin isolation. Both use local inference; model weights download from their
 providers on first use and use provider caches. Model weights are not shipped in the package.

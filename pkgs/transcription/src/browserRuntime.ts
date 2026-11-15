@@ -13,7 +13,7 @@ export const checkBrowserSupport = (model: TranscriptionModelId, microphone = fa
   if (model.startsWith('moonshine-') && !globalThis.crossOriginIsolated)
     throw new TranscriptionError(
       'cross-origin-isolation-required',
-      'Moonshine requires cross-origin isolation. Serve the document with Cross-Origin-Opener-Policy: same-origin and Cross-Origin-Embedder-Policy: require-corp. The transcriptionAssetsPlugin configures local development and preview.'
+      'Moonshine requires cross-origin isolation. Serve the document with Cross-Origin-Opener-Policy: same-origin and Cross-Origin-Embedder-Policy: require-corp. For local development and preview, use transcriptionAssetsPlugin({ isolate: true }).'
     );
   if (
     microphone &&

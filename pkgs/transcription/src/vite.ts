@@ -18,10 +18,11 @@ const contentTypes: Record<string, string> = {
   '.txt': 'text/plain',
 };
 
-/** Serve packaged runtime files in dev, copy on build, and configure local COOP/COEP. */
+/** Serve packaged runtime files in dev and copy on build. Opt in to local COOP/COEP for Moonshine. */
 export const transcriptionAssetsPlugin = ({
   assetsPath = 'transcription-assets',
-}: { assetsPath?: string } = {}): Plugin => {
+  isolate = false,
+}: { assetsPath?: string; isolate?: boolean } = {}): Plugin => {
   const path = assetsPath.replace(/^\/+|\/+$/g, '');
   if (
     !path ||
@@ -32,7 +33,8 @@ export const transcriptionAssetsPlugin = ({
   let mount = `/${path}/`;
   return {
     name: 'transcription-assets',
-    config: () => ({ server: { headers: isolation }, preview: { headers: isolation } }),
+    config: () =>
+      isolate ? { server: { headers: isolation }, preview: { headers: isolation } } : {},
     configResolved: config => {
       mount = `${config.base === './' || config.base === '' ? '/' : config.base}${path}/`;
       if (config.command === 'build') output = resolve(config.root, config.build.outDir, path);

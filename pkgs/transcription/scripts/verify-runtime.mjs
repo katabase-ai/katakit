@@ -35,7 +35,7 @@ try {
     configFile: false,
     root: fixture,
     base: '/nested/',
-    plugins: [transcriptionAssetsPlugin()],
+    plugins: [transcriptionAssetsPlugin({ isolate: true })],
     server: { host: '127.0.0.1', port: 0 },
     logLevel: 'error',
   });
@@ -61,6 +61,21 @@ try {
   await reader.cancel();
   assert.equal((await fetch(base)).headers.get('cross-origin-opener-policy'), 'same-origin');
   assert.equal((await fetch(`${base}transcription-assets/moonshine/package.json`)).status, 404);
+  await server.close();
+  server = undefined;
+  server = await createServer({
+    configFile: false,
+    root: fixture,
+    base: '/nested/',
+    plugins: [transcriptionAssetsPlugin()],
+    server: { host: '127.0.0.1', port: 0 },
+    logLevel: 'error',
+  });
+  await server.listen();
+  const ordinaryAddress = server.httpServer.address();
+  const ordinary = await fetch(`http://127.0.0.1:${ordinaryAddress.port}/nested/`);
+  assert.equal(ordinary.headers.get('cross-origin-embedder-policy'), null);
+  assert.equal(ordinary.headers.get('cross-origin-opener-policy'), null);
   await server.close();
   server = undefined;
   await build({
