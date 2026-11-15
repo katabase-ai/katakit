@@ -1,0 +1,14 @@
+{
+  "name": "@katakit/template-chrome-extension",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && vite build",
+    "tsc": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.1.37",
+    "typescript": "^7.0.2",
+    "vite": "^6.0.0"
+  }
+}

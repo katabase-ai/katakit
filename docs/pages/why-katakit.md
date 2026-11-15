@@ -16,7 +16,7 @@ That separation matters when you want to try a different source of input, change
 
 ## What’s here today
 
-This is a seed, not a complete smart-whiteboard platform. The repository currently includes the [core runtime](reference/core.md), [plugins](reference/plugins/README.md) for event history, persistence, and assembling transcript segments into turns, and a React transcription demo in `demos/transcription-react/`. The demo shows one browser-hosted capability; it is not a general-purpose React template. There is no maintained [template](reference/templates/README.md) yet.
+This is a seed, not a complete smart-whiteboard platform. The repository currently includes the [core runtime](reference/core.md), [plugins](reference/plugins/README.md) for event history, persistence, and assembling transcript segments into turns, a React transcription demo, a conversation-bingo extension demo, and a [Chrome extension template](reference/templates/README.md). Demos show user-facing capabilities; the template provides a host starting point.
 
 Start with [Getting started](getting-started/README.md) to run the smallest example, then use the [Reference](reference/README.md) to see what each building block provides. The kit does not yet solve every problem of live collaboration, model choice, or evaluation.
 

@@ -33,6 +33,9 @@ serve `docs/dist/index.html` for unknown paths to support direct page URLs.
 Run `pnpm gallery:dev` for the demo index and individual demo pages, or
 `pnpm gallery:build` to build the static site. See [demos/gallery/README.md](demos/gallery/README.md)
 for adding demos and the hosting requirements for microphone transcription.
+The [Chrome extension template](templates/chrome-extension/README.md) is a minimal
+audio-capable host. The [conversation bingo demo](demos/bingo-extension/README.md)
+shows it in use as a Chrome side-panel game.
 
 ## License
 

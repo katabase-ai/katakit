@@ -2,6 +2,7 @@
 
 Run `pnpm gallery:dev` from the repository root. The gallery lists demos at `/`
 and mounts React demos at their own routes, starting with `/demos/transcription`.
+The `/demos/conversation-bingo` route explains how to build and load the Chrome extension demo.
 Run `pnpm gallery:build` to build `demos/gallery/dist/`.
 
 Add demos to `src/demos.tsx`. Use `kind: 'react'` with a component for demos that
