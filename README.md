@@ -28,6 +28,12 @@ or moving a page, and commit `docs/src/nav.json`. `pnpm docs:check` checks
 generated navigation, local Markdown links, and tests. The static host must
 serve `docs/dist/index.html` for unknown paths to support direct page URLs.
 
+## Demo gallery
+
+Run `pnpm gallery:dev` for the demo index and individual demo pages, or
+`pnpm gallery:build` to build the static site. See [demos/gallery/README.md](demos/gallery/README.md)
+for adding demos and the hosting requirements for microphone transcription.
+
 ## License
 
 Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE).
