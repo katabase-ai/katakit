@@ -1,0 +1,77 @@
+import type { ButtonHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react';
+
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: 'slate' | 'blue' | 'ghost' | 'border' | 'red';
+  size?: 'regular' | 'icon';
+};
+
+/** A native control with the compact variants of ProtoZoa's Button. */
+export const Button = ({
+  variant = 'slate',
+  size = 'regular',
+  className = '',
+  type = 'button',
+  ...props
+}: ButtonProps) => (
+  <button
+    type={type}
+    {...props}
+    className={`site-button site-button--${variant} site-button--${size} ${className}`.trim()}
+  />
+);
+
+export type SelectFieldProps = Omit<SelectHTMLAttributes<HTMLSelectElement>, 'id'> & {
+  id: string;
+  label: string;
+  hint?: string;
+  error?: string;
+  children: ReactNode;
+};
+
+/** Native select keeps keyboard and form semantics without a popup dependency. */
+export const SelectField = ({
+  label,
+  hint,
+  error,
+  id,
+  children,
+  className = '',
+  ...props
+}: SelectFieldProps) => {
+  return (
+    <div className="site-field">
+      <label htmlFor={id}>{label}</label>
+      <select
+        id={id}
+        {...props}
+        className={`site-select ${className}`.trim()}
+        aria-invalid={Boolean(error) || undefined}
+        aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined}
+      >
+        {children}
+      </select>
+      {hint && !error && (
+        <span id={`${id}-hint`} className="site-field-hint">
+          {hint}
+        </span>
+      )}
+      {error && (
+        <span id={`${id}-error`} className="site-field-error">
+          {error}
+        </span>
+      )}
+    </div>
+  );
+};
+
+export const Notice = ({
+  children,
+  tone = 'info',
+}: {
+  children: ReactNode;
+  tone?: 'info' | 'error' | 'success';
+}) => (
+  <div role={tone === 'error' ? 'alert' : 'status'} className={`site-notice site-notice--${tone}`}>
+    {children}
+  </div>
+);

@@ -75,6 +75,9 @@ importers:
 
   docs:
     dependencies:
+      '@katakit/site-ui':
+        specifier: workspace:*
+        version: link:../pkgs/site-ui
       '@tanstack/react-router':
         specifier: ^1.120.0
         version: 1.170.46(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -187,6 +190,24 @@ importers:
       react-dom:
         specifier: ^19.0.0
         version: 19.3.1(react@19.3.1)
+
+  pkgs/site-ui:
+    devDependencies:
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.0.0
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.0.0
+      react:
+        specifier: ^19.0.0
+        version: 19.3.1
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.3.1(react@19.3.1)
+      typescript:
+        specifier: ^7.0.2
+        version: 7.0.2
 
   pkgs/transcription:
     dependencies:
