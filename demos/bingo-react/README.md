@@ -1,6 +1,6 @@
 # Browser conversation bingo demo
 
-Run `pnpm gallery:dev` and open `/demos/bingo`, or run
+Run `pnpm -F @katakit/gallery dev` and open `/demos/bingo`, or run
 `pnpm --filter @katakit/demo-bingo-react dev` for the standalone version.
 Start local Moonshine Tiny streaming transcription with your microphone. The first use downloads a model. Audio
 stays in the browser; the board and transcript reset on reload.
