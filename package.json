@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "demo:transcription": "pnpm --filter @katakit/demo-transcription dev",
     "docs:dev": "pnpm --filter @katakit/docs dev",
     "docs:build": "pnpm --filter @katakit/docs build",
     "docs:check": "pnpm --filter @katakit/docs check",
