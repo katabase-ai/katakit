@@ -26,6 +26,7 @@ test('navigation follows the section order and uses directory READMEs as landing
       slug: 'reference',
       children: [
         { label: 'Core', slug: 'reference/core' },
+        { label: 'Tracing', slug: 'reference/tracing' },
         { label: 'Transcription utilities', slug: 'reference/transcription' },
         {
           label: 'Plugins',

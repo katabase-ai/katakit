@@ -48,6 +48,10 @@
         "slug": "reference/core"
       },
       {
+        "label": "Tracing",
+        "slug": "reference/tracing"
+      },
+      {
         "label": "Transcription utilities",
         "slug": "reference/transcription"
       },

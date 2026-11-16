@@ -14,4 +14,8 @@ Lookups accept either a plugin factory or its configured value, matching the reg
 
 Each runtime has separate observable and method instances, even when constructed with the same configured plugin. Plugins can own timers or subscriptions; core currently has no general disposal lifecycle. The [persistence plugin](persistence.md) supplies a `kill()` method for its timer and final flush, but it does not dispose its event subscription.
 
+The host also owns any OpenTelemetry SDK, context manager, exporter, and exporter
+shutdown. [Tracing](../reference/tracing.md) observes method and effect execution;
+it does not change runtime ownership or add records to application event logs.
+
 See the [core API](../reference/core.md) and [plugin model](plugins.md).
