@@ -1,7 +1,7 @@
 {
   "name": "@katakit/transcription",
   "version": "0.0.0",
-  "description": "Framework-independent transcription utilities for Moonshine and Whisper.",
+  "description": "Transcription utilities for Moonshine and Whisper, with an optional React hook.",
   "license": "Apache-2.0",
   "files": [
     "dist",
@@ -30,6 +30,11 @@
       "source": "./src/browser.ts",
       "types": "./dist/browser.d.ts",
       "default": "./dist/browser.js"
+    },
+    "./react": {
+      "source": "./src/react.ts",
+      "types": "./dist/react.d.ts",
+      "default": "./dist/react.js"
     },
     "./assets": {
       "source": "./src/assets.ts",
@@ -61,6 +66,10 @@
         "types": "./dist/browser.d.ts",
         "default": "./dist/browser.js"
       },
+      "./react": {
+        "types": "./dist/react.d.ts",
+        "default": "./dist/react.js"
+      },
       "./assets": {
         "types": "./dist/assets.d.ts",
         "default": "./dist/assets.js"
@@ -84,13 +93,23 @@
   },
   "devDependencies": {
     "@moonshine-ai/moonshine-wasm": "0.1.5",
+    "@testing-library/react": "^16.1.0",
+    "@types/react": "19.0.0",
+    "@types/react-dom": "19.0.0",
     "@xenova/transformers": "^2.17.2",
+    "happy-dom": "^18.0.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "vite": "^6.0.0"
   },
   "peerDependencies": {
+    "react": "^19.0.0",
     "vite": "^6.0.0 || ^7.0.0 || ^8.0.0"
   },
   "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
     "vite": {
       "optional": true
     }

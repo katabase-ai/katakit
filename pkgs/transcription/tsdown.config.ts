@@ -5,6 +5,7 @@ export default defineConfig({
     'src/moonshine.ts',
     'src/whisper.ts',
     'src/browser.ts',
+    'src/react.ts',
     'src/assets.ts',
     'src/vite.ts',
   ],
