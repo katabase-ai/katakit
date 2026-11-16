@@ -8,8 +8,9 @@ pnpm install --frozen-lockfile
 pnpm -F @katakit/gallery dev
 ```
 
-Open <http://127.0.0.1:4347>. The directory is `/`; React demos are at `/demos/transcription` and
-`/demos/bingo`. Extension setup pages are outside this catalogue. Direct links and unknown-demo
+Open <http://127.0.0.1:4347>. The directory is `/`; React demos are at `/demos/transcription`,
+`/demos/bingo`, and `/demos/notes`. Notes transcription runs locally; generating notes requires
+a host-supplied model connection. Extension setup pages are outside this catalogue. Direct links and unknown-demo
 responses are handled by Start. Browser-only demo modules mount after hydration, not during SSR.
 
 ## Build and inspect
@@ -35,7 +36,7 @@ expected content types. Models download on explicit recording; microphone audio 
 ## Reuse from another host
 
 `shared/galleryDemoDetails.ts` is the eligible React catalogue, including stable IDs, names,
-descriptions, and required capabilities. `shared/galleryDemos.tsx` adds lazy component loaders.
+descriptions, source paths, and required capabilities. `shared/galleryDemos.tsx` adds lazy component loaders.
 A host can select metadata and render `shared/Gallery.tsx` without importing recognizers or this
 app's bootstrap. Import `shared/gallery.css` for the scoped presentation; it inherits host colors
 and typography and does not import the global site-ui reset.
@@ -58,12 +59,17 @@ previous transcript. Hiding the tab stops capture; root teardown disposes the he
 start is cancelled through utility disposal so navigation during loading cannot later prompt for a
 microphone. Failed downloads remain visible and retryable.
 
-Core has no universal runtime teardown API. These two demo factories start no asynchronous core
+Core has no universal runtime teardown API. Transcription and Bingo start no asynchronous core
 effects: they own explicit subscriptions, complete their projections, and close transcript timers.
 Bingo uses its synchronous transcript bridge and state-completion method. Their focused tests verify
 separate histories, final-result ordering, timer cleanup, model retention/replacement, cancelled
 attachments, load retry, and Strict Mode cleanup. Standalone entry points own local capture using
 the same instance-owned views; they do not import this gallery.
+
+The notes entry accepts a `connect` prop for the host's model admission/transport. **Start notes**
+invokes it explicitly; shared microphone actions alone never send transcripts. The notes view
+aborts admission and model work on unmount before its capture drains. Its runtime closes the
+notes effect stream explicitly. See [the notes example](../notes-react/README.md) for the contract.
 
 Run `pnpm --filter @katakit/gallery test:ci` from the root. Each host owns its route registration.
 No authentication or analytics service is required. Public defaults use site-ui controls; the

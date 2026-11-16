@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { extname, join, resolve } from 'node:path';
+import { extname, join } from 'node:path';
 import type { Plugin } from 'vite';
 import {
   copyTranscriptionAssets,
@@ -29,15 +29,14 @@ export const transcriptionAssetsPlugin = ({
     path.split('/').some(part => !part || part === '.' || part === '..' || !/^[\w.-]+$/.test(part))
   )
     throw new Error('assetsPath must be a relative directory without parent traversal.');
-  let output: string | undefined;
   let mount = `/${path}/`;
   return {
     name: 'transcription-assets',
+    applyToEnvironment: environment => environment.config.consumer === 'client',
     config: () =>
       isolate ? { server: { headers: isolation }, preview: { headers: isolation } } : {},
     configResolved: config => {
       mount = `${config.base === './' || config.base === '' ? '/' : config.base}${path}/`;
-      if (config.command === 'build') output = resolve(config.root, config.build.outDir, path);
     },
     configureServer: async server => {
       let files: Set<string>;
@@ -75,8 +74,9 @@ export const transcriptionAssetsPlugin = ({
         }
       });
     },
-    closeBundle: async () => {
-      if (output) await copyTranscriptionAssets(output);
+    // Use the browser output, never the SSR bundle that a host might upload as Worker modules.
+    writeBundle: async options => {
+      if (options.dir) await copyTranscriptionAssets(join(options.dir, path));
     },
   };
 };

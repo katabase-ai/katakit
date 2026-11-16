@@ -23,6 +23,7 @@ export type MicrophoneTranscriber = Omit<Transcriber, 'write'>;
 /** Capture is an engine adapter: the PCM transcriber owns the only lifecycle. */
 export const createMicrophoneTranscriber = (options: MicrophoneOptions): MicrophoneTranscriber => {
   let disposed = false;
+  const lifetime = new AbortController();
   const recognitionEngine = createBrowserRecognitionEngine(options);
   const engine: TranscriptionEngine = async events => {
     checkBrowserSupport(options.model ?? defaultTranscriptionModel, true);
@@ -55,7 +56,7 @@ export const createMicrophoneTranscriber = (options: MicrophoneOptions): Microph
           events.onError
         );
         try {
-          await capture.start();
+          await capture.start(lifetime.signal);
         } catch (error) {
           const named = error as { name?: string };
           throw transcriptionError(
@@ -91,6 +92,7 @@ export const createMicrophoneTranscriber = (options: MicrophoneOptions): Microph
     stop: transcriber.stop,
     dispose: () => {
       disposed = true;
+      lifetime.abort();
       return transcriber.dispose();
     },
   };
