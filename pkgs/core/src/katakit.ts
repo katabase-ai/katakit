@@ -42,7 +42,10 @@ export const makeKatakit = <TConfiguredKatakitPlugins extends ConfiguredKatakitP
 
     const lifecycleMethods = getMethods(KatakitLifecyclePlugin);
     lifecycleMethods.start();
-    const stop = lifecycleMethods.stop;
+    const stop = () => {
+      lifecycleMethods.flush();
+      lifecycleMethods.stop();
+    };
 
     return { getObservables, getMethods, stop };
   };
