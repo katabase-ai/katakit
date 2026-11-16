@@ -9,6 +9,7 @@ from the same Katakit revision. The local `pnpm -F @katakit/docs dev` viewer dis
 authored pages only.
 
 - [Core](core.md): runtime construction, plugin composition, effects, and reactive helpers.
+- [Developer workbench](developer-tools.md): inline React inspection, local capture, and controlled transcript input.
 - [Tracing](tracing.md): OpenTelemetry setup and method/effect execution records.
 - [Transcription utilities](transcription.md): standalone recognition, microphone capture, and WASM/worker setup.
 - [Plugins](plugins/README.md): each plugin's inputs, outputs, options, and lifecycle.

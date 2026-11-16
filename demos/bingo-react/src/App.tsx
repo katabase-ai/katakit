@@ -1,6 +1,7 @@
+import { trace } from '@opentelemetry/api';
 import { bind, Subscribe } from '@react-rxjs/core';
 import { combineLatest } from 'rxjs';
-import { useEffect, useRef, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { makeKatakit } from '@katakit/core';
 import { bingoPacks, drawBingoPack, makeBingoPlugin, type BingoPackId } from './bingo';
 import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
@@ -10,9 +11,16 @@ import { createMicrophoneTranscriber } from '@katakit/transcription/browser';
 import type { TranscriptionState } from '@katakit/transcription';
 import './style.css';
 
+const DeveloperWorkbench = import.meta.env.DEV
+  ? lazy(async () => ({ default: (await import('./developerTools')).DeveloperWorkbench }))
+  : null;
+
 const transcriptIngestion = makeTranscriptIngestionPlugin();
 const bingo = makeBingoPlugin({ TranscriptIngestionPlugin: transcriptIngestion });
-const kit = makeKatakit({ plugins: [transcriptIngestion.configure({}), bingo.configure({})] });
+const kit = makeKatakit({
+  plugins: [transcriptIngestion.configure({}), bingo.configure({})],
+  tracer: trace.getTracer('demo-bingo'),
+});
 const running = kit.start();
 const transcriptMethods = running.getMethods(transcriptIngestion);
 const bingoMethods = running.getMethods(bingo);
@@ -36,6 +44,7 @@ const BrowserBingoView = () => {
       onState: setInput,
       onLevel: setAudioLevel,
       onFinal: transcriptMethods.ingestSegment,
+      onProvisional: transcriptMethods.updateProvisional,
       onStop: transcriptMethods.flush,
     });
     source.current = input;
@@ -173,6 +182,24 @@ const BrowserBingoView = () => {
           </div>
         </aside>
       </div>
+      {DeveloperWorkbench && (
+        <Suspense fallback={null}>
+          <DeveloperWorkbench
+            runtime={running}
+            transcript={{
+              observables: kit.getObservables(transcriptIngestion),
+              methods: transcriptMethods,
+              input: {
+                status: input.phase,
+                recording,
+                disabled: busy || !available,
+                level: audioLevel,
+                onToggle: () => void toggleRecording(),
+              },
+            }}
+          />
+        </Suspense>
+      )}
     </section>
   );
 };

@@ -78,4 +78,29 @@ const App = () => (
   </div>
 );
 
-createRoot(document.getElementById('root')!).render(<App />);
+const start = async () => {
+  if (import.meta.env.DEV) {
+    try {
+      const [{ context, trace }, { StackContextManager, TracerProvider }, transcription, bingo] =
+        await Promise.all([
+          import('@opentelemetry/api'),
+          import('@opentelemetry/sdk-trace'),
+          import('../../transcription-react/src/developerTools'),
+          import('../../bingo-react/src/developerTools'),
+        ]);
+      context.setGlobalContextManager(new StackContextManager().enable());
+      trace.setGlobalTracerProvider(
+        new TracerProvider({
+          spanProcessors: [
+            transcription.devToolsStore.spanProcessor,
+            bingo.devToolsStore.spanProcessor,
+          ],
+        })
+      );
+    } catch (error) {
+      console.error('Developer capture unavailable', error);
+    }
+  }
+  createRoot(document.getElementById('root')!).render(<App />);
+};
+void start();
