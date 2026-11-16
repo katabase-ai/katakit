@@ -83,6 +83,7 @@ export const makeNotesPlugin = ({
           controller = abort;
           let retries = 0;
           while (!abort.signal.aborted && cursor < turns.get().length) {
+            let requestStarted = false;
             try {
               update({ status: 'requesting', failure: undefined });
               const request = createNotesRequest({
@@ -91,6 +92,7 @@ export const makeNotesPlugin = ({
                 cursor,
                 connection: activeConnection,
               });
+              requestStarted = true;
               const response = await activeConnection.requestNotes({
                 body: request.body,
                 signal: abort.signal,
@@ -142,7 +144,8 @@ export const makeNotesPlugin = ({
                 error instanceof NotesRequestError
                   ? error
                   : new NotesRequestError('Notes could not be updated. Try again.');
-              activeConnection.reportFailure?.(failure);
+              // Local sizing failures have no transport request to correlate.
+              if (requestStarted) activeConnection.reportFailure?.(failure);
               const { retryAfterMs, retryLimit = 0 } = failure.policy;
               if (retryAfterMs === undefined || retries++ >= retryLimit) {
                 update({ status: 'paused', failure });

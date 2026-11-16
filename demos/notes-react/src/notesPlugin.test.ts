@@ -163,6 +163,24 @@ describe('live notes', () => {
     ).toBe(false);
   });
 
+  it('does not report a later context-limit failure against the preceding request', async () => {
+    const request = vi.fn<NotesConnection['requestNotes']>().mockResolvedValue({
+      additions: [{ text: 'Keep the successful note' }],
+      rewords: [],
+    });
+    const reportFailure = vi.fn();
+    const demo = setup(request, reportFailure);
+    demo.turn('A useful idea');
+    await expect.poll(() => demo.state.get().notes.length).toBe(1);
+    demo.turn('語'.repeat(6000));
+    await expect.poll(() => demo.state.get().status).toBe('paused');
+    expect(demo.state.get().failure?.message).toContain('context limit');
+    expect(demo.state.get().pendingTurnCount).toBe(1);
+    expect(request).toHaveBeenCalledOnce();
+    expect(reportFailure).not.toHaveBeenCalled();
+    demo.close();
+  });
+
   it('fits the complete UTF-8 wire body without dropping pending turns', () => {
     const connection = {
       model: 'z-ai/glm-5.3',
