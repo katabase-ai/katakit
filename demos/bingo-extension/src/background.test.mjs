@@ -39,7 +39,7 @@ describe('extension capture coordinator', () => {
       };
       vi.stubGlobal('chrome', chrome);
       vi.resetModules();
-      await import('../../../templates/chrome-extension/public/background.js');
+      await import('../public/background.js');
 
       listener({ type: 'CAPTURE_STATUS', phase: 'error', error: 'Model failed' });
       const result = await new Promise(resolve => listener({ type: 'START_CAPTURE' }, {}, resolve));

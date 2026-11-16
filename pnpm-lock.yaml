@@ -36,16 +36,13 @@ importers:
   demos/bingo-extension:
     dependencies:
       '@katakit/core':
-        specifier: workspace:*
+        specifier: 0.0.0
         version: link:../../pkgs/core
-      '@katakit/site-ui':
-        specifier: workspace:*
-        version: link:../../pkgs/site-ui
       '@katakit/transcript-ingestion':
-        specifier: workspace:*
+        specifier: 0.0.0
         version: link:../../pkgs/transcript-ingestion
       '@katakit/transcription':
-        specifier: workspace:*
+        specifier: 0.0.0
         version: link:../../pkgs/transcription
       '@react-rxjs/core':
         specifier: ^0.10.8
@@ -63,6 +60,9 @@ importers:
       '@types/chrome':
         specifier: ^0.1.37
         version: 0.1.43
+      '@types/node':
+        specifier: 24.13.3
+        version: 24.13.3
       '@types/react':
         specifier: ^19.0.0
         version: 19.0.0
@@ -85,16 +85,13 @@ importers:
   demos/bingo-react:
     dependencies:
       '@katakit/core':
-        specifier: workspace:*
+        specifier: 0.0.0
         version: link:../../pkgs/core
-      '@katakit/site-ui':
-        specifier: workspace:*
-        version: link:../../pkgs/site-ui
       '@katakit/transcript-ingestion':
-        specifier: workspace:*
+        specifier: 0.0.0
         version: link:../../pkgs/transcript-ingestion
       '@katakit/transcription':
-        specifier: workspace:*
+        specifier: 0.0.0
         version: link:../../pkgs/transcription
       '@react-rxjs/core':
         specifier: ^0.10.8
@@ -109,6 +106,9 @@ importers:
         specifier: ^7.8.2
         version: 7.8.2
     devDependencies:
+      '@types/node':
+        specifier: 24.13.3
+        version: 24.13.3
       '@types/react':
         specifier: ^19.0.0
         version: 19.0.0
@@ -162,16 +162,13 @@ importers:
   demos/transcription-react:
     dependencies:
       '@katakit/core':
-        specifier: workspace:*
+        specifier: 0.0.0
         version: link:../../pkgs/core
-      '@katakit/site-ui':
-        specifier: workspace:*
-        version: link:../../pkgs/site-ui
       '@katakit/transcript-ingestion':
-        specifier: workspace:*
+        specifier: 0.0.0
         version: link:../../pkgs/transcript-ingestion
       '@katakit/transcription':
-        specifier: workspace:*
+        specifier: 0.0.0
         version: link:../../pkgs/transcription
       '@react-rxjs/core':
         specifier: ^0.10.8
@@ -189,6 +186,9 @@ importers:
       '@testing-library/react':
         specifier: ^16.1.0
         version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
+      '@types/node':
+        specifier: 24.13.3
+        version: 24.13.3
       '@types/react':
         specifier: ^19.0.0
         version: 19.0.0
@@ -207,6 +207,9 @@ importers:
       vite:
         specifier: ^6.0.0
         version: 6.4.6(@types/node@24.13.3)(yaml@2.9.1)
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/debug@4.1.13)(@types/node@24.13.3)(happy-dom@18.0.1)(yaml@2.9.1)
 
   docs:
     dependencies:
@@ -391,6 +394,9 @@ importers:
       '@types/chrome':
         specifier: ^0.1.37
         version: 0.1.43
+      '@types/node':
+        specifier: 24.13.3
+        version: 24.13.3
       typescript:
         specifier: ^7.0.2
         version: 7.0.2

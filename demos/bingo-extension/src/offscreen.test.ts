@@ -7,7 +7,7 @@ vi.mock('@katakit/transcription/browser', () => ({
   createBrowserTranscriber: mocks.transcriber,
   defaultTranscriptionAssetsBaseUrl: '/transcription-assets/',
 }));
-vi.mock('../../../templates/chrome-extension/src/capture', () => ({
+vi.mock('./capture', () => ({
   createCapture: mocks.capture,
 }));
 

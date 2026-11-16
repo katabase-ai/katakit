@@ -14,7 +14,7 @@ import {
   makeTranscriptIngestionPlugin,
   type TranscriptSegment,
 } from '@katakit/transcript-ingestion';
-import { AudioLevelMeter } from '@katakit/site-ui';
+import { AudioLevelMeter } from './AudioLevelMeter';
 
 const transcriptIngestion = makeTranscriptIngestionPlugin();
 const bingo = makeBingoPlugin({ TranscriptIngestionPlugin: transcriptIngestion });
