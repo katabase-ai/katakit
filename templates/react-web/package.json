@@ -1,0 +1,27 @@
+{
+  "name": "@katakit/template-react-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "tsc": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@katakit/core": "file:vendor/katakit-core.tgz",
+    "@katakit/event-log": "file:vendor/katakit-event-log.tgz",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "valibot": "^1.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^7.0.2",
+    "vite": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@11.9.0"
+}

@@ -1,0 +1,5 @@
+allowBuilds:
+  esbuild: true
+overrides:
+  '@katakit/core': 'file:vendor/katakit-core.tgz'
+  '@katakit/event-log': 'file:vendor/katakit-event-log.tgz'
