@@ -9,13 +9,17 @@ import { StandardSchemaV1 } from '@standard-schema/spec';
 export const makeEventLogPlugin = <TEvent>({
   validateEvent,
 }: {
-  /** Synchronous Standard Schema validator. Its output is the event type; invalid events throw. */
+  /**
+   * Synchronous Standard Schema validator. Its output is the event type; invalid events throw.
+   */
   validateEvent: StandardSchemaV1<unknown, TEvent>;
 }) =>
   makeKatakitPlugin({
     type: 'EventLog',
     configure: (options: {
-      /** Previously loaded events, replayed as supplied without revalidation. */
+      /**
+       * Previously loaded events, replayed as supplied without revalidation.
+       */
       initialEvents: TEvent[];
     }) => options,
     observables: ({ options }) => {
@@ -29,14 +33,18 @@ export const makeEventLogPlugin = <TEvent>({
       }
 
       return {
-        /** Replays the complete event history; getAll() returns a snapshot array. */
         // a fake type assertion just to prevent the usage
         // of `event$.next` directly
+        /**
+         * Replays the complete event history; getAll() returns a snapshot array.
+         */
         events$: events$ as WithEager<Observable<TEvent>>,
       };
     },
     methods: ({ observables }) => ({
-      /** Validate and publish one event synchronously; asynchronous validators are rejected. */
+      /**
+       * Validate and publish one event synchronously; asynchronous validators are rejected.
+       */
       emitEvent: (event: TEvent) => {
         const validationResult = validateEvent['~standard'].validate(event);
         if (validationResult instanceof Promise) {

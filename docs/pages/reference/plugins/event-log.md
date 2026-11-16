@@ -2,7 +2,11 @@
 
 `@katakit/event-log` exports `makeEventLogPlugin({ validateEvent })`. `validateEvent` is a synchronous Standard Schema validator; its output type determines the event type.
 
+The event log is an ordered, replayable stream. The host loads and validates stored
+history before configuration; `emitEvent` validates new events after the runtime starts.
+
 ```ts
+import { makeKatakit } from '@katakit/core';
 import { makeEventLogPlugin } from '@katakit/event-log';
 import * as v from 'valibot';
 
@@ -10,6 +14,12 @@ const EventLogPlugin = makeEventLogPlugin({
   validateEvent: v.strictObject({ type: v.literal('message'), text: v.string() }),
 });
 const eventLog = EventLogPlugin.configure({ initialEvents: [] });
+const runtime = makeKatakit({ plugins: [eventLog] });
+const running = runtime.start();
+
+running.getMethods(EventLogPlugin).emitEvent({ type: 'message', text: 'Hello' });
+const history = running.getObservables(EventLogPlugin).events$.getAll();
+// history contains [{ type: 'message', text: 'Hello' }].
 ```
 
 Register `eventLog` with `makeKatakit({ plugins: [eventLog] })`. The plugin's `events$` observable replays the complete history and offers `getAll(): Event[]`, which returns a snapshot array. After `start()`, `getMethods(EventLogPlugin).emitEvent(event)` validates and publishes one event synchronously. Failed validation throws; asynchronous validators are rejected.

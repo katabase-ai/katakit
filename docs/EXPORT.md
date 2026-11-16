@@ -50,6 +50,14 @@ and supported TypeScript 6.0.3. Application checking remains on TypeScript 7. Ex
 actual public package entry points and guide links, and fails conversion errors. React currently
 has no public symbols; the manifest reports that without inventing an API page.
 
+Concrete plugin factory pages include Factory options, Configuration, Observables,
+and Methods sections derived from their `KatakitPlugin` return types and JSDoc.
+The exporter enriches TypeDoc's Markdown using the same supported compiler; it
+retains the full signature, type links, and reference anchors below these sections.
+The generic `makeKatakitPlugin` constructor keeps its normal TypeDoc presentation.
+Authored Reference pages remain committed explanations and examples; they are not
+replaced by generated files. See [the reference authoring pattern](AGENTS.md#editing).
+
 ## Bundle contract
 
 The portable output has `manifest.json` format version 1 and a `content/` tree of Markdown and

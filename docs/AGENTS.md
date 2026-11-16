@@ -14,6 +14,16 @@ website consumers. See [EXPORT.md](EXPORT.md) for that boundary and bundle contr
 - Describe public symbols beside their source declarations with JSDoc. The
   exporter generates signatures, types, and symbol pages from those declarations;
   edit the source rather than the generated Markdown.
+- Plugin reference has two parts. Keep the purpose, a complete factory/configure/
+  register/start/use example, dependencies, lifecycle limits, and related concepts
+  in the authored Reference page. Describe options and exposed members beside
+  their declarations with JSDoc. Do not copy signatures into a second generated page.
+- For concrete factories returning `KatakitPlugin`, the exporter adds Factory
+  options, Configuration, Observables, and Methods sections to the generated API
+  page. It derives fields, optional markers, generic types, and descriptions from
+  the same compiler used for export coverage. Empty collections are stated explicitly;
+  the complete TypeDoc reference follows these sections. The local viewer still
+  displays authored pages only.
 - Keep package README files focused on package setup and entry points; link to
   authored pages for extended explanations instead of maintaining duplicate prose.
 - Each page needs a level-one title. Directories define sections; a section's
