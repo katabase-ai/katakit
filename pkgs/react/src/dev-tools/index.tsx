@@ -1,7 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { formatValue } from './formatValue';
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import type { AliveKatakit } from '@katakit/core';
+import { ActivityView } from './ActivityView';
+import { StateView } from './StateView';
+import { TranscriptView, type TranscriptInspection } from './TranscriptView';
+import { type DevToolsStore } from './store';
 import {
   Button,
   Collapsible,
@@ -13,130 +17,95 @@ import {
   TabsTrigger,
 } from './ui';
 
-/** Compatible with RxJS observables, including properties and replaying event logs. */
-export type InspectionSource = {
-  subscribe: (observer: {
-    next: (value: unknown) => void;
-    error: (error: unknown) => void;
-    complete: () => void;
-  }) => { unsubscribe: () => void };
-  get?: () => unknown;
-};
-
-export type ObservableInspectorProps = {
-  name: string;
-  source: InspectionSource;
-};
-
-type Snapshot = {
-  latest?: string;
-  history: string[];
-  status: 'waiting' | 'live' | 'complete' | 'error';
-  error?: string;
-};
-
-const emptySnapshot = (): Snapshot => ({ history: [], status: 'waiting' });
-
-/** A read-only latest-value and recent-emission view. Subscribes only while mounted. */
-export const ObservableInspector = ({ name, source }: ObservableInspectorProps) => {
-  const [snapshot, setSnapshot] = useState(emptySnapshot);
-
-  useEffect(() => {
-    let active = true;
-    setSnapshot(emptySnapshot());
-    const fail = (error: unknown) => {
-      if (active) {
-        setSnapshot(previous => ({ ...previous, status: 'error', error: formatValue(error) }));
-      }
-    };
-    let subscription: ReturnType<InspectionSource['subscribe']> | undefined;
-    try {
-      if (source.get) {
-        const latest = formatValue(source.get());
-        setSnapshot({ latest, history: [], status: 'waiting' });
-      }
-      subscription = source.subscribe({
-        next: value => {
-          if (!active) return;
-          const latest = formatValue(value);
-          setSnapshot(previous => ({
-            latest,
-            history: [latest, ...previous.history].slice(0, 50),
-            status: 'live',
-          }));
-        },
-        error: fail,
-        complete: () => {
-          if (active) setSnapshot(previous => ({ ...previous, status: 'complete' }));
-        },
-      });
-    } catch (error) {
-      fail(error);
-    }
-    return () => {
-      active = false;
-      subscription?.unsubscribe();
-    };
-  }, [source]);
-
-  return (
-    <section className="kk-devtools kk-devtools-inspector" aria-label={`${name} inspector`}>
-      <div className="kk-devtools-heading">
-        <strong>{name}</strong>
-        <span className="kk-devtools-status">{snapshot.status}</span>
-      </div>
-      {snapshot.error && <pre role="alert">{snapshot.error}</pre>}
-      <Tabs defaultValue="latest">
-        <TabsList aria-label={`${name} views`}>
-          <TabsTrigger value="latest">Latest value</TabsTrigger>
-          <TabsTrigger value="history">Recent emissions ({snapshot.history.length})</TabsTrigger>
-        </TabsList>
-        <TabsContent value="latest">
-          <pre>{snapshot.latest ?? 'Waiting for a value…'}</pre>
-        </TabsContent>
-        <TabsContent value="history">
-          <p className="kk-devtools-hint">
-            Newest first · up to 50 emissions per mounted inspector
-          </p>
-          {snapshot.history.length ? (
-            <ol className="kk-devtools-history">
-              {snapshot.history.map((value, index) => (
-                <li key={index}>
-                  <pre>{value}</pre>
-                </li>
-              ))}
-            </ol>
-          ) : (
-            <p className="kk-devtools-hint">No emissions received.</p>
-          )}
-        </TabsContent>
-      </Tabs>
-    </section>
-  );
-};
+export { createDevToolsStore } from './store';
+export type { DevToolsStore, DevToolsSnapshot, ActivityEntry, InspectedValue } from './store';
+export type { TranscriptInspection } from './TranscriptView';
 
 export type DevToolsProps = {
-  observables: Record<string, InspectionSource>;
+  runtime: AliveKatakit;
+  store: DevToolsStore;
+  transcript?: TranscriptInspection;
 };
 
-/** Collapsed by default. The application controls development-only loading and rendering. */
-export const DevTools = ({ observables }: DevToolsProps) => {
+/** Inline workbench. Host-owned capture remains attached while the panel is collapsed. */
+export const DevTools = ({ runtime, store, transcript }: DevToolsProps) => {
   const [open, setOpen] = useState(false);
+  const [pluginType, setPluginType] = useState('all');
+  const inventory = useMemo(() => runtime.inspect(), [runtime]);
+  const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
+  useEffect(() => store.connect(runtime), [runtime, store]);
+  const plugins = useMemo(
+    () => inventory.plugins.filter(plugin => pluginType === 'all' || plugin.type === pluginType),
+    [inventory, pluginType]
+  );
+  const spans = snapshot.activity.filter(entry => entry.kind !== 'emission').length;
   return (
-    <Collapsible className="kk-devtools kk-devtools-root" open={open} onOpenChange={setOpen}>
-      <CollapsibleTrigger render={<Button />}>
-        {open ? 'Hide developer tools' : 'Show developer tools'}
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        {open && (
-          <div className="kk-devtools-body">
-            <p className="kk-devtools-hint">Read-only observable inspection</p>
-            {Object.entries(observables).map(([name, source]) => (
-              <ObservableInspector key={name} name={name} source={source} />
+    <Collapsible className="kk-devtools kk-workbench" open={open} onOpenChange={setOpen}>
+      <header className="kk-workbench-header">
+        <CollapsibleTrigger render={<Button />}>
+          <span className="kk-live-dot" />
+          {open ? 'Hide developer workbench' : 'Open developer workbench'}
+        </CollapsibleTrigger>
+        <span className="kk-capture-status">Capturing · {snapshot.activity.length} retained</span>
+        <Button onClick={store.clear}>Clear captured history</Button>
+      </header>
+      <CollapsibleContent keepMounted>
+        <div className="kk-workbench-layout">
+          <nav className="kk-plugin-nav" aria-label="Runtime plugins">
+            <h2>Runtime</h2>
+            <Button aria-pressed={pluginType === 'all'} onClick={() => setPluginType('all')}>
+              All plugins<small>{inventory.plugins.length} configured</small>
+            </Button>
+            {inventory.plugins.map(plugin => (
+              <Button
+                key={plugin.type}
+                aria-pressed={pluginType === plugin.type}
+                onClick={() => setPluginType(plugin.type)}
+              >
+                {plugin.type}
+                <small>
+                  {Object.keys(plugin.observables).length} observables · {plugin.methods.length}{' '}
+                  methods · {plugin.effects.length} effects
+                </small>
+              </Button>
             ))}
-            {!Object.keys(observables).length && <p>No observables configured.</p>}
+            {!inventory.plugins.length && <p className="kk-hint">No plugins configured.</p>}
+            <p className="kk-hint">
+              {inventory.tracing
+                ? spans
+                  ? `${spans} invocation spans retained`
+                  : 'Instrumentation enabled. No SDK spans captured yet.'
+                : 'Trace instrumentation disabled for this runtime.'}
+            </p>
+          </nav>
+          <div className="kk-workbench-main">
+            <Tabs defaultValue="activity">
+              <TabsList aria-label="Workbench views">
+                <TabsTrigger value="activity">Activity</TabsTrigger>
+                <TabsTrigger value="state">State & capabilities</TabsTrigger>
+                {transcript && <TabsTrigger value="transcript">Transcript & input</TabsTrigger>}
+              </TabsList>
+              <TabsContent value="activity" keepMounted>
+                <ActivityView plugins={plugins} activity={snapshot.activity} />
+              </TabsContent>
+              <TabsContent value="state" keepMounted>
+                <StateView plugins={plugins} snapshot={snapshot} tracing={inventory.tracing} />
+              </TabsContent>
+              {transcript && (
+                <TabsContent value="transcript" keepMounted>
+                  <TranscriptView binding={transcript} />
+                </TabsContent>
+              )}
+            </Tabs>
           </div>
-        )}
+        </div>
+        <footer className="kk-workbench-footer">
+          <span>
+            Local inspection · {snapshot.activity.length} / {store.capacity} records retained
+            {snapshot.omitted ? ` · ${snapshot.omitted} older records omitted` : ''}
+          </span>
+          <span>Clear affects captured history only.</span>
+        </footer>
       </CollapsibleContent>
     </Collapsible>
   );

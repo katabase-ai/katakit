@@ -1,6 +1,16 @@
 import { createRoot } from 'react-dom/client';
-import { App } from './App';
 import './base.css';
 import './style.css';
 
-createRoot(document.getElementById('root')!).render(<App />);
+const start = async () => {
+  if (import.meta.env.DEV) {
+    try {
+      (await import('./developerTools')).installDeveloperCapture();
+    } catch (error) {
+      console.error('Developer capture unavailable', error);
+    }
+  }
+  const { App } = await import('./App');
+  createRoot(document.getElementById('root')!).render(<App />);
+};
+void start();

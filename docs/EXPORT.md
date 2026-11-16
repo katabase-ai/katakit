@@ -43,12 +43,12 @@ public entry points through the package manifest's `exports` and `source`
 conditions, then run `pnpm docs:export` and inspect the manifest's `packages` and
 generated pages. Each selected package's public code subpaths are included
 automatically, including transcription's browser, asset, Vite, and recognizer
-entry points. JSON metadata exports are recorded separately in `nonCodeExports`.
+entry points. JSON metadata and compiled CSS exports are recorded separately in `nonCodeExports`.
 
 `pkgs/docs-export` owns API extraction with TypeDoc 0.28.20, its Markdown plugin 4.14.1,
 and supported TypeScript 6.0.3. Application checking remains on TypeScript 7. Export validates
-actual public package entry points and guide links, and fails conversion errors. React currently
-has no public symbols; the manifest reports that without inventing an API page.
+actual public package entry points and guide links, and fails conversion errors. React's optional
+`dev-tools` entry point has its own API reference; its empty root entry point has no API page.
 
 ## Bundle contract
 

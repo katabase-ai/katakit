@@ -171,6 +171,7 @@ export const makeBingoPlugin = ({
         getObservables(TranscriptIngestionPlugin);
       return [
         makeEffect({
+          name: 'updateFromTranscript',
           on: events$.pipe(filter(event => event.type !== 'provisional')),
           backpressure: 'latest',
           handler: () => {

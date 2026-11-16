@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { trace } from '@opentelemetry/api';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { combineLatest } from 'rxjs';
 import { makeKatakit } from '@katakit/core';
 import { bind, Subscribe } from '@react-rxjs/core';
@@ -10,9 +11,17 @@ import type { TranscriptionState } from '@katakit/transcription';
 import { defaultModel, models, type ModelId } from './models';
 import { createModelSwitcher } from './createModelSwitcher';
 
+const DeveloperWorkbench = import.meta.env.DEV
+  ? lazy(async () => ({ default: (await import('./developerTools')).DeveloperWorkbench }))
+  : null;
+
 const TranscriptIngestionPlugin = makeTranscriptIngestionPlugin({ turnSilenceMs: 1400 });
-const kit = makeKatakit({ plugins: [TranscriptIngestionPlugin.configure({})] });
-const methods = kit.start().getMethods(TranscriptIngestionPlugin);
+const kit = makeKatakit({
+  plugins: [TranscriptIngestionPlugin.configure({})],
+  tracer: trace.getTracer('demo-transcription'),
+});
+const running = kit.start();
+const methods = running.getMethods(TranscriptIngestionPlugin);
 const { conversationTurns$, currentTurn$, provisional$ } =
   kit.getObservables(TranscriptIngestionPlugin);
 const [useCompletedTurns, completedTurnsState$] = bind(conversationTurns$);
@@ -197,6 +206,24 @@ const TranscriptionView = () => {
           </div>
         )}
       </section>
+      {DeveloperWorkbench && (
+        <Suspense fallback={null}>
+          <DeveloperWorkbench
+            runtime={running}
+            transcript={{
+              observables: kit.getObservables(TranscriptIngestionPlugin),
+              methods,
+              input: {
+                status: input.phase,
+                recording,
+                disabled: busy || !available,
+                level: audioLevel,
+                onToggle: () => void toggleRecording(),
+              },
+            }}
+          />
+        </Suspense>
+      )}
       <footer>
         English-only models. Audio stays in this browser. Transcript is cleared on reload.
       </footer>

@@ -17,7 +17,7 @@ import { promisify } from 'node:util';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 
 const run = promisify(execFile);
-const packageNames = ['core', 'event-log', 'persistence', 'react'];
+const packageNames = ['core', 'event-log', 'persistence', 'transcript-ingestion', 'react'];
 const repository = fileURLToPath(new URL('../../../', import.meta.url));
 
 type Manifest = {
@@ -92,6 +92,15 @@ describe('published packages', () => {
       }
     }
 
+    // A TypeScript React consumer supplies the framework's declarations.
+    const reactTypes = join(fixture.consumer, 'node_modules', '@types', 'react');
+    await mkdir(dirname(reactTypes), { recursive: true });
+    await symlink(
+      await realpath(join(repository, 'pkgs', 'react', 'node_modules', '@types', 'react')),
+      reactTypes,
+      'junction'
+    );
+
     await writeFile(
       join(fixture.consumer, 'package.json'),
       JSON.stringify({ private: true, type: 'module' })
@@ -104,6 +113,7 @@ describe('published packages', () => {
         import { makeEventLogPlugin } from '@katakit/event-log';
         import { makeEventPersistencePlugin, makeLocalStorageEventPersistencePlugin } from '@katakit/persistence';
         import * as react from '@katakit/react';
+        import { DevTools, createDevToolsStore } from '@katakit/react/dev-tools';
         const EventLogPlugin = makeEventLogPlugin({
           validateEvent: {
             '~standard': { version: 1, vendor: 'smoke-test', validate: value => ({ value }) },
@@ -125,6 +135,9 @@ describe('published packages', () => {
         assert.deepEqual(runtime.getObservables(EventLogPlugin).events$.getAll(), [1, 2]);
         assert.equal(typeof makeLocalStorageEventPersistencePlugin, 'function');
         assert.equal(typeof react, 'object');
+        assert.equal(typeof DevTools, 'function');
+        assert.equal(createDevToolsStore().getSnapshot().activity.length, 0);
+        assert.ok(import.meta.resolve('@katakit/react/dev-tools.css').endsWith('/dist/dev-tools.css'));
       `
     );
     await writeFile(
@@ -134,6 +147,7 @@ describe('published packages', () => {
         import { makeEventLogPlugin } from '@katakit/event-log';
         import { makeEventPersistencePlugin, makeLocalStorageEventPersistencePlugin } from '@katakit/persistence';
         import * as react from '@katakit/react';
+        import { DevTools, createDevToolsStore } from '@katakit/react/dev-tools';
         import { of, type Observable } from 'rxjs';
         const EventLogPlugin = makeEventLogPlugin<{ text: string }>({
           validateEvent: {
@@ -161,6 +175,8 @@ describe('published packages', () => {
         const events$: Observable<{ text: string }> = runtime.getObservables(EventLogPlugin).events$;
         // @ts-expect-error The public event stream does not permit direct writes.
         events$.next({ text: 'bypass' });
+        const store = createDevToolsStore({ capacity: 10 });
+        const props: Parameters<typeof DevTools>[0] = { runtime, store };
         const shutdown: Promise<void> = runtime.getMethods(PersistencePlugin).kill();
         makeEffect({
           on: events$, backpressure: 'queue',
@@ -259,7 +275,9 @@ describe('published packages', () => {
           'consumer.ts',
         ],
         { cwd: fixture.consumer, timeout: 30000 }
-      );
+      ).catch(error => {
+        throw new Error(error.stdout || error.message);
+      });
       expect(result.stderr).toBe('');
     },
     30000

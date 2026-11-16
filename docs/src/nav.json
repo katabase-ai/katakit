@@ -48,6 +48,10 @@
         "slug": "reference/core"
       },
       {
+        "label": "Developer workbench",
+        "slug": "reference/developer-tools"
+      },
+      {
         "label": "Tracing",
         "slug": "reference/tracing"
       },

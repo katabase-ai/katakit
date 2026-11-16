@@ -82,8 +82,9 @@ export const exportDocs = async ({ output }) => {
     const manifest = JSON.parse(await readFile(join(packageRoot, 'package.json'), 'utf8'));
     const exports = Object.entries(manifest.exports);
     for (const [subpath, conditions] of exports) {
-      if (typeof conditions === 'string' && conditions.endsWith('.json')) {
-        nonCodeExports.push({ package: manifest.name, subpath, target: conditions });
+      const target = typeof conditions === 'string' ? conditions : conditions.default;
+      if (/\.(json|css)$/.test(target)) {
+        nonCodeExports.push({ package: manifest.name, subpath, target });
         continue;
       }
       if (!conditions.source) throw new Error(`${manifest.name} ${subpath} has no source export`);
@@ -133,7 +134,7 @@ export const exportDocs = async ({ output }) => {
   if (app.logger.hasErrors()) throw new Error('Public API validation failed');
   for (const entry of coverage) {
     if (!entry.symbols.length) continue;
-    const moduleName = entry.sourcePath.replace(/\/index\.ts$/, '').replace(/\.tsx?$/, '');
+    const moduleName = entry.sourcePath.replace(/\/index\.tsx?$/, '').replace(/\.tsx?$/, '');
     const module = project.children.find(child => child.name === moduleName);
     if (!module) throw new Error(`${entry.package}: missing exported module ${moduleName}`);
     const names = (module.children ?? []).map(reflection => reflection.name);

@@ -1,6 +1,7 @@
 import { map, type Observable } from 'rxjs';
 import { context, type Tracer } from '@opentelemetry/api';
 import { traceInvocation } from './tracing';
+import type { EffectInspection } from './inspection';
 import { type GetMethods } from './methods';
 import { type GetObservables } from './observables';
 import { type ConfiguredKatakitPlugin } from './plugin';
@@ -44,6 +45,7 @@ export const startEffects = ({
   getMethods: GetMethods;
   tracer?: Tracer;
 }) => {
+  const catalog = new Map<string, EffectInspection[]>();
   for (const plugin of plugins) {
     const effects = plugin.effects({
       observables: getObservables(plugin),
@@ -51,6 +53,10 @@ export const startEffects = ({
       getObservables,
       getMethods,
     });
+    catalog.set(
+      plugin.type,
+      effects.map(({ name, backpressure }, index) => ({ index, name, backpressure }))
+    );
     for (const [index, effect] of effects.entries()) {
       if (!tracer) {
         subscribeWithBackpressure(effect.backpressure, effect.on, effect.handler);
@@ -76,4 +82,5 @@ export const startEffects = ({
       );
     }
   }
+  return catalog;
 };
