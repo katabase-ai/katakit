@@ -2,7 +2,7 @@
 
 `createNotesDemo.ts` owns one visit's runtime. `NotesDemo.tsx` renders it. `useNotesConnection.ts`
 owns automatic admission, explicit retry, and visit cancellation.
-`App.tsx` owns standalone capture; the gallery supplies shared input.
+`App.tsx` owns standalone capture through `useMicrophoneTranscriber`; the gallery supplies shared input.
 `notesEvents.ts` defines finalized turns, accepted outlines, and clears. `notesPlugin.ts` derives
 the outline, processed-turn cursor, and Markdown from that log. `applyNotesResult.ts` validates a
 whole model result and copies the accepted outline without mutating recorded events. `notesModel.ts` owns the public
