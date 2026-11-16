@@ -39,6 +39,13 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
     });
     return;
   }
+  if (message.type === 'CAPTURE_DIAGNOSTICS') {
+    const { tab, mic, capturedSeconds, forwardedSeconds, provisional, final, ready } = message;
+    void chrome.storage.session.set({
+      diagnostics: { tab, mic, capturedSeconds, forwardedSeconds, provisional, final, ready },
+    });
+    return;
+  }
   if (message.type === 'START_CAPTURE') {
     if (starting) {
       respond({ ok: false, error: 'Capture is already running.' });

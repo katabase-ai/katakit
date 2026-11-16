@@ -4,6 +4,7 @@ let listener;
 let documentOpen;
 let segments;
 let capture;
+let diagnostics;
 let chrome;
 
 const send = message => new Promise(resolve => listener(message, {}, resolve));
@@ -13,6 +14,7 @@ beforeEach(async () => {
   documentOpen = false;
   segments = [];
   capture = undefined;
+  diagnostics = undefined;
   chrome = {
     runtime: {
       onMessage: { addListener: callback => (listener = callback) },
@@ -27,6 +29,7 @@ beforeEach(async () => {
         set: vi.fn(async values => {
           if (values.segments) segments = values.segments;
           if (values.capture) capture = values.capture;
+          if (values.diagnostics) diagnostics = values.diagnostics;
         }),
         remove: vi.fn(async () => {
           segments = [];
@@ -70,4 +73,27 @@ test('replaces an errored document before another capture', async () => {
   expect(await send({ type: 'START_CAPTURE' })).toEqual({ ok: true });
   expect(chrome.offscreen.closeDocument).toHaveBeenCalledOnce();
   expect(chrome.offscreen.createDocument).toHaveBeenCalledOnce();
+});
+
+test('persists text-free capture diagnostics for a reopened panel', async () => {
+  listener({
+    type: 'CAPTURE_DIAGNOSTICS',
+    tab: 0.1,
+    mic: undefined,
+    capturedSeconds: 5,
+    forwardedSeconds: 3,
+    provisional: 2,
+    final: 0,
+    ready: true,
+  });
+  await vi.waitFor(() => expect(diagnostics?.capturedSeconds).toBe(5));
+  expect(diagnostics).toEqual({
+    tab: 0.1,
+    mic: undefined,
+    capturedSeconds: 5,
+    forwardedSeconds: 3,
+    provisional: 2,
+    final: 0,
+    ready: true,
+  });
 });

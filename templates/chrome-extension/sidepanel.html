@@ -12,6 +12,17 @@
       <p>First use downloads Moonshine Tiny. The transcript lasts only for this browser session.</p>
       <p id="status" role="status">Recording is off</p>
       <button id="toggle" type="button">Start recording</button>
+      <details>
+        <summary>Capture diagnostics</summary>
+        <p id="mic-permission">Microphone request: not attempted</p>
+        <p id="input-levels">Peak input levels: waiting for capture</p>
+        <p id="pcm">PCM: waiting for capture</p>
+        <p id="recognition">Recognizer: waiting for capture</p>
+        <p>
+          Levels show peak signal during this recording, not stored audio. Try speaking after the
+          model is ready, then Stop to flush the last line.
+        </p>
+      </details>
       <h2>Conversation turns</h2>
       <ol id="turns" aria-label="Conversation turns"></ol>
       <button id="clear" type="button" disabled>Clear transcript</button>

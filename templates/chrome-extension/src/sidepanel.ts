@@ -5,7 +5,12 @@ const list = document.querySelector<HTMLOListElement>('#turns')!;
 const clear = document.querySelector<HTMLButtonElement>('#clear')!;
 const button = document.querySelector<HTMLButtonElement>('#toggle')!;
 const status = document.querySelector<HTMLElement>('#status')!;
+const micPermission = document.querySelector<HTMLElement>('#mic-permission')!;
+const inputLevels = document.querySelector<HTMLElement>('#input-levels')!;
+const pcm = document.querySelector<HTMLElement>('#pcm')!;
+const recognition = document.querySelector<HTMLElement>('#recognition')!;
 let recording = false;
+let micConnected = false;
 let restored = false;
 type CaptureMessage = {
   type: string;
@@ -14,6 +19,13 @@ type CaptureMessage = {
   error?: string;
   progress?: number;
   micConnected?: boolean;
+  tab?: number;
+  mic?: number;
+  capturedSeconds?: number;
+  forwardedSeconds?: number;
+  provisional?: number;
+  final?: number;
+  ready?: boolean;
 };
 const queued: CaptureMessage[] = [];
 
@@ -54,11 +66,20 @@ const show = (text: string) => {
   status.textContent = text;
   button.textContent = recording ? 'Stop recording' : 'Start recording';
 };
+const showDiagnostics = (message: CaptureMessage) => {
+  const level = (value: number | undefined) =>
+    value === undefined ? 'unavailable' : `${(value * 100).toFixed(1)}% RMS`;
+  inputLevels.textContent = `Peak input levels: tab ${level(message.tab)}, mic ${level(message.mic)}`;
+  pcm.textContent = `PCM: ${message.capturedSeconds?.toFixed(1) ?? '0.0'}s captured, ${message.forwardedSeconds?.toFixed(1) ?? '0.0'}s sent to recognizer`;
+  recognition.textContent = `Recognizer: ${message.ready ? 'ready' : 'loading'}, ${message.provisional ?? 0} provisional updates, ${message.final ?? 0} finalized lines`;
+};
 const receive = (message: CaptureMessage) => {
   if (message.type === 'TRANSCRIPT_SEGMENT' && message.segment) session.onFinal(message.segment);
   if (message.type === 'TRANSCRIPT_STOP') session.onStop();
+  if (message.type === 'CAPTURE_DIAGNOSTICS') showDiagnostics(message);
   if (message.type === 'CAPTURE_STATUS') {
     recording = message.phase === 'recording';
+    micConnected = recording && !!message.micConnected;
     button.disabled = message.phase === 'loading' || message.phase === 'stopping';
     show(
       message.phase === 'error'
@@ -66,7 +87,7 @@ const receive = (message: CaptureMessage) => {
         : message.phase === 'loading'
           ? `Loading speech model${message.progress === undefined ? '…' : ` ${Math.round(message.progress * 100)}%`}`
           : recording
-            ? `Transcribing ${message.micConnected ? 'tab and mic' : 'tab audio'}`
+            ? `Transcribing ${micConnected ? 'tab and mic' : 'tab audio'}`
             : 'Recording is off'
     );
   }
@@ -77,11 +98,18 @@ chrome.runtime.onMessage.addListener(message => {
 });
 void (async () => {
   try {
-    const saved = await chrome.storage.session.get(['capture', 'segments']);
+    const saved = await chrome.storage.session.get([
+      'capture',
+      'segments',
+      'diagnostics',
+      'micPermission',
+    ]);
     const capture = saved.capture as { phase?: string; error?: string } | undefined;
     const segments = (saved.segments ?? []) as Parameters<typeof session.onFinal>[0][];
     for (const segment of segments) session.onFinal(segment);
     session.onStop();
+    if (typeof saved.micPermission === 'string') micPermission.textContent = saved.micPermission;
+    if (saved.diagnostics) receive({ type: 'CAPTURE_DIAGNOSTICS', ...saved.diagnostics });
     if (capture) receive({ type: 'CAPTURE_STATUS', ...capture });
   } catch (error) {
     show(`Could not restore transcript: ${String(error)}`);
@@ -97,14 +125,25 @@ button.onclick = async () => {
   try {
     const action = recording ? 'STOP_CAPTURE' : 'START_CAPTURE';
     if (action === 'START_CAPTURE') {
+      inputLevels.textContent = 'Input levels: waiting for capture';
+      pcm.textContent = 'PCM: waiting for capture';
+      recognition.textContent = 'Recognizer: waiting for capture';
+      micPermission.textContent = 'Microphone request: checking…';
       try {
         // Chrome's hidden offscreen page cannot show the first mic permission
         // prompt. Grant it in this visible extension page, then release this
         // temporary stream; the offscreen page opens its own stream afterward.
         const permission = await navigator.mediaDevices.getUserMedia({ audio: true });
         permission.getTracks().forEach(track => track.stop());
-      } catch {
+        micPermission.textContent = 'Microphone request: granted';
+      } catch (error) {
         // Microphone is optional: tab-only recording must still work.
+        micPermission.textContent = `Microphone request: unavailable (${error instanceof Error ? error.name : 'unknown error'})`;
+      }
+      try {
+        await chrome.storage.session.set({ micPermission: micPermission.textContent });
+      } catch {
+        // The panel still shows the permission result when session storage is unavailable.
       }
     }
     const result = await chrome.runtime.sendMessage({ type: action });
@@ -112,7 +151,9 @@ button.onclick = async () => {
     // CAPTURE_STATUS may have set recording before the response arrives.
     // Inverting it here would turn a successful Start into another Start.
     recording = action === 'START_CAPTURE';
-    show(recording ? 'Transcribing tab audio' : 'Recording is off');
+    show(
+      recording ? `Transcribing ${micConnected ? 'tab and mic' : 'tab audio'}` : 'Recording is off'
+    );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     if (message.includes('Capture is already running')) {
