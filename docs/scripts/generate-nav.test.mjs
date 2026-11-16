@@ -11,6 +11,17 @@ test('navigation follows the section order and uses directory READMEs as landing
       children: [{ label: 'React integration', slug: 'getting-started/react' }],
     },
     {
+      label: 'Build with templates',
+      slug: 'templates',
+      children: [
+        { label: 'Build a Chrome extension', slug: 'templates/chrome-extension' },
+        { label: 'Build an Electron desktop app', slug: 'templates/electron' },
+        { label: 'Build an MCP App card', slug: 'templates/mcp-app' },
+        { label: 'Build an Obsidian plugin', slug: 'templates/obsidian' },
+        { label: 'Build a React web app', slug: 'templates/react-web' },
+      ],
+    },
+    {
       label: 'Concepts',
       slug: 'concepts',
       children: [
@@ -36,7 +47,6 @@ test('navigation follows the section order and uses directory READMEs as landing
             { label: 'Transcript ingestion', slug: 'reference/plugins/transcript-ingestion' },
           ],
         },
-        { label: 'Templates', slug: 'reference/templates', children: [] },
       ],
     },
   ]);

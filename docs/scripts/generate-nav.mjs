@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const pages = join(root, 'pages');
 const output = join(root, 'src', 'nav.json');
-const sectionOrder = ['why-katakit.md', 'getting-started', 'concepts', 'reference'];
+const sectionOrder = ['why-katakit.md', 'getting-started', 'templates', 'concepts', 'reference'];
 
 const titleOf = path => {
   const title = readFileSync(path, 'utf8').match(/^# (.+)$/m)?.[1];
