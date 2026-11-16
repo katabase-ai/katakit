@@ -204,7 +204,7 @@ packages:
     version: 0.0.0
 
   '@katakit/transcription@file:vendor/katakit-transcription-0.0.0.tgz':
-    resolution: {integrity: sha512-DvGUuuhjZadSbhQnufNQ2vDVCp+ZL/GoNs/B2cQT9AiVYiTop8/0xC4lBH0tWKbfDaJtj3sXaquRRH31WMoCXQ==, tarball: file:vendor/katakit-transcription-0.0.0.tgz}
+    resolution: {integrity: sha512-pXfdHdYY7oV6KO8XxvKIoLqHhWzt2CvLloah1NeXn9pXXGi7fmJxiuovwYldWGmLINiMxvnvUDE+4t76yBVe+A==, tarball: file:vendor/katakit-transcription-0.0.0.tgz}
     version: 0.0.0
     peerDependencies:
       vite: ^6.0.0
