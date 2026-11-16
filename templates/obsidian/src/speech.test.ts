@@ -13,7 +13,7 @@ vi.mock('@xenova/transformers', () => ({
 
 afterEach(() => vi.unstubAllGlobals());
 
-it('releases tracks and rejects Stop after an asynchronous recorder error', async () => {
+it('releases tracks and allows retry after an asynchronous recorder error', async () => {
   const stopTrack = vi.fn();
   const status = vi.fn();
   const error = vi.fn();
@@ -41,8 +41,10 @@ it('releases tracks and rejects Stop after an asynchronous recorder error', asyn
   const speech = createShortClipTranscriber({ status, final: vi.fn(), error });
   await speech.start();
   FakeRecorder.last.dispatchEvent(new Event('error'));
-  await expect(speech.stop()).rejects.toThrow('Audio recording failed.');
   expect(error).toHaveBeenCalledOnce();
   expect(stopTrack).toHaveBeenCalledOnce();
+  await expect(speech.start()).resolves.toBeUndefined();
+  expect(FakeRecorder.last.state).toBe('recording');
   await speech.dispose();
+  expect(stopTrack).toHaveBeenCalledTimes(2);
 });

@@ -3,7 +3,7 @@
   "name": "Katakit Text Starter",
   "version": "0.1.0",
   "minAppVersion": "1.5.0",
-  "description": "A text-only, local Katakit transcript example.",
+  "description": "A local microphone transcription starter for Katakit.",
   "author": "Katakit contributors",
   "isDesktopOnly": true
 }

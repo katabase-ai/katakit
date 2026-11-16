@@ -94,6 +94,9 @@ export const createShortClipTranscriber = (callbacks: {
             // The rejected promise already reports the recording error.
           }
           reject(new Error('Audio recording failed.'));
+          // The view handles spontaneous errors without a Stop click. Do not
+          // leave a rejected recording blocking its next Record click.
+          pending = undefined;
         },
         { once: true }
       );
