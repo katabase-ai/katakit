@@ -20,16 +20,18 @@ class MicrophoneCaptureProcessor extends AudioWorkletProcessor {
     };
   }
 
-  emit = () => {
+  emit() {
     if (!this.used) return;
     const samples = this.samples.slice(0, this.used);
     this.port.postMessage({ type: 'audio', samples } satisfies MicrophoneCaptureMessage, [
       samples.buffer,
     ]);
     this.used = 0;
-  };
+  }
 
-  process = (inputs: Float32Array[][]) => {
+  // AudioWorkletGlobalScope validates this method on the processor prototype.
+  // A class-field arrow function is not visible there in Electron 35.
+  process(inputs: Float32Array[][]) {
     const input = inputs[0]?.[0];
     if (input) {
       for (const sample of input) {
@@ -38,7 +40,7 @@ class MicrophoneCaptureProcessor extends AudioWorkletProcessor {
       }
     }
     return true;
-  };
+  }
 }
 
 registerProcessor('transcription-microphone-capture', MicrophoneCaptureProcessor);

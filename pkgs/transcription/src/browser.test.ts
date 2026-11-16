@@ -40,6 +40,17 @@ describe('browser setup', () => {
     expect(() => checkBrowserSupport('whisper-tiny')).not.toThrow();
   });
 
+  it('accepts shared WASM memory in Chrome extensions without COOP/COEP', () => {
+    vi.stubGlobal('Worker', vi.fn());
+    vi.stubGlobal('crossOriginIsolated', false);
+    vi.stubGlobal('location', new URL('chrome-extension://example/offscreen.html'));
+    expect(() => checkBrowserSupport('moonshine-tiny')).not.toThrow();
+    vi.stubGlobal('SharedArrayBuffer', undefined);
+    expect(() => checkBrowserSupport('moonshine-tiny')).toThrowError(
+      /Moonshine requires cross-origin isolation/
+    );
+  });
+
   it('classifies worker construction failures at the shared model boundary', async () => {
     vi.stubGlobal('location', new URL('https://example.test/app/'));
     vi.stubGlobal(

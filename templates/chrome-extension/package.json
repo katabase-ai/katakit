@@ -3,14 +3,22 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc --noEmit && vite build",
-    "tsc": "tsc --noEmit"
+    "build": "tsc --noEmit && vite build && node scripts/make-moonshine-mv3.mjs",
+    "tsc": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@katakit/core": "file:vendor/katakit-core.tgz",
+    "@katakit/transcript-ingestion": "file:vendor/katakit-transcript-ingestion-0.0.0.tgz",
+    "@katakit/transcription": "file:vendor/katakit-transcription-0.0.0.tgz",
+    "rxjs": "^7.8.2"
   },
   "devDependencies": {
     "@types/chrome": "^0.1.37",
     "@types/node": "24.13.3",
     "typescript": "^7.0.2",
-    "vite": "^6.0.0"
+    "vite": "^6.0.0",
+    "vitest": "^3.2.4"
   },
   "engines": {
     "node": ">=24"

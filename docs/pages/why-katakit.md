@@ -16,7 +16,7 @@ That separation matters when you want to try a different source of input, change
 
 ## What’s here today
 
-This is a seed, not a complete smart-whiteboard platform. The repository currently includes the [core runtime](reference/core.md), [plugins](reference/plugins/README.md) for event history, persistence, and transcription turns, React transcription and browser-bingo demos, a conversation-bingo extension demo, and a [work-in-progress Chrome extension starter](reference/templates/README.md). Demos show user-facing capabilities; the starter provides audio capture and permissions but does not yet instantiate Katakit.
+This is a seed, not a complete smart-whiteboard platform. The repository currently includes the [core runtime](reference/core.md), [plugins](reference/plugins/README.md) for event history, persistence, and transcription turns, React transcription and browser-bingo demos, a conversation-bingo extension demo, and [copyable platform starters](starters/README.md). Demos show user-facing capabilities; starters show smaller, platform-specific Katakit interactions. Some starters still need manual verification on their stated platforms.
 
 Start with [Getting started](getting-started/README.md) to run the smallest example, then use the [Reference](reference/README.md) to see what each building block provides. The kit does not yet solve every problem of live collaboration, model choice, or evaluation.
 

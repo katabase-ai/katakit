@@ -1,0 +1,68 @@
+import { lstatSync, readFileSync, readdirSync } from 'node:fs';
+import { join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const templates = fileURLToPath(new URL('../templates/', import.meta.url));
+const dependencyFields = [
+  'dependencies',
+  'devDependencies',
+  'optionalDependencies',
+  'peerDependencies',
+];
+const localOrExternalSource =
+  /^(?:workspace:|file:|link:|portal:|git(?:\+|:)|github:|https?:|ssh:)/i;
+const bundledKatakit = /^file:(?:\.\/)?vendor\/([a-z0-9][a-z0-9._-]*\.tgz)$/i;
+
+export const checkTemplateManifests = (directory = templates) => {
+  const problems = [];
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue;
+    const manifestPath = join(directory, entry.name, 'package.json');
+    for (const required of ['README.md', 'LICENSE']) {
+      try {
+        if (lstatSync(join(directory, entry.name, required)).isFile()) continue;
+      } catch {
+        // A copied directory must carry its own instructions and license.
+      }
+      problems.push(`${entry.name}: missing ${required}`);
+    }
+    let manifest;
+    try {
+      manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+    } catch {
+      problems.push(`${entry.name}: missing or invalid package.json`);
+      continue;
+    }
+    if (!manifest.scripts?.build) problems.push(`${entry.name}: missing build script`);
+    for (const field of dependencyFields) {
+      for (const [name, version] of Object.entries(manifest[field] ?? {})) {
+        const local = typeof version === 'string' && version.match(bundledKatakit);
+        if (local && name.startsWith('@katakit/')) {
+          try {
+            if (lstatSync(join(directory, entry.name, 'vendor', local[1])).isFile()) continue;
+          } catch {
+            // A declared bundle must actually be included in the copied directory.
+          }
+          problems.push(`${entry.name}: ${field}.${name} is missing its bundled tarball`);
+        } else if (
+          typeof version !== 'string' ||
+          !version.trim() ||
+          localOrExternalSource.test(version)
+        ) {
+          problems.push(`${entry.name}: ${field}.${name} must use an installable registry version`);
+        }
+      }
+    }
+  }
+  return problems;
+};
+
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const problems = checkTemplateManifests();
+  if (problems.length) {
+    console.error(problems.join('\n'));
+    process.exitCode = 1;
+  } else {
+    console.log('Template manifests declare standalone build dependencies.');
+  }
+}

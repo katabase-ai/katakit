@@ -1,0 +1,44 @@
+/* Hallmark · shape: app screen · genre: editorial · theme: paper · signature: typed event log · v2.0.0 */
+/* critique: one visible input and one evolving list explain the desktop/Katakit boundary. */
+:root {
+  --paper: #f7f5ef;
+  --sheet: #fffefa;
+  --ink: #282f2b;
+  --muted: #59665c;
+  --rule: #d5dbd3;
+  --accent: #245b43;
+  --accent-hover: #173e2e;
+  --accent-text: #f9f7ef;
+  --focus: #13587f;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-reading: Georgia, 'Times New Roman', serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; overflow-x: clip; }
+body { background: var(--paper); color: var(--ink); font-family: var(--font-body); }
+button, input { font: inherit; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+.shell { min-height: 100vh; display: flex; flex-direction: column; }
+.header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 1.15rem clamp(1.25rem, 5vw, 3rem); border-bottom: 1px solid var(--rule); background: var(--sheet); }
+.brand { font-weight: 700; }
+.platform, .intro, .history #empty, footer { color: var(--muted); }
+.platform { font-size: .86rem; }
+.workspace { width: min(100%, 740px); margin: 0 auto; padding: clamp(2rem, 5vw, 3.5rem) 1.25rem 3rem; flex: 1; }
+h1 { margin: 0; font-family: var(--font-reading); font-size: clamp(1.8rem, 3vw, 2.35rem); line-height: 1.2; font-weight: 400; overflow-wrap: break-word; min-width: 0; text-wrap: balance; }
+.intro { line-height: 1.5; margin: .7rem 0 2.25rem; }
+label { display: block; margin-bottom: .6rem; font-size: .88rem; font-weight: 600; }
+.entry { display: flex; gap: .6rem; }
+.entry input { flex: 1; min-width: 0; padding: .75rem .85rem; border: 1px solid var(--rule); border-radius: 6px; background: var(--sheet); color: var(--ink); }
+.entry button { border: 1px solid var(--accent); border-radius: 6px; padding: .75rem 1rem; background: var(--accent); color: var(--accent-text); white-space: nowrap; cursor: pointer; }
+.entry button:hover { background: var(--accent-hover); }
+.entry button:active { transform: translateY(1px); }
+.entry button:disabled { opacity: .55; cursor: not-allowed; }
+#status { min-height: 1.5rem; margin: .7rem 0 2.2rem; color: var(--muted); font-size: .85rem; font-variant-numeric: tabular-nums; }
+.history { border-top: 1px solid var(--rule); padding-top: 1.3rem; }
+.history h2 { margin: 0 0 1rem; font-size: 1.1rem; overflow-wrap: break-word; min-width: 0; }
+.history #empty { font-size: .9rem; }
+.history ol { margin: 0; padding: 0 0 0 1.5rem; }
+.history li { padding: .7rem 0; line-height: 1.5; border-bottom: 1px solid var(--rule); overflow-wrap: break-word; }
+footer { text-align: center; padding: 1.4rem; font-size: .8rem; border-top: 1px solid var(--rule); }
+@media (max-width: 540px) { .entry { flex-direction: column; } .entry button { align-self: flex-start; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; scroll-behavior: auto !important; } }

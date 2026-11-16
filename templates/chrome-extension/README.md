@@ -1,28 +1,15 @@
-# Chrome extension template
+# Chrome extension transcription starter
 
-Work-in-progress Manifest V3 application starter for audio capture: popup opens the side panel; the background service worker
-gets a tab-capture stream ID on user action; an offscreen document captures tab and
-optional microphone audio. `src/capture.ts` emits 16 kHz mono PCM and restores tab
-playback. No bingo rules, speech model, or server is baked in.
+Manifest V3 starter for Chrome 116+. Capture audio from a regular HTTP(S) tab, optionally mix in microphone audio, and recognize English speech locally with Moonshine Tiny. Finalized segments become Katakit conversation turns in the side panel. This is not a recording archive: audio is processed locally and discarded. Transcript segments are stored only in Chrome's `storage.session` so reopening the panel can show the current browser session's turns.
 
-Use Node.js 24 or newer and pnpm 11.9.0. Copy this directory anywhere, then run these commands
-from the copied directory:
+## Copy, build and load
 
-```sh
-pnpm install
-pnpm build
-```
+Use Node.js 24+ and pnpm 11.9.0. Copy the whole directory, including `vendor/`, outside the repository; inside the copy run `pnpm install`, `pnpm build`, and `pnpm test`. In `chrome://extensions`, enable Developer mode, choose **Load unpacked**, and select the copy's `dist/` directory. Open a regular HTTP(S) tab, then open the extension side panel. To use the mic, click **Enable microphone** once: a visible extension tab requests permission and returns to the original tab after a grant. If access remains blocked, the tab offers a retry and points to Chrome's microphone site settings for this extension. Then click **Start recording** in the side panel. Chrome may also allow a first mic request from the side panel itself; the offscreen document cannot show that prompt. The first run downloads Moonshine Tiny from `download.moonshine.ai`. Speak into the approved mic or play speech through the captured tab; click **Stop recording** to drain pending recognition and finish the last turn. Mic permission is optional: if denied, tab audio can still be transcribed (the status says “Transcribing tab audio” instead of “tab and mic”). **Clear transcript** removes saved segments and displayed turns. Reload the unpacked extension after rebuilding.
 
-The build dependencies are declared in `package.json`; no workspace packages are
-required. Inside the repository, run `pnpm install` and
-`pnpm --filter @katakit/template-chrome-extension build` instead.
-At `chrome://extensions`, enable Developer mode and load this package's `dist/`
-as an unpacked extension. Open a regular HTTP(S) tab before starting capture.
-The microphone permission prompt is optional: rejecting it continues with tab audio.
-Stop capture before reloading the extension. Chrome 116+ is required for an
-offscreen document to use a tab-capture stream ID from the service worker.
+`public/manifest.json` declares tab capture, side panel, offscreen and session storage permissions, model-host access, and WASM execution policy. Do not add manifest COOP/COEP: cross-origin isolation prevents the offscreen document from consuming tab audio in Chrome. The packaged transcription runtime accepts Chrome extension pages with shared WASM memory even without those policies. `public/background.js` starts the offscreen document on user action, obtains the short-lived stream ID immediately before sending it to the offscreen page, and stores finalized segments. `src/capture.ts` owns tab and mic tracks and outputs 16 kHz PCM; `src/offscreen.ts` redeems the stream ID before loading the model, then feeds PCM into `createBrowserTranscriber` and forwards final results. `src/kit.ts` configures Katakit transcript ingestion; `src/sidepanel.ts` forwards recognized segments to its methods and renders turns. `mic-permission.html` is a visible extension tab that requests the mic grant and returns to the originating tab. `vite.config.ts` ships model runtime assets and workers. The build runs `scripts/make-moonshine-mv3.mjs` on the copied runtime: Moonshine's generated embind code uses `new Function`, which Chrome MV3 CSP forbids. The script substitutes equivalent closures and fails if the runtime changes; rebuild and retest it when upgrading Moonshine. No sibling demo is required.
 
-To make another extension, copy this directory and replace `src/offscreen.ts`'s
-`onSamples` callback with a transcriber. Deliver finalized text to a transcript consumer
-from the host; keep browser permissions, model assets, and capture lifecycle here.
-The [bingo demo](../../demos/bingo-extension/README.md) illustrates this split.
+## Safety and verification
+
+Open a restricted tab to check the capture error. Stop before reloading the extension; capture may continue when the panel closes, and reopening it provides a Stop button. Denied microphone permission should not prevent tab-only capture. Model weights download on first use; the application does not upload audio or transcripts. The tests supply a fake finalized segment to Katakit and check the CSP-safe build, but do not supply live audio. In isolated Chrome for Testing 149 the original offscreen runtime failed at `new Function` under MV3 CSP; the patched runtime progressed past model startup with a deliberately invalid test stream ID. In Chrome 157 with real installation, model download completed, then tab capture failed with `Error starting tab capture` while manifest COOP/COEP was enabled and the stream ID was requested before model loading. The user subsequently reported successful transcription of speech from a captured tab and a finalized microphone turn after granting mic access in a visible extension tab; the simplified permission flow also worked in Chrome. **Stop/Start, panel reopening, denied mic after setup, and restricted-tab behavior remain unverified.** Do not infer platform support from a successful copied build. The `vendor/` tarballs bundle unpublished Katakit packages and their licenses; rebuild them together when their source changes. See the [Katakit reference](https://github.com/katabase-ai/katakit/tree/main/docs/pages/reference) for plugin behavior.
+
+Expand **Capture diagnostics** in the side panel when a live test yields no turns. It shows whether the visible mic request was granted, separate peak tab/mic RMS input levels, seconds of PCM captured by the worklet versus sent after the model was ready, and counts of provisional and finalized recognizer output. Speak **after** the recognizer says ready, pause, then Stop to flush: captured seconds without forwarded seconds means the model was still loading; forwarded seconds with nonzero input levels but no provisional updates point downstream of PCM delivery; zero peak levels during audible speech point upstream of the recognizer. These are signal measurements and counts, not audio or transcript text. The last snapshot is retained in `storage.session` for side-panel reopen and resets on a new recording.
