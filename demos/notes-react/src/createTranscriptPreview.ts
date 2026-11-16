@@ -1,5 +1,7 @@
 import type { TranscriptEvent } from '@katakit/transcript-ingestion';
+import { minBy } from 'es-toolkit';
 import type { Observable } from 'rxjs';
+import { match } from 'ts-pattern';
 
 export type TranscriptPreviewWord = {
   id: number;
@@ -23,7 +25,7 @@ export const createTranscriptPreview = ({
   let nextId = 0;
   let timer: ReturnType<typeof setTimeout> | undefined;
 
-  const updateWords = (text: string, draft: boolean) => {
+  const updateWords = ({ text, draft }: { text: string; draft: boolean }) => {
     const words = text.match(/\S+/g) ?? [];
     const now = Date.now();
     // Chunked recognizers deliver several words together. Stagger their fade within 20 seconds.
@@ -47,33 +49,36 @@ export const createTranscriptPreview = ({
       word => word.expiresAt > now
     );
     onWords(visible);
-    timer = visible.length
-      ? setTimeout(publish, Math.min(...visible.map(word => word.expiresAt)) - now)
-      : undefined;
+    const nextExpiry = minBy(visible, word => word.expiresAt);
+    timer = nextExpiry ? setTimeout(publish, nextExpiry.expiresAt - now) : undefined;
   };
 
   const subscription = events$.subscribe(event => {
     if (event.type === 'turn') return;
-    if (event.type === 'reset') {
-      finalized = [];
-      provisional = [];
-      showProvisional = false;
-    } else if (event.type === 'provisional') {
-      showProvisional = !!event.text;
-      // Ingestion clears provisional text immediately before publishing the finalized segment.
-      if (event.text) provisional = updateWords(event.text, true);
-      else {
-        const cleared = provisional;
-        queueMicrotask(() => {
-          // A clear without a following segment discards the draft before the next utterance.
-          if (provisional === cleared && !showProvisional) provisional = [];
-        });
-      }
-    } else {
-      finalized.push(...updateWords(event.segment.text, false));
-      provisional = [];
-      showProvisional = false;
-    }
+    match(event)
+      .with({ type: 'reset' }, () => {
+        finalized = [];
+        provisional = [];
+        showProvisional = false;
+      })
+      .with({ type: 'provisional' }, ({ text }) => {
+        showProvisional = !!text;
+        // Ingestion clears provisional text immediately before publishing the finalized segment.
+        if (text) provisional = updateWords({ text, draft: true });
+        else {
+          const cleared = provisional;
+          queueMicrotask(() => {
+            // A clear without a following segment discards the draft before the next utterance.
+            if (provisional === cleared && !showProvisional) provisional = [];
+          });
+        }
+      })
+      .with({ type: 'segment' }, ({ segment }) => {
+        finalized.push(...updateWords({ text: segment.text, draft: false }));
+        provisional = [];
+        showProvisional = false;
+      })
+      .exhaustive();
     publish();
   });
 

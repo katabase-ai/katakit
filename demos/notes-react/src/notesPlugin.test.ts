@@ -189,6 +189,25 @@ describe('structured notes', () => {
     demo.close();
   });
 
+  it.each(['clear', 'close'] as const)('%s cancels a pending retry delay', async action => {
+    vi.useFakeTimers();
+    const request = vi
+      .fn<NotesConnection['requestNotes']>()
+      .mockRejectedValue(new NotesRequestError('Busy', { retryAfterMs: 5_000, retryLimit: 1 }));
+    const demo = setup(request);
+    demo.turn('A useful idea');
+    await vi.advanceTimersByTimeAsync(0);
+    expect(demo.state.get().status).toBe('waiting');
+
+    demo.methods[action]();
+    expect(request.mock.calls[0]![0].signal.aborted).toBe(true);
+    expect(vi.getTimerCount()).toBe(0);
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(request).toHaveBeenCalledOnce();
+
+    demo.close();
+  });
+
   it.each([
     ['notes_schema', { additions: 'invalid' }],
     [

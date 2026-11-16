@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import Markdown from 'react-markdown';
-import type { createNotesDemo } from './createNotesDemo';
-import { NotesRequestError, type NotesConnection } from './notesModel';
 import { TranscriptPreview } from './TranscriptPreview';
+import { useNotesConnection } from './useNotesConnection';
 import './style.css';
 
 /** Listening starts admission once per visit; failures require an explicit retry. */
@@ -12,65 +11,23 @@ export const NotesDemo = ({
   connect,
   controls,
   renderModelControls = controls => controls,
-}: {
-  runtime: ReturnType<typeof createNotesDemo>;
-  listening: boolean;
-  connect?: (input: { signal: AbortSignal }) => Promise<NotesConnection>;
+}: Parameters<typeof useNotesConnection>[0] & {
   controls?: ReactNode;
   /** A gallery host can place model controls beside its shared microphone controls. */
   renderModelControls?: (controls: ReactNode) => ReactNode;
 }) => {
-  const [transcript, setTranscript] = useState(() => runtime.state$.get());
-  const { notes } = transcript;
-  const [connecting, setConnecting] = useState(false);
-  const [admissionError, setAdmissionError] = useState<NotesRequestError>();
-  const owner = useRef<
-    { lifetime: AbortController; connecting: boolean; attempted: boolean } | undefined
-  >(undefined);
+  const [state, setState] = useState(() => runtime.state$.get());
+  const { notes, markdown } = state;
+  const { connecting, admissionError, connectModel } = useNotesConnection({
+    runtime,
+    listening,
+    connect,
+  });
 
   useEffect(() => {
-    const subscription = runtime.state$.subscribe(setTranscript);
-    const lifetime = new AbortController();
-    owner.current = { lifetime, connecting: false, attempted: false };
-    return () => {
-      owner.current = undefined;
-      lifetime.abort();
-      subscription.unsubscribe();
-      // Capture drains after unmount; those final turns must not start another paid request.
-      runtime.notes.close();
-    };
+    const subscription = runtime.state$.subscribe(setState);
+    return () => subscription.unsubscribe();
   }, [runtime]);
-
-  const connectModel = useCallback(async () => {
-    const current = owner.current;
-    if (!current || current.connecting || !connect) return;
-    current.connecting = true;
-    current.attempted = true;
-    setConnecting(true);
-    setAdmissionError(undefined);
-    try {
-      const connection = await connect({ signal: current.lifetime.signal });
-      if (owner.current === current) {
-        runtime.notes.connect(connection);
-      }
-    } catch (error) {
-      if (owner.current === current)
-        setAdmissionError(
-          error instanceof NotesRequestError
-            ? error
-            : new NotesRequestError('Notes could not connect. Try again.')
-        );
-    } finally {
-      current.connecting = false;
-      if (owner.current === current) setConnecting(false);
-    }
-  }, [connect, runtime]);
-
-  useEffect(() => {
-    // Keep admission and the connection through stop/drain so the last turn can produce notes.
-    // Stop/start and host rerenders must not retry failed admission or replace the allowance.
-    if (listening && !owner.current?.attempted) void connectModel();
-  }, [listening, connectModel]);
 
   const failure = admissionError ?? notes.failure;
   const modelControls = (
@@ -125,7 +82,7 @@ export const NotesDemo = ({
           </p>
         )}
         <div aria-live="polite" aria-relevant="additions text">
-          <Markdown skipHtml>{transcript.markdown}</Markdown>
+          <Markdown skipHtml>{markdown}</Markdown>
         </div>
       </section>
       <TranscriptPreview events$={runtime.transcriptEvents$} />

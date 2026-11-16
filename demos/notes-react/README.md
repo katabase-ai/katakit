@@ -111,7 +111,8 @@ Katakit libraries remain unpublished, build and pack `@katakit/core`, `@katakit/
 `@katakit/transcript-ingestion`, and `@katakit/transcription` from one commit. Install those tarballs in the copied directory, then
 run `pnpm install` and `pnpm build`. Keep their versions compatible. The example's dependencies
 use ordinary versions so published libraries can replace those tarballs when available.
-The manifest also includes `react-markdown` for the outline renderer.
+The manifest includes `react-markdown` for rendering, `ts-pattern` for exhaustive event handling,
+and `es-toolkit` for abortable retry delays and word-expiry selection.
 With pnpm 11, use `pnpm-workspace.yaml` overrides for all four tarballs so transitive Katakit
 dependencies also resolve locally. Allow the `esbuild` install script in that file.
 

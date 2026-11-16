@@ -1,6 +1,7 @@
 import { makeEffect, makeKatakitPlugin, property } from '@katakit/core';
 import type { makeEventLogPlugin } from '@katakit/event-log';
 import type { TranscriptTurn } from '@katakit/transcript-ingestion';
+import { delay } from 'es-toolkit';
 import {
   combineLatest,
   distinctUntilChanged,
@@ -12,20 +13,19 @@ import {
   Subject,
   takeUntil,
 } from 'rxjs';
-import * as v from 'valibot';
+import { match } from 'ts-pattern';
+import { applyNotesResult } from './applyNotesResult';
 import type { NotesEvent } from './notesEvents';
 import {
   createNotesRequest,
   NotesRequestError,
-  NotesResultSchema,
   type Note,
   type NotesConnection,
 } from './notesModel';
 
-type RequestState = {
-  status: 'idle' | 'requesting' | 'waiting' | 'paused';
-  failure?: NotesRequestError;
-};
+type RequestState =
+  | { status: 'idle' | 'requesting'; failure?: never }
+  | { status: 'waiting' | 'paused'; failure: NotesRequestError };
 
 /** The log owns content. Connections, cancellation and retry state belong to this live visit. */
 export const makeNotesPlugin = ({
@@ -41,18 +41,29 @@ export const makeNotesPlugin = ({
       closed: new Subject<void>(),
     }),
     observables: ({ options, getObservables }) => {
-      const initial = { notes: [] as Note[], turns: [] as TranscriptTurn[], cursor: 0 };
+      const initial: { notes: Note[]; turns: TranscriptTurn[]; cursor: number } = {
+        notes: [],
+        turns: [],
+        cursor: 0,
+      };
       const content$ = property(
         getObservables(EventLogPlugin).events$.pipe(
-          scan((content, event) => {
-            if (event.type === 'transcriptTurn')
-              return { ...content, turns: [...content.turns, event.turn] };
-            return {
-              ...content,
-              notes: event.type === 'notesCleared' ? [] : event.notes,
-              cursor: event.cursor,
-            };
-          }, initial),
+          scan(
+            (content, event) =>
+              match(event)
+                .with({ type: 'transcriptTurn' }, ({ turn }) => ({
+                  ...content,
+                  turns: [...content.turns, turn],
+                }))
+                .with({ type: 'notesUpdated' }, ({ notes, cursor }) => ({
+                  ...content,
+                  notes,
+                  cursor,
+                }))
+                .with({ type: 'notesCleared' }, ({ cursor }) => ({ ...content, notes: [], cursor }))
+                .exhaustive(),
+            initial
+          ),
           startWith(initial),
           takeUntil(options.closed),
           shareReplay({ bufferSize: 1, refCount: true })
@@ -140,43 +151,7 @@ export const makeNotesPlugin = ({
                 signal: abort.signal,
               });
               if (closed || abort.signal.aborted) return;
-              const parsed = v.safeParse(NotesResultSchema, response);
-              if (!parsed.success)
-                throw new NotesRequestError('The model returned invalid notes. Try again.', {
-                  code: 'notes_schema',
-                });
-              const { additions, rewords } = parsed.output;
-              // Reject the whole update before recording anything or consuming its turns.
-              if (
-                additions.some(
-                  addition =>
-                    addition.underId !== undefined &&
-                    !content.notes.some(note => note.id === addition.underId)
-                ) ||
-                rewords.some(
-                  change =>
-                    !content.notes.some(
-                      note =>
-                        note.id === change.id || note.children.some(child => child.id === change.id)
-                    )
-                )
-              )
-                throw new NotesRequestError('The model referred to a missing note. Try again.', {
-                  code: 'notes_target',
-                });
-              const reword = (note: { id: string; text: string }) => ({
-                ...note,
-                text: rewords.find(change => change.id === note.id)?.text ?? note.text,
-              });
-              const notes = content.notes.map(note => ({
-                ...reword(note),
-                children: note.children.map(reword),
-              }));
-              for (const addition of additions) {
-                const item = { id: crypto.randomUUID(), text: addition.text };
-                if (addition.underId === undefined) notes.push({ ...item, children: [] });
-                else notes.find(note => note.id === addition.underId)!.children.push(item);
-              }
+              const notes = applyNotesResult({ notes: content.notes, response });
               emitEvent({ type: 'notesUpdated', notes, cursor: request.end });
               retries = 0;
               options.request.next({ status: 'idle' });
@@ -189,20 +164,18 @@ export const makeNotesPlugin = ({
               // Local sizing failures have no transport request to correlate.
               if (requestStarted) activeConnection.reportFailure?.(failure);
               const { retryAfterMs, retryLimit = 0 } = failure.policy;
-              if (retryAfterMs === undefined || retries++ >= retryLimit) {
+              if (retryAfterMs === undefined || retries >= retryLimit) {
                 options.request.next({ status: 'paused', failure });
                 return;
               }
+              retries++;
               options.request.next({ status: 'waiting', failure });
-              await new Promise<void>(resolve => {
-                const finish = () => {
-                  clearTimeout(timer);
-                  abort.signal.removeEventListener('abort', finish);
-                  resolve();
-                };
-                const timer = setTimeout(finish, retryAfterMs);
-                abort.signal.addEventListener('abort', finish, { once: true });
-              });
+              try {
+                await delay(retryAfterMs, { signal: abort.signal });
+              } catch {
+                // The delay rejects when clear or close aborts this visit's request.
+                return;
+              }
             }
           }
         },

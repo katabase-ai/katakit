@@ -1,9 +1,11 @@
 # Structured notes example
 
-`createNotesDemo.ts` owns one visit's runtime. `NotesDemo.tsx` renders it and starts model admission
-once the microphone is listening. `App.tsx` owns standalone capture; the gallery supplies shared input.
+`createNotesDemo.ts` owns one visit's runtime. `NotesDemo.tsx` renders it. `useNotesConnection.ts`
+owns automatic admission, explicit retry, and visit cancellation.
+`App.tsx` owns standalone capture; the gallery supplies shared input.
 `notesEvents.ts` defines finalized turns, accepted outlines, and clears. `notesPlugin.ts` derives
-the outline, processed-turn cursor, and Markdown from that log. `notesModel.ts` owns the public
+the outline, processed-turn cursor, and Markdown from that log. `applyNotesResult.ts` validates a
+whole model result and copies the accepted outline without mutating recorded events. `notesModel.ts` owns the public
 host contract, prompt, schema, and wire sizing.
 `TranscriptPreview.tsx` renders live words with CSS fades. `createTranscriptPreview.ts` owns their
 twenty-second display lifetime. Keep display timing outside the event log; finalization preserves word age.
