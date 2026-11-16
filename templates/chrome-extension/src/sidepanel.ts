@@ -95,14 +95,28 @@ button.onclick = async () => {
   button.disabled = true;
   show(recording ? 'Stopping recording…' : 'Loading speech model…');
   try {
-    const result = await chrome.runtime.sendMessage({
-      type: recording ? 'STOP_CAPTURE' : 'START_CAPTURE',
-    });
+    const action = recording ? 'STOP_CAPTURE' : 'START_CAPTURE';
+    const result = await chrome.runtime.sendMessage({ type: action });
     if (!result?.ok) throw new Error(result?.error || 'Capture failed');
-    recording = !recording;
+    // CAPTURE_STATUS may have set recording before the response arrives.
+    // Inverting it here would turn a successful Start into another Start.
+    recording = action === 'START_CAPTURE';
     show(recording ? 'Transcribing tab audio' : 'Recording is off');
   } catch (error) {
-    show(error instanceof Error ? error.message : String(error));
+    const message = error instanceof Error ? error.message : String(error);
+    if (message.includes('Capture is already running')) {
+      try {
+        const { capture } = await chrome.storage.session.get('capture');
+        const state = capture as { phase?: string; micConnected?: boolean } | undefined;
+        if (state?.phase === 'recording') {
+          receive({ type: 'CAPTURE_STATUS', ...state });
+          return;
+        }
+      } catch {
+        // Still report the original capture failure if session storage fails.
+      }
+    }
+    show(message);
   } finally {
     button.disabled = false;
   }
