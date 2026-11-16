@@ -21,3 +21,6 @@ coverage/
 .wrangler/
 npm-debug.log*
 pnpm-debug.log*
+
+# Local TanStack output
+.tanstack/

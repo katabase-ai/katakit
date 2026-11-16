@@ -131,6 +131,8 @@ export const makeBingoPlugin = ({
       let board: BingoBoard = { squares: [...defaultSquares], overrides: {} };
       const update = () => options.state.next(calculate(board, turns));
       return {
+        /** Complete state subscriptions when an owning application releases this card. */
+        close: () => options.state.complete(),
         /** Replace the current transcript view, including any in-progress finalized turn. */
         setTurns: (next: BingoTurn[]) => {
           if (

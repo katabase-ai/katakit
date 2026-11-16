@@ -1,35 +1,10 @@
-/* Hallmark · shape: app screen · theme: shared site UI · screen: conversation transcript · signature: running turn list · v2.0.0 */
-/* critique: model selection and recording share the site's controls; transcript content stays primary. */
-.shell, .transcription-demo {
+.shell { min-height: 100svh; }
+.transcription-demo {
   --content-width: 780px;
-}
-
-.shell {
-  min-height: 100svh;
-}
-.transcription-audio-level { max-width: 26rem; margin-top: var(--space-md); }
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem max(1.5rem, calc((100% - var(--content-width)) / 2));
-  border-bottom: 1px solid var(--color-rule);
-  gap: 1rem;
-}
-.brand {
-  font-family: var(--font-display);
-  font-weight: 650;
-  letter-spacing: -0.04em;
-}
-.topbar-note {
-  font-size: 0.85rem;
-  color: var(--color-muted);
-}
-.workspace {
   max-width: var(--content-width);
   margin: 0 auto;
   padding: clamp(2rem, 6vw, 4rem) 1.5rem 3rem;
-}
+.transcription-audio-level { max-width: 26rem; margin-top: var(--space-md); }
 .intro h1 {
   margin: 0;
   font-size: var(--text-3xl);
@@ -133,16 +108,13 @@
 .interim p {
   color: var(--color-muted);
 }
-.transcription-demo footer {
+footer {
   margin-top: 2.5rem;
   color: var(--color-muted);
   font-size: 0.85rem;
 }
 
 @media (max-width: 540px) {
-  .topbar-note {
-    display: none;
-  }
   .turn {
     grid-template-columns: 1.8rem minmax(0, 1fr);
   }
@@ -150,4 +122,6 @@
     grid-column: 2;
     padding: 0;
   }
+}
+
 }

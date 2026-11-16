@@ -28,7 +28,7 @@ jobs:
             config: wrangler.docs.jsonc
           - site: Gallery
             package: '@katakit/gallery'
-            config: wrangler.gallery.jsonc
+            config: demos/gallery/dist/server/wrangler.json
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -43,7 +43,7 @@ jobs:
       - name: Check documentation
         if: matrix.site == 'Docs'
         run: pnpm -F @katakit/docs check
-      # Build the same standalone viewers used by local Vite servers, including workspace dependencies.
+      # Build the local viewers and their dependencies; Start emits the gallery Worker configuration.
       - name: Build preview
         run: pnpm --filter '${{ matrix.package }}...' build
       - name: Report fork deployment limitation
