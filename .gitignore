@@ -18,5 +18,6 @@ coverage/
 .hallmark/
 .openchamber/
 .opencode/
+.wrangler/
 npm-debug.log*
 pnpm-debug.log*

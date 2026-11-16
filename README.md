@@ -22,6 +22,11 @@ build. Vite consumers can select it through `resolve.conditions` and, for SSR,
 
 There is no root TypeScript config or workspace source-path alias.
 
+Pull requests build standalone docs and gallery previews. Same-repository PRs
+upload them to Cloudflare Workers and get preview links in PR comments. See
+[preview setup and verification](.github/PREVIEWS.md) for the required account,
+token, and initial Worker deployments.
+
 ## Documentation
 
 Katakit owns authored documentation in `docs/pages/` and API descriptions in
