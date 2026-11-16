@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && vite build && node scripts/make-moonshine-mv3.mjs",
     "tsc": "tsc --noEmit",
     "test": "vitest run"
   },
