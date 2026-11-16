@@ -7,17 +7,20 @@ Fork PRs build both sites but skip uploads and comments because repository
 credentials are unavailable.
 
 These are the standalone sites served by `pnpm -F @katakit/docs dev` and
-`pnpm -F @katakit/gallery dev`, built as static assets. The docs build runs
-Katakit's exporter and includes authored pages and generated API reference from the PR checkout. Neither preview checks out ProtoZoa or builds
-the consuming website. The website's rendering of Katakit
+`pnpm -F @katakit/gallery dev`. Docs are static assets; the gallery is a TanStack
+Start Worker with client assets. The docs build runs Katakit's exporter and includes
+authored pages and generated API reference from the PR checkout. Neither preview
+checks out ProtoZoa or builds the consuming website. The website's rendering of Katakit
 content is reviewed in that website's own previews.
 
 ## Cloudflare setup
 
 This follows protozoa-app's `wrangler versions upload --preview-alias` workflow.
-The two assets-only Workers are `katakit-docs-preview` and
-`katakit-gallery-preview`; their checked-in Wrangler configs enable version
-URLs and the HTML fallback needed for direct links.
+The two preview Workers are `katakit-docs-preview` and
+`katakit-gallery-preview`; their Wrangler configurations enable version
+URLs. Docs use an HTML fallback for direct links; Start handles gallery routes and
+not-found responses. The gallery source configuration is `demos/gallery/wrangler.jsonc`;
+the Vite build generates `demos/gallery/dist/server/wrangler.json` for upload.
 
 Both Workers have been initialized in protozoa-app's Cloudflare account
 (`df336523814581dc72f26c5b15fcfa8f`). Their default deployments are available at
@@ -39,7 +42,7 @@ update their aliases independently of these default deployments.
    pnpm --filter @katakit/docs... build
    pnpm --filter @katakit/gallery... build
    pnpm exec wrangler deploy --config wrangler.docs.jsonc
-   pnpm exec wrangler deploy --config wrangler.gallery.jsonc
+   pnpm exec wrangler deploy --config demos/gallery/dist/server/wrangler.json
    ```
 
    Set `CLOUDFLARE_ACCOUNT_ID` in that shell too. An initial deployment is
@@ -58,9 +61,9 @@ memory, matching the local server's isolation settings. Keep the generated
 ## Verify a preview
 
 - Follow and reload an authored docs page, a generated API page (for example
-  `/api/event-log/functions/makeEventLogPlugin`), and a gallery demo URL directly;
-  all should render through the HTML fallback. On the API page, follow a cross-package
-  type link and confirm its heading anchor exists.
+  `/api/event-log/functions/makeEventLogPlugin`), and a gallery demo URL directly.
+  Docs use the HTML fallback; the gallery uses its Start Worker. On the API page,
+  follow a cross-package type link and confirm its heading anchor exists.
 - On a gallery demo, confirm `crossOriginIsolated` is `true`, runtime JavaScript
   and WASM requests succeed, and microphone transcription works after granting
   permission and downloading a model.
