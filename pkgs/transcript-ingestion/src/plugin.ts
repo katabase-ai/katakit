@@ -1,3 +1,4 @@
+import { KatakitLifecyclePlugin, makeEffect } from '@katakit/core';
 import { makeKatakitPlugin, optionalProperty, property } from '@katakit/core';
 import { Subject, distinctUntilChanged, filter, map, scan, shareReplay, startWith } from 'rxjs';
 
@@ -177,14 +178,14 @@ export const makeTranscriptIngestionPlugin = <TEvent = never>({
           schedule();
         },
         flush,
-        /** Stop the plugin's timer; the host must stop its audio source separately. */
-        close: () => {
-          if (closed) return;
-          flush();
-          closed = true;
-          options.events.complete();
-        },
       };
     },
+    effects: ({ methods, getObservables }) => [
+      makeEffect({
+        on: getObservables(KatakitLifecyclePlugin).flush$,
+        handler: methods.flush,
+        backpressure: 'concurrent',
+      }),
+    ],
   });
 };
