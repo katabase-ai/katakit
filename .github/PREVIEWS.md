@@ -7,9 +7,9 @@ Fork PRs build both sites but skip uploads and comments because repository
 credentials are unavailable.
 
 These are the standalone sites served by `pnpm -F @katakit/docs dev` and
-`pnpm -F @katakit/gallery dev`, built as static assets. Docs include authored
-pages only. Neither preview checks out ProtoZoa, exports the documentation
-bundle, or builds the consuming website. The website's rendering of Katakit
+`pnpm -F @katakit/gallery dev`, built as static assets. The docs build runs
+Katakit's exporter and includes authored pages and generated API reference from the PR checkout. Neither preview checks out ProtoZoa or builds
+the consuming website. The website's rendering of Katakit
 content is reviewed in that website's own previews.
 
 ## Cloudflare setup
@@ -57,8 +57,10 @@ memory, matching the local server's isolation settings. Keep the generated
 
 ## Verify a preview
 
-- Follow and reload a docs page and a gallery demo URL directly; both should
-  render through the HTML fallback.
+- Follow and reload an authored docs page, a generated API page (for example
+  `/api/event-log/functions/makeEventLogPlugin`), and a gallery demo URL directly;
+  all should render through the HTML fallback. On the API page, follow a cross-package
+  type link and confirm its heading anchor exists.
 - On a gallery demo, confirm `crossOriginIsolated` is `true`, runtime JavaScript
   and WASM requests succeed, and microphone transcription works after granting
   permission and downloading a model.

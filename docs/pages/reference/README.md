@@ -3,10 +3,9 @@
 Reference is the catalog of Katakit's concrete building blocks: the core API, plugins, and platform-specific application starters. A plugin describes reusable behavior; a template shows how to build an application with that behavior on a particular platform.
 
 These authored pages explain behavior, lifecycle, configuration, and examples. The
-website also publishes a separate **API reference**, generated from public source
-declarations and JSDoc, for individual symbols, signatures, and types. Both come
-from the same Katakit revision. The local `pnpm -F @katakit/docs dev` viewer displays the
-authored pages only.
+separate **API reference** is generated from public source declarations and JSDoc
+for individual symbols, signatures, and types. The local viewer, PR previews, and
+consuming website include both. Each build uses one Katakit revision for both.
 
 - [Core](core.md): runtime construction, plugin composition, effects, and reactive helpers.
 - [Transcription utilities](transcription.md): standalone recognition, microphone capture, and WASM/worker setup.

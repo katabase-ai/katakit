@@ -34,8 +34,8 @@ public source declarations and JSDoc. `pnpm docs:export` combines both into a
 portable Markdown bundle; the Katabase website consumes it and owns HTML,
 search, styling, and deployment.
 
-`pnpm -F @katakit/docs dev` previews the authored pages locally; it does not include generated
-API reference. See the [contributor instructions](docs/AGENTS.md) for editing and
+`pnpm -F @katakit/docs dev` previews guides and generated API reference locally,
+regenerating the export after source edits. PR previews build the same complete viewer. See the [contributor instructions](docs/AGENTS.md) for editing and
 checks, and the [export contract](docs/EXPORT.md) for commands, package coverage,
 and the distinction between the local viewer and website publication.
 

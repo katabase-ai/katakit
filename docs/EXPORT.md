@@ -10,12 +10,15 @@ See [the contributor instructions](AGENTS.md) for editing and validation.
 
 Run these commands from the repository root after installing workspace dependencies.
 
-| Command                       | Output            | Contents                                                              |
-| ----------------------------- | ----------------- | --------------------------------------------------------------------- |
-| `pnpm -F @katakit/docs dev`   | Local Vite viewer | Authored pages only, without generated API reference                  |
-| `pnpm -F @katakit/docs build` | `docs/dist/`      | Static build of that same viewer                                      |
-| `pnpm docs:export`            | `dist/docs/`      | Portable authored pages, generated API Markdown, assets, and manifest |
-| `pnpm -F @katakit/docs check` | Validation only   | Navigation freshness, authored links, and guide tests                 |
+| Command                       | Output            | Contents                                                                |
+| ----------------------------- | ----------------- | ----------------------------------------------------------------------- |
+| `pnpm -F @katakit/docs dev`   | Local Vite viewer | Authored pages and generated API reference, regenerated on source edits |
+| `pnpm -F @katakit/docs build` | `docs/dist/`      | Static build of that complete viewer, including a fresh export          |
+| `pnpm docs:export`            | `dist/docs/`      | Portable authored pages, generated API Markdown, assets, and manifest   |
+| `pnpm -F @katakit/docs check` | Validation only   | Navigation freshness, authored links, and guide tests                   |
+
+The PR preview workflow builds this complete viewer, without checking out the
+private website. Its styling and SPA routing remain separate from the website.
 
 Run `pnpm -F @katakit/docs-export test:ci` for the exporter tests. The root
 `pnpm check` includes both sets of documentation tests.
@@ -23,7 +26,10 @@ Run `pnpm -F @katakit/docs-export test:ci` for the exporter tests. The root
 To choose another export directory, run
 `pnpm docs:export --output /absolute/path`. Export replaces the destination directory;
 use a directory reserved for generated output. It does not render HTML. The local
-viewer reads `docs/pages/` directly, so exporting does not add API pages to it.
+viewer runs the same exporter into `.tmp/docs-viewer-*/` and consumes its manifest,
+Markdown, and assets. It regenerates after source edits, coalescing changes during
+an export into a subsequent build. Export errors appear in the Vite overlay;
+the last successful content is retained until the next successful export.
 When hosting the viewer build, serve `docs/dist/index.html` for unknown paths to
 support direct page URLs. This SPA fallback belongs to the viewer; the website
 consumer separately generates HTML for individual documentation pages.

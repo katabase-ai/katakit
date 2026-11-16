@@ -114,6 +114,7 @@
 }
 .site-nav a {
   text-decoration: none;
+  overflow-wrap: anywhere;
   border-radius: var(--radius-input);
 }
 .site-nav a:hover {

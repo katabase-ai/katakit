@@ -238,6 +238,9 @@ importers:
         specifier: ^4.0.1
         version: 4.0.1
     devDependencies:
+      '@katakit/docs-export':
+        specifier: workspace:*
+        version: link:../pkgs/docs-export
       '@types/react':
         specifier: ^19.0.0
         version: 19.0.0

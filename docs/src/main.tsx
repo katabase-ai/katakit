@@ -10,38 +10,19 @@ import {
   redirect,
   useLocation,
 } from '@tanstack/react-router';
-import Markdown from 'react-markdown';
+import Markdown, { defaultUrlTransform } from 'react-markdown';
 import rehypeSlug from 'rehype-slug';
 import remarkGfm from 'remark-gfm';
 import { Button } from '@katakit/site-ui';
-import nav from './nav.json';
+import { bundle } from 'virtual:katakit-docs';
+import { pageHref, type NavItem } from './docsBundle';
 import './style.css';
 
-type NavItem = { label: string; slug?: string; children?: NavItem[] };
-const tree: NavItem[] = nav;
-const sources = import.meta.glob('../pages/**/*.md', {
-  query: '?raw',
-  import: 'default',
-  eager: true,
-}) as Record<string, string>;
-const pages = Object.fromEntries(
-  Object.entries(sources).map(([path, text]) => [
-    path
-      .replace('../pages/', '')
-      .replace(/\/README\.md$/, '')
-      .replace(/\.md$/, ''),
-    text,
-  ])
-);
-const landingPages = new Set(
-  Object.keys(sources)
-    .filter(path => path.endsWith('/README.md'))
-    .map(path => path.replace('../pages/', '').replace(/\/README\.md$/, ''))
-);
+const tree = bundle.navigation;
 
 const firstPage = (items: NavItem[]): string => {
   for (const item of items) {
-    if (item.slug) return item.slug;
+    if (item.slug && bundle.pages[item.slug]) return item.slug;
     const first = firstPage(item.children ?? []);
     if (first) return first;
   }
@@ -49,7 +30,7 @@ const firstPage = (items: NavItem[]): string => {
 };
 
 const NavLabel = ({ item }: { item: NavItem }) =>
-  item.slug ? (
+  item.slug && bundle.pages[item.slug] ? (
     <Link
       to="/$"
       params={{ _splat: item.slug }}
@@ -216,21 +197,9 @@ const Layout = () => {
   );
 };
 
-// Convert Markdown's relative .md targets into URLs independent of the renderer.
-const pageHref = (href: string, slug: string) => {
-  if (/^(?:[a-z][a-z\d+.-]*:|\/\/)/i.test(href) || href.startsWith('/')) return href;
-  const sourcePath = landingPages.has(slug) ? `${slug}/README.md` : `${slug}.md`;
-  const url = new URL(href, `https://docs.local/${sourcePath}`);
-  const pathname = url.pathname
-    .replace(/\/README\.md$/, '')
-    .replace(/\.md$/, '')
-    .replace(/\/$/, '');
-  return `${pathname}${url.search}${url.hash}`;
-};
-
 const Page = () => {
   const { _splat: slug = '' } = pageRoute.useParams();
-  const source = pages[slug];
+  const source = bundle.pages[slug]?.markdown;
   if (!source)
     return (
       <article className="prose">
@@ -243,8 +212,8 @@ const Page = () => {
       <Markdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeSlug]}
+        urlTransform={href => defaultUrlTransform(pageHref({ href, slug, bundle }))}
         components={{
-          a: ({ href = '', ...props }) => <a {...props} href={pageHref(href, slug)} />,
           input: props => <input {...props} aria-hidden="true" tabIndex={-1} />,
         }}
       >
