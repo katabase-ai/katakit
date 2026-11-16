@@ -57,6 +57,10 @@ import { App } from './src/App';
 session restart. Stop/start reuses the connection. The host owns authorization and transport errors.
 `NotesRequestError` supplies bounded retry, terminal, and explicit restart policies.
 Quota exhaustion should be terminal and never clearable. Only a context-limit failure is clearable.
+An optional `reportFailure` callback receives `NotesRequestError` after transport or validation
+fails. Hosts can log its policy code with their last request ID. `notes_schema` means the result
+failed validation; `notes_target` means it referred to a nonexistent note. Keep diagnostics free
+of transcript and generated text. A completed request may legitimately add no visible notes.
 
 Use `transcriptionAssetsPlugin({ isolate: true })` from `@katakit/transcription/vite` in Vite hosts.
 Production must serve COOP `same-origin` and COEP `require-corp` on every entry document, plus

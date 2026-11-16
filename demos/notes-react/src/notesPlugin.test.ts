@@ -10,7 +10,10 @@ import {
   type NotesConnection,
 } from './notesModel';
 
-const setup = (requestNotes: NotesConnection['requestNotes']) => {
+const setup = (
+  requestNotes: NotesConnection['requestNotes'],
+  reportFailure?: NotesConnection['reportFailure']
+) => {
   const transcript = makeTranscriptIngestionPlugin();
   const notes = makeNotesPlugin({ TranscriptIngestionPlugin: transcript });
   const kit = makeKatakit({ plugins: [transcript.configure({}), notes.configure({})] }).start();
@@ -21,6 +24,7 @@ const setup = (requestNotes: NotesConnection['requestNotes']) => {
     maxBodyBytes: 16_384,
     maxOutputTokens: 1024,
     requestNotes,
+    reportFailure,
   });
   return {
     methods,
@@ -104,22 +108,30 @@ describe('live notes', () => {
   });
 
   it.each([
-    { additions: 'invalid' },
-    {
-      additions: [{ text: 'Valid note' }, { text: 'Missing parent', underId: 'missing' }],
-      rewords: [],
-    },
-    { additions: [{ text: 'Valid note' }], rewords: [{ id: 'missing', text: 'Missing note' }] },
+    ['notes_schema', { additions: 'invalid' }],
+    [
+      'notes_target',
+      {
+        additions: [{ text: 'Valid note' }, { text: 'Missing parent', underId: 'missing' }],
+        rewords: [],
+      },
+    ],
+    [
+      'notes_target',
+      { additions: [{ text: 'Valid note' }], rewords: [{ id: 'missing', text: 'Missing note' }] },
+    ],
   ])(
     'keeps invalid output pending without repairing it in a paid retry loop: %j',
-    async response => {
+    async (code, response) => {
       const request = vi.fn<NotesConnection['requestNotes']>().mockResolvedValue(response);
-      const demo = setup(request);
+      const reportFailure = vi.fn();
+      const demo = setup(request, reportFailure);
       demo.turn('Keep this pending');
       await expect.poll(() => demo.state.get().status).toBe('paused');
       expect(demo.state.get().pendingTurnCount).toBe(1);
       expect(demo.state.get().notes).toEqual([]);
       expect(request).toHaveBeenCalledOnce();
+      expect(reportFailure).toHaveBeenCalledWith(expect.objectContaining({ policy: { code } }));
       demo.close();
     }
   );
@@ -149,6 +161,24 @@ describe('live notes', () => {
       v.safeParse(NotesResultSchema, { additions: [], rewords: [{ id: 'first', text: ' \n' }] })
         .success
     ).toBe(false);
+  });
+
+  it('does not report a later context-limit failure against the preceding request', async () => {
+    const request = vi.fn<NotesConnection['requestNotes']>().mockResolvedValue({
+      additions: [{ text: 'Keep the successful note' }],
+      rewords: [],
+    });
+    const reportFailure = vi.fn();
+    const demo = setup(request, reportFailure);
+    demo.turn('A useful idea');
+    await expect.poll(() => demo.state.get().notes.length).toBe(1);
+    demo.turn('語'.repeat(6000));
+    await expect.poll(() => demo.state.get().status).toBe('paused');
+    expect(demo.state.get().failure?.message).toContain('context limit');
+    expect(demo.state.get().pendingTurnCount).toBe(1);
+    expect(request).toHaveBeenCalledOnce();
+    expect(reportFailure).not.toHaveBeenCalled();
+    demo.close();
   });
 
   it('fits the complete UTF-8 wire body without dropping pending turns', () => {

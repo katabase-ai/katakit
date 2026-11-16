@@ -100,14 +100,10 @@ export const NotesDemo = ({
             <p className="live-notes-provisional">{transcript.provisional}</p>
           )}
         </section>
-        <section aria-label="Discussion notes" aria-busy={notes.status === 'requesting'}>
+        <section aria-label="Discussion notes">
           <h2>Notes</h2>
           <div role="status" aria-live="polite">
-            {connecting
-              ? 'Connecting notes…'
-              : ['requesting', 'waiting'].includes(notes.status)
-                ? 'Updating notes…'
-                : undefined}
+            {connecting && 'Connecting notes…'}
             {notes.failure && <p>{notes.failure.message}</p>}
             {admissionError && <p>{admissionError.message}</p>}
           </div>

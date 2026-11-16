@@ -34,6 +34,8 @@ export type NotesConnection = {
   maxBodyBytes: number;
   maxOutputTokens: number;
   requestNotes: (input: { body: string; signal: AbortSignal }) => Promise<unknown>;
+  /** Hosts can correlate validation failures with their transport's request ID. */
+  reportFailure?: (failure: NotesRequestError) => void;
 };
 
 /** Only explicit host failures may be retried automatically; other failures require a click. */

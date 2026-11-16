@@ -83,6 +83,7 @@ export const makeNotesPlugin = ({
           controller = abort;
           let retries = 0;
           while (!abort.signal.aborted && cursor < turns.get().length) {
+            let requestStarted = false;
             try {
               update({ status: 'requesting', failure: undefined });
               const request = createNotesRequest({
@@ -91,6 +92,7 @@ export const makeNotesPlugin = ({
                 cursor,
                 connection: activeConnection,
               });
+              requestStarted = true;
               const response = await activeConnection.requestNotes({
                 body: request.body,
                 signal: abort.signal,
@@ -98,7 +100,9 @@ export const makeNotesPlugin = ({
               if (closed || abort.signal.aborted) return;
               const parsed = v.safeParse(NotesResultSchema, response);
               if (!parsed.success)
-                throw new NotesRequestError('The model returned incomplete notes. Try again.');
+                throw new NotesRequestError('The model returned invalid notes. Try again.', {
+                  code: 'notes_schema',
+                });
               const { additions, rewords } = parsed.output;
               // A missing target invalidates the whole update; never consume a turn we could not apply.
               if (
@@ -115,7 +119,9 @@ export const makeNotesPlugin = ({
                     )
                 )
               )
-                throw new NotesRequestError('The model returned incomplete notes. Try again.');
+                throw new NotesRequestError('The model referred to a missing note. Try again.', {
+                  code: 'notes_target',
+                });
               const reword = (note: { id: string; text: string }) => ({
                 ...note,
                 text: rewords.find(change => change.id === note.id)?.text ?? note.text,
@@ -138,6 +144,8 @@ export const makeNotesPlugin = ({
                 error instanceof NotesRequestError
                   ? error
                   : new NotesRequestError('Notes could not be updated. Try again.');
+              // Local sizing failures have no transport request to correlate.
+              if (requestStarted) activeConnection.reportFailure?.(failure);
               const { retryAfterMs, retryLimit = 0 } = failure.policy;
               if (retryAfterMs === undefined || retries++ >= retryLimit) {
                 update({ status: 'paused', failure });
