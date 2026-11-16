@@ -57,7 +57,9 @@ export class NotesRequestError extends Error {
 // These instructions are public example source, independent of any private prompt helpers.
 const systemPrompt = Object.entries({
   role: 'You maintain concise discussion notes as one person talks.',
-  task: 'Capture new substantive information and correct transcription errors in existing notes using later context.',
+  context:
+    'The input contains an existing outline in notes, previously processed conversation in recentTurns, and new conversation in pendingTurns. An empty outline means this is the first note-taking request.',
+  task: 'Create notes for substantive pending turns, including when the existing outline is empty. Capture new substantive information and correct transcription errors in existing notes using later context.',
   rules: `Keep notes as short, concrete phrases. Add only information in pending turns that the outline does not already capture.
 Use recent turns as context, not new material to capture. Place supporting details under an existing top-level note when appropriate.
 Reword only a misheard word, wrong homophone, or name whose intended spelling the supplied conversation settles.
