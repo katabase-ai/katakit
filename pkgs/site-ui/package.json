@@ -6,7 +6,8 @@
   "exports": {
     ".": "./src/index.tsx",
     "./audio-level": "./src/audioLevel.ts",
-    "./styles.css": "./styles.css"
+    "./styles.css": "./styles.css",
+    "./components.css": "./components.css"
   },
   "scripts": {
     "tsc": "tsc --noEmit --project tsconfig.json",
