@@ -1,6 +1,7 @@
 # Conversation bingo extension demo
 
-From the repository root run `pnpm --filter @katakit/demo-bingo-extension build`,
+From the repository root run `pnpm install`, then
+`pnpm --filter @katakit/demo-bingo-extension build`,
 then load `demos/bingo-extension/dist/` at `chrome://extensions` (Developer mode,
 Load unpacked). On a regular HTTP(S) browser meeting tab, open the extension's
 side panel and click **Start listening**. The first use downloads Moonshine Tiny
@@ -9,7 +10,7 @@ Tab audio is played back to the speakers; a microphone permission prompt is
 optional. If denied, bingo continues using tab audio only. Chrome 116+ is needed.
 
 Squares match complete normalized phrases against finalized words in Katakit's
-transcript turns using `@katakit/bingo`. They do not use a semantic classifier. Click a square to
+transcript turns using the local Bingo plugin. They do not use a semantic classifier. Click a square to
 correct a mark. The center is free. Choose from seven built-in word lists or
 select **Shuffle** for another draw. Previously saved custom cards remain
 selectable, but the demo no longer offers a card editor.
@@ -36,3 +37,9 @@ extension selects a model and feeds PCM through `write()`; model loading, recogn
 worker protocols, and batching are owned by the utility. `transcriptionAssetsPlugin` packages
 the runtime files. Capture, permissions, and extension application messages remain owned
 by the extension host. See the [transcription utility guide](../../pkgs/transcription/README.md).
+
+The extension imports its own [local Bingo plugin](src/bingo/README.md) from
+`./bingo`. There is no separate Bingo package to build or install. The browser
+example’s `src/bingo/` is the canonical source; copy changes into this example’s
+`src/bingo/` and run `pnpm bingo:check-copy`. Root lint and CI reject differences
+between the copies.

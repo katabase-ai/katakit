@@ -18,8 +18,7 @@
     "../persistence/src",
     "../transcription/src",
     "../react/src",
-    "../transcript-ingestion/src",
-    "../bingo/src"
+    "../transcript-ingestion/src"
   ],
   "exclude": ["../**/*.test.ts", "../**/*.test.tsx"]
 }

@@ -35,9 +35,6 @@ importers:
 
   demos/bingo-extension:
     dependencies:
-      '@katakit/bingo':
-        specifier: workspace:*
-        version: link:../../pkgs/bingo
       '@katakit/core':
         specifier: workspace:*
         version: link:../../pkgs/core
@@ -87,9 +84,6 @@ importers:
 
   demos/bingo-react:
     dependencies:
-      '@katakit/bingo':
-        specifier: workspace:*
-        version: link:../../pkgs/bingo
       '@katakit/core':
         specifier: workspace:*
         version: link:../../pkgs/core
@@ -259,18 +253,6 @@ importers:
       vite:
         specifier: ^6.0.0
         version: 6.4.6(@types/node@24.13.3)(yaml@2.9.1)
-
-  pkgs/bingo:
-    dependencies:
-      '@katakit/core':
-        specifier: workspace:*
-        version: link:../core
-      '@katakit/transcript-ingestion':
-        specifier: workspace:*
-        version: link:../transcript-ingestion
-      rxjs:
-        specifier: ^7.8.2
-        version: 7.8.2
 
   pkgs/core:
     dependencies:

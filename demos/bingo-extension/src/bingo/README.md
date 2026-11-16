@@ -1,6 +1,10 @@
-# @katakit/bingo
+# Local Bingo plugin
 
-A source-neutral bingo card for conversation turns. Register `makeBingoPlugin().configure({})`
+This module implements the browser and extension examples’ conversation bingo
+card. Each application imports its own `./bingo` source directory. It is not
+published as a standalone package.
+
+Import it from `./bingo` in either application. Register `makeBingoPlugin().configure({})`
 with `makeKatakit`, then use `getMethods(Bingo).setTurns(turns)` to supply the complete
 current turn list (`{ id, text }[]`). Alternatively, pass a `TranscriptIngestionPlugin` to
 `makeBingoPlugin({ TranscriptIngestionPlugin })` when both are registered in one runtime.
@@ -31,7 +35,7 @@ The **world capitals** pack includes one capital or government seat for each of
 the [193 UN member states](https://research.un.org/en/unmembers/currentmembers)
 plus the two [UN observer states](https://research.un.org/en/unmembers/observers),
 the Holy See (represented by Vatican City) and Palestine. Country/capital pairs
-are recorded in `src/worldCapitals.ts`; the names were checked against the
+are recorded in `worldCapitals.ts`; the names were checked against the
 [Barcelona Field Studies Centre's capital-city table](https://geographyfieldwork.com/WorldCapitalCities.htm)
 (updated March 2026). These are curated bingo entries, not a diplomatic reference.
 

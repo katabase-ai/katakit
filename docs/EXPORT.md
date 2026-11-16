@@ -32,7 +32,7 @@ consumer separately generates HTML for individual documentation pages.
 
 Generated API reference covers `@katakit/core`, `@katakit/event-log`,
 `@katakit/persistence`, `@katakit/transcript-ingestion`, `@katakit/transcription`,
-`@katakit/react`, and `@katakit/bingo`. The package list is explicit in
+and `@katakit/react`. The package list is explicit in
 [`exportDocs.mjs`](../pkgs/docs-export/exportDocs.mjs), not discovered from every
 workspace package. Private build tools, site UI, demos, and templates are outside
 generated API coverage; authored pages can still explain them.

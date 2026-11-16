@@ -42,7 +42,8 @@ for adding demos and the hosting requirements for microphone transcription.
 The [Chrome extension template](templates/chrome-extension/README.md) is a minimal
 audio-capable host. The [conversation bingo demo](demos/bingo-extension/README.md)
 shows it in use as a Chrome side-panel game.
-The same `@katakit/bingo` plugin powers the [browser bingo demo](demos/bingo-react/README.md)
+The same [local Bingo plugin](demos/bingo-react/src/bingo/README.md) powers
+the [browser bingo demo](demos/bingo-react/README.md)
 at `/demos/bingo` and the extension demo.
 
 ## License
