@@ -2,13 +2,13 @@
 
 Copy one directory under [`templates/`](https://github.com/katabase-ai/katakit/tree/main/templates), including its `vendor/` tarballs, and install from that copy. Each is a separate pnpm project, not part of the repository workspace. Until Katakit is published, the built package tarballs travel with the copy. The speech-model weights do **not**: client-side starters download a model on first use. Use Node.js 24+ and pnpm 11.9.0 unless a README says otherwise.
 
-The intended path for React, Electron, Chrome extension, and Obsidian is **record audio → recognize speech locally → send finalized text to Katakit transcript ingestion → display conversation turns**. A copied build and a fake-segment test do not prove that the microphone, model, or platform UI works; new integration paths are still awaiting manual checks. A real model download requires internet access, but no paid speech account. The [MCP App](mcp-app.md) is **WIP**: it needs a separate local transcription server and does not yet have an audio path.
+The intended path for React, Electron, Chrome extension, and Obsidian is **record audio → recognize speech locally → send finalized text to Katakit transcript ingestion → display conversation turns**. A copied build and a fake-segment test do not prove that the microphone, model, or platform UI works; React has a Chrome smoke test, while the other new integrations still await manual checks. A real model download requires internet access, but no paid speech account. The [MCP App](mcp-app.md) is **WIP**: it needs a separate local transcription server and does not yet have an audio path.
 
 ## Choose a platform
 
 | Starter                                 | Audio source and recognizer                        | Current evidence                                                |
 | --------------------------------------- | -------------------------------------------------- | --------------------------------------------------------------- |
-| [React web](react-web.md)               | Browser microphone, Moonshine Tiny                 | Copied build/unit test; new mic path needs a browser run        |
+| [React web](react-web.md)               | Browser microphone, Moonshine Tiny                 | Copied build/unit test; mic path checked in Chrome 157          |
 | [Electron](electron.md)                 | Desktop microphone, Moonshine Tiny                 | Copied build/unit test; new Electron mic path needs a run       |
 | [Chrome extension](chrome-extension.md) | Tab and optional mic, Moonshine Tiny               | Copied build/unit test; unpacked recognition needs a Chrome run |
 | [Obsidian](obsidian.md)                 | Short mic clip, Whisper Tiny                       | Copied build/unit test; new plugin needs a test-vault run       |
