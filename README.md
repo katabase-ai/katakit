@@ -22,16 +22,17 @@ build. Vite consumers can select it through `resolve.conditions` and, for SSR,
 
 There is no root TypeScript config or workspace source-path alias.
 
-## Documentation site
+## Documentation
 
-The documentation site lives in `docs/`, with Getting started, Concepts, and
-Reference pages. Run `pnpm -F @katakit/docs dev` to preview it locally or `pnpm -F @katakit/docs build`
-to generate `docs/dist/` for a static host. Pages in `docs/pages/` define the
-navigation hierarchy; each section's `README.md` is its landing page. Run
-`pnpm --filter @katakit/docs exec node scripts/generate-nav.mjs` after adding
-or moving a page, and commit `docs/src/nav.json`. `pnpm -F @katakit/docs check` checks
-generated navigation, local Markdown links, and tests. The static host must
-serve `docs/dist/index.html` for unknown paths to support direct page URLs.
+Katakit owns authored documentation in `docs/pages/` and API descriptions in
+public source declarations and JSDoc. `pnpm docs:export` combines both into a
+portable Markdown bundle; the Katabase website consumes it and owns HTML,
+search, styling, and deployment.
+
+`pnpm -F @katakit/docs dev` previews the authored pages locally; it does not include generated
+API reference. See the [contributor instructions](docs/AGENTS.md) for editing and
+checks, and the [export contract](docs/EXPORT.md) for commands, package coverage,
+and the distinction between the local viewer and website publication.
 
 ## Demo gallery
 

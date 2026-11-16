@@ -37,6 +37,8 @@ jobs:
             script: build
           - name: Documentation
             script: -F @katakit/docs check
+          - name: Documentation export
+            script: -F @katakit/docs-export test:ci && pnpm docs:export
     steps:
       - uses: actions/checkout@v4
       - name: Install pnpm
