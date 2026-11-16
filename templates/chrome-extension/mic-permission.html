@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Katakit microphone access</title>
+  </head>
+  <body>
+    <main>
+      <h1>Microphone access</h1>
+      <p>Allow microphone access for the Katakit extension. Audio stays on this device.</p>
+      <button id="request" type="button">Request microphone access</button>
+      <p id="status" role="status">Click the button to request access.</p>
+      <p>
+        If Chrome says access is blocked, check Chrome Settings → Privacy and security → Site
+        settings → Microphone for this extension. After granting access, return to the tab you want
+        to transcribe and start recording from the side panel.
+      </p>
+    </main>
+    <script type="module" src="/src/mic-permission.ts"></script>
+  </body>
+</html>

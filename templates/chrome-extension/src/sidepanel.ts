@@ -6,6 +6,7 @@ const clear = document.querySelector<HTMLButtonElement>('#clear')!;
 const button = document.querySelector<HTMLButtonElement>('#toggle')!;
 const status = document.querySelector<HTMLElement>('#status')!;
 const micPermission = document.querySelector<HTMLElement>('#mic-permission')!;
+const micSetup = document.querySelector<HTMLButtonElement>('#mic-setup')!;
 const inputLevels = document.querySelector<HTMLElement>('#input-levels')!;
 const pcm = document.querySelector<HTMLElement>('#pcm')!;
 const recognition = document.querySelector<HTMLElement>('#recognition')!;
@@ -28,6 +29,10 @@ type CaptureMessage = {
   ready?: boolean;
 };
 const queued: CaptureMessage[] = [];
+
+micSetup.onclick = () => {
+  void chrome.tabs.create({ url: chrome.runtime.getURL('mic-permission.html') });
+};
 
 const render = () => {
   const turns = session.conversationTurns$.get();

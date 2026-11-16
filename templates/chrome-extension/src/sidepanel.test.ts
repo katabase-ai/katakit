@@ -13,6 +13,8 @@ vi.mock('./kit', () => ({
 
 let receive: (message: object) => void;
 let button: { disabled: boolean; textContent: string; onclick?: () => Promise<void> };
+let micSetup: { onclick?: () => void };
+let createTab: ReturnType<typeof vi.fn>;
 let sendMessage: ReturnType<typeof vi.fn>;
 let savedCapture: object | undefined;
 let requestMic: ReturnType<typeof vi.fn>;
@@ -23,6 +25,8 @@ beforeEach(async () => {
   vi.resetModules();
   savedCapture = undefined;
   button = { disabled: false, textContent: 'Start recording' };
+  micSetup = {};
+  createTab = vi.fn(async () => ({}));
   const clear = { disabled: true };
   const list = { replaceChildren: vi.fn() };
   fields = Object.fromEntries(
@@ -35,7 +39,7 @@ beforeEach(async () => {
     querySelector: (selector: string) =>
       selector in fields
         ? fields[selector]
-        : { '#toggle': button, '#clear': clear, '#turns': list }[selector],
+        : { '#toggle': button, '#mic-setup': micSetup, '#clear': clear, '#turns': list }[selector],
   });
   vi.stubGlobal('window', { addEventListener: vi.fn() });
   releaseMic = vi.fn();
@@ -48,10 +52,12 @@ beforeEach(async () => {
     return { ok: true };
   });
   vi.stubGlobal('chrome', {
+    tabs: { create: createTab },
     storage: {
       session: { get: vi.fn(async () => ({ capture: savedCapture })), set: vi.fn(async () => {}) },
     },
     runtime: {
+      getURL: (path: string) => `chrome-extension://starter/${path}`,
       sendMessage,
       onMessage: { addListener: (listener: typeof receive) => (receive = listener) },
     },
@@ -102,6 +108,10 @@ test('denied microphone still starts tab-only capture', async () => {
   expect(sendMessage.mock.calls[0]?.[0]).toEqual({ type: 'START_CAPTURE' });
   expect(button.textContent).toBe('Stop recording');
   expect(fields['#mic-permission'].textContent).toContain('Error');
+  micSetup.onclick?.();
+  expect(createTab).toHaveBeenCalledWith({
+    url: 'chrome-extension://starter/mic-permission.html',
+  });
 });
 
 test('reports source levels, delivered PCM and recognizer output without transcript text', () => {
