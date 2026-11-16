@@ -1,37 +1,62 @@
-import { emitEvent, events$ } from './kit';
+import { createMicrophoneTranscriber } from '@katakit/transcription/browser';
+import { createTranscriptSession } from './kit';
 import './style.css';
 
-const form = document.querySelector<HTMLFormElement>('#note-form')!;
-const input = document.querySelector<HTMLInputElement>('#note-input')!;
+const session = createTranscriptSession();
+const button = document.querySelector<HTMLButtonElement>('#record')!;
 const status = document.querySelector<HTMLElement>('#status')!;
 const empty = document.querySelector<HTMLElement>('#empty')!;
 const notes = document.querySelector<HTMLOListElement>('#notes')!;
+const preview = document.querySelector<HTMLElement>('#preview')!;
+let running = false;
 
-// The subscription is the UI connection; the method in kit.ts is the input connection.
-const subscription = events$.subscribe(event => {
-  const item = document.createElement('li');
-  item.textContent = event.text;
-  notes.append(item);
-  empty.hidden = true;
-  status.textContent = 'Note added to Katakit.';
+const render = () => {
+  const turns = session.conversationTurns$.get();
+  const current = session.currentTurn$.get();
+  notes.replaceChildren(
+    ...[...turns, ...(current ? [current] : [])].map(turn => {
+      const item = document.createElement('li');
+      item.textContent = turn.text;
+      return item;
+    })
+  );
+  empty.hidden = notes.childElementCount > 0;
+  preview.textContent = session.provisional$.get() ?? '';
+};
+const subscriptions = [
+  session.conversationTurns$.subscribe(render),
+  session.currentTurn$.subscribe(render),
+  session.provisional$.subscribe(render),
+];
+const speech = createMicrophoneTranscriber({
+  model: 'moonshine-tiny',
+  onProvisional: session.onProvisional,
+  onFinal: session.onFinal,
+  onStop: session.onStop,
+  onState: state => {
+    running = state.phase === 'running';
+    button.textContent = running ? 'Stop recording' : 'Record microphone';
+    button.disabled = ['loading', 'starting', 'stopping'].includes(state.phase);
+    status.textContent =
+      state.error?.message ??
+      (state.phase === 'loading'
+        ? `Downloading model${state.progress === undefined ? '…' : ` ${Math.round(state.progress * 100)}%`}`
+        : `Recognition: ${state.phase}`);
+  },
 });
 
-form.addEventListener('submit', event => {
-  event.preventDefault();
-  const text = input.value.trim();
-  if (!text) {
-    status.textContent = 'Enter a note before adding it.';
-    input.focus();
-    return;
-  }
-  try {
-    emitEvent({ type: 'note', text });
-    input.value = '';
-    input.focus();
-  } catch {
-    status.textContent = 'The note could not be added. Check the text and try again.';
-  }
+button.addEventListener('click', () => {
+  void (async () => {
+    try {
+      if (running) await speech.stop();
+      else await speech.start();
+    } catch {
+      // Recognition and permission failures are shown via onState.
+    }
+  })();
 });
-
-// The event log is in memory. Release the observer when the renderer closes.
-window.addEventListener('beforeunload', () => subscription.unsubscribe(), { once: true });
+window.addEventListener('pagehide', () => {
+  for (const subscription of subscriptions) subscription.unsubscribe();
+  void speech.dispose();
+  session.close();
+});

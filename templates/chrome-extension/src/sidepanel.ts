@@ -1,96 +1,108 @@
-import { addText, clearText, closeKit, turns$ } from './kit';
+import { createTranscriptSession } from './kit';
 
-const form = document.querySelector<HTMLFormElement>('#text-form')!;
-const input = document.querySelector<HTMLInputElement>('#text')!;
+const session = createTranscriptSession();
 const list = document.querySelector<HTMLOListElement>('#turns')!;
-const textStatus = document.querySelector<HTMLElement>('#text-status')!;
 const clear = document.querySelector<HTMLButtonElement>('#clear')!;
-
-const subscription = turns$.subscribe(turns => {
-  list.replaceChildren(
-    ...turns.map(turn => {
-      const item = document.createElement('li');
-      item.textContent = turn;
-      return item;
-    })
-  );
-  clear.disabled = turns.length === 0;
-  textStatus.textContent = turns.length
-    ? `${turns.length} text turn(s) in Katakit.`
-    : 'No text yet.';
-});
-
-form.addEventListener('submit', event => {
-  event.preventDefault();
-  if (!input.value.trim()) {
-    textStatus.textContent = 'Enter some text first.';
-    return;
-  }
-  try {
-    addText(input.value);
-    input.value = '';
-    input.focus();
-  } catch (error) {
-    textStatus.textContent = `Could not add text: ${String(error)}`;
-  }
-});
-clear.addEventListener('click', () => {
-  clearText();
-  input.focus();
-});
-window.addEventListener('pagehide', () => {
-  subscription.unsubscribe();
-  closeKit();
-});
-
 const button = document.querySelector<HTMLButtonElement>('#toggle')!;
 const status = document.querySelector<HTMLElement>('#status')!;
 let recording = false;
+let restored = false;
+type CaptureMessage = {
+  type: string;
+  segment?: Parameters<typeof session.onFinal>[0];
+  phase?: string;
+  error?: string;
+  progress?: number;
+  micConnected?: boolean;
+};
+const queued: CaptureMessage[] = [];
+
+const render = () => {
+  const turns = session.conversationTurns$.get();
+  const current = session.currentTurn$.get();
+  list.replaceChildren(
+    ...[...turns, ...(current ? [current] : [])].map(turn => {
+      const item = document.createElement('li');
+      item.textContent = turn.text;
+      return item;
+    })
+  );
+  clear.disabled = turns.length === 0 && !current;
+};
+const completed = session.conversationTurns$.subscribe(render);
+const active = session.currentTurn$.subscribe(render);
+
+clear.onclick = async () => {
+  clear.disabled = true;
+  try {
+    const result = await chrome.runtime.sendMessage({ type: 'CLEAR_TRANSCRIPT' });
+    if (!result?.ok) throw new Error(result?.error || 'Could not clear transcript.');
+    session.clear();
+  } catch (error) {
+    show(error instanceof Error ? error.message : String(error));
+  } finally {
+    render();
+  }
+};
+window.addEventListener('pagehide', () => {
+  completed.unsubscribe();
+  active.unsubscribe();
+  session.close();
+});
+
 const show = (text: string) => {
   status.textContent = text;
-  button.textContent = recording ? 'Stop capture' : 'Start capture';
+  button.textContent = recording ? 'Stop recording' : 'Start recording';
 };
-chrome.runtime.onMessage.addListener(message => {
+const receive = (message: CaptureMessage) => {
+  if (message.type === 'TRANSCRIPT_SEGMENT' && message.segment) session.onFinal(message.segment);
+  if (message.type === 'TRANSCRIPT_STOP') session.onStop();
   if (message.type === 'CAPTURE_STATUS') {
     recording = message.phase === 'recording';
+    button.disabled = message.phase === 'loading' || message.phase === 'stopping';
     show(
       message.phase === 'error'
-        ? message.error || 'Capture failed'
-        : recording
-          ? `Capturing ${message.micConnected ? 'tab and mic' : 'tab only'} (not transcribed)`
-          : 'Capture is off'
+        ? message.error || 'Recognition failed'
+        : message.phase === 'loading'
+          ? `Loading speech model${message.progress === undefined ? '…' : ` ${Math.round(message.progress * 100)}%`}`
+          : recording
+            ? `Transcribing ${message.micConnected ? 'tab and mic' : 'tab audio'}`
+            : 'Recording is off'
     );
   }
+};
+chrome.runtime.onMessage.addListener(message => {
+  if (!restored) queued.push(message);
+  else receive(message);
 });
 void (async () => {
   try {
-    const { capture } = await chrome.storage.session.get('capture');
-    const saved = capture as { phase?: string; micConnected?: boolean } | undefined;
-    if (saved?.phase === 'recording') {
-      recording = true;
-      show(`Capturing ${saved.micConnected ? 'tab and mic' : 'tab only'} (not transcribed)`);
-    }
+    const saved = await chrome.storage.session.get(['capture', 'segments']);
+    const capture = saved.capture as { phase?: string; error?: string } | undefined;
+    const segments = (saved.segments ?? []) as Parameters<typeof session.onFinal>[0][];
+    for (const segment of segments) session.onFinal(segment);
+    session.onStop();
+    if (capture) receive({ type: 'CAPTURE_STATUS', ...capture });
   } catch (error) {
-    show(`Could not read capture status: ${String(error)}`);
+    show(`Could not restore transcript: ${String(error)}`);
+  } finally {
+    restored = true;
+    for (const message of queued) receive(message);
+    queued.length = 0;
   }
 })();
 button.onclick = async () => {
   button.disabled = true;
-  show(recording ? 'Stopping capture…' : 'Starting capture…');
+  show(recording ? 'Stopping recording…' : 'Loading speech model…');
   try {
     const result = await chrome.runtime.sendMessage({
       type: recording ? 'STOP_CAPTURE' : 'START_CAPTURE',
     });
-    if (result?.ok) recording = !recording;
-    show(
-      result?.ok
-        ? recording
-          ? 'Capturing audio (not transcribed)'
-          : 'Capture is off'
-        : result?.error || 'Capture failed'
-    );
+    if (!result?.ok) throw new Error(result?.error || 'Capture failed');
+    recording = !recording;
+    show(recording ? 'Transcribing tab audio' : 'Recording is off');
   } catch (error) {
-    show(`Capture failed: ${String(error)}`);
+    show(error instanceof Error ? error.message : String(error));
   } finally {
     button.disabled = false;
   }

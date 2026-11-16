@@ -12,9 +12,9 @@ export const createTextSession = () => {
   return {
     conversationTurns$,
     currentTurn$,
-    submit(text: string) {
-      if (!text.trim()) throw new Error('Enter text before adding a line.');
-      methods.ingestSegment({ id: String(++nextId), sourceId: 'typed-text', text });
+    acceptRecognized(text: string) {
+      if (!text.trim()) throw new Error('No speech recognized. Try a shorter recording.');
+      methods.ingestSegment({ id: String(++nextId), sourceId: 'microphone', text });
       methods.flush();
     },
     close: () => methods.close(),

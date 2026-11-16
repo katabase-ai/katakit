@@ -1,16 +1,18 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { emitEvent, events$ } from '../src/kit.ts';
+import { createTranscriptSession } from '../src/kit.ts';
 
-test('Katakit validates input and publishes a note', () => {
-  const received = [];
-  const subscription = events$.subscribe(event => received.push(event));
+test('final recognized speech becomes a Katakit turn on stop', () => {
+  const session = createTranscriptSession();
   try {
-    emitEvent({ type: 'note', text: '  Follow up  ' });
-    assert.deepEqual(received, [{ type: 'note', text: 'Follow up' }]);
-    assert.throws(() => emitEvent({ type: 'note', text: '   ' }), /Invalid event/);
-    assert.equal(received.length, 1);
+    session.onProvisional('Follow');
+    session.onFinal({ id: '1', sourceId: 'mic', text: 'Follow up.' });
+    session.onStop();
+    assert.deepEqual(
+      session.conversationTurns$.get().map(turn => turn.text),
+      ['Follow up.']
+    );
   } finally {
-    subscription.unsubscribe();
+    session.close();
   }
 });

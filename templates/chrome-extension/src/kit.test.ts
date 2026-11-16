@@ -1,14 +1,17 @@
-import { afterAll, expect, test } from 'vitest';
-import { addText, clearText, closeKit, turns$ } from './kit';
+import { expect, test } from 'vitest';
+import { createTranscriptSession } from './kit';
 
-afterAll(closeKit);
-
-test('typed text becomes a completed Katakit turn and reset clears it', () => {
-  const snapshots: string[][] = [];
-  const subscription = turns$.subscribe(turns => snapshots.push(turns));
-  addText('  Hello from the extension  ');
-  expect(snapshots.at(-1)).toEqual(['Hello from the extension']);
-  clearText();
-  expect(snapshots.at(-1)).toEqual([]);
-  subscription.unsubscribe();
+test('recognized segments become Katakit turns and reset clears them', () => {
+  const session = createTranscriptSession();
+  try {
+    session.onFinal({ id: '1', sourceId: 'tab', text: 'Hello from the tab.' });
+    session.onStop();
+    expect(session.conversationTurns$.get().map(turn => turn.text)).toEqual([
+      'Hello from the tab.',
+    ]);
+    session.clear();
+    expect(session.conversationTurns$.get()).toEqual([]);
+  } finally {
+    session.close();
+  }
 });

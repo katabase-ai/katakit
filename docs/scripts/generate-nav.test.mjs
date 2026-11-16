@@ -27,7 +27,7 @@ test('navigation follows the section order and uses directory READMEs as landing
       children: [
         { label: 'Build a Chrome extension', slug: 'starters/chrome-extension' },
         { label: 'Build an Electron desktop app', slug: 'starters/electron' },
-        { label: 'Build an MCP App card', slug: 'starters/mcp-app' },
+        { label: 'MCP App card — WIP', slug: 'starters/mcp-app' },
         { label: 'Build an Obsidian plugin', slug: 'starters/obsidian' },
         { label: 'Build a React web app', slug: 'starters/react-web' },
       ],

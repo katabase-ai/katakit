@@ -1,29 +1,19 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { emitText, events$ } from '../src/katakit.ts';
+import { createTranscriptSession } from '../src/katakit.ts';
 
-test('typed text is validated, emitted and replayed by Katakit', () => {
-  assert.deepEqual(events$.getAll(), []);
-
-  const seen = [];
-  const subscription = events$.subscribe(event => seen.push(event));
+test('final recognized speech becomes a Katakit turn; stopping flushes the remainder', () => {
+  const session = createTranscriptSession();
   try {
-    emitText('Hello Katakit');
-    const expected = [{ type: 'text', text: 'Hello Katakit' }];
-    assert.deepEqual(seen, expected);
-    assert.deepEqual(events$.getAll(), expected);
-
-    assert.throws(() => emitText(''), /Invalid event/);
-    assert.deepEqual(events$.getAll(), expected);
-
-    const replayed = [];
-    const lateSubscription = events$.subscribe(event => replayed.push(event));
-    try {
-      assert.deepEqual(replayed, expected);
-    } finally {
-      lateSubscription.unsubscribe();
-    }
+    session.onProvisional('hello');
+    assert.equal(session.provisional$.get(), 'hello');
+    session.onFinal({ id: '1', sourceId: 'mic', text: 'Hello Katakit.' });
+    session.onStop();
+    assert.deepEqual(
+      session.conversationTurns$.get().map(turn => turn.text),
+      ['Hello Katakit.']
+    );
   } finally {
-    subscription.unsubscribe();
+    session.close();
   }
 });

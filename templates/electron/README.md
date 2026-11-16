@@ -1,71 +1,11 @@
-# Electron template
+# Electron microphone transcription starter
 
-This is a minimal desktop application for Electron. It creates a Katakit runtime
-with `@katakit/core` and `@katakit/event-log`: typing a note and pressing **Add
-note** validates the text, emits an event, and displays it in the session list.
-The input starts with a sample note so the interaction works immediately. This
-is a starter, not the notes-and-audio demo: it has no recording, transcription,
-AI service, or saved history.
+Record English speech with Moonshine Tiny in an Electron window. The recognizer produces provisional text while listening; finalized segments become Katakit conversation turns. Nothing is saved or sent to an application server; closing the window clears the transcript. Model weights download from Moonshine on first use. This is a smaller starter than the notes-and-audio prototype: it does not capture system audio, save recordings, or package an installer.
 
-## Run a copied directory
+## Copy and run
 
-Copy **this entire directory**, including `vendor/`, anywhere outside the
-Katakit repository. With Node.js 24 or newer and pnpm 11.9.0, run these commands
-**from the copied directory**:
+Copy this entire directory, including `vendor/`. With Node.js 24+ and pnpm 11.9.0, run `pnpm install`, `pnpm check`, then `pnpm start` **inside the copy**. Click **Record microphone**, allow OS/Electron microphone access, speak, and click **Stop recording**. A separate development server is not needed. The status shows loading, recognition, and permission errors. Reopen the window to check that turns are not persisted. `pnpm check` runs a deterministic finalized-segment test and builds the app; it does not exercise the microphone.
 
-```sh
-pnpm install
-pnpm build
-pnpm start
-```
+`electron/main.cjs` serves built files on a secure `katakit://app` origin with COOP/COEP headers required by Moonshine's WASM workers. It authorizes media permission only for the local app origin and keeps Node integration off and the renderer sandboxed. `vite.config.ts` copies the transcriber's worklet, workers and WASM/SDK assets to `dist/transcription-assets/`. `src/main.ts` connects `createMicrophoneTranscriber` to Katakit methods exposed by `src/kit.ts` and releases the input on page hide. Replace the input and plugin wiring there, not the secure-origin boundary.
 
-The build creates `dist/` from the renderer source; Electron loads that local
-HTML file. Click **Add note** to submit the prefilled sample, then type another
-note and press Enter. To see the validation failure, submit whitespace: the
-app asks for text and keeps focus in the input. Closing the window clears the
-list. No separate development server is required. Inside the Katakit repository,
-run the same commands from `templates/electron/`; templates use their own pnpm
-workspace settings, not the repository root installation.
-
-## Where to adapt it
-
-- `src/kit.ts` configures the event schema, instantiates Katakit, and exposes
-  its input method and observable. Replace the schema and plugin for your own
-  events first. The bundled Katakit packages are version `0.0.0` from source
-  commit `3dea321`; they are not published to npm.
-- `src/main.ts` connects the form to `emitEvent`, subscribes to event history,
-  displays errors, and unsubscribes when the renderer closes. `index.html` and
-  `src/style.css` contain the UI. There is no storage adapter: history exists
-  only in renderer memory.
-- `electron/main.cjs` creates the native window and loads `dist/index.html`.
-  It enables renderer sandboxing and disables Node integration. No preload,
-  IPC, OS permission, microphone, or network request is needed by the app.
-
-The two built Katakit package tarballs in `vendor/` are copied with the template.
-`package.json` declares them through `file:vendor/*.tgz` and
-`pnpm-workspace.yaml` redirects the event-log's transitive `@katakit/core`
-dependency to its bundled tarball. Other dependencies use registry versions.
-To update the tarballs, build **both** `pkgs/core` and `pkgs/event-log` at the
-same source revision in a separate Katakit checkout, run `pnpm pack` in each
-package with `--pack-destination` pointing to this directory's `vendor/`, and
-inspect each tarball's `package.json`, `LICENSE`, `README.md`, and `dist/` before
-committing it. Do not use `workspace:*` in the copied template.
-
-## Checks and platform status
-
-Run `pnpm check` in the copied directory for a deterministic Katakit event test,
-TypeScript check, and Vite build.
-From a Katakit checkout, the coordinator also runs `pnpm templates:check` and
-`pnpm templates:copy-check electron`, which installs and builds a standalone
-copy. These checks do not replace the manual Electron interaction above.
-
-Manually tested on macOS 15.6 with Electron 35.7.5, Node.js 24.14.1, and pnpm
-11.9.0. Other desktop OSes and distributable app packaging/signing are
-unverified; `pnpm start` runs a developer-installed Electron binary, not an
-installer. Installation fetches registry packages and Electron; the app's
-note text stays in memory on the device, is not persisted, and is not sent to
-a server. If installation, building, or loading the window fails, errors appear
-in the terminal; input validation errors appear beside the form.
-
-For public Katakit API behavior, see the
-[Katakit reference](https://github.com/katabase-ai/katakit/tree/main/docs/pages/reference).
+Audio stays on the device, but fetching npm/Electron dependencies and the first model load require network access. `vendor/` contains built, licensed Katakit core, transcript-ingestion, and transcription packages (version `0.0.0`); `pnpm-workspace.yaml` pins all transitive Katakit references to those artifacts. Rebuild all affected tarballs from the same source revision when modifying Katakit. The previous **typed-note** Electron starter was manually checked on macOS 15.6 / Electron 35.7.5; this new microphone path still needs its own Electron smoke test, including permission denial, first model download, Stop/Start, and cleanup. Other OSes, packaging, and signing are unverified. For public APIs, see the [Katakit reference](https://github.com/katabase-ai/katakit/tree/main/docs/pages/reference).

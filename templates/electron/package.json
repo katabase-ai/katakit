@@ -12,8 +12,8 @@
   },
   "dependencies": {
     "@katakit/core": "file:vendor/katakit-core-0.0.0.tgz",
-    "@katakit/event-log": "file:vendor/katakit-event-log-0.0.0.tgz",
-    "valibot": "1.2.0"
+    "@katakit/transcript-ingestion": "file:vendor/katakit-transcript-ingestion-0.0.0.tgz",
+    "@katakit/transcription": "file:vendor/katakit-transcription-0.0.0.tgz"
   },
   "devDependencies": {
     "electron": "35.7.5",

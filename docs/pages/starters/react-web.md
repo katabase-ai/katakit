@@ -1,19 +1,11 @@
 # Build a React web app
 
-The [React web starter](https://github.com/katabase-ai/katakit/tree/main/templates/react-web) is the shortest path from a text form to a Katakit event log. It uses React 19 for the view, Valibot for event validation, and `@katakit/core` with `@katakit/event-log` for state. Adding text emits a validated event and displays the log; it does not generate a reply. The event history lives in browser memory and disappears on reload.
+The [React starter](https://github.com/katabase-ai/katakit/tree/main/templates/react-web) records microphone audio with `createMicrophoneTranscriber` and Moonshine Tiny. Provisional speech appears during recording; finalized segments go through Katakit's transcript-ingestion plugin and become turns. The typed event-log example has been replaced: a validated text form alone is no longer the intended starter.
 
-## Run and observe
+## Run and trace the path
 
-Copy the whole `templates/react-web/` directory, including `vendor/`. Follow its [README](https://github.com/katabase-ai/katakit/blob/main/templates/react-web/README.md) to install, build, test, and start Vite from inside the copy. Open the local URL, enter `Hello Katakit`, and select **Add text**: it appears under Events. Submit only spaces to see the inline error without an event. Reload the page to see the empty log again. No microphone, account, model, or separate backend is involved.
+Copy the entire directory (including `vendor/`) and follow its [README](https://github.com/katabase-ai/katakit/blob/main/templates/react-web/README.md) to install, build, test, and run Vite. Start from the localhost URL, allow microphone access, speak, then stop. First use downloads model weights. `src/main.tsx` maps the recognizer's `onProvisional`, `onFinal`, and `onStop` callbacks to methods in `src/katakit.ts`; the latter configures transcript ingestion and exposes turn observables. The React UI subscribes to those observables and releases the input on unmount. `vite.config.ts` ships the transcription worker, worklet, WASM, and SDK assets.
 
-## Trace the interaction
+Replace the model/input or display in `src/main.tsx` without modifying Katakit's ingestion plugin. Finalized segments have source and segment IDs; Stop flushes remaining text. To persist turns, add explicit storage and retention policy: they currently disappear on reload. No application server receives the audio or transcript. First model download contacts the provider. Production Moonshine needs HTTPS and COOP/COEP headers, not just Vite's local defaults; see [Transcription utilities](../reference/transcription.md).
 
-1. `src/katakit.ts` defines a strict `{ type: 'text', text }` schema, configures the event-log plugin with empty initial events, and starts Katakit. `emitText` calls the plugin method; `events$` exposes the replayable stream. For validation rules and replay behavior, see [Event log](../reference/plugins/event-log.md).
-2. `src/main.tsx` trims the form value, rejects empty text, calls `emitText`, and subscribes to `events$` to update React state. The subscription is released when the component unmounts. The view renders the text as React content, not HTML.
-3. `index.html` mounts the React application; `src/style.css` is local presentation. Vite emits static assets in `dist/` for hosting, with no application server required at runtime.
-
-To adapt it, change the schema and emitted event in `src/katakit.ts` together, then replace the form/output in `src/main.tsx`. For example, add a `category` field to the schema and form before changing event history into something more elaborate. To keep history across reloads, add an explicit storage integration and document its retention; the current template does not save anything. [React integration](../getting-started/react.md) covers the broader framework boundary.
-
-## Limits and verification
-
-The local browser interaction was checked on macOS 15.6, but the browser panel did not expose its engine/version; other browser versions and accessibility behavior are unverified. A copied-directory install/build and a deterministic event-log test pass, but there is no automated UI test. Browser text stays in memory and application code does not send it to a provider; dependency installation still contacts the package registry. Verify deployment and user-data behavior again if you add storage or network calls.
+The copied project builds and its fake-final-segment test passes. **The new microphone path is not yet manually verified in a browser**; the earlier browser check covered only typed text. Check permission denial, model download, speech recognition, Stop/Start, and deployed isolation before treating it as ready.

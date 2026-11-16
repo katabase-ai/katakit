@@ -8,20 +8,13 @@
   <body>
     <main>
       <h1>Katakit Chrome starter</h1>
-      <p>Submit text to a small Katakit plugin. Nothing is sent or saved.</p>
-      <form id="text-form">
-        <label for="text">Text</label>
-        <input id="text" name="text" type="text" autocomplete="off" required />
-        <button type="submit">Add text</button>
-      </form>
-      <p id="text-status" role="status">No text yet.</p>
-      <ol id="turns" aria-label="Text turns"></ol>
-      <button id="clear" type="button" disabled>Clear text</button>
-      <hr />
-      <h2>Optional audio capture</h2>
-      <p>Captures tab audio and optionally mic audio locally. Does not transcribe or add text to Katakit.</p>
-      <p id="status" role="status">Capture is off</p>
-      <button id="toggle" type="button">Start capture</button>
+      <p>Transcribe the active tab and optional microphone locally into Katakit turns.</p>
+      <p>First use downloads Moonshine Tiny. The transcript lasts only for this browser session.</p>
+      <p id="status" role="status">Recording is off</p>
+      <button id="toggle" type="button">Start recording</button>
+      <h2>Conversation turns</h2>
+      <ol id="turns" aria-label="Conversation turns"></ol>
+      <button id="clear" type="button" disabled>Clear transcript</button>
     </main>
     <script type="module" src="/src/sidepanel.ts"></script>
   </body>

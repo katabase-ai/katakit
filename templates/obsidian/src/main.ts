@@ -1,60 +1,74 @@
 import { ItemView, Plugin, WorkspaceLeaf } from 'obsidian';
 import { createTextSession } from './session';
+import { createShortClipTranscriber } from './speech';
 
 const VIEW_TYPE = 'katakit-text-starter-view';
-const SAMPLE = 'A sample transcript line from Obsidian.';
 
-class TextView extends ItemView {
+class TranscriptionView extends ItemView {
   private session?: ReturnType<typeof createTextSession>;
+  private speech?: ReturnType<typeof createShortClipTranscriber>;
   private subscriptions: { unsubscribe(): void }[] = [];
+  private recording = false;
 
   constructor(leaf: WorkspaceLeaf) {
     super(leaf);
   }
-
   getViewType() {
     return VIEW_TYPE;
   }
-
   getDisplayText() {
-    return 'Katakit text starter';
+    return 'Katakit transcription starter';
   }
 
   async onOpen() {
     const session = createTextSession();
     this.session = session;
     this.contentEl.empty();
-    this.contentEl.createEl('h2', { text: 'Katakit · supplied text' });
-    const input = this.contentEl.createEl('textarea', {
-      attr: { 'aria-label': 'Transcript line' },
+    this.contentEl.createEl('h2', { text: 'Local microphone transcript' });
+    this.contentEl.createEl('p', {
+      text: 'Record a short clip; Whisper Tiny downloads on first use. Audio stays on this device.',
     });
-    input.value = SAMPLE;
-    const add = this.contentEl.createEl('button', { text: 'Add line to Katakit' });
+    const record = this.contentEl.createEl('button', { text: 'Record' });
     const status = this.contentEl.createEl('p', { attr: { role: 'status' } });
-    const output = this.contentEl.createDiv();
-    output.createEl('h3', { text: 'Conversation turns' });
-    const list = output.createEl('ul');
-
+    const list = this.contentEl.createEl('ul');
+    this.speech = createShortClipTranscriber({
+      status: text => status.setText(text),
+      final: text => session.acceptRecognized(text),
+      error: text => {
+        this.recording = false;
+        record.setText('Record');
+        status.setText(text);
+      },
+    });
     const render = () => {
       list.empty();
-      for (const turn of session.conversationTurns$.get()) {
-        list.createEl('li', { text: turn.text });
-      }
+      for (const turn of session.conversationTurns$.get()) list.createEl('li', { text: turn.text });
     };
     this.subscriptions.push(session.conversationTurns$.subscribe(render));
-    add.addEventListener('click', () => {
-      try {
-        session.submit(input.value);
-        status.setText('Line added locally. Nothing was saved to the vault.');
-        render();
-      } catch (error) {
-        status.setText(error instanceof Error ? error.message : 'Unable to add line.');
-      }
+    record.addEventListener('click', () => {
+      record.disabled = true;
+      void (async () => {
+        try {
+          if (this.recording) await this.speech?.stop();
+          else await this.speech?.start();
+          this.recording = !this.recording;
+          record.setText(this.recording ? 'Stop' : 'Record');
+        } catch (error) {
+          this.recording = false;
+          record.setText('Record');
+          status.setText(error instanceof Error ? error.message : 'Recognition failed.');
+        } finally {
+          record.disabled = false;
+        }
+      })();
     });
     render();
   }
 
   async onClose() {
+    await this.speech?.dispose();
+    this.speech = undefined;
+    this.recording = false;
     for (const subscription of this.subscriptions) subscription.unsubscribe();
     this.subscriptions = [];
     this.session?.close();
@@ -66,10 +80,10 @@ class TextView extends ItemView {
 // oxlint-disable-next-line import/no-default-export
 export default class KatakitTextStarter extends Plugin {
   async onload() {
-    this.registerView(VIEW_TYPE, leaf => new TextView(leaf));
+    this.registerView(VIEW_TYPE, leaf => new TranscriptionView(leaf));
     this.addCommand({
       id: 'open-text-starter',
-      name: 'Open Katakit text starter',
+      name: 'Open Katakit transcription starter',
       callback: () => {
         void (async () => {
           const leaf = this.app.workspace.getLeaf(true);
@@ -79,7 +93,6 @@ export default class KatakitTextStarter extends Plugin {
       },
     });
   }
-
   onunload() {
     this.app.workspace.detachLeavesOfType(VIEW_TYPE);
   }

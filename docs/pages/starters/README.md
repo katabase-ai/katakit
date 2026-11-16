@@ -1,28 +1,24 @@
 # Starters
 
-Start here when you want to copy a small Katakit application and replace one interaction with your own. Each directory under [`templates/`](https://github.com/katabase-ai/katakit/tree/main/templates) is a separate pnpm project, not part of the root workspace. Copy the **whole** directory, including `vendor/`, then follow its README. You do not need the Katakit repository to install the copy. Use Node.js 24+ and pnpm 11.9.0 unless the template README says otherwise.
+Copy one directory under [`templates/`](https://github.com/katabase-ai/katakit/tree/main/templates), including its `vendor/` tarballs, and install from that copy. Each is a separate pnpm project, not part of the repository workspace. Until Katakit is published, the built package tarballs travel with the copy. The speech-model weights do **not**: client-side starters download a model on first use. Use Node.js 24+ and pnpm 11.9.0 unless a README says otherwise.
 
-These examples do one local operation with supplied or typed text: configure a plugin, start Katakit, call a method, and display an observable result. They do **not** provide AI replies, speech recognition, a backend, or durable storage. This keeps the first run free of a provider account or model download. The platform itself may require an installation step. If you only want to understand the API before starting an app, begin with [Getting started](../getting-started/README.md); for the distinction between plugins, applications, and demos, read [Templates and applications](../concepts/templates.md).
+The intended path for React, Electron, Chrome extension, and Obsidian is **record audio → recognize speech locally → send finalized text to Katakit transcript ingestion → display conversation turns**. A copied build and a fake-segment test do not prove that the microphone, model, or platform UI works; new integration paths are still awaiting manual checks. A real model download requires internet access, but no paid speech account. The [MCP App](mcp-app.md) is **WIP**: it needs a separate local transcription server and does not yet have an audio path.
 
 ## Choose a platform
 
-| Starter                                 | What you can change first                          | Manual platform evidence                                                                   |
-| --------------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| [React web](react-web.md)               | Validated text events in a browser                 | Interaction checked in a browser panel; browser engine/version unknown                     |
-| [Electron](electron.md)                 | A local desktop note event                         | Checked on macOS 15.6 with Electron 35.7.5; other OSes and installers unverified           |
-| [Chrome extension](chrome-extension.md) | A text interaction in a side panel                 | **Provisional:** unpacked extension not yet run in Chrome                                  |
-| [Obsidian](obsidian.md)                 | A supplied-text conversation turn in a plugin view | **Provisional:** not yet run in an Obsidian test vault                                     |
-| [MCP App](mcp-app.md)                   | A Katakit-backed note card                         | **Provisional:** browser preview and MCP stdio tested; real chat-host rendering unverified |
+| Starter                                 | Audio source and recognizer                        | Current evidence                                                |
+| --------------------------------------- | -------------------------------------------------- | --------------------------------------------------------------- |
+| [React web](react-web.md)               | Browser microphone, Moonshine Tiny                 | Copied build/unit test; new mic path needs a browser run        |
+| [Electron](electron.md)                 | Desktop microphone, Moonshine Tiny                 | Copied build/unit test; new Electron mic path needs a run       |
+| [Chrome extension](chrome-extension.md) | Tab and optional mic, Moonshine Tiny               | Copied build/unit test; unpacked recognition needs a Chrome run |
+| [Obsidian](obsidian.md)                 | Short mic clip, Whisper Tiny                       | Copied build/unit test; new plugin needs a test-vault run       |
+| [MCP App — WIP](mcp-app.md)             | No audio path yet; requires local companion server | Typed-text preview only; real chat host unverified              |
 
 ## From copy to your application
 
-1. **Copy and run.** Open the platform guide, then use the exact install, build, and run instructions in that template's README. The root `pnpm install` does not install these separate projects. A copied directory carries its own license, build files, and the Katakit tarballs it needs.
-2. **Find the boundary.** Locate the file that configures Katakit and the file that maps a platform input to its method and observable. The guides below name both, and identify the platform host or entry point. Keep platform APIs out of reusable plugins.
-3. **Replace one thing at a time.** Change the sample text or event schema first, then replace the input source and output view. Decide deliberately whether to add persistence, network calls, microphone access, or another dependency; none is implicit in these starters.
-4. **Verify the actual platform.** Run the template's deterministic test and its documented manual interaction, including an empty-input failure and a reload or close. A copied build verifies packaging, not a Chrome extension, Obsidian view, or chat card. The status above reports what has actually been exercised.
+1. Follow that starter's README for the exact copy, install, build, run, permission, model-download and manual test steps. A root `pnpm install` does not install these independent projects.
+2. Find the recognition callback, Katakit `ingestSegment` method, Stop/`flush`, and turn observable in its platform guide. Some hosts use a browser microphone helper; Chrome supplies PCM from an offscreen document; Obsidian transcribes a completed clip. Do not confuse provisional speech with finalized text.
+3. Change one input, plugin, or display at a time. If adding persistence or a server, document where audio/text goes and who can access it. The client-side starters do not upload recordings to an application service.
+4. Verify the **copied** project on its actual platform: first model load, a final turn, Stop/Start, denied microphone permission, close/reopen, and cleanup. A browser preview cannot stand in for an Obsidian, Chrome, Electron, or chat-host smoke test.
 
-## Why the copied projects contain tarballs
-
-Katakit packages in this repository are version `0.0.0` and are not yet published to npm. Each template therefore includes the built Katakit packages it needs in `vendor/` and points `package.json` and, where needed, `pnpm-workspace.yaml` at those local artifacts. Ordinary libraries still install from the registry. When Katakit is published, replace the file dependencies with released versions. If you update package source before that, rebuild and inspect **all** affected tarballs from the same revision; the copied template README documents its artifacts. Do not treat a passing build against old tarballs as a test of newer workspace source.
-
-The [contributor checklist](https://github.com/katabase-ai/katakit/blob/main/templates/README.md) defines what must ship in a copy and how to review a new template. For API contracts, use the [core and plugin reference](../reference/README.md); these guides explain the application wiring rather than duplicate the API reference.
+For reusable behavior, see the [transcription utility](../reference/transcription.md) and [transcript-ingestion plugin](../reference/plugins/transcript-ingestion.md). [Templates and applications](../concepts/templates.md) distinguishes a starter from a feature demo. The [contributor checklist](https://github.com/katabase-ai/katakit/blob/main/templates/README.md) describes the distribution and review contract.

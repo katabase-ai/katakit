@@ -1,6 +1,6 @@
-# Katakit MCP App template
+# Katakit MCP App starter — WIP
 
-This is a minimal **MCP App card**, not a microphone or speech-recognition app. It uses a template-owned Notes plugin and the vendored `@katakit/core` package to turn the supplied sample text into a visible list entry. You can type another note and press **Add note** to see Katakit state update the card. A local browser preview runs the same interaction without a chat account or an MCP host.
+**Work in progress:** this card does not transcribe audio. A working audio version needs a separately started local companion server to handle recognition and a verified way for the chat host to deliver audio to it. The current Notes plugin and vendored `@katakit/core` package demonstrate only a typed-text state change. The local browser preview does not prove an MCP App works in a real chat host. Do not present this as a completed transcription starter.
 
 ## Try the copied directory
 

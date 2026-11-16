@@ -2,12 +2,15 @@
   "manifest_version": 3,
   "name": "Katakit Chrome starter",
   "version": "0.1.0",
-  "description": "Typed-text Katakit starter with optional local audio capture.",
+  "description": "Transcribe tab and optional microphone audio into Katakit turns.",
   "permissions": ["activeTab", "tabCapture", "offscreen", "sidePanel", "storage"],
+  "host_permissions": ["https://download.moonshine.ai/*"],
+  "cross_origin_opener_policy": { "value": "same-origin" },
+  "cross_origin_embedder_policy": { "value": "require-corp" },
   "action": { "default_popup": "popup.html" },
   "side_panel": { "default_path": "sidepanel.html" },
   "background": { "service_worker": "background.js" },
   "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' https://download.moonshine.ai"
   }
 }

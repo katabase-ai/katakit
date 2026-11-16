@@ -1,19 +1,11 @@
 # Build a Chrome extension
 
-The [Chrome extension starter](https://github.com/katabase-ai/katakit/tree/main/templates/chrome-extension) puts a tiny Katakit text interaction in a Manifest V3 side panel. `@katakit/core` hosts a template-owned plugin: entering text updates a local list of turns. An optional tab/microphone capture experiment is present, but it is separate from the text flow: **it does not transcribe audio or add turns**. You can learn the Katakit wiring without requesting media permissions.
+The [Chrome starter](https://github.com/katabase-ai/katakit/tree/main/templates/chrome-extension) captures tab and optionally microphone audio, runs Moonshine Tiny locally in an MV3 offscreen document, and sends final recognized segments to Katakit transcript ingestion in the side panel. The previous typed-text interaction and discarded-audio placeholder are no longer its intended basic path.
 
-## Run and observe
+## Run and trace the extension boundary
 
-Copy the entire `templates/chrome-extension/` directory and follow its [README](https://github.com/katabase-ai/katakit/blob/main/templates/chrome-extension/README.md) for install, build, test, and **Load unpacked** steps in `chrome://extensions`. Choose the built `dist/` directory, open the side panel, add a text line, and clear it. Submitting an empty field should add nothing. Reloading or closing the panel discards the in-memory turns. These are **manual test instructions, not a claim that the extension was loaded successfully** in this work.
+Copy the whole directory, follow its [README](https://github.com/katabase-ai/katakit/blob/main/templates/chrome-extension/README.md) to install/build/test, and load `dist/` unpacked in Chrome 116+. Use a normal HTTP(S) tab and open the extension side panel; Start loads the model (downloading weights on first use) and captures audio, while Stop drains final results. `public/background.js` coordinates the user gesture and stores short-lived transcript segments in `storage.session`. `src/capture.ts` owns 16 kHz PCM and media tracks; `src/offscreen.ts` feeds it into `createBrowserTranscriber`; `src/kit.ts` ingests recognized text into Katakit turns displayed by `src/sidepanel.ts`.
 
-## Trace the extension boundary
+The manifest declares tab capture, optional mic, model host access and isolation/CSP needed by the SDK. Chrome's session storage retains text across a side-panel reopen but not a browser restart. Audio is discarded after local recognition; weights download from the model provider. To adapt the app, change the input or plugin while keeping stop/drain/cleanup and extension permissions in sync. See [Transcription utilities](../reference/transcription.md) for PCM input and recognition lifecycle.
 
-1. `src/kit.ts` defines a small local plugin using an RxJS subject, assembles Katakit, and exposes `addText`, `clearText`, and `turns$`. Change this plugin if your application needs a different kind of state or method. The text flow does not depend on capture.
-2. `src/sidepanel.ts` subscribes to turns, renders each as DOM text, handles the form and clear button, and closes the plugin when the panel unloads. `sidepanel.html` is its UI; `public/manifest.json` declares the MV3 panel and service worker.
-3. If you opt into media, `public/background.js` handles the capture request and `src/offscreen.ts` manages the offscreen document. `src/capture.ts` samples audio; the samples are discarded. To make audio useful, add an explicit recognizer and feed only the text you choose into Katakit. That changes model downloads, permissions, and data handling and requires a separate end-to-end test.
-
-For a text-only extension, consider removing the optional capture controls and the `activeTab`, `tabCapture`, `offscreen`, and `storage` permissions you no longer use. The current manifest requests those permissions for the optional experiment; the basic typed-text interaction makes no network request and keeps text in panel memory. Capture may continue after the panel closes until explicitly stopped. The README details status storage, microphone permission behavior, and cleanup.
-
-## Limits and verification
-
-**Provisional.** The copied directory installs, builds, and passes a deterministic Katakit text test. Chrome 157.0.8103.51 was available, but the environment prevented loading the unpacked extension, so the UI, permissions, capture, and Chrome 116+ compatibility are not manually verified. Before relying on it, test the README's text flow in an unpacked extension, then test denied capture permission and stop/release separately if you keep the optional audio path. Build success alone cannot verify MV3 behavior.
+The copied directory builds and the fake-segment Katakit test passes. **The new unpacked extension recognition path still needs a real Chrome run**, including tab-only permission denial, first model load, Stop/Start, panel reopening, and restricted-tab failure.

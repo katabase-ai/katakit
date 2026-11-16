@@ -6,6 +6,8 @@ settings:
 
 overrides:
   '@katakit/core': file:vendor/katakit-core-0.0.0.tgz
+  '@katakit/transcript-ingestion': file:vendor/katakit-transcript-ingestion-0.0.0.tgz
+  '@katakit/transcription': file:vendor/katakit-transcription-0.0.0.tgz
 
 importers:
 
@@ -14,12 +16,12 @@ importers:
       '@katakit/core':
         specifier: file:vendor/katakit-core-0.0.0.tgz
         version: file:vendor/katakit-core-0.0.0.tgz
-      '@katakit/event-log':
-        specifier: file:vendor/katakit-event-log-0.0.0.tgz
-        version: file:vendor/katakit-event-log-0.0.0.tgz
-      valibot:
-        specifier: 1.2.0
-        version: 1.2.0(typescript@7.0.2)
+      '@katakit/transcript-ingestion':
+        specifier: file:vendor/katakit-transcript-ingestion-0.0.0.tgz
+        version: file:vendor/katakit-transcript-ingestion-0.0.0.tgz
+      '@katakit/transcription':
+        specifier: file:vendor/katakit-transcription-0.0.0.tgz
+        version: file:vendor/katakit-transcription-0.0.0.tgz(vite@6.4.6(@types/node@22.20.5))
     devDependencies:
       electron:
         specifier: 35.7.5
@@ -197,9 +199,18 @@ packages:
     resolution: {integrity: sha512-yRoT/8QYfWMid9+9DdeleBbp1sU8WcPzXBNbG3nHhfcTDvUGd0PRNEGV/FjHXyVqScnmvEaWw9yoGzaphE56Zw==, tarball: file:vendor/katakit-core-0.0.0.tgz}
     version: 0.0.0
 
-  '@katakit/event-log@file:vendor/katakit-event-log-0.0.0.tgz':
-    resolution: {integrity: sha512-n5EMeJFSsiirPJjV1z7pRNHLJszoAXGN5k8zYIJSd+yslt2UNUQm/PPT3Z2deLm5c+hYdFpeEo68QR9RAaB5+w==, tarball: file:vendor/katakit-event-log-0.0.0.tgz}
+  '@katakit/transcript-ingestion@file:vendor/katakit-transcript-ingestion-0.0.0.tgz':
+    resolution: {integrity: sha512-PIo9s+n7PnTaZI4NILq1C3P2EM38oZ5bDJauc8Ibl1JkJ0kKXr+Um5BYFVG57JE2K9USoMWMYCtYuMjOF8+Fug==, tarball: file:vendor/katakit-transcript-ingestion-0.0.0.tgz}
     version: 0.0.0
+
+  '@katakit/transcription@file:vendor/katakit-transcription-0.0.0.tgz':
+    resolution: {integrity: sha512-DvGUuuhjZadSbhQnufNQ2vDVCp+ZL/GoNs/B2cQT9AiVYiTop8/0xC4lBH0tWKbfDaJtj3sXaquRRH31WMoCXQ==, tarball: file:vendor/katakit-transcription-0.0.0.tgz}
+    version: 0.0.0
+    peerDependencies:
+      vite: ^6.0.0
+    peerDependenciesMeta:
+      vite:
+        optional: true
 
   '@rollup/rollup-android-arm-eabi@4.68.3':
     resolution: {integrity: sha512-mqfypgH/liYjaSCoPI4erckUcROgZtmFUUmyOJ05oyayi/tVqOEYAzWP7ufqCoCT3xB31Fw4XIVO/jX42hYvKA==}
@@ -347,9 +358,6 @@ packages:
   '@sindresorhus/is@4.6.0':
     resolution: {integrity: sha512-t09vSN3MdfsyCHoFcTRCH/iUtG7OJ0CsjzB8cjAmKc/va/kIgeDI/TxsigdncE/4be734m0cvIYwNaV4i2XqAw==}
     engines: {node: '>=10'}
-
-  '@standard-schema/spec@1.1.0':
-    resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
 
   '@szmarczak/http-timer@4.0.6':
     resolution: {integrity: sha512-4BAffykYOgO+5nzBWYwE3W90sBgLJoUPRWWcL8wlyiM8IB8ipJz3UMJ9KXQd1RKQXpKp8Tutn80HZtWsu2u76w==}
@@ -782,14 +790,6 @@ packages:
     resolution: {integrity: sha512-rBJeI5CXAlmy1pV+617WB9J63U6XcazHHF2f2dbJix4XzpUF0RS3Zbj0FGIOCAva5P/d/GBOYaACQ1w+0azUkg==}
     engines: {node: '>= 4.0.0'}
 
-  valibot@1.2.0:
-    resolution: {integrity: sha512-mm1rxUsmOxzrwnX5arGS+U4T25RdvpPjPN4yR0u9pUBov9+zGVtO84tif1eY4r6zWxVxu3KzIyknJy3rxfRZZg==}
-    peerDependencies:
-      typescript: '>=5'
-    peerDependenciesMeta:
-      typescript:
-        optional: true
-
   vite@6.4.6:
     resolution: {integrity: sha512-RtsraAwEG68idOA6iUOoIpOlcSKROnf815aIq9qHTSrDNpLoBrBa12suyfcEd8qn0xwOVQI1Yhm1GbmTjF600A==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
@@ -935,11 +935,14 @@ snapshots:
       rxjs: 7.8.2
       rxjs-for-await: 1.0.0(rxjs@7.8.2)
 
-  '@katakit/event-log@file:vendor/katakit-event-log-0.0.0.tgz':
+  '@katakit/transcript-ingestion@file:vendor/katakit-transcript-ingestion-0.0.0.tgz':
     dependencies:
       '@katakit/core': file:vendor/katakit-core-0.0.0.tgz
-      '@standard-schema/spec': 1.1.0
       rxjs: 7.8.2
+
+  '@katakit/transcription@file:vendor/katakit-transcription-0.0.0.tgz(vite@6.4.6(@types/node@22.20.5))':
+    optionalDependencies:
+      vite: 6.4.6(@types/node@22.20.5)
 
   '@rollup/rollup-android-arm-eabi@4.68.3':
     optional: true
@@ -1020,8 +1023,6 @@ snapshots:
     optional: true
 
   '@sindresorhus/is@4.6.0': {}
-
-  '@standard-schema/spec@1.1.0': {}
 
   '@szmarczak/http-timer@4.0.6':
     dependencies:
@@ -1472,10 +1473,6 @@ snapshots:
   undici-types@6.21.0: {}
 
   universalify@0.1.2: {}
-
-  valibot@1.2.0(typescript@7.0.2):
-    optionalDependencies:
-      typescript: 7.0.2
 
   vite@6.4.6(@types/node@22.20.5):
     dependencies:
