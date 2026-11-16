@@ -53,6 +53,9 @@ and reopen the view to confirm the in-memory transcript is gone. Obsidian
 Desktop runtime smoke testing is **not yet verified**; install/build tests alone
 do not prove the view works on the target platform. Mobile is not supported.
 
+This copied starter includes the repository's Apache-2.0 license in `LICENSE`.
+Each bundled Katakit tarball also includes its own `package/LICENSE`.
+
 The unpublished Katakit packages are bundled as built tarballs under `vendor/`
 from source revision `3dea321`. To refresh after changes to those packages,
 build `pkgs/core` and `pkgs/transcript-ingestion` at the desired revision, then
@@ -64,4 +67,4 @@ README and package metadata; inspect them before distributing. The local
 override resolves transcript ingestion's core dependency to its bundled
 tarball. Once published, replace both with registry versions.
 
-For shared APIs, see the [Katakit reference](https://katakit.dev/reference/).
+For shared APIs, see the [Katakit reference in the source repository](https://github.com/katabase-ai/katakit/blob/3dea321/docs/pages/reference/README.md).
