@@ -1,5 +1,7 @@
 # Keep install settings with this directory when using it as a standalone project.
 allowBuilds:
   esbuild: true
+overrides:
+  '@katakit/core': 'file:vendor/katakit-core.tgz'
 minimumReleaseAgeExclude:
   - '@types/node@24.13.3'

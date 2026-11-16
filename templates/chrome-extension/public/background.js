@@ -1,6 +1,5 @@
 // MV3 lifecycle: a user gesture in the extension starts capture on the active tab.
 let starting = false;
-let transcriptWrites = Promise.resolve();
 let recovering = Promise.resolve();
 
 chrome.runtime.onMessage.addListener((message, sender, respond) => {
@@ -22,19 +21,6 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
         }
       })();
     }
-    return;
-  }
-  if (message.type === 'TRANSCRIPT_SEGMENT') {
-    const previous = transcriptWrites;
-    transcriptWrites = (async () => {
-      try {
-        await previous;
-        const { segments = [] } = await chrome.storage.session.get('segments');
-        await chrome.storage.session.set({ segments: [...segments, message.segment].slice(-2000) });
-      } catch {
-        /* Storage failure must not stop audio capture. */
-      }
-    })();
     return;
   }
   if (message.type === 'START_CAPTURE') {
@@ -60,12 +46,10 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
         await chrome.offscreen.createDocument({
           url: 'offscreen.html',
           reasons: ['USER_MEDIA'],
-          justification: 'Capture meeting tab audio and microphone for local processing.',
+          justification:
+            'Optionally capture tab and microphone audio locally for an extension input source.',
         });
         created = true;
-        await transcriptWrites;
-        await chrome.storage.session.set({ segments: [] });
-        void chrome.runtime.sendMessage({ type: 'CAPTURE_RESET' });
         const result = await chrome.runtime.sendMessage({ type: 'OFFSCREEN_START', streamId });
         if (!result?.ok) throw new Error(result?.error || 'Could not start capture.');
         respond({ ok: true });
@@ -85,7 +69,6 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
       try {
         if (await chrome.offscreen.hasDocument()) {
           await chrome.runtime.sendMessage({ type: 'OFFSCREEN_STOP' });
-          await transcriptWrites;
           await chrome.offscreen.closeDocument();
         }
         respond({ ok: true });
