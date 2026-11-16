@@ -1,10 +1,12 @@
 {
   "name": "@katakit/template-react-web",
   "private": true,
+  "license": "Apache-2.0",
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
+    "test": "node --test",
     "tsc": "tsc --noEmit"
   },
   "dependencies": {
