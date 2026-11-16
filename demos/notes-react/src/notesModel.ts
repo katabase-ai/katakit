@@ -106,7 +106,9 @@ export const createNotesRequest = ({
         json_schema: {
           name: 'notes_update',
           strict: true,
-          schema: toJsonSchema(NotesResultSchema),
+          // GLM's strict decoder treats the whitespace search regex as a single-character grammar.
+          // Keep that check in runtime validation rather than constraining generated note text.
+          schema: toJsonSchema(NotesResultSchema, { ignoreActions: ['regex'] }),
         },
       },
     });

@@ -1,8 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { makeKatakit } from '@katakit/core';
 import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
+import * as v from 'valibot';
 import { makeNotesPlugin } from './notesPlugin';
-import { createNotesRequest, NotesRequestError, type NotesConnection } from './notesModel';
+import {
+  createNotesRequest,
+  NotesRequestError,
+  NotesResultSchema,
+  type NotesConnection,
+} from './notesModel';
 
 const setup = (requestNotes: NotesConnection['requestNotes']) => {
   const transcript = makeTranscriptIngestionPlugin();
@@ -117,6 +123,33 @@ describe('live notes', () => {
       demo.close();
     }
   );
+
+  it('keeps blank-note validation out of the provider grammar', () => {
+    const { body } = createNotesRequest({
+      notes: [],
+      turns: [{ id: 'first', sourceId: 'test', text: 'Meet John on Tuesday.' }],
+      cursor: 0,
+      connection: {
+        model: 'z-ai/glm-5.3',
+        maxBodyBytes: 16_384,
+        maxOutputTokens: 1024,
+        requestNotes: vi.fn(),
+      },
+    });
+    expect(JSON.parse(body).response_format.json_schema.schema).not.toHaveProperty(
+      'properties.additions.items.properties.text.pattern'
+    );
+    expect(JSON.parse(body).response_format.json_schema.schema).not.toHaveProperty(
+      'properties.rewords.items.properties.text.pattern'
+    );
+    expect(
+      v.safeParse(NotesResultSchema, { additions: [{ text: ' \n' }], rewords: [] }).success
+    ).toBe(false);
+    expect(
+      v.safeParse(NotesResultSchema, { additions: [], rewords: [{ id: 'first', text: ' \n' }] })
+        .success
+    ).toBe(false);
+  });
 
   it('fits the complete UTF-8 wire body without dropping pending turns', () => {
     const connection = {
