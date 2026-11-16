@@ -42,8 +42,9 @@ beforeEach(async () => {
   });
   await import('./sidepanel');
   await Promise.resolve();
-  await vi.waitFor(() => expect(button.onclick).toBeDefined());
-  await vi.waitFor(() => expect(button.disabled).toBe(false));
+  await vi.waitFor(() => {
+    if (!button.onclick || button.disabled) throw new Error('Panel is not ready');
+  });
 });
 
 test('a duplicate Start restores the running state so Stop remains available', async () => {
