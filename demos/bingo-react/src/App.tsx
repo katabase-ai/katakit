@@ -1,68 +1,64 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { bind, Subscribe } from '@react-rxjs/core';
+import { combineLatest } from 'rxjs';
+import { useEffect, useRef, useState } from 'react';
 import { makeKatakit } from '@katakit/core';
-import { bingoPacks, drawBingoPack, makeBingoPlugin, type BingoPackId } from '@katakit/bingo';
-import { makeTranscriptionPlugin } from '@katakit/transcription';
-import { AudioLevelMeter, Button, SelectField } from '@katakit/site-ui';
-import {
-  createMoonshineInput,
-  type InputState,
-} from '../../transcription-react/src/createMoonshineInput';
+import { bingoPacks, drawBingoPack, makeBingoPlugin, type BingoPackId } from './bingo';
+import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
+import { AudioLevelMeter } from './AudioLevelMeter';
+import { Button, SelectField } from './controls';
+import { createMicrophoneTranscriber } from '@katakit/transcription/browser';
+import type { TranscriptionState } from '@katakit/transcription';
 import './style.css';
 
-const transcription = makeTranscriptionPlugin();
-const bingo = makeBingoPlugin();
-const kit = makeKatakit({ plugins: [transcription.configure({}), bingo.configure({})] });
+const transcriptIngestion = makeTranscriptIngestionPlugin();
+const bingo = makeBingoPlugin({ TranscriptIngestionPlugin: transcriptIngestion });
+const kit = makeKatakit({ plugins: [transcriptIngestion.configure({}), bingo.configure({})] });
 const running = kit.start();
-const transcriptMethods = running.getMethods(transcription);
+const transcriptMethods = running.getMethods(transcriptIngestion);
 const bingoMethods = running.getMethods(bingo);
-const transcript$ = kit.getObservables(transcription).state$;
+const { lastHeard$ } = kit.getObservables(transcriptIngestion);
 const board$ = kit.getObservables(bingo).state$;
-const subscribeToTranscript = (onChange: () => void) => {
-  const subscription = transcript$.subscribe(onChange);
-  return () => subscription.unsubscribe();
-};
-const getTranscript = () => transcript$.get();
-const subscribeToBoard = (onChange: () => void) => {
-  const subscription = board$.subscribe(onChange);
-  return () => subscription.unsubscribe();
-};
-const getBoard = () => board$.get();
+const [useLastHeard, lastHeardState$] = bind(lastHeard$);
+const [useBoard, boardState$] = bind(board$);
+const view$ = combineLatest([lastHeardState$, boardState$]);
 
-export const BrowserBingoDemo = () => {
-  const transcript = useSyncExternalStore(subscribeToTranscript, getTranscript, getTranscript);
-  const board = useSyncExternalStore(subscribeToBoard, getBoard, getBoard);
-  const [input, setInput] = useState<InputState>({ phase: 'idle' });
+const BrowserBingoView = () => {
+  const lastHeard = useLastHeard();
+  const board = useBoard();
+  const [input, setInput] = useState<TranscriptionState>({ phase: 'idle' });
   const [audioLevel, setAudioLevel] = useState(0);
   const [packId, setPackId] = useState<BingoPackId>('meeting');
-  const source = useRef<ReturnType<typeof createMoonshineInput> | null>(null);
+  const source = useRef<ReturnType<typeof createMicrophoneTranscriber> | null>(null);
 
   useEffect(() => {
-    const subscription = transcript$.subscribe(state =>
-      bingoMethods.setTurns(state.current ? [...state.turns, state.current] : state.turns)
-    );
-    const input = createMoonshineInput({
-      modelId: 'moonshine-tiny',
+    const input = createMicrophoneTranscriber({
+      model: 'moonshine-tiny',
       onState: setInput,
       onLevel: setAudioLevel,
-      onProvisional: transcriptMethods.updateProvisional,
       onFinal: transcriptMethods.ingestSegment,
       onStop: transcriptMethods.flush,
     });
     source.current = input;
     return () => {
       source.current = null;
-      subscription.unsubscribe();
       void input.dispose();
     };
   }, []);
 
-  const recording = input.phase === 'recording';
+  const toggleRecording = async () => {
+    try {
+      await (input.phase === 'running' ? source.current?.stop() : source.current?.start());
+    } catch {
+      /* onState exposes the error in the application UI. */
+    }
+  };
+
+  const recording = input.phase === 'running';
   const busy = ['loading', 'starting', 'stopping'].includes(input.phase);
   const available =
     window.isSecureContext &&
     window.crossOriginIsolated &&
     typeof navigator.mediaDevices?.getUserMedia === 'function';
-  const turns = transcript.current ? [...transcript.turns, transcript.current] : transcript.turns;
   const markedCount = board.marked.filter(Boolean).length - 1;
 
   const choosePack = (next: BingoPackId) => {
@@ -147,7 +143,7 @@ export const BrowserBingoDemo = () => {
             <Button
               variant={recording ? 'border' : 'blue'}
               disabled={busy || !available}
-              onClick={() => void (recording ? source.current?.stop() : source.current?.start())}
+              onClick={() => void toggleRecording()}
             >
               {recording ? 'Stop listening' : busy ? 'Preparing…' : 'Start listening'}
             </Button>
@@ -168,22 +164,24 @@ export const BrowserBingoDemo = () => {
           )}
           {input.error && (
             <p className="bingo-error" role="alert">
-              {input.error}
+              {input.error.message}
             </p>
           )}
           <div className="bingo-transcript">
             <h2>Last heard</h2>
-            <p aria-live="polite">
-              {transcript.provisional ||
-                turns.at(-1)?.text ||
-                'Your conversation will appear here.'}
-            </p>
+            <p aria-live="polite">{lastHeard || 'Your conversation will appear here.'}</p>
           </div>
         </aside>
       </div>
     </section>
   );
 };
+
+export const BrowserBingoDemo = () => (
+  <Subscribe source$={view$}>
+    <BrowserBingoView />
+  </Subscribe>
+);
 
 export const App = () => (
   <main>

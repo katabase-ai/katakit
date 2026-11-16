@@ -1,16 +1,9 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
-import { moonshineAssetsPlugin } from './moonshineAssetsPlugin';
-
-const isolation = {
-  'Cross-Origin-Opener-Policy': 'same-origin',
-  'Cross-Origin-Embedder-Policy': 'require-corp',
-};
+import { transcriptionAssetsPlugin } from '@katakit/transcription/vite';
 
 export default defineConfig({
-  plugins: [react(), moonshineAssetsPlugin()],
+  plugins: [react(), transcriptionAssetsPlugin({ isolate: true })],
   resolve: { conditions: ['source'] },
   ssr: { resolve: { conditions: ['source'] } },
-  server: { headers: isolation },
-  preview: { headers: isolation },
 });

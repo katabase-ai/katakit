@@ -6,7 +6,12 @@
   {
     "label": "Getting started",
     "slug": "getting-started",
-    "children": []
+    "children": [
+      {
+        "label": "React integration",
+        "slug": "getting-started/react"
+      }
+    ]
   },
   {
     "label": "Concepts",
@@ -17,7 +22,7 @@
         "slug": "concepts/event-history"
       },
       {
-        "label": "Persistence",
+        "label": "Event-log persistence",
         "slug": "concepts/persistence"
       },
       {
@@ -29,7 +34,7 @@
         "slug": "concepts/runtime"
       },
       {
-        "label": "Templates and hosts",
+        "label": "Templates and applications",
         "slug": "concepts/templates"
       }
     ]
@@ -43,13 +48,13 @@
         "slug": "reference/core"
       },
       {
+        "label": "Transcription utilities",
+        "slug": "reference/transcription"
+      },
+      {
         "label": "Plugins",
         "slug": "reference/plugins",
         "children": [
-          {
-            "label": "Bingo",
-            "slug": "reference/plugins/bingo"
-          },
           {
             "label": "Event log",
             "slug": "reference/plugins/event-log"
@@ -59,8 +64,8 @@
             "slug": "reference/plugins/persistence"
           },
           {
-            "label": "Transcription",
-            "slug": "reference/plugins/transcription"
+            "label": "Transcript ingestion",
+            "slug": "reference/plugins/transcript-ingestion"
           }
         ]
       },

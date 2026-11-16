@@ -1,27 +1,106 @@
-# Conversation bingo extension demo
+# Conversation bingo extension example
 
-From the repository root run `pnpm --filter @katakit/demo-bingo-extension build`,
-then load `demos/bingo-extension/dist/` at `chrome://extensions` (Developer mode,
-Load unpacked). On a regular HTTP(S) browser meeting tab, open the extension's
-side panel and click **Start listening**. The first use downloads Moonshine Tiny
-Streaming; transcription runs in an extension worker, not on an application server.
-Tab audio is played back to the speakers; a microphone permission prompt is
-optional. If denied, bingo continues using tab audio only. Chrome 116+ is needed.
+## Standalone setup
 
-Squares match complete normalized phrases against finalized words in Katakit's
-transcript turns using `@katakit/bingo`. They do not use a semantic classifier. Click a square to
-correct a mark. The center is free. Choose from seven built-in word lists or
-select **Shuffle** for another draw. Previously saved custom cards remain
-selectable, but the demo no longer offers a card editor.
-You can switch lists or shuffle during capture; the new card rechecks the
-current transcript and clears manual square corrections.
-Rare names and tricky words may require manual correction. Board edits and the
-selected pack are stored in extension local storage, while
-transcript history lasts for the browser session. Stop capture before reloading
-the extension. Model download needs access to download.moonshine.ai. Live words
-are previewed; bingo squares match only finalized words.
+Use Node.js 24 or newer and pnpm 11.9.0. Copy this entire directory anywhere outside the
+repository; no gallery, sibling example, or shared application UI is needed.
+React, React-RxJS, Vite, TypeScript, and the utility dependencies are declared
+in `package.json`.
 
-This demo uses the audio capture implementation from
-`templates/chrome-extension/src/capture.ts`, the template's background and
-worklet assets, and `@katakit/transcription` for turn assembly. Browser audio
-and model setup stay in the host. No account or external bingo API is required.
+The utility dependencies `@katakit/core`, `@katakit/transcript-ingestion`, and
+`@katakit/transcription` are currently version `0.0.0` and are not yet available on the public npm registry. Until they
+are published, create installable tarballs from a checkout of this repository:
+
+```sh
+# In the repository root:
+pnpm install
+pnpm --filter @katakit/core build
+pnpm --filter @katakit/transcript-ingestion build
+pnpm --filter @katakit/transcription build
+mkdir -p /tmp/example-utilities
+pnpm --filter @katakit/core pack --pack-destination /tmp/example-utilities
+pnpm --filter @katakit/transcript-ingestion pack --pack-destination /tmp/example-utilities
+pnpm --filter @katakit/transcription pack --pack-destination /tmp/example-utilities
+```
+
+In the copied example directory, install those artifacts:
+
+```sh
+mkdir -p vendor
+cp /tmp/example-utilities/*.tgz vendor/
+```
+
+Append these overrides to the copied example's `pnpm-workspace.yaml` so both
+its direct and transitive utility dependencies resolve to the local artifacts:
+
+```yaml
+overrides:
+  '@katakit/core': file:vendor/katakit-core-0.0.0.tgz
+  '@katakit/transcript-ingestion': file:vendor/katakit-transcript-ingestion-0.0.0.tgz
+  '@katakit/transcription': file:vendor/katakit-transcription-0.0.0.tgz
+```
+
+Then run `pnpm install` in the copied directory. Keep `vendor/` with the example
+when moving it again; its source and installed dependencies no longer need the
+repository. Once compatible utility versions are published, ordinary
+registry versions can be used instead.
+
+Build from the copied example directory:
+
+```sh
+pnpm build
+```
+
+At `chrome://extensions`, enable Developer mode, choose **Load unpacked**, and
+select the generated `dist/` directory. Chrome 116 or newer is required.
+`pnpm tsc` checks types and `pnpm test` runs the tests.
+Inside the repository, build the utility before building the extension:
+
+```sh
+pnpm install
+pnpm -F @katakit/transcription build
+pnpm -F @katakit/demo-bingo-extension build
+```
+
+## Using the example
+
+On a regular HTTP(S) meeting tab, open the extension's side panel and click
+**Start listening**. The first use downloads Moonshine Tiny Streaming from
+`download.moonshine.ai`; transcription runs in an extension worker. Tab audio is
+played back to the speakers. The microphone permission prompt is optional; if
+denied, bingo continues using tab audio only. Stop capture before reloading the
+extension.
+
+Squares match complete normalized phrases against finalized transcript turns.
+They do not use a semantic classifier. Click a square to correct a mark; the
+center is free. Choose from seven built-in word lists or select **Shuffle** for
+another draw. Previously saved custom cards remain selectable. Switching lists
+or shuffling rechecks the current transcript and clears manual corrections.
+Interim recognition text is not displayed or used for bingo.
+
+Board edits and the selected pack are stored in extension local storage;
+transcript history lasts for the browser session. Rare names and tricky words
+may require manual correction. No account or external bingo API is required.
+
+## Modifying the example
+
+Edit `src/BingoPanel.tsx` for React UI and storage wiring, `src/bingo/` for board
+state, matching rules, and word lists, and `src/AudioLevelMeter.tsx` for the meter.
+Styling lives in `src/style.css`, `src/tokens.css`, and
+`src/audio-level-meter.css`.
+
+Audio capture lives in `src/capture.ts`, `src/offscreen.ts`, and
+`public/pcm-worklet.js`. The capture coordinator is `public/background.js`.
+Audio-level reporting and the extension manifest are included in this directory.
+The transcription utility provides speech workers and the Vite asset plugin. Build and load the extension again
+after editing source files.
+
+## Maintaining the repository copy
+
+`demos/bingo-react/src/bingo/` is the canonical implementation. The extension
+contains an identical local copy so either example remains independently usable.
+When changing Bingo behavior, update the canonical directory and copy it to
+`demos/bingo-extension/src/bingo/`, including its tests and README. Run
+`pnpm bingo:check-copy` from the repository root; the lint check rejects missing,
+extra, or changed files in the extension copy. Standalone users can modify their
+local copy without the repository check.

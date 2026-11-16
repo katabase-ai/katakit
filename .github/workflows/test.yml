@@ -27,6 +27,8 @@ jobs:
             script: format:check
           - name: Lint
             script: lint
+          - name: Workspace licenses
+            script: licenses:check
           - name: Typecheck
             script: tsc
           - name: Unit tests
@@ -34,7 +36,9 @@ jobs:
           - name: Build
             script: build
           - name: Documentation
-            script: docs:check
+            script: -F @katakit/docs check
+          - name: Documentation export
+            script: -F @katakit/docs-export test:ci && pnpm docs:export
     steps:
       - uses: actions/checkout@v4
       - name: Install pnpm

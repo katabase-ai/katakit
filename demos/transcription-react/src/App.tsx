@@ -1,21 +1,24 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { combineLatest } from 'rxjs';
 import { makeKatakit } from '@katakit/core';
-import { makeTranscriptionPlugin } from '@katakit/transcription';
-import { AudioLevelMeter, Button, Notice, SelectField } from '@katakit/site-ui';
-import { createMoonshineInput, type InputState } from './createMoonshineInput';
-import { createWhisperInput } from './createWhisperInput';
+import { bind, Subscribe } from '@react-rxjs/core';
+import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
+import { AudioLevelMeter } from './AudioLevelMeter';
+import { Button, Notice, SelectField } from './controls';
+import { createMicrophoneTranscriber } from '@katakit/transcription/browser';
+import type { TranscriptionState } from '@katakit/transcription';
 import { defaultModel, models, type ModelId } from './models';
 import { createModelSwitcher } from './createModelSwitcher';
 
-const Transcription = makeTranscriptionPlugin({ turnSilenceMs: 1400 });
-const kit = makeKatakit({ plugins: [Transcription.configure({})] });
-const methods = kit.start().getMethods(Transcription);
-const state$ = kit.getObservables(Transcription).state$;
-const subscribeToTranscript = (onChange: () => void) => {
-  const subscription = state$.subscribe(onChange);
-  return () => subscription.unsubscribe();
-};
-const getTranscript = () => state$.get();
+const TranscriptIngestionPlugin = makeTranscriptIngestionPlugin({ turnSilenceMs: 1400 });
+const kit = makeKatakit({ plugins: [TranscriptIngestionPlugin.configure({})] });
+const methods = kit.start().getMethods(TranscriptIngestionPlugin);
+const { conversationTurns$, currentTurn$, provisional$ } =
+  kit.getObservables(TranscriptIngestionPlugin);
+const [useCompletedTurns, completedTurnsState$] = bind(conversationTurns$);
+const [useCurrentTurn, currentTurnState$] = bind(currentTurn$);
+const [useProvisional, provisionalState$] = bind(provisional$);
+const view$ = combineLatest([completedTurnsState$, currentTurnState$, provisionalState$]);
 
 const formatTime = (ms?: number) => {
   if (ms === undefined) return undefined;
@@ -23,9 +26,11 @@ const formatTime = (ms?: number) => {
   return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
 };
 
-export const TranscriptionDemo = () => {
-  const transcript = useSyncExternalStore(subscribeToTranscript, getTranscript, getTranscript);
-  const [input, setInput] = useState<InputState>({ phase: 'idle' });
+const TranscriptionView = () => {
+  const completedTurns = useCompletedTurns();
+  const currentTurn = useCurrentTurn();
+  const provisional = useProvisional();
+  const [input, setInput] = useState<TranscriptionState>({ phase: 'idle' });
   const [audioLevel, setAudioLevel] = useState(0);
   const [modelId, setModelId] = useState<ModelId>(defaultModel);
   const [switching, setSwitching] = useState(false);
@@ -39,13 +44,11 @@ export const TranscriptionDemo = () => {
       onFinal: methods.ingestSegment,
       onStop: methods.flush,
     };
-    return id === 'whisper-tiny'
-      ? createWhisperInput(callbacks)
-      : createMoonshineInput({
-          ...callbacks,
-          modelId: id,
-          onProvisional: methods.updateProvisional,
-        });
+    return createMicrophoneTranscriber({
+      ...callbacks,
+      model: id,
+      onProvisional: methods.updateProvisional,
+    });
   };
 
   useEffect(() => {
@@ -74,13 +77,21 @@ export const TranscriptionDemo = () => {
     }
   };
 
-  const recording = input.phase === 'recording';
+  const toggleRecording = async () => {
+    try {
+      await (input.phase === 'running' ? owner.current?.stop() : owner.current?.start());
+    } catch {
+      /* onState exposes an actionable error in the UI. */
+    }
+  };
+
+  const recording = input.phase === 'running';
   const busy = switching || ['loading', 'starting', 'stopping'].includes(input.phase);
   const available =
     window.isSecureContext &&
     window.crossOriginIsolated &&
     typeof navigator.mediaDevices?.getUserMedia === 'function';
-  const turns = transcript.current ? [...transcript.turns, transcript.current] : transcript.turns;
+  const turns = currentTurn ? [...completedTurns, currentTurn] : completedTurns;
 
   return (
     <section className="workspace transcription-demo" aria-labelledby="title">
@@ -114,7 +125,7 @@ export const TranscriptionDemo = () => {
           disabled={busy || !available}
           onClick={() => {
             if (switchingRef.current) return;
-            void (recording ? owner.current?.stop() : owner.current?.start());
+            void toggleRecording();
           }}
         >
           <span className="record-icon" aria-hidden="true" />
@@ -129,7 +140,7 @@ export const TranscriptionDemo = () => {
         <span className="phase" role="status" aria-live="polite">
           {input.phase === 'loading'
             ? `Loading on-device model${input.progress === undefined ? '' : ` · ${Math.round(input.progress * 100)}%`}`
-            : input.phase === 'recording'
+            : input.phase === 'running'
               ? 'Listening locally'
               : input.phase === 'error'
                 ? 'Recording unavailable'
@@ -149,17 +160,17 @@ export const TranscriptionDemo = () => {
       )}
       {input.error && (
         <Notice tone="error">
-          {input.error} Try starting again or check microphone permission.
+          {input.error.message} Try starting again or check microphone permission.
         </Notice>
       )}
 
       <section className="transcript" aria-labelledby="transcript-heading">
         <div className="transcript-heading">
           <h2 id="transcript-heading">Transcript</h2>
-          <span>{transcript.turns.length} completed turns</span>
+          <span>{completedTurns.length} completed turns</span>
         </div>
 
-        {!turns.length && !transcript.provisional ? (
+        {!turns.length && !provisional ? (
           <div className="empty-state">
             <p>Your conversation will appear here.</p>
             <span>Speak naturally; short transcript fragments will be grouped into turns.</span>
@@ -171,15 +182,15 @@ export const TranscriptionDemo = () => {
                 <span className="turn-index">{String(index + 1).padStart(2, '0')}</span>
                 <div>
                   <p>{turn.text}</p>
-                  {turn === transcript.current && <span className="working">Turn in progress</span>}
+                  {turn === currentTurn && <span className="working">Turn in progress</span>}
                 </div>
                 <time>{formatTime(turn.startMs)}</time>
               </article>
             ))}
-            {transcript.provisional && (
+            {provisional && (
               <div className="turn interim">
                 <span className="turn-index">··</span>
-                <p>{transcript.provisional}</p>
+                <p>{provisional}</p>
                 <span className="working">Listening</span>
               </div>
             )}
@@ -192,6 +203,12 @@ export const TranscriptionDemo = () => {
     </section>
   );
 };
+
+export const TranscriptionDemo = () => (
+  <Subscribe source$={view$}>
+    <TranscriptionView />
+  </Subscribe>
+);
 
 export const App = () => (
   <main className="shell">

@@ -3,11 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node scripts/generate-reference.mjs && node scripts/generate-nav.mjs && vite",
-    "build": "node scripts/generate-reference.mjs && node scripts/generate-nav.mjs --check && tsc --noEmit && vite build",
+    "dev": "node scripts/generate-nav.mjs && vite",
+    "build": "node scripts/generate-nav.mjs --check && tsc --noEmit && vite build",
     "tsc": "tsc --noEmit",
-    "check": "node scripts/generate-reference.mjs && node scripts/generate-nav.mjs --check && node scripts/check-links.mjs && node --test scripts/*.test.mjs",
-    "reference:generate": "node scripts/generate-reference.mjs"
+    "check": "node scripts/generate-nav.mjs --check && node scripts/check-links.mjs && node --test scripts/*.test.mjs"
   },
   "dependencies": {
     "@katakit/site-ui": "workspace:*",

@@ -1,4 +1,6 @@
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { bind, Subscribe } from '@react-rxjs/core';
+import { combineLatest } from 'rxjs';
+import { useEffect, useState } from 'react';
 import { makeKatakit } from '@katakit/core';
 import {
   bingoPacks,
@@ -7,35 +9,31 @@ import {
   makeBingoPlugin,
   type BingoBoard,
   type BingoPackId,
-} from '@katakit/bingo';
-import { makeTranscriptionPlugin, type TranscriptSegment } from '@katakit/transcription';
-import { AudioLevelMeter } from '@katakit/site-ui';
+} from './bingo';
+import {
+  makeTranscriptIngestionPlugin,
+  type TranscriptSegment,
+} from '@katakit/transcript-ingestion';
+import { AudioLevelMeter } from './AudioLevelMeter';
 
-const transcription = makeTranscriptionPlugin();
-const bingo = makeBingoPlugin();
-const kit = makeKatakit({ plugins: [transcription.configure({}), bingo.configure({})] });
+const transcriptIngestion = makeTranscriptIngestionPlugin();
+const bingo = makeBingoPlugin({ TranscriptIngestionPlugin: transcriptIngestion });
+const kit = makeKatakit({ plugins: [transcriptIngestion.configure({}), bingo.configure({})] });
 const running = kit.start();
-const methods = running.getMethods(transcription);
+const methods = running.getMethods(transcriptIngestion);
 const bingoMethods = running.getMethods(bingo);
-const transcript$ = kit.getObservables(transcription).state$;
+const { lastHeard$ } = kit.getObservables(transcriptIngestion);
 const board$ = kit.getObservables(bingo).state$;
-const subscribeToTranscript = (onChange: () => void) => {
-  const subscription = transcript$.subscribe(onChange);
-  return () => subscription.unsubscribe();
-};
-const getTranscript = () => transcript$.get();
-const subscribeToBoard = (onChange: () => void) => {
-  const subscription = board$.subscribe(onChange);
-  return () => subscription.unsubscribe();
-};
-const getBoard = () => board$.get();
+const [useLastHeard, lastHeardState$] = bind(lastHeard$);
+const [useBoard, boardState$] = bind(board$);
+const view$ = combineLatest([lastHeardState$, boardState$]);
 
 type Phase = 'idle' | 'loading' | 'recording' | 'error';
 type CaptureState = { phase: Phase; progress?: number; error?: string; micConnected?: boolean };
 
-export const Bingo = () => {
-  const transcript = useSyncExternalStore(subscribeToTranscript, getTranscript, getTranscript);
-  const board = useSyncExternalStore(subscribeToBoard, getBoard, getBoard);
+const BingoView = () => {
+  const lastHeard = useLastHeard();
+  const board = useBoard();
   const [capture, setCapture] = useState<CaptureState>({ phase: 'idle' });
   const [micLevel, setMicLevel] = useState(0);
   const [tabLevel, setTabLevel] = useState(0);
@@ -43,13 +41,6 @@ export const Bingo = () => {
   const [packId, setPackId] = useState<BingoPackId | 'custom'>('meeting');
   const [customSquares, setCustomSquares] = useState([...defaultSquares]);
   const [busy, setBusy] = useState(false);
-
-  useEffect(() => {
-    const subscription = transcript$.subscribe(state =>
-      bingoMethods.setTurns(state.current ? [...state.turns, state.current] : state.turns)
-    );
-    return () => subscription.unsubscribe();
-  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -63,7 +54,6 @@ export const Bingo = () => {
       micConnected?: boolean;
       source?: 'mic' | 'tab';
       level?: number;
-      text?: string;
     }) => {
       if (message.type === 'CAPTURE_RESET') {
         transcriptVersion++;
@@ -71,8 +61,6 @@ export const Bingo = () => {
       }
       if (message.type === 'TRANSCRIPT_SEGMENT' && message.segment)
         methods.ingestSegment(message.segment);
-      if (message.type === 'TRANSCRIPT_PROVISIONAL' && typeof message.text === 'string')
-        methods.updateProvisional(message.text);
       if (message.type === 'CAPTURE_LEVEL' && typeof message.level === 'number') {
         if (message.source === 'mic') setMicLevel(message.level);
         if (message.source === 'tab') setTabLevel(message.level);
@@ -139,7 +127,6 @@ export const Bingo = () => {
       });
   }, [board.squares, board.overrides, packId, customSquares, loaded]);
 
-  const turns = transcript.current ? [...transcript.turns, transcript.current] : transcript.turns;
   const { squares, evidence, marked, winningLines: wins } = board;
   const count = marked.filter(Boolean).length - 1;
 
@@ -279,12 +266,14 @@ export const Bingo = () => {
       </section>
       <section className="heard-list" aria-label="Transcript">
         <h2>Last heard</h2>
-        <p aria-live="polite">
-          {transcript.provisional ||
-            turns.at(-1)?.text ||
-            'The transcript will appear here as you speak.'}
-        </p>
+        <p aria-live="polite">{lastHeard || 'The transcript will appear here as you speak.'}</p>
       </section>
     </main>
   );
 };
+
+export const Bingo = () => (
+  <Subscribe source$={view$}>
+    <BingoView />
+  </Subscribe>
+);

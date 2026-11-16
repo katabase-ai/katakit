@@ -8,8 +8,6 @@ build/
 coverage/
 *.tsbuildinfo
 *.tgz
-# Generated reference pages (authored sources live with their packages)
-/docs/pages/reference/plugins/event-log.md
 
 # Local configuration and tooling
 .env

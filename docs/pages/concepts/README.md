@@ -4,7 +4,7 @@ Katakit separates a plugin's reactive state, callable methods, and effects. A ru
 
 - [Runtime and lifecycle](runtime.md) explains construction, start, lookup, and current shutdown boundaries.
 - [Plugins](plugins.md) explains the three parts of a plugin and how dependencies are resolved.
-- [Templates and hosts](templates.md) explains how a form factor assembles plugins without becoming one.
+- [Templates and applications](templates.md) distinguishes plugins, applications, platforms, templates, and demos.
 - [Event history](event-history.md) explains the event-log plugin's replay and validation behavior.
 - [Persistence](persistence.md) explains the boundary between an event log and durable storage.
 

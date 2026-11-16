@@ -5,16 +5,20 @@ import { buildNav, generateNav } from './generate-nav.mjs';
 test('navigation follows the section order and uses directory READMEs as landing pages', () => {
   assert.deepEqual(buildNav(), [
     { label: 'Why Katakit?', slug: 'why-katakit' },
-    { label: 'Getting started', slug: 'getting-started', children: [] },
+    {
+      label: 'Getting started',
+      slug: 'getting-started',
+      children: [{ label: 'React integration', slug: 'getting-started/react' }],
+    },
     {
       label: 'Concepts',
       slug: 'concepts',
       children: [
         { label: 'Event history', slug: 'concepts/event-history' },
-        { label: 'Persistence', slug: 'concepts/persistence' },
+        { label: 'Event-log persistence', slug: 'concepts/persistence' },
         { label: 'Plugins', slug: 'concepts/plugins' },
         { label: 'Runtime and lifecycle', slug: 'concepts/runtime' },
-        { label: 'Templates and hosts', slug: 'concepts/templates' },
+        { label: 'Templates and applications', slug: 'concepts/templates' },
       ],
     },
     {
@@ -22,14 +26,14 @@ test('navigation follows the section order and uses directory READMEs as landing
       slug: 'reference',
       children: [
         { label: 'Core', slug: 'reference/core' },
+        { label: 'Transcription utilities', slug: 'reference/transcription' },
         {
           label: 'Plugins',
           slug: 'reference/plugins',
           children: [
-            { label: 'Bingo', slug: 'reference/plugins/bingo' },
             { label: 'Event log', slug: 'reference/plugins/event-log' },
             { label: 'Persistence', slug: 'reference/plugins/persistence' },
-            { label: 'Transcription', slug: 'reference/plugins/transcription' },
+            { label: 'Transcript ingestion', slug: 'reference/plugins/transcript-ingestion' },
           ],
         },
         { label: 'Templates', slug: 'reference/templates', children: [] },
