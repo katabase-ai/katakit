@@ -11,3 +11,6 @@ allowBuilds:
 
 minimumReleaseAgeExclude:
   - '@types/node@24.13.3'
+
+# Examples use ordinary version ranges so their manifests also work outside this workspace.
+linkWorkspacePackages: true

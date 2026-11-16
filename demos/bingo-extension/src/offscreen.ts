@@ -1,10 +1,10 @@
-import { createCapture } from '../../../templates/chrome-extension/src/capture';
+import { createCapture } from './capture';
 import {
   createBrowserTranscriber,
   defaultTranscriptionAssetsBaseUrl,
 } from '@katakit/transcription/browser';
 import type { Transcriber } from '@katakit/transcription';
-import { audioLevel, createAudioLevelReporter } from '@katakit/site-ui/audio-level';
+import { audioLevel, createAudioLevelReporter } from './audioLevel';
 
 let capture: ReturnType<typeof createCapture> | undefined;
 let recognizer: Transcriber | undefined;
