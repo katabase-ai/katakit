@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Add a note to a local Katakit-backed MCP App card." />
+    <title>Katakit notes</title>
+    <style>
+      /* Hallmark · shape: app screen · genre: modern-minimal · theme: Console (graphite) · signature: the running note trail · v2.0.0 */
+      /* Critique: Keep controls usable before the bundled stylesheet is applied. */
+      html, body { overflow-x: clip; }
+      button:focus-visible, input:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+      button:active { filter: brightness(.95); }
+      button:disabled { opacity: .55; background: var(--disabled-surface); color: var(--disabled-ink); cursor: not-allowed; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Notes in this card</h1>
+        <p>Add a line to see Katakit update the view.</p>
+      </header>
+      <form id="note-form">
+        <label for="note-input">Note text</label>
+        <div class="entry">
+          <input id="note-input" name="note" maxlength="160" value="A note supplied by the card" required />
+          <button type="submit">Add note</button>
+        </div>
+      </form>
+      <p id="status" role="status" aria-live="polite">Ready</p>
+      <ol id="notes" aria-label="Notes"></ol>
+      <p class="privacy">This example stores notes in this card’s memory only. Nothing is sent to the MCP server.</p>
+    </main>
+    <script type="module" src="/src/card.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,29 @@
+{
+  "name": "katakit-mcp-app-template",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && vite build && node scripts/build-server.mjs",
+    "dev": "vite --host 127.0.0.1",
+    "preview": "vite preview --host 127.0.0.1",
+    "test": "pnpm build && tsx --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "@katakit/core": "file:vendor/katakit-core-0.0.0.tgz",
+    "@modelcontextprotocol/ext-apps": "1.7.5",
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "rxjs": "7.8.2"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "esbuild": "0.25.12",
+    "tsx": "4.20.0",
+    "typescript": "7.0.2",
+    "vite": "6.4.6",
+    "vite-plugin-singlefile": "2.2.0"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@11.9.0"
+}
