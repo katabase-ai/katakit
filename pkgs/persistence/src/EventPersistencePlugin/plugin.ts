@@ -1,3 +1,4 @@
+import { KatakitLifecyclePlugin, makeEffect } from '@katakit/core';
 import { makeKatakitPlugin, skipReplay } from '@katakit/core';
 import type { makeEventLogPlugin } from '@katakit/event-log';
 import pLimit from 'p-limit';
@@ -54,7 +55,7 @@ export const makeEventPersistencePlugin = <TEvent>({
         flushLimit(flush);
       }, persistInterval ?? 5000);
 
-      const kill = async () => {
+      const stop = async () => {
         clearInterval(intervalId);
         // flush immediately.
         // if there's already a flush happening, this will be queued.
@@ -62,7 +63,14 @@ export const makeEventPersistencePlugin = <TEvent>({
       };
 
       return {
-        kill,
+        stop,
       };
     },
+    effects: ({ methods, getObservables }) => [
+      makeEffect({
+        on: getObservables(KatakitLifecyclePlugin).stop$,
+        handler: methods.stop,
+        backpressure: 'concurrent',
+      }),
+    ],
   });
