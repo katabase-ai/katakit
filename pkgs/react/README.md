@@ -16,8 +16,20 @@ const store = createDevToolsStore();
 <DevTools runtime={running} store={store} />;
 ```
 
+For a host without a React tree, use the DOM entry point. It owns the React root
+and preserves the container's existing children:
+
+```ts
+import { mountDevTools } from '@katakit/react/dev-tools/mount';
+import '@katakit/react/dev-tools.css';
+
+const workbench = mountDevTools(container, { runtime: running, store });
+// When the host panel closes:
+workbench.unmount();
+```
+
 See the [developer workbench guide](../../docs/pages/reference/developer-tools.md)
-for SDK setup, development-only loading, transcript bindings, capture lifecycle,
+for Electron and Obsidian examples, SDK setup, development-only loading, transcript bindings, capture lifecycle,
 and retention limits. Both browser examples use the package in development.
 
 The published package includes JavaScript, TypeScript declarations, and compiled,

@@ -81,6 +81,134 @@ into queued effect handlers, but calls after native `await` need a host-supporte
 async context manager or explicit context handling. See [Tracing](tracing.md) for
 the span contract and propagation limits.
 
+## Mount from plain TypeScript
+
+Hosts without a React tree can use `@katakit/react/dev-tools/mount`. The package
+owns the React root; the host supplies a DOM container, a started runtime, and a
+stable capture store. There is no JSX or React root setup in the host:
+
+```ts
+import { createDevToolsStore, mountDevTools } from '@katakit/react/dev-tools/mount';
+import '@katakit/react/dev-tools.css';
+
+const store = createDevToolsStore(); // Attach its spanProcessor to the host SDK.
+const workbench = mountDevTools(container, { runtime: running, store });
+
+// When the host panel closes:
+workbench.unmount();
+```
+
+React 19 and React DOM 19 remain runtime dependencies of the workbench. Install
+and bundle them with the host, even when its other UI uses another framework:
+
+```sh
+pnpm add @katakit/react react@^19 react-dom@^19
+pnpm add -D @types/react@^19 @types/react-dom@^19
+```
+
+The mount creates one owned child inside the container and preserves its existing
+children. The layout responds to the workbench container width, including narrow
+sidebars inside a wide application window. It starts collapsed and follows React's render scheduling. Duplicate
+mounts in the same container are rejected; unmount before mounting there again.
+`unmount()` is idempotent and removes only the owned child and its inspection
+subscriptions. The runtime, microphone, SDK, and store history remain host-owned.
+Removing a DOM element alone does not dispose the workbench: call `unmount()` as
+part of the host's view teardown.
+
+Use `workbench.update({ transcript })` to replace a transcript binding or refresh
+host-owned microphone status, level, and callbacks. An update preserves the
+selected view and input drafts. Omitted options remain unchanged; pass
+`{ transcript: undefined }` to remove the optional view. The runtime and store
+stay fixed for a mount; unmount/remount to inspect another runtime.
+
+```ts
+workbench.update({
+  transcript: {
+    observables: running.getObservables(TranscriptPlugin),
+    methods: running.getMethods(TranscriptPlugin),
+    input: { status: 'listening', recording: true, level: 0.4, onToggle: toggleMicrophone },
+  },
+});
+```
+
+### Electron renderer
+
+Mount into an element in the renderer, with the runtime in that same JavaScript
+context. Use the renderer's bundler to include the optional JavaScript and CSS;
+no React component or JSX configuration is needed in the host. For a Vite-based
+renderer, gate loading with the development flag:
+
+```ts
+if (import.meta.env.DEV) {
+  const { mountDevTools } = await import('@katakit/react/dev-tools/mount');
+  await import('@katakit/react/dev-tools.css');
+  const workbench = mountDevTools(document.getElementById('developer-tools')!, {
+    runtime: running,
+    store,
+  });
+  window.addEventListener('pagehide', () => workbench.unmount(), { once: true });
+}
+```
+
+The container is an existing element in the renderer's HTML. Use the host panel's
+close/dispose hook if its lifetime is shorter than the page. An Electron main
+process, worker, or isolated preload runtime requires a separate transport; this
+DOM API does not bridge processes or isolated JavaScript contexts. See
+[Electron's process model](https://www.electronjs.org/docs/latest/tutorial/process-model).
+
+### Obsidian custom view
+
+Use a custom view's `contentEl` as the container and unmount in `onClose()`. This
+TypeScript view can receive the plugin-owned runtime and store through its
+registered view factory:
+
+```ts
+import { ItemView, type WorkspaceLeaf } from 'obsidian';
+import type { AliveKatakit } from '@katakit/core';
+import {
+  mountDevTools,
+  type DevToolsStore,
+  type MountedDevTools,
+} from '@katakit/react/dev-tools/mount';
+
+export class WorkbenchView extends ItemView {
+  private workbench?: MountedDevTools;
+
+  constructor(
+    leaf: WorkspaceLeaf,
+    private readonly runtime: AliveKatakit,
+    private readonly store: DevToolsStore
+  ) {
+    super(leaf);
+  }
+
+  getViewType() {
+    return 'example-developer-workbench';
+  }
+  getDisplayText() {
+    return 'Developer workbench';
+  }
+
+  async onOpen() {
+    this.workbench = mountDevTools(this.contentEl, { runtime: this.runtime, store: this.store });
+  }
+
+  async onClose() {
+    this.workbench?.unmount();
+    this.workbench = undefined;
+  }
+}
+```
+
+Keep registration of this view and loading its module behind the plugin's
+compile-time development flag. Bundle React and React DOM into the plugin;
+Obsidian need not supply either. Include the compiled `dev-tools.css` contents in
+the development plugin's `styles.css` output (or use a bundler that emits the CSS
+import into that file). A bare CSS import needs this build step; the mount API
+does not inject styles. See Obsidian's
+[view mounting lifecycle](https://docs.obsidian.md/Plugins/Getting%20started/Use%20React%20in%20your%20plugin)
+and [plugin stylesheet guidance](https://docs.obsidian.md/Plugins/User%20interface/HTML%20elements).
+
 ## Development-only loading
 
 Gate SDK setup, component loading, CSS loading, and rendering on the bundler's

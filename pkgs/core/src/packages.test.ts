@@ -114,6 +114,7 @@ describe('published packages', () => {
         import { makeEventPersistencePlugin, makeLocalStorageEventPersistencePlugin } from '@katakit/persistence';
         import * as react from '@katakit/react';
         import { DevTools, createDevToolsStore } from '@katakit/react/dev-tools';
+        import { mountDevTools } from '@katakit/react/dev-tools/mount';
         const EventLogPlugin = makeEventLogPlugin({
           validateEvent: {
             '~standard': { version: 1, vendor: 'smoke-test', validate: value => ({ value }) },
@@ -136,6 +137,7 @@ describe('published packages', () => {
         assert.equal(typeof makeLocalStorageEventPersistencePlugin, 'function');
         assert.equal(typeof react, 'object');
         assert.equal(typeof DevTools, 'function');
+        assert.equal(typeof mountDevTools, 'function');
         assert.equal(createDevToolsStore().getSnapshot().activity.length, 0);
         assert.ok(import.meta.resolve('@katakit/react/dev-tools.css').endsWith('/dist/dev-tools.css'));
       `
@@ -148,6 +150,7 @@ describe('published packages', () => {
         import { makeEventPersistencePlugin, makeLocalStorageEventPersistencePlugin } from '@katakit/persistence';
         import * as react from '@katakit/react';
         import { DevTools, createDevToolsStore } from '@katakit/react/dev-tools';
+        import { mountDevTools } from '@katakit/react/dev-tools/mount';
         import { of, type Observable } from 'rxjs';
         const EventLogPlugin = makeEventLogPlugin<{ text: string }>({
           validateEvent: {
@@ -177,6 +180,11 @@ describe('published packages', () => {
         events$.next({ text: 'bypass' });
         const store = createDevToolsStore({ capacity: 10 });
         const props: Parameters<typeof DevTools>[0] = { runtime, store };
+        const mountWithoutJSX = (container: HTMLElement) => {
+          const handle = mountDevTools(container, props);
+          handle.update({ transcript: undefined });
+          handle.unmount();
+        };
         const shutdown: Promise<void> = runtime.getMethods(PersistencePlugin).kill();
         makeEffect({
           on: events$, backpressure: 'queue',

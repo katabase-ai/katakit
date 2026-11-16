@@ -33,6 +33,11 @@
     "./dev-tools.css": {
       "source": "./src/dev-tools/styles.css",
       "default": "./dist/dev-tools.css"
+    },
+    "./dev-tools/mount": {
+      "source": "./src/dev-tools/mount.ts",
+      "types": "./dist/dev-tools/mount.d.ts",
+      "default": "./dist/dev-tools/mount.js"
     }
   },
   "publishConfig": {
@@ -45,7 +50,11 @@
         "types": "./dist/dev-tools.d.ts",
         "default": "./dist/dev-tools.js"
       },
-      "./dev-tools.css": "./dist/dev-tools.css"
+      "./dev-tools.css": "./dist/dev-tools.css",
+      "./dev-tools/mount": {
+        "types": "./dist/dev-tools/mount.d.ts",
+        "default": "./dist/dev-tools/mount.js"
+      }
     },
     "access": "public"
   },

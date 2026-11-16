@@ -31,6 +31,7 @@ export type DevToolsProps = {
 export const DevTools = ({ runtime, store, transcript }: DevToolsProps) => {
   const [open, setOpen] = useState(false);
   const [pluginType, setPluginType] = useState('all');
+  const [view, setView] = useState('activity');
   const inventory = useMemo(() => runtime.inspect(), [runtime]);
   const snapshot = useSyncExternalStore(store.subscribe, store.getSnapshot, store.getSnapshot);
   useEffect(() => store.connect(runtime), [runtime, store]);
@@ -79,7 +80,10 @@ export const DevTools = ({ runtime, store, transcript }: DevToolsProps) => {
             </p>
           </nav>
           <div className="kk-workbench-main">
-            <Tabs defaultValue="activity">
+            <Tabs
+              value={view === 'transcript' && !transcript ? 'activity' : view}
+              onValueChange={setView}
+            >
               <TabsList aria-label="Workbench views">
                 <TabsTrigger value="activity">Activity</TabsTrigger>
                 <TabsTrigger value="state">State & capabilities</TabsTrigger>
