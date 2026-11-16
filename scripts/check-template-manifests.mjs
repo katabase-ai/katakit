@@ -18,6 +18,14 @@ export const checkTemplateManifests = (directory = templates) => {
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
     const manifestPath = join(directory, entry.name, 'package.json');
+    for (const required of ['README.md', 'LICENSE']) {
+      try {
+        if (lstatSync(join(directory, entry.name, required)).isFile()) continue;
+      } catch {
+        // A copied directory must carry its own instructions and license.
+      }
+      problems.push(`${entry.name}: missing ${required}`);
+    }
     let manifest;
     try {
       manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));

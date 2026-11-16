@@ -9,6 +9,8 @@ test('a standalone manifest with declared registry packages passes', () => {
   const root = mkdtempSync(join(tmpdir(), 'katakit-manifests-'));
   try {
     mkdirSync(join(root, 'example'));
+    writeFileSync(join(root, 'example/README.md'), '# Example');
+    writeFileSync(join(root, 'example/LICENSE'), 'test fixture');
     writeFileSync(
       join(root, 'example/package.json'),
       JSON.stringify({ scripts: { build: 'vite build' }, dependencies: { react: '^19.0.0' } })
@@ -23,6 +25,8 @@ test('workspace-only dependencies and missing build scripts are reported', () =>
   const root = mkdtempSync(join(tmpdir(), 'katakit-manifests-'));
   try {
     mkdirSync(join(root, 'example'));
+    writeFileSync(join(root, 'example/README.md'), '# Example');
+    writeFileSync(join(root, 'example/LICENSE'), 'test fixture');
     writeFileSync(
       join(root, 'example/package.json'),
       JSON.stringify({ dependencies: { '@katakit/core': 'workspace:*', helper: 'file:../helper' } })
@@ -41,6 +45,8 @@ test('a bundled Katakit tarball must exist inside the template', () => {
   const root = mkdtempSync(join(tmpdir(), 'katakit-manifests-'));
   try {
     mkdirSync(join(root, 'example'));
+    writeFileSync(join(root, 'example/README.md'), '# Example');
+    writeFileSync(join(root, 'example/LICENSE'), 'test fixture');
     mkdirSync(join(root, 'example/vendor'));
     writeFileSync(join(root, 'example/vendor/katakit-core-0.0.0.tgz'), 'test fixture');
     writeFileSync(
@@ -57,6 +63,23 @@ test('a bundled Katakit tarball must exist inside the template', () => {
     assert.deepEqual(checkTemplateManifests(root), [
       'example: dependencies.@katakit/transcript-ingestion is missing its bundled tarball',
       'example: dependencies.rxjs must use an installable registry version',
+    ]);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('a copied template must include its own README and license', () => {
+  const root = mkdtempSync(join(tmpdir(), 'katakit-manifests-'));
+  try {
+    mkdirSync(join(root, 'example'));
+    writeFileSync(
+      join(root, 'example/package.json'),
+      JSON.stringify({ scripts: { build: 'true' } })
+    );
+    assert.deepEqual(checkTemplateManifests(root), [
+      'example: missing README.md',
+      'example: missing LICENSE',
     ]);
   } finally {
     rmSync(root, { recursive: true, force: true });
