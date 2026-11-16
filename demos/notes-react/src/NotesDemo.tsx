@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import Markdown from 'react-markdown';
 import type { createNotesDemo } from './createNotesDemo';
 import { NotesRequestError, type NotesConnection } from './notesModel';
 import './style.css';
@@ -8,17 +9,26 @@ export const NotesDemo = ({
   runtime,
   connect,
   controls,
+  renderModelControls = controls => controls,
 }: {
   runtime: ReturnType<typeof createNotesDemo>;
   connect?: (input: { signal: AbortSignal }) => Promise<NotesConnection>;
   controls?: ReactNode;
+  /** A gallery host can place model controls beside its shared microphone controls. */
+  renderModelControls?: (controls: ReactNode) => ReactNode;
 }) => {
-  const [transcript, setTranscript] = useState(() => runtime.state$.value);
+  const [transcript, setTranscript] = useState(() => runtime.state$.get());
   const { notes } = transcript;
   const [connecting, setConnecting] = useState(false);
   const [attempted, setAttempted] = useState(false);
   const [admissionError, setAdmissionError] = useState<NotesRequestError>();
   const owner = useRef<{ lifetime: AbortController; connecting: boolean } | undefined>(undefined);
+  const transcriptView = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const view = transcriptView.current;
+    if (view) view.scrollTop = view.scrollHeight;
+  }, [transcript.turns.length, transcript.current?.text, transcript.provisional]);
 
   useEffect(() => {
     const subscription = runtime.state$.subscribe(setTranscript);
@@ -59,91 +69,86 @@ export const NotesDemo = ({
   };
 
   const turns = transcript.current ? [...transcript.turns, transcript.current] : transcript.turns;
+  const failure = admissionError ?? notes.failure;
+  const modelControls = (
+    <section className="structured-notes-model-controls" aria-label="Notes connection">
+      <h2>Notes model</h2>
+      {!attempted && (
+        <button type="button" onClick={() => void connectModel()} disabled={!connect}>
+          Start notes
+        </button>
+      )}
+      <div role="status" aria-live="polite">
+        {connecting && <p>Connecting notes…</p>}
+        {failure && <p>{failure.message || 'Notes are delayed. Try again.'}</p>}
+      </div>
+      {admissionError && !admissionError.policy.terminal && (
+        <button type="button" onClick={() => void connectModel()} disabled={connecting}>
+          Retry connection
+        </button>
+      )}
+      {notes.status === 'paused' && !notes.failure?.policy.terminal && (
+        <button type="button" onClick={runtime.notes.retry}>
+          Retry notes
+        </button>
+      )}
+      {notes.failure?.policy.restart && (
+        <button type="button" onClick={() => void connectModel()} disabled={connecting}>
+          Restart notes session
+        </button>
+      )}
+      {!connect && <p>This host has no model connection. You can still transcribe locally.</p>}
+    </section>
+  );
 
   return (
-    <section className="live-notes" aria-label="Live discussion notes">
-      <h1>Live discussion notes</h1>
-      <p>Talk about an idea and watch notes build as you finish each thought.</p>
-      <p>Audio stays on this device. Transcript text may be sent to a model provider.</p>
-      <p>
-        Start listening with the microphone controls. Choose Start notes to send this visit’s
-        transcript for notes.
+    <section className="structured-notes" aria-label="Structured notes">
+      <h1>Structured notes</h1>
+      <p className="structured-notes-intro">
+        Talk through a plan: what needs to happen, when, and what comes next. Notes take shape as
+        you finish each thought.
+      </p>
+      <p className="structured-notes-hint">
+        Start listening, then choose Start notes. Audio stays on this device; notes send transcript
+        text to a model provider.
       </p>
       {controls}
-      <div className="live-notes-controls">
-        {!attempted && (
-          <button type="button" onClick={() => void connectModel()} disabled={!connect}>
-            Start notes
+      {renderModelControls(modelControls)}
+      <section className="structured-notes-output" aria-label="Structured notes output">
+        <div className="structured-notes-heading">
+          <h2>Your notes</h2>
+          <button type="button" onClick={runtime.notes.clear}>
+            Clear notes
           </button>
+        </div>
+        {!notes.notes.length && (
+          <p className="structured-notes-empty">
+            Try planning a trip or describing your next project.
+          </p>
         )}
-        <button type="button" onClick={runtime.notes.clear}>
-          Clear notes
-        </button>
-      </div>
-      {!connect && (
-        <p>This host has no model connection configured. You can still transcribe locally.</p>
-      )}
-      <div className="live-notes-columns">
-        <section aria-label="Transcript">
-          <h2>Transcript</h2>
+        <div aria-live="polite" aria-relevant="additions text">
+          <Markdown skipHtml>{transcript.markdown}</Markdown>
+        </div>
+      </section>
+      <section className="structured-notes-transcript" aria-label="Transcript">
+        <h2>What you’re saying</h2>
+        <div className="structured-notes-transcript-tail" ref={transcriptView}>
           {!turns.length && !transcript.provisional && (
-            <p className="live-notes-empty">
-              Talk about a plan, an idea, or something you’re working through.
-            </p>
+            <p className="structured-notes-empty">Your latest words appear here.</p>
           )}
-          {turns.map(turn => (
+          {turns.slice(-8).map(turn => (
             <p key={turn.id} data-final={turn !== transcript.current}>
               {turn.text}
             </p>
           ))}
           {transcript.provisional && (
-            <p className="live-notes-provisional">{transcript.provisional}</p>
+            <p className="structured-notes-provisional">{transcript.provisional}</p>
           )}
-        </section>
-        <section aria-label="Discussion notes">
-          <h2>Notes</h2>
-          <div role="status" aria-live="polite">
-            {connecting && 'Connecting notes…'}
-            {notes.failure && <p>{notes.failure.message}</p>}
-            {admissionError && <p>{admissionError.message}</p>}
-          </div>
-          {admissionError && !admissionError.policy.terminal && (
-            <button type="button" onClick={() => void connectModel()} disabled={connecting}>
-              Retry connection
-            </button>
-          )}
-          {notes.status === 'paused' && !notes.failure?.policy.terminal && (
-            <button type="button" onClick={runtime.notes.retry}>
-              Retry notes
-            </button>
-          )}
-          {notes.failure?.policy.restart && (
-            <button type="button" onClick={() => void connectModel()} disabled={connecting}>
-              Restart notes session
-            </button>
-          )}
-          {!notes.notes.length && !notes.failure && !admissionError && (
-            <p className="live-notes-empty">
-              Notes appear as you finish each thought. Spell out a misheard name to correct it.
-            </p>
-          )}
-          <ul aria-live="polite" aria-relevant="additions text">
-            {notes.notes.map(note => (
-              <li key={note.id}>
-                <span>{note.text}</span>
-                {!!note.children.length && (
-                  <ul>
-                    {note.children.map(child => (
-                      <li key={child.id}>{child.text}</li>
-                    ))}
-                  </ul>
-                )}
-              </li>
-            ))}
-          </ul>
-        </section>
-      </div>
-      <p>Misheard a name? Spell it out to correct the note. The transcript keeps what was heard.</p>
+        </div>
+      </section>
+      <p className="structured-notes-hint">
+        Misheard a name? Spell it out to correct the note. The transcript keeps what was heard.
+      </p>
     </section>
   );
 };

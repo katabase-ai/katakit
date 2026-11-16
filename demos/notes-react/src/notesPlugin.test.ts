@@ -1,8 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { makeKatakit } from '@katakit/core';
-import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
 import * as v from 'valibot';
-import { makeNotesPlugin } from './notesPlugin';
+import { createNotesDemo } from './createNotesDemo';
+import { NotesEventSchema } from './notesEvents';
 import {
   createNotesRequest,
   NotesRequestError,
@@ -14,11 +13,9 @@ const setup = (
   requestNotes: NotesConnection['requestNotes'],
   reportFailure?: NotesConnection['reportFailure']
 ) => {
-  const transcript = makeTranscriptIngestionPlugin();
-  const notes = makeNotesPlugin({ TranscriptIngestionPlugin: transcript });
-  const kit = makeKatakit({ plugins: [transcript.configure({}), notes.configure({})] }).start();
-  const methods = kit.getMethods(notes);
-  const input = kit.getMethods(transcript);
+  const runtime = createNotesDemo();
+  const methods = runtime.notes;
+  const input = runtime;
   methods.connect({
     model: 'z-ai/glm-5.3',
     maxBodyBytes: 16_384,
@@ -29,21 +26,106 @@ const setup = (
   return {
     methods,
     input,
-    state: kit.getObservables(notes).state$,
+    runtime,
+    state: { get: () => runtime.state$.get().notes },
     turn: (text: string, id: string = crypto.randomUUID()) => {
       input.ingestSegment({ sourceId: 'test', id, text });
       input.flush();
     },
-    close: () => {
-      methods.close();
-      input.close();
-    },
+    close: runtime.close,
   };
 };
 
 afterEach(() => vi.useRealTimers());
 
-describe('live notes', () => {
+describe('structured notes', () => {
+  it('replays accepted outlines, corrections and clears without generating IDs or model calls', async () => {
+    const request = vi.fn<NotesConnection['requestNotes']>().mockResolvedValue({
+      additions: [{ text: 'Meet **John** on Tuesday.' }],
+      rewords: [],
+    });
+    const demo = setup(request);
+    demo.turn('Meet John on Tuesday.');
+    await expect.poll(() => demo.state.get().notes.length).toBe(1);
+    const originalId = demo.state.get().notes[0]!.id;
+    request.mockResolvedValue({
+      additions: [{ text: 'Bring the agenda.', underId: originalId }],
+      rewords: [{ id: originalId, text: 'Meet **Jon** on Tuesday.' }],
+    });
+    demo.turn('His name is Jon, J O N. Bring the agenda.');
+    await expect.poll(() => demo.state.get().pendingTurnCount).toBe(0);
+    const events = v.parse(
+      v.array(NotesEventSchema),
+      JSON.parse(JSON.stringify(demo.runtime.events$.getAll()))
+    );
+    const uuid = vi.spyOn(crypto, 'randomUUID');
+    const replay = createNotesDemo({ initialEvents: events });
+    expect(replay.state$.get().notes.notes).toEqual(demo.state.get().notes);
+    expect(replay.state$.get().notes.notes[0]!.id).toBe(originalId);
+    expect(replay.state$.get().markdown).toBe('- Meet **Jon** on Tuesday.\n  - Bring the agenda.');
+    expect(replay.state$.get().turns).toHaveLength(2);
+    expect(uuid).not.toHaveBeenCalled();
+    const replayRequest = vi.fn();
+    replay.notes.connect({
+      model: 'test',
+      maxBodyBytes: 16384,
+      maxOutputTokens: 1024,
+      requestNotes: replayRequest,
+    });
+    await Promise.resolve();
+    expect(replayRequest).not.toHaveBeenCalled();
+    replay.close();
+    uuid.mockRestore();
+    demo.methods.clear();
+    const cleared = createNotesDemo({ initialEvents: demo.runtime.events$.getAll() });
+    expect(cleared.state$.get().markdown).toBe('');
+    expect(cleared.state$.get().notes.pendingTurnCount).toBe(0);
+    expect(cleared.state$.get().turns).toHaveLength(2);
+    cleared.close();
+    demo.close();
+  });
+
+  it('does not record a late model response after closing the visit', async () => {
+    const pending = Promise.withResolvers<unknown>();
+    const request = vi.fn<NotesConnection['requestNotes']>().mockReturnValue(pending.promise);
+    const demo = setup(request);
+    demo.turn('Keep the captured turn.');
+    await expect.poll(() => request.mock.calls.length).toBe(1);
+    demo.close();
+    const before = demo.runtime.events$.getAll();
+    pending.resolve({ additions: [{ text: 'Too late' }], rewords: [] });
+    await Promise.resolve();
+    expect(demo.runtime.events$.getAll()).toEqual(before);
+    expect(request.mock.calls[0]![0].signal.aborted).toBe(true);
+  });
+
+  it('retains a long replayed transcript and waits for admission before processing pending turns', async () => {
+    const runtime = createNotesDemo({
+      initialEvents: Array.from({ length: 12 }, (_, index) => ({
+        type: 'transcriptTurn',
+        turn: { id: String(index), sourceId: 'test', text: `Retain idea ${index}.` },
+      })),
+    });
+    await Promise.resolve();
+    expect(runtime.state$.get().notes.pendingTurnCount).toBe(12);
+    expect(runtime.events$.getAll()).toHaveLength(12);
+    const request = vi
+      .fn<NotesConnection['requestNotes']>()
+      .mockResolvedValue({ additions: [], rewords: [] });
+    runtime.notes.connect({
+      model: 'test',
+      maxBodyBytes: 16384,
+      maxOutputTokens: 1024,
+      requestNotes: request,
+    });
+    await expect.poll(() => runtime.state$.get().notes.pendingTurnCount).toBe(0);
+    expect(request).toHaveBeenCalledOnce();
+    for (let index = 0; index < 12; index++)
+      expect(request.mock.calls[0]![0].body).toContain(`Retain idea ${index}.`);
+    expect(runtime.state$.get().turns).toHaveLength(12);
+    runtime.close();
+  });
+
   it('starts on a finalized turn, retains turns received in flight, and rewords the original note', async () => {
     const pending = Promise.withResolvers<unknown>();
     const request = vi.fn<NotesConnection['requestNotes']>().mockReturnValueOnce(pending.promise);

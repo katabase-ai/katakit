@@ -21,7 +21,7 @@ export const galleryDemoDetails = [
   {
     id: 'notes',
     sourcePath: 'demos/notes-react',
-    title: 'Live discussion notes',
+    title: 'Structured notes',
     description:
       'Turn your speech into notes and correct misheard names. Audio stays local; notes use a host-supplied model connection.',
     capabilities: ['microphone', 'localTranscription', 'remoteModel'],

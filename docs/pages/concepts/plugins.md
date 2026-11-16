@@ -18,9 +18,12 @@ For types and factory parameters, see [the core reference](../reference/core.md#
 
 ## Calling a model from an effect
 
-The [live notes example](https://github.com/katabase-ai/katakit/tree/main/demos/notes-react)
+The [structured notes example](https://github.com/katabase-ai/katakit/tree/main/demos/notes-react)
 observes finalized conversation turns and sends a structured-output request through a host-supplied
-connection. The host owns admission and transport; the plugin owns its prompt, validation, and state.
+connection. The host owns admission and transport; the plugin owns its prompt and validation.
+The event log records finalized turns, accepted outlines with stable IDs and cursors, and clears.
+The plugin derives its outline and Markdown from those events. Replay restores content without
+calling a model. Connection and retry state stay transient.
 
 Its `latest` effect finishes the current request before handling the newest pending signal. The
 plugin reads accumulated turns from its processed cursor, so it retains turns received in flight.

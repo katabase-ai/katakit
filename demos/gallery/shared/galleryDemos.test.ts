@@ -21,7 +21,7 @@ test('separate transcripts and Bingo state remain isolated; close completes ever
   bingo.ingestSegment({ id: 'second', sourceId: 'two', text: 'Quick question' });
   expect(bingo.state$.getValue().board.marked[0]).toBe(true);
   expect(transcript.state$.getValue().currentTurn?.text).toBe('a private transcript');
-  expect(notes.state$.value.turns).toEqual([]);
+  expect(notes.state$.get().turns).toEqual([]);
   notes.ingestSegment({ id: 'third', sourceId: 'three', text: 'private notes input' });
   expect(vi.getTimerCount()).toBe(3);
   transcript.close();
