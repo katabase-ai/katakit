@@ -1,10 +1,8 @@
 .katakit-gallery .color-clash {
-  --clash-red: #ff707f;
-  --clash-blue: #73b8ff;
-  --clash-green: #87dfa8;
-  --clash-yellow: #ffe17b;
-  --clash-pink: #f898e0;
-  --clash-orange: #ffb079;
+  --clash-red: #ff4545;
+  --clash-blue: #5599ff;
+  --clash-green: #40dd70;
+  --clash-yellow: #ffe035;
   border-radius: 12px;
   overflow: clip;
   background: #11131b;
@@ -23,12 +21,6 @@
 }
 .katakit-gallery .color-clash [data-ink='yellow'] {
   --clash-ink: var(--clash-yellow);
-}
-.katakit-gallery .color-clash [data-ink='pink'] {
-  --clash-ink: var(--clash-pink);
-}
-.katakit-gallery .color-clash [data-ink='orange'] {
-  --clash-ink: var(--clash-orange);
 }
 .katakit-gallery .color-clash-hud {
   display: flex;
@@ -91,12 +83,6 @@
 .katakit-gallery .color-clash-message strong {
   color: #ffe17b;
 }
-.katakit-gallery .color-clash-eyebrow {
-  color: #c3b4ff;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-}
 .katakit-gallery .color-clash-play {
   display: block;
   margin: 24px auto;
@@ -146,7 +132,7 @@
 }
 .katakit-gallery .color-clash-target {
   color: var(--clash-ink);
-  border: 1px solid color-mix(in srgb, var(--clash-ink) 35%, transparent);
+  border: 1px solid #ffffff22;
   border-radius: 50%;
   padding: 38px 24px;
   font-size: clamp(32px, 10cqi, 62px);
@@ -154,8 +140,8 @@
   text-transform: uppercase;
   letter-spacing: -0.055em;
   line-height: 1;
-  background: color-mix(in srgb, var(--clash-ink) 7%, #15151e);
-  box-shadow: 0 0 45px color-mix(in srgb, var(--clash-ink) 10%, transparent);
+  background: #171922;
+  box-shadow: 0 0 45px #ffffff05;
   animation:
     clash-arrive 220ms ease-out,
     clash-float 3s 220ms ease-in-out infinite alternate;
@@ -206,9 +192,6 @@
 }
 .katakit-gallery .color-clash-provisional {
   color: #a79cc9;
-}
-.katakit-gallery .color-clash-transcript-placeholder {
-  color: #8e97b4;
 }
 @keyframes clash-arrive {
   from {

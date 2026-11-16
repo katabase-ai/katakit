@@ -109,25 +109,12 @@ export const ColorClash = ({
         ) : state.phase === 'instructions' ? (
           <div className="color-clash-message" role="status">
             <p>
-              Say the <strong>ink color</strong>, not the word. Each correct color pops the word and
-              earns a point. You have 20 seconds. Go!
+              Say the <strong>ink color</strong>, not the word. You have 20 seconds.
             </p>
           </div>
         ) : (
           <div className="color-clash-message">
-            <span className="color-clash-eyebrow">
-              {state.phase === 'finished' ? 'Round complete' : 'A little brain scramble'}
-            </span>
-            <h3>
-              {state.phase === 'finished'
-                ? `${state.score} ${state.score === 1 ? 'pop' : 'pops'}!`
-                : 'Color Clash'}
-            </h3>
-            <p>
-              {state.phase === 'finished'
-                ? 'Ready for another round?'
-                : 'Your eyes read one thing. Your voice says another.'}
-            </p>
+            <h3>{state.phase === 'finished' ? 'Time’s up' : 'Color Clash'}</h3>
             {preparing ? (
               <>
                 <p role="status">
@@ -149,11 +136,7 @@ export const ColorClash = ({
                 disabled={disabled || requested}
                 onClick={() => void play()}
               >
-                {inputError
-                  ? 'Try again'
-                  : state.phase === 'finished'
-                    ? 'Play again · 20s'
-                    : 'Play · 20s'}
+                {inputError ? 'Try again' : state.phase === 'finished' ? 'Play again' : 'Play'}
               </button>
             )}
             {inputError && (
@@ -161,10 +144,11 @@ export const ColorClash = ({
                 {inputError}
               </p>
             )}
-            <p className="color-clash-privacy">
-              Speech stays on your device. First play downloads a recognition model and asks for
-              your microphone.
-            </p>
+            {state.phase === 'ready' && input.phase === 'idle' && (
+              <p className="color-clash-privacy">
+                Local speech. First play needs a model download and microphone access.
+              </p>
+            )}
           </div>
         )}
       </div>
@@ -180,11 +164,7 @@ export const ColorClash = ({
             <span>{state.transcript} </span>
             <span className="color-clash-provisional">{state.provisional}</span>
           </>
-        ) : (
-          <span className="color-clash-transcript-placeholder">
-            Your words appear here as you speak…
-          </span>
-        )}
+        ) : undefined}
       </div>
     </section>
   );

@@ -37,15 +37,15 @@ test('a replay keeps newly acquired capture instead of stopping it as part of th
   };
   render(<Host />);
   await act(async () => {
-    fireEvent.click(screen.getByRole('button', { name: 'Play · 20s' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Play' }));
   });
   act(() => {
     vi.advanceTimersByTime(21600);
   });
-  expect(screen.getByText('Round complete')).toBeTruthy();
+  expect(screen.getByRole('heading', { name: 'Time’s up' })).toBeTruthy();
   expect(stopped).toHaveBeenCalledTimes(1);
   await act(async () => {
-    fireEvent.click(screen.getByRole('button', { name: 'Play again · 20s' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Play again' }));
   });
   expect(screen.getByRole('status').textContent).toContain('Say the ink color');
   act(() => {

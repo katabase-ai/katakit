@@ -1,6 +1,6 @@
 import type { MicrophoneOptions } from '@katakit/transcription/browser';
 
-export const colorClashColors = ['red', 'blue', 'green', 'yellow', 'pink', 'orange'] as const;
+export const colorClashColors = ['red', 'blue', 'green', 'yellow'] as const;
 type Color = (typeof colorClashColors)[number];
 type Target = { word: Color; ink: Color; sequence: number; left: number; top: number };
 type State = {
