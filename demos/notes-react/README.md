@@ -28,14 +28,15 @@ turns with the existing outline. A hosted connection may require browser verific
 ## Embed the example
 
 The gallery exports `notesGalleryDemo` from `demos/gallery/shared/galleryDemos.tsx`. Its lazy
-component accepts `connect` and `renderModelControls` and uses the host's `GallerySpeechProvider`. Catalogue metadata and
-source paths live in Katakit. A host can consume them through an exact source pin without
-publishing a demo package. Without a connection, the public gallery still demonstrates transcription.
+component takes no props: it uses the host's `GallerySpeechProvider` and the model connection the
+host passes to `Gallery` as `connectModel`. Catalogue metadata and source paths live in Katakit.
+A host can consume them through an exact source pin without publishing a demo package. Without a
+connection, the public gallery still demonstrates transcription.
 
-`renderModelControls` receives connection status, retry buttons, and errors. A host can return a React
-portal into `GallerySpeechControls`' children slot, alongside its own verification widget and usage
-display. Without this callback, controls render above the outline. Usage is host-owned and measured
-in requests. Errors and allowance never become note content.
+`renderModelControls` receives connection status, retry buttons, and errors. The gallery uses it
+to place them beside its shared speech controls with the host's browser check and a usage meter.
+Without this callback, controls render above the outline. Usage is measured in requests. Errors
+and allowance never become note content.
 
 For a standalone embed, copy this directory and use `App`:
 
@@ -47,9 +48,9 @@ import { App } from './src/App';
     model: 'z-ai/glm-5.3',
     maxBodyBytes: 16384,
     maxOutputTokens: 1024,
-    requestNotes: async ({ body, signal: requestSignal }) => {
+    requestCompletion: async ({ body, signal: requestSignal }) => {
       // Admit a connection in connect; forward body with both abort signals respected.
-      // Return the parsed JSON from choices[0].message.content, not the completion envelope.
+      // Return the parsed chat-completions response body; the example reads its notes out of it.
       return yourModelConnection.request({
         body,
         signal: AbortSignal.any([signal, requestSignal]),
@@ -66,7 +67,9 @@ Stopping capture still lets its final turns produce notes. The host owns authori
 `NotesRequestError` supplies bounded retry, terminal, and explicit restart policies.
 Quota exhaustion should be terminal and never clearable. Only a context-limit failure is clearable.
 An optional `reportFailure` callback receives `NotesRequestError` after transport or validation
-fails. Hosts can log its policy code with their last request ID. `notes_schema` means the result
+fails. Hosts can log its policy code with their last request ID. The example reads the response
+body itself: `response_format`, `response_truncated`, `response_unfinished`, and `response_json`
+mean the completion was malformed, cut off, stopped early, or not JSON. `notes_schema` means the result
 failed validation; `notes_target` means it referred to a nonexistent note. Keep diagnostics free
 of transcript and generated text. A completed request may legitimately add no visible notes.
 

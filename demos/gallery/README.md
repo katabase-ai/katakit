@@ -66,7 +66,11 @@ separate histories, final-result ordering, timer cleanup, model retention/replac
 attachments, load retry, and Strict Mode cleanup. Standalone entry points own local capture using
 the same instance-owned views; they do not import this gallery.
 
-The notes entry accepts a `connect` prop for the host's model admission/transport. It invokes the
+A host passes one `connectModel` to `Gallery` for its model admission/transport; see
+`shared/galleryModel.tsx` for the contract. Every entry with the `remoteModel` capability uses it,
+so a new such demo needs no host code. The gallery renders each demo's connection controls, the
+host's browser check, and a usage meter beside the shared speech controls. Hosts throw
+`GalleryModelError` for failures they want shown or retried. The notes entry invokes the
 connection automatically once the shared microphone is listening. Stop/start reuses that admission;
 connection failures require an explicit retry. The notes view
 aborts admission and model work on unmount before its capture drains. Its runtime closes the

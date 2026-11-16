@@ -10,7 +10,7 @@ createRoot(document.getElementById('root')!).render(
         model: 'z-ai/glm-5.3',
         maxBodyBytes: 16_384,
         maxOutputTokens: 1024,
-        requestNotes: async ({ body, signal }) => {
+        requestCompletion: async ({ body, signal }) => {
           const endpoint = import.meta.env.VITE_NOTES_ENDPOINT;
           const credential = import.meta.env.VITE_NOTES_CREDENTIAL;
           if (!endpoint || !credential)
@@ -27,8 +27,7 @@ createRoot(document.getElementById('root')!).render(
             throw new NotesRequestError(
               'The model request failed. Check your endpoint and allowance.'
             );
-          const result = await response.json();
-          return JSON.parse(result.choices[0].message.content);
+          return await response.json();
         },
       })}
     />

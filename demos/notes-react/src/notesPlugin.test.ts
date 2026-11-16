@@ -9,8 +9,13 @@ import {
   type NotesConnection,
 } from './notesModel';
 
+// Hosts hand back the provider's response body; the example reads its own result out of it.
+const completion = (result: unknown, finish_reason = 'stop') => ({
+  choices: [{ finish_reason, message: { content: JSON.stringify(result) } }],
+});
+
 const setup = (
-  requestNotes: NotesConnection['requestNotes'],
+  requestCompletion: NotesConnection['requestCompletion'],
   reportFailure?: NotesConnection['reportFailure']
 ) => {
   const runtime = createNotesDemo();
@@ -20,7 +25,7 @@ const setup = (
     model: 'z-ai/glm-5.3',
     maxBodyBytes: 16_384,
     maxOutputTokens: 1024,
-    requestNotes,
+    requestCompletion,
     reportFailure,
   });
   return {
@@ -40,18 +45,22 @@ afterEach(() => vi.useRealTimers());
 
 describe('structured notes', () => {
   it('replays accepted outlines, corrections and clears without generating IDs or model calls', async () => {
-    const request = vi.fn<NotesConnection['requestNotes']>().mockResolvedValue({
-      additions: [{ text: 'Meet **John** on Tuesday.' }],
-      rewords: [],
-    });
+    const request = vi.fn<NotesConnection['requestCompletion']>().mockResolvedValue(
+      completion({
+        additions: [{ text: 'Meet **John** on Tuesday.' }],
+        rewords: [],
+      })
+    );
     const demo = setup(request);
     demo.turn('Meet John on Tuesday.');
     await expect.poll(() => demo.state.get().notes.length).toBe(1);
     const originalId = demo.state.get().notes[0]!.id;
-    request.mockResolvedValue({
-      additions: [{ text: 'Bring the agenda.', underId: originalId }],
-      rewords: [{ id: originalId, text: 'Meet **Jon** on Tuesday.' }],
-    });
+    request.mockResolvedValue(
+      completion({
+        additions: [{ text: 'Bring the agenda.', underId: originalId }],
+        rewords: [{ id: originalId, text: 'Meet **Jon** on Tuesday.' }],
+      })
+    );
     demo.turn('His name is Jon, J O N. Bring the agenda.');
     await expect.poll(() => demo.state.get().pendingTurnCount).toBe(0);
     const events = v.parse(
@@ -70,7 +79,7 @@ describe('structured notes', () => {
       model: 'test',
       maxBodyBytes: 16384,
       maxOutputTokens: 1024,
-      requestNotes: replayRequest,
+      requestCompletion: replayRequest,
     });
     await Promise.resolve();
     expect(replayRequest).not.toHaveBeenCalled();
@@ -87,13 +96,13 @@ describe('structured notes', () => {
 
   it('does not record a late model response after closing the visit', async () => {
     const pending = Promise.withResolvers<unknown>();
-    const request = vi.fn<NotesConnection['requestNotes']>().mockReturnValue(pending.promise);
+    const request = vi.fn<NotesConnection['requestCompletion']>().mockReturnValue(pending.promise);
     const demo = setup(request);
     demo.turn('Keep the captured turn.');
     await expect.poll(() => request.mock.calls.length).toBe(1);
     demo.close();
     const before = demo.runtime.events$.getAll();
-    pending.resolve({ additions: [{ text: 'Too late' }], rewords: [] });
+    pending.resolve(completion({ additions: [{ text: 'Too late' }], rewords: [] }));
     await Promise.resolve();
     expect(demo.runtime.events$.getAll()).toEqual(before);
     expect(request.mock.calls[0]![0].signal.aborted).toBe(true);
@@ -110,13 +119,13 @@ describe('structured notes', () => {
     expect(runtime.state$.get().notes.pendingTurnCount).toBe(12);
     expect(runtime.events$.getAll()).toHaveLength(12);
     const request = vi
-      .fn<NotesConnection['requestNotes']>()
-      .mockResolvedValue({ additions: [], rewords: [] });
+      .fn<NotesConnection['requestCompletion']>()
+      .mockResolvedValue(completion({ additions: [], rewords: [] }));
     runtime.notes.connect({
       model: 'test',
       maxBodyBytes: 16384,
       maxOutputTokens: 1024,
-      requestNotes: request,
+      requestCompletion: request,
     });
     await expect.poll(() => runtime.state$.get().notes.pendingTurnCount).toBe(0);
     expect(request).toHaveBeenCalledOnce();
@@ -128,7 +137,9 @@ describe('structured notes', () => {
 
   it('starts on a finalized turn, retains turns received in flight, and rewords the original note', async () => {
     const pending = Promise.withResolvers<unknown>();
-    const request = vi.fn<NotesConnection['requestNotes']>().mockReturnValueOnce(pending.promise);
+    const request = vi
+      .fn<NotesConnection['requestCompletion']>()
+      .mockReturnValueOnce(pending.promise);
     const demo = setup(request);
     demo.input.updateProvisional('Meet John');
     await Promise.resolve();
@@ -137,11 +148,13 @@ describe('structured notes', () => {
     await expect.poll(() => request.mock.calls.length).toBe(1);
     demo.turn('His name is Jon. J O N.', 'second');
     demo.turn('His name is Jon. J O N.', 'second');
-    request.mockImplementation(async () => ({
-      additions: [],
-      rewords: [{ id: demo.state.get().notes[0]!.id, text: 'Meet Jon on Tuesday.' }],
-    }));
-    pending.resolve({ additions: [{ text: 'Meet John on Tuesday.' }], rewords: [] });
+    request.mockImplementation(async () =>
+      completion({
+        additions: [],
+        rewords: [{ id: demo.state.get().notes[0]!.id, text: 'Meet Jon on Tuesday.' }],
+      })
+    );
+    pending.resolve(completion({ additions: [{ text: 'Meet John on Tuesday.' }], rewords: [] }));
     await expect.poll(() => demo.state.get().notes[0]?.text).toBe('Meet Jon on Tuesday.');
     expect(request).toHaveBeenCalledTimes(2);
     expect(request.mock.calls[1]![0].body).toContain('J O N');
@@ -153,16 +166,16 @@ describe('structured notes', () => {
   it('discards a late response after clear and continues with only later turns', async () => {
     const pending = Promise.withResolvers<unknown>();
     const request = vi
-      .fn<NotesConnection['requestNotes']>()
+      .fn<NotesConnection['requestCompletion']>()
       .mockReturnValueOnce(pending.promise)
-      .mockResolvedValue({ additions: [{ text: 'New topic' }], rewords: [] });
+      .mockResolvedValue(completion({ additions: [{ text: 'New topic' }], rewords: [] }));
     const demo = setup(request);
     demo.turn('Old topic');
     await expect.poll(() => request.mock.calls.length).toBe(1);
     demo.methods.clear();
     expect(request.mock.calls[0]![0].signal.aborted).toBe(true);
     demo.turn('New topic');
-    pending.resolve({ additions: [{ text: 'Old topic' }], rewords: [] });
+    pending.resolve(completion({ additions: [{ text: 'Old topic' }], rewords: [] }));
     await expect.poll(() => demo.state.get().notes[0]?.text).toBe('New topic');
     expect(demo.state.get().notes).toHaveLength(1);
     demo.close();
@@ -170,7 +183,7 @@ describe('structured notes', () => {
 
   it('retries a busy request after silence, then pauses exhausted requests despite new turns', async () => {
     const request = vi
-      .fn<NotesConnection['requestNotes']>()
+      .fn<NotesConnection['requestCompletion']>()
       .mockRejectedValueOnce(new NotesRequestError('Busy', { retryAfterMs: 1, retryLimit: 3 }))
       .mockRejectedValue(new NotesRequestError('Allowance exhausted', { terminal: true }));
     const demo = setup(request);
@@ -192,7 +205,7 @@ describe('structured notes', () => {
   it.each(['clear', 'close'] as const)('%s cancels a pending retry delay', async action => {
     vi.useFakeTimers();
     const request = vi
-      .fn<NotesConnection['requestNotes']>()
+      .fn<NotesConnection['requestCompletion']>()
       .mockRejectedValue(new NotesRequestError('Busy', { retryAfterMs: 5_000, retryLimit: 1 }));
     const demo = setup(request);
     demo.turn('A useful idea');
@@ -205,6 +218,22 @@ describe('structured notes', () => {
     await vi.advanceTimersByTimeAsync(10_000);
     expect(request).toHaveBeenCalledOnce();
 
+    demo.close();
+  });
+
+  it.each([
+    ['response_format', { unexpected: 'envelope' }],
+    ['response_truncated', completion({ additions: [], rewords: [] }, 'length')],
+    ['response_unfinished', completion({ additions: [], rewords: [] }, 'content_filter')],
+    ['response_json', { choices: [{ finish_reason: 'stop', message: { content: 'not JSON' } }] }],
+  ])('pauses on a completion it cannot read: %s', async (code, response) => {
+    const request = vi.fn<NotesConnection['requestCompletion']>().mockResolvedValue(response);
+    const reportFailure = vi.fn();
+    const demo = setup(request, reportFailure);
+    demo.turn('Keep this pending');
+    await expect.poll(() => demo.state.get().status).toBe('paused');
+    expect(demo.state.get().pendingTurnCount).toBe(1);
+    expect(reportFailure).toHaveBeenCalledWith(expect.objectContaining({ policy: { code } }));
     demo.close();
   });
 
@@ -224,7 +253,9 @@ describe('structured notes', () => {
   ])(
     'keeps invalid output pending without repairing it in a paid retry loop: %j',
     async (code, response) => {
-      const request = vi.fn<NotesConnection['requestNotes']>().mockResolvedValue(response);
+      const request = vi
+        .fn<NotesConnection['requestCompletion']>()
+        .mockResolvedValue(completion(response));
       const reportFailure = vi.fn();
       const demo = setup(request, reportFailure);
       demo.turn('Keep this pending');
@@ -246,7 +277,7 @@ describe('structured notes', () => {
         model: 'z-ai/glm-5.3',
         maxBodyBytes: 16_384,
         maxOutputTokens: 1024,
-        requestNotes: vi.fn(),
+        requestCompletion: vi.fn(),
       },
     });
     expect(JSON.parse(body).response_format.json_schema.schema).not.toHaveProperty(
@@ -265,10 +296,12 @@ describe('structured notes', () => {
   });
 
   it('does not report a later context-limit failure against the preceding request', async () => {
-    const request = vi.fn<NotesConnection['requestNotes']>().mockResolvedValue({
-      additions: [{ text: 'Keep the successful note' }],
-      rewords: [],
-    });
+    const request = vi.fn<NotesConnection['requestCompletion']>().mockResolvedValue(
+      completion({
+        additions: [{ text: 'Keep the successful note' }],
+        rewords: [],
+      })
+    );
     const reportFailure = vi.fn();
     const demo = setup(request, reportFailure);
     demo.turn('A useful idea');
@@ -287,7 +320,7 @@ describe('structured notes', () => {
       model: 'z-ai/glm-5.3',
       maxBodyBytes: 16_384,
       maxOutputTokens: 1024,
-      requestNotes: vi.fn(),
+      requestCompletion: vi.fn(),
     };
     const turns = [0, 1, 2].map(index => ({
       id: String(index),
