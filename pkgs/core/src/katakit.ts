@@ -25,9 +25,11 @@ const INTERNAL_PLUGINS = [KatakitLifecyclePlugin.configure({})] as const;
 export const makeKatakit = <TConfiguredKatakitPlugins extends ConfiguredKatakitPlugin<any, any>[]>(
   config: KatakitConfig<TConfiguredKatakitPlugins>
 ): Katakit => {
-  const { plugins } = config;
+  const { plugins: userPlugins } = config;
 
-  const getObservables = makeGetObservables({ plugins: [...INTERNAL_PLUGINS, ...plugins] });
+  const plugins = [...INTERNAL_PLUGINS, ...userPlugins];
+
+  const getObservables = makeGetObservables({ plugins });
 
   let alive = false;
 
