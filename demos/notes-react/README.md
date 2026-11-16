@@ -89,8 +89,13 @@ transcript without generating IDs or calling a model. An explicit connection can
 remaining after the recorded cursor. The example keeps its history in memory for one visit.
 
 Markdown is a projection of the structured outline. The model still returns validated additions
-and rewords. The UI shows the last eight turns in a fixed-height, fading transcript region and
-follows the newest words. All finalized turns remain available to inference and replay.
+and rewords. A compact transcript preview uses about one-third of the notes' width on desktop.
+Each live word fades through a CSS animation and expires within twenty seconds. Words received
+together disappear in sequence across at most four seconds. Provisional corrections and finalization
+preserve each word's age. The preview has no scrolling or spatial fade mask.
+
+Display timing comes from live ingestion events, not the replayable history. Old transcript does not
+reappear on replay or after model updates. All finalized turns remain available to inference and replay.
 
 The notes plugin sends one request at a time. It retains turns that arrive during an in-flight
 request and dispatches them immediately afterward. It validates additions and rewords together

@@ -77,22 +77,49 @@
 .structured-notes-output ul {
   padding-left: 1.3rem;
 }
+.structured-notes-transcript {
+  width: 33.333%;
+  margin-block: 1.5rem;
+}
 .structured-notes-transcript h2 {
   margin: 0;
   font-size: 0.875rem;
   font-weight: 500;
 }
-.structured-notes-transcript-tail {
-  height: 9rem;
-  overflow: hidden;
-  padding-top: 1.25rem;
-  mask-image: linear-gradient(transparent, black 1.25rem);
+.structured-notes-transcript-words {
+  min-height: 3em;
+  margin-block: 0.75rem;
   font-size: 0.875rem;
   line-height: 1.6;
   overflow-wrap: anywhere;
 }
-.structured-notes-transcript-tail p {
-  margin: 0 0 0.5rem;
+.structured-notes-word {
+  animation: structured-notes-word-fade 20s linear both;
+}
+.structured-notes-word[data-provisional='true'] {
+  font-style: italic;
+}
+@keyframes structured-notes-word-fade {
+  0%,
+  60% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@media (max-width: 640px) {
+  .structured-notes-transcript {
+    width: min(100%, 22rem);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .structured-notes-word {
+    animation-timing-function: step-end;
+  }
 }
 .structured-notes-empty,
 .structured-notes-hint,
@@ -102,7 +129,4 @@
 .structured-notes-hint {
   font-size: 0.8125rem;
   line-height: 1.5;
-}
-.structured-notes-provisional {
-  font-style: italic;
 }

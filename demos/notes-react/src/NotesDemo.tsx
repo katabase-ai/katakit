@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import Markdown from 'react-markdown';
 import type { createNotesDemo } from './createNotesDemo';
 import { NotesRequestError, type NotesConnection } from './notesModel';
+import { TranscriptPreview } from './TranscriptPreview';
 import './style.css';
 
 /** Listening starts admission once per visit; failures require an explicit retry. */
@@ -26,12 +27,6 @@ export const NotesDemo = ({
   const owner = useRef<
     { lifetime: AbortController; connecting: boolean; attempted: boolean } | undefined
   >(undefined);
-  const transcriptView = useRef<HTMLDivElement>(null);
-
-  useLayoutEffect(() => {
-    const view = transcriptView.current;
-    if (view) view.scrollTop = view.scrollHeight;
-  }, [transcript.turns.length, transcript.current?.text, transcript.provisional]);
 
   useEffect(() => {
     const subscription = runtime.state$.subscribe(setTranscript);
@@ -77,7 +72,6 @@ export const NotesDemo = ({
     if (listening && !owner.current?.attempted) void connectModel();
   }, [listening, connectModel]);
 
-  const turns = transcript.current ? [...transcript.turns, transcript.current] : transcript.turns;
   const failure = admissionError ?? notes.failure;
   const modelControls = (
     <section className="structured-notes-model-controls" aria-label="Notes connection">
@@ -134,25 +128,7 @@ export const NotesDemo = ({
           <Markdown skipHtml>{transcript.markdown}</Markdown>
         </div>
       </section>
-      <section className="structured-notes-transcript" aria-label="Transcript">
-        <h2>What you’re saying</h2>
-        <div className="structured-notes-transcript-tail" ref={transcriptView}>
-          {!turns.length && !transcript.provisional && (
-            <p className="structured-notes-empty">Your latest words appear here.</p>
-          )}
-          {turns.slice(-8).map(turn => (
-            <p key={turn.id} data-final={turn !== transcript.current}>
-              {turn.text}
-            </p>
-          ))}
-          {transcript.provisional && (
-            <p className="structured-notes-provisional">{transcript.provisional}</p>
-          )}
-        </div>
-      </section>
-      <p className="structured-notes-hint">
-        Misheard a name? Spell it out to correct the note. The transcript keeps what was heard.
-      </p>
+      <TranscriptPreview events$={runtime.transcriptEvents$} />
     </section>
   );
 };

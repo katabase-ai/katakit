@@ -25,7 +25,7 @@ export const createNotesDemo = ({ initialEvents = [] }: { initialEvents?: NotesE
   }).start();
   const input = kit.getMethods(transcript);
   const notes = kit.getMethods(notesPlugin);
-  const { currentTurn$, provisional$ } = kit.getObservables(transcript);
+  const { currentTurn$, provisional$, events$: transcriptEvents$ } = kit.getObservables(transcript);
   const { state$: notesState$, markdown$ } = kit.getObservables(notesPlugin);
   const closed = new Subject<void>();
   const state$ = property(
@@ -47,6 +47,7 @@ export const createNotesDemo = ({ initialEvents = [] }: { initialEvents?: NotesE
     flush: input.flush,
     notes,
     state$,
+    transcriptEvents$,
     events$: kit.getObservables(eventLog).events$,
     close: () => {
       notes.close();
