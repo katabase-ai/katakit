@@ -1,7 +1,7 @@
 # Structured notes
 
 This React example turns on-device speech recognition into a two-level outline rendered as Markdown.
-After Start notes, finalized conversation turns trigger model requests. Later speech can correct a
+Starting the microphone connects the model automatically. Finalized turns trigger requests. Later speech can correct a
 misheard name in an existing note. The transcript keeps the original recognition text.
 
 ## Run the standalone example
@@ -22,7 +22,8 @@ connection. A public host should supply anonymous admission through its own prox
 
 The dev server serves the packaged worker/WASM assets and cross-origin isolation headers.
 Click **Start listening** to load the recognizer and request microphone access. Audio stays on-device.
-Click **Start notes** to send this visit's transcript text and existing outline to your model endpoint.
+Once listening starts, the example connects to your model endpoint and sends finalized transcript
+turns with the existing outline. A hosted connection may require browser verification first.
 
 ## Embed the example
 
@@ -31,7 +32,7 @@ component accepts `connect` and `renderModelControls` and uses the host's `Galle
 source paths live in Katakit. A host can consume them through an exact source pin without
 publishing a demo package. Without a connection, the public gallery still demonstrates transcription.
 
-`renderModelControls` receives the notes connection buttons and errors. A host can return a React
+`renderModelControls` receives connection status, retry buttons, and errors. A host can return a React
 portal into `GallerySpeechControls`' children slot, alongside its own verification widget and usage
 display. Without this callback, controls render above the outline. Usage is host-owned and measured
 in requests. Errors and allowance never become note content.
@@ -58,8 +59,10 @@ import { App } from './src/App';
 />;
 ```
 
-`connect` runs after Start notes. It may run again on an explicit connection retry or
-session restart. Stop/start reuses the connection. The host owns authorization and transport errors.
+`connect` runs once the microphone is listening, never on page load, model download, or pending
+microphone permission. It may run again on an explicit connection retry or session restart.
+Stop/start reuses admission and the connection, including failed or exhausted sessions.
+Stopping capture still lets its final turns produce notes. The host owns authorization and transport errors.
 `NotesRequestError` supplies bounded retry, terminal, and explicit restart policies.
 Quota exhaustion should be terminal and never clearable. Only a context-limit failure is clearable.
 An optional `reportFailure` callback receives `NotesRequestError` after transport or validation

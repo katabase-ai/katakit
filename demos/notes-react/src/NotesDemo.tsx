@@ -1,17 +1,19 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import Markdown from 'react-markdown';
 import type { createNotesDemo } from './createNotesDemo';
 import { NotesRequestError, type NotesConnection } from './notesModel';
 import './style.css';
 
-/** Local speech remains independent; only an explicit notes action invokes the host connection. */
+/** Listening starts admission once per visit; failures require an explicit retry. */
 export const NotesDemo = ({
   runtime,
+  listening,
   connect,
   controls,
   renderModelControls = controls => controls,
 }: {
   runtime: ReturnType<typeof createNotesDemo>;
+  listening: boolean;
   connect?: (input: { signal: AbortSignal }) => Promise<NotesConnection>;
   controls?: ReactNode;
   /** A gallery host can place model controls beside its shared microphone controls. */
@@ -20,9 +22,10 @@ export const NotesDemo = ({
   const [transcript, setTranscript] = useState(() => runtime.state$.get());
   const { notes } = transcript;
   const [connecting, setConnecting] = useState(false);
-  const [attempted, setAttempted] = useState(false);
   const [admissionError, setAdmissionError] = useState<NotesRequestError>();
-  const owner = useRef<{ lifetime: AbortController; connecting: boolean } | undefined>(undefined);
+  const owner = useRef<
+    { lifetime: AbortController; connecting: boolean; attempted: boolean } | undefined
+  >(undefined);
   const transcriptView = useRef<HTMLDivElement>(null);
 
   useLayoutEffect(() => {
@@ -33,7 +36,7 @@ export const NotesDemo = ({
   useEffect(() => {
     const subscription = runtime.state$.subscribe(setTranscript);
     const lifetime = new AbortController();
-    owner.current = { lifetime, connecting: false };
+    owner.current = { lifetime, connecting: false, attempted: false };
     return () => {
       owner.current = undefined;
       lifetime.abort();
@@ -43,11 +46,11 @@ export const NotesDemo = ({
     };
   }, [runtime]);
 
-  const connectModel = async () => {
+  const connectModel = useCallback(async () => {
     const current = owner.current;
     if (!current || current.connecting || !connect) return;
     current.connecting = true;
-    setAttempted(true);
+    current.attempted = true;
     setConnecting(true);
     setAdmissionError(undefined);
     try {
@@ -66,18 +69,19 @@ export const NotesDemo = ({
       current.connecting = false;
       if (owner.current === current) setConnecting(false);
     }
-  };
+  }, [connect, runtime]);
+
+  useEffect(() => {
+    // Keep admission and the connection through stop/drain so the last turn can produce notes.
+    // Stop/start and host rerenders must not retry failed admission or replace the allowance.
+    if (listening && !owner.current?.attempted) void connectModel();
+  }, [listening, connectModel]);
 
   const turns = transcript.current ? [...transcript.turns, transcript.current] : transcript.turns;
   const failure = admissionError ?? notes.failure;
   const modelControls = (
     <section className="structured-notes-model-controls" aria-label="Notes connection">
       <h2>Notes model</h2>
-      {!attempted && (
-        <button type="button" onClick={() => void connectModel()} disabled={!connect}>
-          Start notes
-        </button>
-      )}
       <div role="status" aria-live="polite">
         {connecting && <p>Connecting notes…</p>}
         {failure && <p>{failure.message || 'Notes are delayed. Try again.'}</p>}
@@ -109,8 +113,8 @@ export const NotesDemo = ({
         you finish each thought.
       </p>
       <p className="structured-notes-hint">
-        Start listening, then choose Start notes. Audio stays on this device; notes send transcript
-        text to a model provider.
+        Start listening to generate notes automatically. Audio stays on this device; notes send
+        transcript text to a model provider.
       </p>
       {controls}
       {renderModelControls(modelControls)}

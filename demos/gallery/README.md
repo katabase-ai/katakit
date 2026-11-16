@@ -66,8 +66,9 @@ separate histories, final-result ordering, timer cleanup, model retention/replac
 attachments, load retry, and Strict Mode cleanup. Standalone entry points own local capture using
 the same instance-owned views; they do not import this gallery.
 
-The notes entry accepts a `connect` prop for the host's model admission/transport. **Start notes**
-invokes it explicitly; shared microphone actions alone never send transcripts. The notes view
+The notes entry accepts a `connect` prop for the host's model admission/transport. It invokes the
+connection automatically once the shared microphone is listening. Stop/start reuses that admission;
+connection failures require an explicit retry. The notes view
 aborts admission and model work on unmount before its capture drains. Its runtime closes the
 notes effect stream explicitly. See [the notes example](../notes-react/README.md) for the contract.
 
