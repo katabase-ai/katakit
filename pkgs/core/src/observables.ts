@@ -1,4 +1,4 @@
-import { type Observable } from 'rxjs';
+import { takeUntil, type Observable } from 'rxjs';
 import { type ConfiguredKatakitPlugin, type KatakitPlugin } from './plugin';
 import { assert } from './utils/assert';
 
@@ -24,8 +24,24 @@ export const makeGetObservables = ({
     if (cached) return cached as TObservables;
 
     const observables = found.observables({ getObservables });
-    observablesByPlugin.set(found, observables);
-    return observables;
+
+    const observablesWithLifecycle =
+      found.type === 'KatakitLifecycle'
+        ? Object.fromEntries(
+            Object.entries(observables).map(([key, observable]) => [
+              key,
+              (observable as Observable<unknown>).pipe(
+                takeUntil(
+                  getObservables(found as ConfiguredKatakitPlugin<{ stop$: Observable<void> }, {}>)
+                    .stop$
+                )
+              ),
+            ])
+          )
+        : observables;
+
+    observablesByPlugin.set(found, observablesWithLifecycle);
+    return observablesWithLifecycle;
   };
   return getObservables;
 };

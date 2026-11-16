@@ -1,4 +1,4 @@
-import { type Observable } from 'rxjs';
+import { takeUntil, type Observable } from 'rxjs';
 import { type GetMethods } from './methods';
 import { type GetObservables } from './observables';
 import { type ConfiguredKatakitPlugin } from './plugin';
@@ -6,6 +6,7 @@ import {
   subscribeWithBackpressure,
   type BackpressureStrategy,
 } from './utils/reactive/backpressure';
+import { KatakitLifecyclePlugin } from './plugins/KatakitLifecycle/plugin';
 
 /**
  * Brand symbol on `Effect<T>` --
@@ -38,6 +39,7 @@ export const startEffects = ({
   getObservables: GetObservables;
   getMethods: GetMethods;
 }) => {
+  const stop$ = getObservables(KatakitLifecyclePlugin).stop$;
   for (const plugin of plugins) {
     for (const effect of plugin.effects({
       observables: getObservables(plugin),
@@ -45,7 +47,11 @@ export const startEffects = ({
       getObservables,
       getMethods,
     })) {
-      subscribeWithBackpressure(effect.backpressure, effect.on, effect.handler);
+      subscribeWithBackpressure(
+        effect.backpressure,
+        effect.on.pipe(takeUntil(stop$)),
+        effect.handler
+      );
     }
   }
 };
