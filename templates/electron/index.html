@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="A local Electron starter that sends a typed note through Katakit's event log." />
+    <title>Katakit Electron starter</title>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="header">
+        <span class="brand">Katakit</span>
+        <span class="platform">Electron starter</span>
+      </header>
+      <section class="workspace" aria-labelledby="title">
+        <h1 id="title">A note, kept in the log.</h1>
+        <p class="intro">Submit a line to the Katakit event log. This example stays on your device.</p>
+        <form id="note-form" novalidate>
+          <label for="note-input">Note</label>
+          <div class="entry">
+            <input id="note-input" type="text" maxlength="300" value="Follow up on the next step" autocomplete="off" />
+            <button type="submit">Add note</button>
+          </div>
+        </form>
+        <p id="status" role="status" aria-live="polite"></p>
+        <section aria-labelledby="history-title" class="history">
+          <h2 id="history-title">This session</h2>
+          <p id="empty">No notes yet. Add the sample note above.</p>
+          <ol id="notes"></ol>
+        </section>
+      </section>
+      <footer>In memory only. Closing this window clears the list.</footer>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
