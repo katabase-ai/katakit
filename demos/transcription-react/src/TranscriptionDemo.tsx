@@ -12,9 +12,13 @@ const formatTime = (ms?: number) => {
 export const TranscriptionDemo = ({
   runtime,
   controls,
+  introduction,
+  afterFirstSpeech,
 }: {
   runtime: ReturnType<typeof createTranscriptionDemo>;
-  controls: ReactNode;
+  controls?: ReactNode;
+  introduction?: ReactNode;
+  afterFirstSpeech?: ReactNode;
 }) => {
   const [snapshot, setSnapshot] = useState(() => runtime.state$.getValue());
   useEffect(() => {
@@ -26,8 +30,12 @@ export const TranscriptionDemo = ({
   return (
     <section className="workspace transcription-demo" aria-labelledby="title">
       <div className="intro">
-        <h1 id="title">Conversation, in text.</h1>
-        <p>Record in your browser. Read each conversation turn as it finishes.</p>
+        {introduction ?? (
+          <>
+            <h1 id="title">Conversation, in text.</h1>
+            <p>Record in your browser. Read each conversation turn as it finishes.</p>
+          </>
+        )}
       </div>
 
       {controls}
@@ -65,6 +73,7 @@ export const TranscriptionDemo = ({
           </div>
         )}
       </section>
+      {(turns.length > 0 || Boolean(provisional)) && afterFirstSpeech}
       <footer>
         English-only models. Audio stays in this browser. Leaving this demo clears its transcript.
       </footer>

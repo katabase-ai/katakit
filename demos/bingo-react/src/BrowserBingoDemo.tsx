@@ -9,7 +9,7 @@ export const BrowserBingoDemo = ({
   controls,
 }: {
   runtime: ReturnType<typeof createBrowserBingoDemo>;
-  controls: ReactNode;
+  controls?: ReactNode;
 }) => {
   const [snapshot, setSnapshot] = useState(() => runtime.state$.getValue());
   const [packId, setPackId] = useState<BingoPackId>('meeting');
@@ -75,7 +75,7 @@ export const BrowserBingoDemo = ({
             ))}
           </div>
         </section>
-        <aside className="bingo-controls" aria-label="Conversation input">
+        <aside className="bingo-controls" aria-label="Bingo controls">
           <div className="bingo-pack-picker">
             <SelectField
               id="bingo-pack"

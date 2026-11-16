@@ -5,8 +5,9 @@
 export const galleryDemoDetails = [
   {
     id: 'transcription',
-    title: 'Conversation transcription',
-    description: 'Record speech and see conversation turns transcribed locally in your browser.',
+    title: 'Local transcription',
+    description:
+      'Set up local speech recognition, test your microphone, and learn the shared controls.',
     capabilities: ['microphone', 'localTranscription'],
   },
   {

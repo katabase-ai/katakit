@@ -1,7 +1,7 @@
 import { lazy } from 'react';
 import { galleryDemoDetails } from './galleryDemoDetails';
 import { GalleryDemo } from './GalleryDemo';
-import type { GalleryModelSelect } from './GallerySpeechControls';
+import { TranscriptionIntroduction, TranscriptionSetupComplete } from './TranscriptionIntroduction';
 
 // Named entries let another host import only its selected demos. Lazy construction is inert,
 // so unused eligible entries can be removed without retaining their module loaders.
@@ -13,12 +13,15 @@ export const transcriptionGalleryDemo = {
       import('../../transcription-react/src/createTranscriptionDemo'),
     ]);
     return {
-      default: ({ renderModelSelect }: { renderModelSelect?: GalleryModelSelect }) => (
+      default: () => (
         <GalleryDemo
           create={createTranscriptionDemo}
-          renderModelSelect={renderModelSelect}
-          render={(runtime, controls) => (
-            <TranscriptionDemo runtime={runtime} controls={controls} />
+          render={runtime => (
+            <TranscriptionDemo
+              runtime={runtime}
+              introduction={<TranscriptionIntroduction />}
+              afterFirstSpeech={<TranscriptionSetupComplete />}
+            />
           )}
         />
       ),
@@ -33,11 +36,10 @@ export const bingoGalleryDemo = {
       import('../../bingo-react/src/createBrowserBingoDemo'),
     ]);
     return {
-      default: ({ renderModelSelect }: { renderModelSelect?: GalleryModelSelect }) => (
+      default: () => (
         <GalleryDemo
           create={createBrowserBingoDemo}
-          renderModelSelect={renderModelSelect}
-          render={(runtime, controls) => <BrowserBingoDemo runtime={runtime} controls={controls} />}
+          render={runtime => <BrowserBingoDemo runtime={runtime} />}
         />
       ),
     };
