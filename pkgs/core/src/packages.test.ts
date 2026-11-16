@@ -182,7 +182,9 @@ describe('published packages', () => {
         const props: Parameters<typeof DevTools>[0] = { runtime, store };
         const mountWithoutJSX = (container: HTMLElement) => {
           const handle = mountDevTools(container, props);
-          handle.update({ transcript: undefined });
+          handle.update({ transcript: undefined, popout: false });
+          const opened: boolean = handle.popOut();
+          handle.dock();
           handle.unmount();
         };
         const shutdown: Promise<void> = runtime.getMethods(PersistencePlugin).kill();

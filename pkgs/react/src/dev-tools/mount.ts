@@ -3,16 +3,22 @@
 import { createElement } from 'react';
 import { createRoot } from 'react-dom/client';
 import { DevTools, type DevToolsProps } from './index';
+import { createWorkbenchSurface, WorkbenchSurfaceContext } from './surface';
 
 export { createDevToolsStore } from './store';
 export type { DevToolsStore } from './store';
 export type { DevToolsProps } from './index';
 export type { TranscriptInspection } from './TranscriptView';
+export type { DevToolsPopoutOptions } from './surface';
 
 /** Lifecycle handle for a workbench mounted without a host React tree. */
 export type MountedDevTools = {
   /** Update the transcript binding or host-owned microphone state without resetting the view or drafts. */
-  update: (options: Pick<DevToolsProps, 'transcript'>) => void;
+  update: (options: Pick<DevToolsProps, 'transcript' | 'popout'>) => void;
+  /** Open or focus the popout synchronously from a user gesture. Returns false if disabled, blocked, or unavailable. */
+  popOut: () => boolean;
+  /** Return the same workbench to its original container, preserving its UI state. */
+  dock: () => void;
   /** Release the React root and inspection subscriptions and remove only the owned child element. Idempotent. */
   unmount: () => void;
 };
@@ -32,14 +38,29 @@ export const mountDevTools = (container: HTMLElement, options: DevToolsProps): M
     throw new Error('A developer workbench is already mounted in this container');
   const element = container.ownerDocument.createElement('div');
   container.append(element);
+  const surface = createWorkbenchSurface(container.ownerDocument);
   const root = createRoot(element);
   let mounted = true;
   let props = { ...options };
+  const render = () =>
+    root.render(
+      createElement(
+        WorkbenchSurfaceContext.Provider,
+        { value: surface },
+        createElement(DevTools, props)
+      )
+    );
   const handle: MountedDevTools = {
+    popOut: () => mounted && surface.popOut(props.popout),
+    dock: () => {
+      if (mounted) surface.dock();
+    },
     update: next => {
       if (!mounted) throw new Error('Cannot update an unmounted developer workbench');
       if ('transcript' in next) props = { ...props, transcript: next.transcript };
-      root.render(createElement(DevTools, props));
+      if ('popout' in next) props = { ...props, popout: next.popout };
+      if (props.popout === false) surface.dock();
+      render();
     },
     unmount: () => {
       if (!mounted) return;
@@ -47,12 +68,13 @@ export const mountDevTools = (container: HTMLElement, options: DevToolsProps): M
       try {
         root.unmount();
       } finally {
+        surface.dispose();
         element.remove();
         mounts.delete(container);
       }
     },
   };
   mounts.set(container, handle);
-  root.render(createElement(DevTools, props));
+  render();
   return handle;
 };

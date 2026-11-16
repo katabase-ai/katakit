@@ -1,6 +1,23 @@
 'use client';
 
-import { useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import {
+  useContext,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
+import { createPortal } from 'react-dom';
+import {
+  createWorkbenchSurface,
+  getInlineSnapshot,
+  subscribeInline,
+  WorkbenchSurfaceContext,
+  type WorkbenchSurface,
+  type DevToolsPopoutOptions,
+} from './surface';
 import type { AliveKatakit } from '@katakit/core';
 import { ActivityView } from './ActivityView';
 import { StateView } from './StateView';
@@ -20,15 +37,38 @@ import {
 export { createDevToolsStore } from './store';
 export type { DevToolsStore, DevToolsSnapshot, ActivityEntry, InspectedValue } from './store';
 export type { TranscriptInspection } from './TranscriptView';
+export type { DevToolsPopoutOptions } from './surface';
 
 export type DevToolsProps = {
   runtime: AliveKatakit;
   store: DevToolsStore;
   transcript?: TranscriptInspection;
+  /** Popout controls are enabled by default. Supply a host window factory, or false to disable. */
+  popout?: DevToolsPopoutOptions | false;
 };
 
-/** Inline workbench. Host-owned capture remains attached while the panel is collapsed. */
-export const DevTools = ({ runtime, store, transcript }: DevToolsProps) => {
+/** Inline or popped-out workbench. Capture and UI state survive docking and window changes. */
+export const DevTools = ({ runtime, store, transcript, popout }: DevToolsProps) => {
+  const anchor = useRef<HTMLDivElement>(null);
+  const providedSurface = useContext(WorkbenchSurfaceContext);
+  const [surface, setSurface] = useState<WorkbenchSurface | undefined>(providedSurface);
+  useLayoutEffect(() => {
+    if (!anchor.current) return;
+    const current = providedSurface ?? createWorkbenchSurface(anchor.current.ownerDocument);
+    current.attach(anchor.current);
+    setSurface(current);
+    return () => {
+      if (!providedSurface) current.dispose();
+    };
+  }, [providedSurface]);
+  const windowState = useSyncExternalStore(
+    surface?.subscribe ?? subscribeInline,
+    surface?.getSnapshot ?? getInlineSnapshot,
+    getInlineSnapshot
+  );
+  useEffect(() => {
+    if (popout === false) surface?.dock();
+  }, [popout, surface]);
   const [open, setOpen] = useState(false);
   const [pluginType, setPluginType] = useState('all');
   const [view, setView] = useState('activity');
@@ -40,16 +80,36 @@ export const DevTools = ({ runtime, store, transcript }: DevToolsProps) => {
     [inventory, pluginType]
   );
   const spans = snapshot.activity.filter(entry => entry.kind !== 'emission').length;
-  return (
-    <Collapsible className="kk-devtools kk-workbench" open={open} onOpenChange={setOpen}>
+  const content = (
+    <Collapsible
+      className="kk-devtools kk-workbench"
+      open={open || windowState.detached}
+      onOpenChange={setOpen}
+    >
       <header className="kk-workbench-header">
-        <CollapsibleTrigger render={<Button />}>
-          <span className="kk-live-dot" />
-          {open ? 'Hide developer workbench' : 'Open developer workbench'}
-        </CollapsibleTrigger>
+        {windowState.detached ? (
+          <strong>Developer workbench</strong>
+        ) : (
+          <CollapsibleTrigger render={<Button />}>
+            <span className="kk-live-dot" />
+            {open ? 'Hide developer workbench' : 'Open developer workbench'}
+          </CollapsibleTrigger>
+        )}
         <span className="kk-capture-status">Capturing · {snapshot.activity.length} retained</span>
         <Button onClick={store.clear}>Clear captured history</Button>
+        {windowState.detached ? (
+          <Button onClick={surface?.dock}>Dock workbench</Button>
+        ) : (
+          popout !== false && (
+            <Button onClick={() => surface?.popOut(popout)}>Pop out workbench</Button>
+          )
+        )}
       </header>
+      {windowState.error && (
+        <p role="alert" className="kk-window-error">
+          {windowState.error}
+        </p>
+      )}
       <CollapsibleContent keepMounted>
         <div className="kk-workbench-layout">
           <nav className="kk-plugin-nav" aria-label="Runtime plugins">
@@ -112,5 +172,17 @@ export const DevTools = ({ runtime, store, transcript }: DevToolsProps) => {
         </footer>
       </CollapsibleContent>
     </Collapsible>
+  );
+  return (
+    <div ref={anchor} tabIndex={-1}>
+      {windowState.detached && (
+        <div className="kk-devtools kk-popout-placeholder" role="status">
+          <span>Developer workbench is open in a separate window. Capture continues.</span>
+          <Button onClick={surface?.focus}>Focus workbench window</Button>
+          <Button onClick={surface?.dock}>Dock workbench</Button>
+        </div>
+      )}
+      {surface && createPortal(content, surface.element)}
+    </div>
   );
 };

@@ -581,3 +581,18 @@
     grid-template-columns: 135px minmax(80px, 1fr);
   }
 }
+
+.kk-popout-placeholder {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 24px 0;
+  padding: 12px;
+  border: 1px solid #394148;
+  border-radius: 10px;
+}
+.kk-window-error {
+  padding: 10px 14px;
+  color: #ffd1a3;
+}

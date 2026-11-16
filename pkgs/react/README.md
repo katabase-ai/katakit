@@ -3,7 +3,8 @@
 The optional `@katakit/react/dev-tools` entry point provides an inline developer
 workbench for a started runtime: activity timeline, observable values, declared
 methods and effects, and optional transcript input. The root entry point does not
-load the workbench.
+load the workbench. Its Pop out and Dock controls move the existing workbench
+between the application and a separate window, preserving capture and UI state.
 
 ```tsx
 import { DevTools, createDevToolsStore } from '@katakit/react/dev-tools';
@@ -24,6 +25,9 @@ import { mountDevTools } from '@katakit/react/dev-tools/mount';
 import '@katakit/react/dev-tools.css';
 
 const workbench = mountDevTools(container, { runtime: running, store });
+// From a user gesture, optionally open/focus a separate window:
+workbench.popOut();
+workbench.dock();
 // When the host panel closes:
 workbench.unmount();
 ```

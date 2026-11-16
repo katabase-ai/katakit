@@ -8,9 +8,11 @@ export const CopyValue = ({ value }: { value: string }) => {
   const [status, setStatus] = useState('Copy');
   return (
     <Button
-      onClick={async () => {
+      onClick={async event => {
         try {
-          await navigator.clipboard.writeText(value);
+          const clipboard = event.currentTarget.ownerDocument.defaultView?.navigator.clipboard;
+          if (!clipboard) throw new Error('Clipboard unavailable');
+          await clipboard.writeText(value);
           setStatus('Copied');
         } catch {
           setStatus('Copy unavailable');

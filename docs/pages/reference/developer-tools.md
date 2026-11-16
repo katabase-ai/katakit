@@ -3,7 +3,8 @@
 The optional React workbench expands below the application in the same window.
 It shows the running runtime's plugins, declared capabilities, observable values,
 and locally captured execution. It starts collapsed; capture continues while
-collapsed and while switching views.
+collapsed and while switching views. **Pop out workbench** moves it into a
+separate window; **Dock workbench** returns it below the application.
 
 ## Views
 
@@ -80,6 +81,63 @@ Sampling and dropped spans affect what is available to inspect.
 into queued effect handlers, but calls after native `await` need a host-supported
 async context manager or explicit context handling. See [Tracing](tracing.md) for
 the span contract and propagation limits.
+
+## Popout window
+
+**Pop out workbench** opens a separate window (or tab, according to browser/host
+policy). The inline location shows a capture indicator, a focus button, and a
+Dock button. The popout opens expanded and contains the same workbench. Closing
+it returns the workbench inline with its previous expanded/collapsed state.
+
+The existing DOM and React portal target move between documents. The runtime,
+store, subscriptions, selected view/record, filters, and input
+drafts are retained; there is no second runtime, capture connection, or microphone
+owner. Input submitted in the popout still invokes the original ingestion methods.
+Host updates to microphone status and level continue to render there.
+
+The DOM handle offers the same controls:
+
+```ts
+const workbench = mountDevTools(container, { runtime: running, store });
+
+// Call synchronously from a click or other user gesture:
+popoutButton.addEventListener('click', () => workbench.popOut());
+dockButton.addEventListener('click', () => workbench.dock());
+```
+
+`popOut()` returns true when a window was opened or an existing popout focused.
+It returns false when disabled, blocked, or unavailable, with a visible error for
+failed attempts. It never falls back to creating another runtime. Repeated calls
+focus the existing window. `dock()` is safe to repeat. Unmounting the workbench
+closes its popout; leaving the source page docks/closes it as well.
+
+The popout copies the source document's style elements and stylesheet links,
+including the imported compiled tools CSS. Constructed stylesheets are recreated
+in the new document. Head style changes are mirrored while it is open. The source
+page's base URI is retained for relative stylesheet assets; scripts and application
+DOM are not copied. Keep importing the stylesheet in the host as before.
+
+By default, the workbench calls the source window's `open()` with a blank URL.
+A blocked popup leaves the inline workbench usable. Electron and other embedded
+hosts must permit creating a same-origin, script-accessible child window. If a
+host manages its own window creation, supply a synchronous factory returning a
+new blank `Window`, or null if unavailable:
+
+```ts
+const workbench = mountDevTools(container, {
+  runtime: running,
+  store,
+  popout: { openWindow: sourceWindow => openHostWorkbenchWindow(sourceWindow) },
+});
+```
+
+The React component accepts the same `popout` option. Set `popout: false` (or
+`<DevTools popout={false} ... />`) to hide popout controls in a host that cannot
+provide this kind of window. `workbench.update({ popout: false })` also docks an
+open popout. OS window handles or windows reached only through IPC cannot be
+used by this API; native view APIs still require host integration. The popout is
+a live child of the source application, not a standalone debugger that survives
+closing or reloading it.
 
 ## Mount from plain TypeScript
 
