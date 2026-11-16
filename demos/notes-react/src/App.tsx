@@ -50,7 +50,7 @@ export const App = ({ connect }: Pick<ComponentProps<typeof NotesDemo>, 'connect
       runtime={runtime}
       connect={connect}
       controls={
-        <div className="live-notes-controls">
+        <div className="structured-notes-controls">
           <button
             type="button"
             onClick={() => void toggle()}

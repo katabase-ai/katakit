@@ -13,8 +13,10 @@ export type GalleryModelSelect = (props: {
 /** Stay mounted outside the keyed demo view, including during lazy input handoffs. */
 export const GallerySpeechControls = ({
   renderModelSelect,
+  children,
 }: {
   renderModelSelect?: GalleryModelSelect;
+  children?: ReactNode;
 }) => {
   // Fit the host header and reserve mobile space for variable-height hints and errors.
   const measureInput: RefCallback<HTMLElement> = useCallback(node => {
@@ -165,6 +167,7 @@ export const GallerySpeechControls = ({
         </p>
       )}
       <p className="gallery-processing-notice">Processed on your device.</p>
+      {children && <div className="gallery-model-controls">{children}</div>}
     </section>
   );
 };

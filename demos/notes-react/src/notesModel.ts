@@ -3,12 +3,18 @@ import { toJsonSchema } from '@valibot/to-json-schema';
 import { encode } from '@toon-format/toon';
 import type { TranscriptTurn } from '@katakit/transcript-ingestion';
 
-export type Note = { id: string; text: string; children: { id: string; text: string }[] };
+const noteText = v.pipe(v.string(), v.minLength(1), v.maxLength(500), v.regex(/\S/));
+const noteItem = v.strictObject({ id: v.string(), text: noteText });
+export const NoteSchema = v.strictObject({
+  ...noteItem.entries,
+  children: v.array(noteItem),
+});
+export type Note = v.InferOutput<typeof NoteSchema>;
 
 export const NotesResultSchema = v.strictObject({
   additions: v.array(
     v.strictObject({
-      text: v.pipe(v.string(), v.minLength(1), v.maxLength(500), v.regex(/\S/)),
+      text: noteText,
       underId: v.optional(
         v.pipe(
           v.string(),
@@ -23,7 +29,7 @@ export const NotesResultSchema = v.strictObject({
         v.string(),
         v.description('The existing note whose transcription error is settled by the conversation.')
       ),
-      text: v.pipe(v.string(), v.minLength(1), v.maxLength(500), v.regex(/\S/)),
+      text: noteText,
     })
   ),
 });
@@ -58,7 +64,7 @@ export class NotesRequestError extends Error {
 
 // These instructions are public example source, independent of any private prompt helpers.
 const systemPrompt = Object.entries({
-  role: 'You maintain concise discussion notes as one person talks.',
+  role: 'You maintain concise structured notes as one person talks.',
   context:
     'The input contains an existing outline in notes, previously processed conversation in recentTurns, and new conversation in pendingTurns. An empty outline means this is the first note-taking request.',
   task: 'Create notes for substantive pending turns, including when the existing outline is empty. Capture new substantive information and correct transcription errors in existing notes using later context.',

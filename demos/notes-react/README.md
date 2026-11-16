@@ -1,8 +1,8 @@
-# Live discussion notes
+# Structured notes
 
-This React example turns on-device speech recognition into a two-level outline. Each finalized
-conversation turn triggers a model request. Later speech can correct a misheard name in an existing
-note. The transcript keeps the original recognition text.
+This React example turns on-device speech recognition into a two-level outline rendered as Markdown.
+After Start notes, finalized conversation turns trigger model requests. Later speech can correct a
+misheard name in an existing note. The transcript keeps the original recognition text.
 
 ## Run the standalone example
 
@@ -27,9 +27,14 @@ Click **Start notes** to send this visit's transcript text and existing outline 
 ## Embed the example
 
 The gallery exports `notesGalleryDemo` from `demos/gallery/shared/galleryDemos.tsx`. Its lazy
-component accepts `connect` and uses the host's `GallerySpeechProvider`. Catalogue metadata and
+component accepts `connect` and `renderModelControls` and uses the host's `GallerySpeechProvider`. Catalogue metadata and
 source paths live in Katakit. A host can consume them through an exact source pin without
 publishing a demo package. Without a connection, the public gallery still demonstrates transcription.
+
+`renderModelControls` receives the notes connection buttons and errors. A host can return a React
+portal into `GallerySpeechControls`' children slot, alongside its own verification widget and usage
+display. Without this callback, controls render above the outline. Usage is host-owned and measured
+in requests. Errors and allowance never become note content.
 
 For a standalone embed, copy this directory and use `App`:
 
@@ -69,6 +74,21 @@ client build output. It sets local dev/preview headers; your production server o
 
 ## Behavior and verification
 
+`createNotesDemo({ initialEvents })` registers `@katakit/event-log` with `NotesEventSchema`.
+Finalized transcript turns append `transcriptTurn` events. Each validated model result appends a
+`notesUpdated` event containing the complete accepted outline, stable IDs, and processed-turn cursor.
+Clear appends `notesCleared` with the current cursor. The notes plugin derives content from these
+events. Admission, retries, cancellation, and errors remain transient.
+
+Read `runtime.events$.getAll()` to capture the event history. Validate serialized history with
+`NotesEventSchema` before supplying it as `initialEvents`. Replay restores the outline and original
+transcript without generating IDs or calling a model. An explicit connection can process turns
+remaining after the recorded cursor. The example keeps its history in memory for one visit.
+
+Markdown is a projection of the structured outline. The model still returns validated additions
+and rewords. The UI shows the last eight turns in a fixed-height, fading transcript region and
+follows the newest words. All finalized turns remain available to inference and replay.
+
 The notes plugin sends one request at a time. It retains turns that arrive during an in-flight
 request and dispatches them immediately afterward. It validates additions and rewords together
 before advancing the cursor. Clearing notes aborts the request and discards late results.
@@ -79,10 +99,13 @@ unmount releases it. Pending microphone permission is cancelled, including late 
 ## Copy outside the workspace
 
 This directory has its own TypeScript/Vite configuration and dependency manifest. While the
-Katakit libraries remain unpublished, build and pack `@katakit/core`, `@katakit/transcript-ingestion`,
-and `@katakit/transcription` from one commit. Install those tarballs in the copied directory, then
+Katakit libraries remain unpublished, build and pack `@katakit/core`, `@katakit/event-log`,
+`@katakit/transcript-ingestion`, and `@katakit/transcription` from one commit. Install those tarballs in the copied directory, then
 run `pnpm install` and `pnpm build`. Keep their versions compatible. The example's dependencies
 use ordinary versions so published libraries can replace those tarballs when available.
+The manifest also includes `react-markdown` for the outline renderer.
+With pnpm 11, use `pnpm-workspace.yaml` overrides for all four tarballs so transitive Katakit
+dependencies also resolve locally. Allow the `esbuild` install script in that file.
 
 Requests include the full outline, pending turns, and up to six preceding context turns. The
 complete UTF-8 body must fit the host's limit. Oversized input pauses instead of silently dropping

@@ -6,9 +6,12 @@ import { GalleryDemo } from './GalleryDemo';
 /** Hosts supply model admission; shared speech attaches only to this visit's runtime. */
 export const NotesGalleryDemo = ({
   connect,
-}: Pick<ComponentProps<typeof NotesDemo>, 'connect'>) => (
+  renderModelControls,
+}: Pick<ComponentProps<typeof NotesDemo>, 'connect' | 'renderModelControls'>) => (
   <GalleryDemo
     create={createNotesDemo}
-    render={runtime => <NotesDemo runtime={runtime} connect={connect} />}
+    render={runtime => (
+      <NotesDemo runtime={runtime} connect={connect} renderModelControls={renderModelControls} />
+    )}
   />
 );
