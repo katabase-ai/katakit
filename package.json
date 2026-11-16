@@ -13,9 +13,11 @@
     "prepare": "husky install",
     "test": "vitest",
     "test:ci": "vitest run --passWithNoTests",
-    "check": "pnpm format:check && pnpm lint && pnpm licenses:check && pnpm tsc && pnpm test:ci && pnpm -F @katakit/docs check && pnpm -F @katakit/docs-export test:ci && pnpm build",
+    "check": "pnpm format:check && pnpm lint && pnpm licenses:check && pnpm templates:check && pnpm tsc && pnpm test:ci && pnpm -F @katakit/docs check && pnpm -F @katakit/docs-export test:ci && pnpm build",
     "docs:export": "pnpm --filter @katakit/docs-export export",
-    "bingo:check-copy": "node scripts/check-bingo-copy.mjs"
+    "bingo:check-copy": "node scripts/check-bingo-copy.mjs",
+    "templates:check": "node scripts/check-template-manifests.mjs && node --test scripts/check-template-manifests.test.mjs",
+    "templates:copy-check": "node scripts/check-template-copy.mjs"
   },
   "devDependencies": {
     "@types/node": "24.13.3",
