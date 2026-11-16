@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "pnpm --filter @katakit/transcription build && vite --host 127.0.0.1 --port 4347 --strictPort",
     "preview": "vite preview --host 127.0.0.1 --port 4348 --strictPort",
-    "build": "pnpm --filter @katakit/transcription build && vite build",
+    "build": "vite build",
     "tsc": "tsc --noEmit",
     "test:ci": "vitest run"
   },

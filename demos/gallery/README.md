@@ -21,8 +21,11 @@ pnpm --filter @katakit/gallery preview
 ```
 
 Open <http://127.0.0.1:4348>. The built preview uses the local Workers runtime; no Cloudflare login
-is needed. There are no production routes or deployment credentials in this app. The
-`pnpm-workspace.yaml` build allowance for `workerd` installs the local runtime binary.
+is needed. There are no production routes or deployment credentials in this app.
+Use `pnpm --filter @katakit/gallery... build` to build the gallery and its upstream packages in dependency order.
+The gallery build itself does not rebuild shared assets while sibling apps may be copying them.
+
+The `pnpm-workspace.yaml` build allowance for `workerd` installs the local runtime binary.
 
 Both dev and built responses set COOP `same-origin` and COEP `require-corp`. These apply to the
 first document, including the directory. The transcription package supplies runtime files under
