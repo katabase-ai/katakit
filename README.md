@@ -43,9 +43,12 @@ The [Chrome extension template](templates/chrome-extension/README.md) is a minim
 audio-capable host. The [conversation bingo demo](demos/bingo-extension/README.md)
 shows it in use as a Chrome side-panel game.
 The [browser bingo example](demos/bingo-react/README.md) and the extension
-example each contain their own UI, styling, board state, and audio host. Each
-example README documents how to copy it outside the repository, install its
-dependencies, and run it independently.
+example each build from their own UI, styling, board state, and audio host. Shared
+example files are symlinked in the checkout; use `pnpm demo:export <name> <destination>`
+to materialize an independently copyable demo directory. Each example README
+documents installation and standalone use. On Windows, enable symlink support
+(for example, Git with Developer Mode) before building or exporting in the checkout.
+Published package licenses remain real files because package tarballs omit symlinks.
 
 ## License
 

@@ -2,8 +2,16 @@
 
 ## Standalone setup
 
-Use Node.js 24 or newer and pnpm 11.9.0. Copy this entire directory anywhere outside the
-repository; no gallery, sibling example, or shared application UI is needed.
+Use Node.js 24 or newer and pnpm 11.9.0. Export this example from the repository root:
+
+```sh
+pnpm demo:export transcription-react /path/to/transcription-react
+```
+
+The exported directory contains real files, not links to other examples; move or copy it
+anywhere. The repository uses symlinks for shared example CSS, so copying a raw demo
+directory instead of exporting it may leave broken links.
+No gallery, sibling example, or shared application UI is needed.
 React, React-RxJS, Vite, TypeScript, and the utility dependencies are declared
 in `package.json`.
 

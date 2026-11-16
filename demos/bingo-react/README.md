@@ -2,8 +2,16 @@
 
 ## Standalone setup
 
-Use Node.js 24 or newer and pnpm 11.9.0. Copy this entire directory anywhere outside the
-repository; no gallery, sibling example, or shared application UI is needed.
+Use Node.js 24 or newer and pnpm 11.9.0. Export this example from the repository root:
+
+```sh
+pnpm demo:export bingo-react /path/to/bingo-react
+```
+
+The exported directory contains real files, not links to other examples; move or copy it
+anywhere. The repository uses symlinks for shared example sources, so copying a raw demo
+directory instead of exporting it may leave broken links.
+No gallery, sibling example, or shared application UI is needed.
 React, React-RxJS, Vite, TypeScript, and the utility dependencies are declared
 in `package.json`.
 
@@ -91,10 +99,8 @@ the required headers on localhost. Static hosting must serve
 
 ## Maintaining the repository copy
 
-`demos/bingo-react/src/bingo/` is the canonical implementation. The extension
-contains an identical local copy so either example remains independently usable.
-When changing Bingo behavior, update the canonical directory and copy it to
-`demos/bingo-extension/src/bingo/`, including its tests and README. Run
-`pnpm bingo:check-copy` from the repository root; the lint check rejects missing,
-extra, or changed files in the extension copy. Standalone users can modify their
-local copy without the repository check.
+`demos/bingo-react/src/bingo/` is the canonical implementation. The extension links
+to that directory in the repository; `pnpm demo:export bingo-extension <destination>`
+materializes its own Bingo directory, including tests and README. The example CSS
+is also canonical here; `pnpm demo:check-links` checks the repository links.
+Standalone users can modify their exported copy independently.

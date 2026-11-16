@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { readFileSync, statSync } from 'node:fs';
+import { lstatSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -28,7 +28,10 @@ for (const workspacePackage of packages) {
 
   const licensePath = join(directory, 'LICENSE');
   try {
-    if (!statSync(licensePath).isFile() || readFileSync(licensePath, 'utf8') !== apacheLicense) {
+    // npm and pnpm omit symlinks from package tarballs, even when the target exists.
+    if (lstatSync(licensePath).isSymbolicLink()) {
+      errors.push(`${name}: LICENSE must be a real file (package tarballs omit symlinks)`);
+    } else if (!statSync(licensePath).isFile() || readFileSync(licensePath, 'utf8') !== apacheLicense) {
       errors.push(`${name}: LICENSE must contain the repository's Apache-2.0 license text`);
     }
   } catch (error) {
