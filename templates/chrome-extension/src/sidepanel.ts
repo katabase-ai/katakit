@@ -30,8 +30,16 @@ type CaptureMessage = {
 };
 const queued: CaptureMessage[] = [];
 
-micSetup.onclick = () => {
-  void chrome.tabs.create({ url: chrome.runtime.getURL('mic-permission.html') });
+const showMicPermission = (text: string) => {
+  micPermission.textContent = text;
+  micSetup.hidden = text === 'Microphone: enabled';
+};
+
+micSetup.onclick = async () => {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const url = new URL(chrome.runtime.getURL('mic-permission.html'));
+  if (tab?.id) url.searchParams.set('return', String(tab.id));
+  await chrome.tabs.create({ url: url.href });
 };
 
 const render = () => {
@@ -79,6 +87,7 @@ const showDiagnostics = (message: CaptureMessage) => {
   recognition.textContent = `Recognizer: ${message.ready ? 'ready' : 'loading'}, ${message.provisional ?? 0} provisional updates, ${message.final ?? 0} finalized lines`;
 };
 const receive = (message: CaptureMessage) => {
+  if (message.type === 'MIC_PERMISSION_GRANTED') showMicPermission('Microphone: enabled');
   if (message.type === 'TRANSCRIPT_SEGMENT' && message.segment) session.onFinal(message.segment);
   if (message.type === 'TRANSCRIPT_STOP') session.onStop();
   if (message.type === 'CAPTURE_DIAGNOSTICS') showDiagnostics(message);
@@ -113,9 +122,17 @@ void (async () => {
     const segments = (saved.segments ?? []) as Parameters<typeof session.onFinal>[0][];
     for (const segment of segments) session.onFinal(segment);
     session.onStop();
-    if (typeof saved.micPermission === 'string') micPermission.textContent = saved.micPermission;
+    if (typeof saved.micPermission === 'string') showMicPermission(saved.micPermission);
     if (saved.diagnostics) receive({ type: 'CAPTURE_DIAGNOSTICS', ...saved.diagnostics });
     if (capture) receive({ type: 'CAPTURE_STATUS', ...capture });
+    try {
+      const permission = await navigator.permissions.query({
+        name: 'microphone' as PermissionName,
+      });
+      if (permission.state === 'granted') showMicPermission('Microphone: enabled');
+    } catch {
+      // Permission queries are advisory; Start still checks the actual mic request.
+    }
   } catch (error) {
     show(`Could not restore transcript: ${String(error)}`);
   } finally {
@@ -133,17 +150,19 @@ button.onclick = async () => {
       inputLevels.textContent = 'Input levels: waiting for capture';
       pcm.textContent = 'PCM: waiting for capture';
       recognition.textContent = 'Recognizer: waiting for capture';
-      micPermission.textContent = 'Microphone request: checking…';
+      showMicPermission('Microphone: checking…');
       try {
         // Chrome's hidden offscreen page cannot show the first mic permission
         // prompt. Grant it in this visible extension page, then release this
         // temporary stream; the offscreen page opens its own stream afterward.
         const permission = await navigator.mediaDevices.getUserMedia({ audio: true });
         permission.getTracks().forEach(track => track.stop());
-        micPermission.textContent = 'Microphone request: granted';
+        showMicPermission('Microphone: enabled');
       } catch (error) {
         // Microphone is optional: tab-only recording must still work.
-        micPermission.textContent = `Microphone request: unavailable (${error instanceof Error ? error.name : 'unknown error'})`;
+        showMicPermission(
+          `Microphone: unavailable (${error instanceof Error ? error.name : 'unknown error'}). Use Enable microphone above to grant access.`
+        );
       }
       try {
         await chrome.storage.session.set({ micPermission: micPermission.textContent });

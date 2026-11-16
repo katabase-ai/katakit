@@ -13,7 +13,7 @@ vi.mock('./kit', () => ({
 
 let receive: (message: object) => void;
 let button: { disabled: boolean; textContent: string; onclick?: () => Promise<void> };
-let micSetup: { onclick?: () => void };
+let micSetup: { hidden: boolean; onclick?: () => Promise<void> };
 let createTab: ReturnType<typeof vi.fn>;
 let sendMessage: ReturnType<typeof vi.fn>;
 let savedCapture: object | undefined;
@@ -25,7 +25,7 @@ beforeEach(async () => {
   vi.resetModules();
   savedCapture = undefined;
   button = { disabled: false, textContent: 'Start recording' };
-  micSetup = {};
+  micSetup = { hidden: false };
   createTab = vi.fn(async () => ({}));
   const clear = { disabled: true };
   const list = { replaceChildren: vi.fn() };
@@ -52,7 +52,7 @@ beforeEach(async () => {
     return { ok: true };
   });
   vi.stubGlobal('chrome', {
-    tabs: { create: createTab },
+    tabs: { create: createTab, query: vi.fn(async () => [{ id: 42 }]) },
     storage: {
       session: { get: vi.fn(async () => ({ capture: savedCapture })), set: vi.fn(async () => {}) },
     },
@@ -77,7 +77,8 @@ test('a duplicate Start restores the running state so Stop remains available', a
   });
   await button.onclick?.();
   expect(button.textContent).toBe('Stop recording');
-  expect(fields['#mic-permission'].textContent).toBe('Microphone request: granted');
+  expect(fields['#mic-permission'].textContent).toBe('Microphone: enabled');
+  expect(micSetup.hidden).toBe(true);
   await button.onclick?.();
   expect(sendMessage.mock.calls.map(([message]) => message.type)).toEqual([
     'START_CAPTURE',
@@ -108,10 +109,14 @@ test('denied microphone still starts tab-only capture', async () => {
   expect(sendMessage.mock.calls[0]?.[0]).toEqual({ type: 'START_CAPTURE' });
   expect(button.textContent).toBe('Stop recording');
   expect(fields['#mic-permission'].textContent).toContain('Error');
-  micSetup.onclick?.();
+  expect(micSetup.hidden).toBe(false);
+  await micSetup.onclick?.();
   expect(createTab).toHaveBeenCalledWith({
-    url: 'chrome-extension://starter/mic-permission.html',
+    url: 'chrome-extension://starter/mic-permission.html?return=42',
   });
+  receive({ type: 'MIC_PERMISSION_GRANTED' });
+  expect(micSetup.hidden).toBe(true);
+  expect(fields['#mic-permission'].textContent).toBe('Microphone: enabled');
 });
 
 test('reports source levels, delivered PCM and recognizer output without transcript text', () => {

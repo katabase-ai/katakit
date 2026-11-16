@@ -1,13 +1,15 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 
-let button: { disabled: boolean; onclick?: () => Promise<void> };
+let button: { disabled: boolean; hidden: boolean; onclick?: () => Promise<void> };
 let status: { textContent: string };
 let requestMic: ReturnType<typeof vi.fn>;
 let stopTrack: ReturnType<typeof vi.fn>;
+let updateTab: ReturnType<typeof vi.fn>;
+let removeTab: ReturnType<typeof vi.fn>;
 
-beforeEach(async () => {
+beforeEach(() => {
   vi.resetModules();
-  button = { disabled: false };
+  button = { disabled: false, hidden: true };
   status = { textContent: '' };
   stopTrack = vi.fn();
   requestMic = vi.fn(async () => ({ getTracks: () => [{ stop: stopTrack }] }));
@@ -15,23 +17,34 @@ beforeEach(async () => {
     querySelector: (selector: string) => ({ '#request': button, '#status': status })[selector],
   });
   vi.stubGlobal('navigator', { mediaDevices: { getUserMedia: requestMic } });
-  await import('./mic-permission');
+  vi.stubGlobal('location', { href: 'chrome-extension://starter/mic-permission.html?return=42' });
+  updateTab = vi.fn(async () => ({}));
+  removeTab = vi.fn(async () => {});
+  vi.stubGlobal('chrome', {
+    runtime: { sendMessage: vi.fn(async () => ({})) },
+    tabs: { update: updateTab, getCurrent: vi.fn(async () => ({ id: 17 })), remove: removeTab },
+    storage: { session: { set: vi.fn(async () => {}) } },
+  });
 });
 
-test('requests permission on a visible button click and releases the temporary track', async () => {
-  expect(requestMic).not.toHaveBeenCalled();
-  await button.onclick?.();
+test('requests access on opening and returns to the original tab after a grant', async () => {
+  await import('./mic-permission');
+  await vi.waitFor(() => expect(removeTab).toHaveBeenCalledWith(17));
   expect(requestMic).toHaveBeenCalledWith({ audio: true });
   expect(stopTrack).toHaveBeenCalledOnce();
+  expect(updateTab).toHaveBeenCalledWith(42, { active: true });
   expect(button.disabled).toBe(false);
   expect(status.textContent).toContain('granted');
 });
 
 test('shows blocked permission and allows retry', async () => {
   requestMic.mockRejectedValueOnce(new DOMException('Permission denied', 'NotAllowedError'));
-  await button.onclick?.();
+  await import('./mic-permission');
+  await vi.waitFor(() => expect(status.textContent).toContain('NotAllowedError'));
+  expect(button.hidden).toBe(false);
+  expect(removeTab).not.toHaveBeenCalled();
   expect(status.textContent).toContain('NotAllowedError');
   expect(button.disabled).toBe(false);
   await button.onclick?.();
-  expect(status.textContent).toContain('granted');
+  expect(removeTab).toHaveBeenCalledWith(17);
 });
