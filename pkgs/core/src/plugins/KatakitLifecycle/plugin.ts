@@ -7,10 +7,14 @@ export const KatakitLifecyclePlugin = makeKatakitPlugin({
   observables: () => ({
     start$: new Subject<void>() as Observable<void>,
     stop$: new Subject<void>() as Observable<void>,
+    flush$: new Subject<void>() as Observable<void>,
   }),
   methods: ({ observables }) => ({
     start: () => {
       (observables.start$ as Subject<void>).next();
+    },
+    flush: () => {
+      (observables.flush$ as Subject<void>).next();
     },
     stop: () => {
       (observables.stop$ as Subject<void>).next();
