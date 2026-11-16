@@ -2,6 +2,7 @@ import { startEffects } from './effect';
 import { GetMethods, makeGetMethods } from './methods';
 import { GetObservables, makeGetObservables } from './observables';
 import { ConfiguredKatakitPlugin } from './plugin';
+import { KatakitLifecyclePlugin } from './plugins/KatakitLifecycle/plugin';
 import { assert } from './utils/assert';
 
 export type KatakitConfig<TConfiguredKatakitPlugins extends ConfiguredKatakitPlugin<any, any>[]> = {
@@ -16,14 +17,17 @@ export type Katakit = {
 export type AliveKatakit = {
   getObservables: GetObservables;
   getMethods: GetMethods;
+  stop: () => void;
 };
+
+const INTERNAL_PLUGINS = [KatakitLifecyclePlugin.configure({})] as const;
 
 export const makeKatakit = <TConfiguredKatakitPlugins extends ConfiguredKatakitPlugin<any, any>[]>(
   config: KatakitConfig<TConfiguredKatakitPlugins>
 ): Katakit => {
   const { plugins } = config;
 
-  const getObservables = makeGetObservables({ plugins });
+  const getObservables = makeGetObservables({ plugins: [...INTERNAL_PLUGINS, ...plugins] });
 
   let alive = false;
 
@@ -34,7 +38,11 @@ export const makeKatakit = <TConfiguredKatakitPlugins extends ConfiguredKatakitP
     const getMethods = makeGetMethods({ plugins, getObservables });
     startEffects({ plugins, getObservables, getMethods });
 
-    return { getObservables, getMethods };
+    const lifecycleMethods = getMethods(KatakitLifecyclePlugin);
+    lifecycleMethods.start();
+    const stop = lifecycleMethods.stop;
+
+    return { getObservables, getMethods, stop };
   };
 
   return {
