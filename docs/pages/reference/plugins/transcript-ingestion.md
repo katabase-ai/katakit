@@ -32,7 +32,7 @@ const TranscriptIngestionPlugin = makeTranscriptIngestionPlugin({
 
 The callback is invoked synchronously after the local event is published; returning `undefined` from `createEvent` skips forwarding. This is a **forward-only** integration: `conversationTurns$` derives from local events, not from the application's persisted or hydrated event log. The application must handle rehydration separately if it needs saved turns after a reload. Provisional text can be consumed locally without persisting it.
 
-`demos/transcription-react/` is an application demo, not a template; [Templates and applications](../../concepts/templates.md) explains that distinction. For a minimal text-only use of this plugin inside Obsidian, see the [Obsidian template guide](../../templates/obsidian.md).
+`demos/transcription-react/` is an application demo, not a template; [Templates and applications](../../concepts/templates.md) explains that distinction. For a minimal text-only use of this plugin inside Obsidian, see the [Obsidian starter guide](../../starters/obsidian.md).
 
 ## Microphone and model integration
 

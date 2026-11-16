@@ -1,4 +1,4 @@
-# Build with templates
+# Starters
 
 Start here when you want to copy a small Katakit application and replace one interaction with your own. Each directory under [`templates/`](https://github.com/katabase-ai/katakit/tree/main/templates) is a separate pnpm project, not part of the root workspace. Copy the **whole** directory, including `vendor/`, then follow its README. You do not need the Katakit repository to install the copy. Use Node.js 24+ and pnpm 11.9.0 unless the template README says otherwise.
 

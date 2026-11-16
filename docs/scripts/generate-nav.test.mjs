@@ -11,17 +11,6 @@ test('navigation follows the section order and uses directory READMEs as landing
       children: [{ label: 'React integration', slug: 'getting-started/react' }],
     },
     {
-      label: 'Build with templates',
-      slug: 'templates',
-      children: [
-        { label: 'Build a Chrome extension', slug: 'templates/chrome-extension' },
-        { label: 'Build an Electron desktop app', slug: 'templates/electron' },
-        { label: 'Build an MCP App card', slug: 'templates/mcp-app' },
-        { label: 'Build an Obsidian plugin', slug: 'templates/obsidian' },
-        { label: 'Build a React web app', slug: 'templates/react-web' },
-      ],
-    },
-    {
       label: 'Concepts',
       slug: 'concepts',
       children: [
@@ -30,6 +19,17 @@ test('navigation follows the section order and uses directory READMEs as landing
         { label: 'Plugins', slug: 'concepts/plugins' },
         { label: 'Runtime and lifecycle', slug: 'concepts/runtime' },
         { label: 'Templates and applications', slug: 'concepts/templates' },
+      ],
+    },
+    {
+      label: 'Starters',
+      slug: 'starters',
+      children: [
+        { label: 'Build a Chrome extension', slug: 'starters/chrome-extension' },
+        { label: 'Build an Electron desktop app', slug: 'starters/electron' },
+        { label: 'Build an MCP App card', slug: 'starters/mcp-app' },
+        { label: 'Build an Obsidian plugin', slug: 'starters/obsidian' },
+        { label: 'Build a React web app', slug: 'starters/react-web' },
       ],
     },
     {

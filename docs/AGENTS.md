@@ -1,7 +1,7 @@
 # Documentation
 
 This directory owns Katakit's authored documentation and its local Vite viewer.
-`pages/` contains Getting started, Templates, Concepts, and authored Reference pages;
+`pages/` contains Getting started, Concepts, Starters, and authored Reference pages;
 `src/` renders them; `scripts/` generates navigation and checks links.
 `../pkgs/docs-export/` combines these pages with generated API reference for
 website consumers. See [EXPORT.md](EXPORT.md) for that boundary and bundle contract.
@@ -9,7 +9,7 @@ website consumers. See [EXPORT.md](EXPORT.md) for that boundary and bundle contr
 ## Editing
 
 - Write introductions and task instructions in `pages/getting-started/`, shared
-  concepts in `pages/concepts/`, platform walkthroughs in `pages/templates/`,
+  concepts in `pages/concepts/`, platform walkthroughs in `pages/starters/`,
   and reusable API behavior, lifecycle, configuration, and examples in
   `pages/reference/`. The copied `templates/*/README.md` files own the exact
   install and run commands; docs pages explain how and why to adapt them.

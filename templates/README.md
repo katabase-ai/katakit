@@ -1,6 +1,6 @@
 # Building Katakit templates
 
-A template is a small application starter for one platform, such as the web, Electron, Obsidian, or a browser extension. Its basic path must **run Katakit**, not just capture input or display a UI. Put reusable behavior in public packages; keep platform permissions, setup, input sources, and UI in the template. A demo can show more features and need not be a minimal starter. This README is for contributors building templates; for choosing and adapting one, start with [Build with templates](../docs/pages/templates/README.md). See [Templates and applications](../docs/pages/concepts/templates.md) for the distinction.
+A template is a small application starter for one platform, such as the web, Electron, Obsidian, or a browser extension. Its basic path must **run Katakit**, not just capture input or display a UI. Put reusable behavior in public packages; keep platform permissions, setup, input sources, and UI in the template. A demo can show more features and need not be a minimal starter. This README is for contributors building templates; for choosing and adapting one, start with [Starters](../docs/pages/starters/README.md). See [Templates and applications](../docs/pages/concepts/templates.md) for the distinction.
 
 ## Copyable directory
 
@@ -26,6 +26,6 @@ Link to the [Katakit docs](../docs/pages/reference/README.md) for shared API beh
 - Run deterministic automated checks without a live microphone, provider account, or model download. Document the manual platform check and its tested version; do not imply other operating systems or app versions were tested.
 - Label controls, make them keyboard-operable where the platform permits, and show loading, permission, and error states honestly. Stop input sources and clean up resources when the example ends.
 - Check that dependencies, licenses, bundled Katakit tarballs, user-data handling, and README claims match the code. Run the repository's `pnpm check` and `pnpm templates:copy-check` before integration; the latter copies each template outside the workspace, installs it, and builds it. To check one in development, run `pnpm templates:copy-check <directory-name>`.
-- If any of these are missing, call it a **work-in-progress starter** and list the missing piece. The [template guides](../docs/pages/templates/README.md) can still link to it without promising a verified platform integration.
+- If any of these are missing, call it a **work-in-progress starter** and list the missing piece. The [starter guides](../docs/pages/starters/README.md) can still link to it without promising a verified platform integration.
 
-Copy/install/build tests alone do not prove a UI runs on its target platform. The [template guides](../docs/pages/templates/README.md) record which starters have a manual platform check and which remain provisional.
+Copy/install/build tests alone do not prove a UI runs on its target platform. The [starter guides](../docs/pages/starters/README.md) record which starters have a manual platform check and which remain provisional.

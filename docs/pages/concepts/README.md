@@ -8,4 +8,4 @@ Katakit separates a plugin's reactive state, callable methods, and effects. A ru
 - [Event history](event-history.md) explains the event-log plugin's replay and validation behavior.
 - [Persistence](persistence.md) explains the boundary between an event log and durable storage.
 
-For exact exports and options, use the [reference](../reference/README.md). For a runnable application, choose a [platform template](../templates/README.md).
+For exact exports and options, use the [reference](../reference/README.md). For a runnable application, choose a [starter](../starters/README.md).
