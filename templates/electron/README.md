@@ -23,9 +23,9 @@ The build creates `dist/` from the renderer source; Electron loads that local
 HTML file. Click **Add note** to submit the prefilled sample, then type another
 note and press Enter. To see the validation failure, submit whitespace: the
 app asks for text and keeps focus in the input. Closing the window clears the
-list. No separate development server is required. In the Katakit workspace,
-`pnpm --filter katakit-electron-starter build` also builds the template after
-installing its dependencies.
+list. No separate development server is required. Inside the Katakit repository,
+run the same commands from `templates/electron/`; templates use their own pnpm
+workspace settings, not the repository root installation.
 
 ## Where to adapt it
 

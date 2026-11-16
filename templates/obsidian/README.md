@@ -28,13 +28,10 @@ directory must match (`katakit-text-starter`). Restart Obsidian if the newly
 copied plugin does not appear immediately. Only `dist/` files are installed;
 `vendor/` and `node_modules/` are build-time dependencies, not vault assets.
 
-Inside the Katakit workspace, use `node scripts/check-template-manifests.mjs`
-and `node scripts/check-template-copy.mjs obsidian` from the repository root.
-The latter makes an independent copy and runs `pnpm install` and `pnpm build`
-there. The root `pnpm templates:check` and `pnpm templates:copy-check obsidian`
-commands also work once the workspace installation is current; when adding a
-template without updating the root lockfile, pnpm 11 may try to resolve the
-unpublished Katakit packages against npm before it starts those scripts.
+Inside the Katakit repository, run the same install, build, and test commands
+from `templates/obsidian/`; templates are not members of the root pnpm workspace.
+Run `pnpm templates:check` and `pnpm templates:copy-check obsidian` from the
+repository root to check the manifest and an independent install/build/test copy.
 
 ## How it works
 

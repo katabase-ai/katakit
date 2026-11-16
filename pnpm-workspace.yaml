@@ -1,7 +1,6 @@
 packages:
   - 'pkgs/*'
   - 'demos/*'
-  - 'templates/*'
   - 'docs'
 
 allowBuilds:
@@ -12,5 +11,5 @@ allowBuilds:
 minimumReleaseAgeExclude:
   - '@types/node@24.13.3'
 
-# Examples use ordinary version ranges so their manifests also work outside this workspace.
+# Demos use ordinary version ranges so their manifests also work outside this workspace.
 linkWorkspacePackages: true

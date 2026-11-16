@@ -26,10 +26,11 @@ try submitting an empty field: the browser requires text; without it, nothing is
 capture is desired, open an ordinary HTTP(S) tab first, click **Start capture**, and then
 **Stop capture**; on a restricted tab the start reports an error instead.
 
-Inside the Katakit workspace, `pnpm install` and
-`pnpm --filter @katakit/template-chrome-extension build` build the same directory. Run
-`pnpm templates:check` and `pnpm templates:copy-check chrome-extension` at the repository root
-to check the manifest and an independently installed copy.
+Inside the Katakit repository, run the same `pnpm install`, `pnpm build`, and `pnpm test`
+commands from `templates/chrome-extension/`; templates use their own pnpm workspace
+settings, not the repository root install. Run `pnpm templates:check` and
+`pnpm templates:copy-check chrome-extension` at the repository root to check the manifest
+and an independently installed copy.
 
 ## Adaptation and data
 

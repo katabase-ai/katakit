@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process';
-import { cpSync, lstatSync, mkdtempSync, readdirSync, rmSync } from 'node:fs';
+import { cpSync, lstatSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -44,7 +44,10 @@ for (const name of names) {
     console.log(`Checking standalone copy of templates/${name} in ${target}`);
     run(target, ['install', '--no-frozen-lockfile']);
     run(target, ['build']);
-    console.log(`Standalone copy of templates/${name} builds successfully.`);
+    if (JSON.parse(readFileSync(join(target, 'package.json'), 'utf8')).scripts?.test) {
+      run(target, ['test']);
+    }
+    console.log(`Standalone copy of templates/${name} builds and tests successfully.`);
   } finally {
     rmSync(temporary, { recursive: true, force: true });
   }

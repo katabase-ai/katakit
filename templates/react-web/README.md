@@ -16,7 +16,7 @@ pnpm dev
 
 Open the local URL Vite prints (normally http://127.0.0.1:5173/). Enter text and press **Add text**; the event appears below. A whitespace-only submission displays an error; the previous events remain. `pnpm build` produces static files in `dist/`. To deploy, host `dist/` on a static HTTPS server; no backend is needed. The development server is only for local development.
 
-In the Katakit workspace the same `pnpm --dir templates/react-web dev` command runs the UI. Standalone installation is the supported portability check; workspace installs may link packages instead of using the tarballs.
+Inside the Katakit repository, run pnpm from `templates/react-web/` to use its own bundled Katakit packages; templates are not members of the root pnpm workspace. For example, `pnpm --dir templates/react-web dev` runs the UI after installing inside that directory.
 
 ## Adaptation and data
 
