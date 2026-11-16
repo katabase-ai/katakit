@@ -22,3 +22,8 @@ recording downloads a model; microphone input and transcript remain in-browser.
 The microphone demos use `@katakit/transcription` and `transcriptionAssetsPlugin` for recognition and
 runtime assets. Deploy the generated `transcription-assets/` directory alongside the application.
 The development command builds the workspace utility before starting Vite.
+
+Hosted PR previews serve this same standalone gallery on Cloudflare Workers.
+`public/_headers` supplies the document and runtime isolation headers; the Worker
+config supplies the HTML fallback. See the repository's
+[preview setup](../../.github/PREVIEWS.md).
