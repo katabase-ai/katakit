@@ -48,6 +48,7 @@ export const App = ({ connect }: Pick<ComponentProps<typeof NotesDemo>, 'connect
   return (
     <NotesDemo
       runtime={runtime}
+      listening={input.phase === 'running'}
       connect={connect}
       controls={
         <div className="structured-notes-controls">

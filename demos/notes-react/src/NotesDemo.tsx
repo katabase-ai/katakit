@@ -1,83 +1,38 @@
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import Markdown from 'react-markdown';
-import type { createNotesDemo } from './createNotesDemo';
-import { NotesRequestError, type NotesConnection } from './notesModel';
+import { TranscriptPreview } from './TranscriptPreview';
+import { useNotesConnection } from './useNotesConnection';
 import './style.css';
 
-/** Local speech remains independent; only an explicit notes action invokes the host connection. */
+/** Listening starts admission once per visit; failures require an explicit retry. */
 export const NotesDemo = ({
   runtime,
+  listening,
   connect,
   controls,
   renderModelControls = controls => controls,
-}: {
-  runtime: ReturnType<typeof createNotesDemo>;
-  connect?: (input: { signal: AbortSignal }) => Promise<NotesConnection>;
+}: Parameters<typeof useNotesConnection>[0] & {
   controls?: ReactNode;
   /** A gallery host can place model controls beside its shared microphone controls. */
   renderModelControls?: (controls: ReactNode) => ReactNode;
 }) => {
-  const [transcript, setTranscript] = useState(() => runtime.state$.get());
-  const { notes } = transcript;
-  const [connecting, setConnecting] = useState(false);
-  const [attempted, setAttempted] = useState(false);
-  const [admissionError, setAdmissionError] = useState<NotesRequestError>();
-  const owner = useRef<{ lifetime: AbortController; connecting: boolean } | undefined>(undefined);
-  const transcriptView = useRef<HTMLDivElement>(null);
-
-  useLayoutEffect(() => {
-    const view = transcriptView.current;
-    if (view) view.scrollTop = view.scrollHeight;
-  }, [transcript.turns.length, transcript.current?.text, transcript.provisional]);
+  const [state, setState] = useState(() => runtime.state$.get());
+  const { notes, markdown } = state;
+  const { connecting, admissionError, connectModel } = useNotesConnection({
+    runtime,
+    listening,
+    connect,
+  });
 
   useEffect(() => {
-    const subscription = runtime.state$.subscribe(setTranscript);
-    const lifetime = new AbortController();
-    owner.current = { lifetime, connecting: false };
-    return () => {
-      owner.current = undefined;
-      lifetime.abort();
-      subscription.unsubscribe();
-      // Capture drains after unmount; those final turns must not start another paid request.
-      runtime.notes.close();
-    };
+    const subscription = runtime.state$.subscribe(setState);
+    return () => subscription.unsubscribe();
   }, [runtime]);
 
-  const connectModel = async () => {
-    const current = owner.current;
-    if (!current || current.connecting || !connect) return;
-    current.connecting = true;
-    setAttempted(true);
-    setConnecting(true);
-    setAdmissionError(undefined);
-    try {
-      const connection = await connect({ signal: current.lifetime.signal });
-      if (owner.current === current) {
-        runtime.notes.connect(connection);
-      }
-    } catch (error) {
-      if (owner.current === current)
-        setAdmissionError(
-          error instanceof NotesRequestError
-            ? error
-            : new NotesRequestError('Notes could not connect. Try again.')
-        );
-    } finally {
-      current.connecting = false;
-      if (owner.current === current) setConnecting(false);
-    }
-  };
-
-  const turns = transcript.current ? [...transcript.turns, transcript.current] : transcript.turns;
   const failure = admissionError ?? notes.failure;
   const modelControls = (
     <section className="structured-notes-model-controls" aria-label="Notes connection">
       <h2>Notes model</h2>
-      {!attempted && (
-        <button type="button" onClick={() => void connectModel()} disabled={!connect}>
-          Start notes
-        </button>
-      )}
       <div role="status" aria-live="polite">
         {connecting && <p>Connecting notes…</p>}
         {failure && <p>{failure.message || 'Notes are delayed. Try again.'}</p>}
@@ -109,8 +64,8 @@ export const NotesDemo = ({
         you finish each thought.
       </p>
       <p className="structured-notes-hint">
-        Start listening, then choose Start notes. Audio stays on this device; notes send transcript
-        text to a model provider.
+        Start listening to generate notes automatically. Audio stays on this device; notes send
+        transcript text to a model provider.
       </p>
       {controls}
       {renderModelControls(modelControls)}
@@ -127,28 +82,10 @@ export const NotesDemo = ({
           </p>
         )}
         <div aria-live="polite" aria-relevant="additions text">
-          <Markdown skipHtml>{transcript.markdown}</Markdown>
+          <Markdown skipHtml>{markdown}</Markdown>
         </div>
       </section>
-      <section className="structured-notes-transcript" aria-label="Transcript">
-        <h2>What you’re saying</h2>
-        <div className="structured-notes-transcript-tail" ref={transcriptView}>
-          {!turns.length && !transcript.provisional && (
-            <p className="structured-notes-empty">Your latest words appear here.</p>
-          )}
-          {turns.slice(-8).map(turn => (
-            <p key={turn.id} data-final={turn !== transcript.current}>
-              {turn.text}
-            </p>
-          ))}
-          {transcript.provisional && (
-            <p className="structured-notes-provisional">{transcript.provisional}</p>
-          )}
-        </div>
-      </section>
-      <p className="structured-notes-hint">
-        Misheard a name? Spell it out to correct the note. The transcript keeps what was heard.
-      </p>
+      <TranscriptPreview events$={runtime.transcriptEvents$} />
     </section>
   );
 };

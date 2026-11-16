@@ -16,10 +16,12 @@
     "@katakit/transcription": "0.0.0",
     "@toon-format/toon": "2.1.0",
     "@valibot/to-json-schema": "1.7.1",
+    "es-toolkit": "^1.39.8",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
     "rxjs": "^7.8.2",
+    "ts-pattern": "^5.7.1",
     "valibot": "1.4.1"
   },
   "devDependencies": {

@@ -1,7 +1,7 @@
 # Structured notes
 
 This React example turns on-device speech recognition into a two-level outline rendered as Markdown.
-After Start notes, finalized conversation turns trigger model requests. Later speech can correct a
+Starting the microphone connects the model automatically. Finalized turns trigger requests. Later speech can correct a
 misheard name in an existing note. The transcript keeps the original recognition text.
 
 ## Run the standalone example
@@ -22,7 +22,8 @@ connection. A public host should supply anonymous admission through its own prox
 
 The dev server serves the packaged worker/WASM assets and cross-origin isolation headers.
 Click **Start listening** to load the recognizer and request microphone access. Audio stays on-device.
-Click **Start notes** to send this visit's transcript text and existing outline to your model endpoint.
+Once listening starts, the example connects to your model endpoint and sends finalized transcript
+turns with the existing outline. A hosted connection may require browser verification first.
 
 ## Embed the example
 
@@ -31,7 +32,7 @@ component accepts `connect` and `renderModelControls` and uses the host's `Galle
 source paths live in Katakit. A host can consume them through an exact source pin without
 publishing a demo package. Without a connection, the public gallery still demonstrates transcription.
 
-`renderModelControls` receives the notes connection buttons and errors. A host can return a React
+`renderModelControls` receives connection status, retry buttons, and errors. A host can return a React
 portal into `GallerySpeechControls`' children slot, alongside its own verification widget and usage
 display. Without this callback, controls render above the outline. Usage is host-owned and measured
 in requests. Errors and allowance never become note content.
@@ -58,8 +59,10 @@ import { App } from './src/App';
 />;
 ```
 
-`connect` runs after Start notes. It may run again on an explicit connection retry or
-session restart. Stop/start reuses the connection. The host owns authorization and transport errors.
+`connect` runs once the microphone is listening, never on page load, model download, or pending
+microphone permission. It may run again on an explicit connection retry or session restart.
+Stop/start reuses admission and the connection, including failed or exhausted sessions.
+Stopping capture still lets its final turns produce notes. The host owns authorization and transport errors.
 `NotesRequestError` supplies bounded retry, terminal, and explicit restart policies.
 Quota exhaustion should be terminal and never clearable. Only a context-limit failure is clearable.
 An optional `reportFailure` callback receives `NotesRequestError` after transport or validation
@@ -86,8 +89,13 @@ transcript without generating IDs or calling a model. An explicit connection can
 remaining after the recorded cursor. The example keeps its history in memory for one visit.
 
 Markdown is a projection of the structured outline. The model still returns validated additions
-and rewords. The UI shows the last eight turns in a fixed-height, fading transcript region and
-follows the newest words. All finalized turns remain available to inference and replay.
+and rewords. A compact transcript preview uses about one-third of the notes' width on desktop.
+Each live word fades through a CSS animation and expires within twenty seconds. Words received
+together disappear in sequence across at most four seconds. Provisional corrections and finalization
+preserve each word's age. The preview has no scrolling or spatial fade mask.
+
+Display timing comes from live ingestion events, not the replayable history. Old transcript does not
+reappear on replay or after model updates. All finalized turns remain available to inference and replay.
 
 The notes plugin sends one request at a time. It retains turns that arrive during an in-flight
 request and dispatches them immediately afterward. It validates additions and rewords together
@@ -103,7 +111,8 @@ Katakit libraries remain unpublished, build and pack `@katakit/core`, `@katakit/
 `@katakit/transcript-ingestion`, and `@katakit/transcription` from one commit. Install those tarballs in the copied directory, then
 run `pnpm install` and `pnpm build`. Keep their versions compatible. The example's dependencies
 use ordinary versions so published libraries can replace those tarballs when available.
-The manifest also includes `react-markdown` for the outline renderer.
+The manifest includes `react-markdown` for rendering, `ts-pattern` for exhaustive event handling,
+and `es-toolkit` for abortable retry delays and word-expiry selection.
 With pnpm 11, use `pnpm-workspace.yaml` overrides for all four tarballs so transitive Katakit
 dependencies also resolve locally. Allow the `esbuild` install script in that file.
 
