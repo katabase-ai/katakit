@@ -22,6 +22,7 @@ const packages = [
   'transcript-ingestion',
   'transcription',
   'react',
+  'bingo',
 ];
 const walk = (node, visit) => {
   visit(node);
