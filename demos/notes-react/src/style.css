@@ -1,0 +1,66 @@
+.live-notes {
+  color: inherit;
+  font: inherit;
+}
+.live-notes-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+.live-notes button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid currentColor;
+  border-radius: 0.5rem;
+  background: transparent;
+}
+.live-notes button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+.live-notes button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+.live-notes-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+}
+.live-notes-columns > section {
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 0.75rem;
+  padding: 1.25rem;
+  overflow-wrap: anywhere;
+}
+.live-notes h2 {
+  font-size: 1.2rem;
+  margin: 0 0 1rem;
+}
+.live-notes p,
+.live-notes li {
+  line-height: 1.6;
+}
+.live-notes li {
+  margin: 0.6rem 0;
+}
+.live-notes ul {
+  padding-left: 1.3rem;
+}
+.live-notes-empty,
+.live-notes-provisional {
+  opacity: 0.65;
+}
+.live-notes-provisional {
+  font-style: italic;
+}
+@media (max-width: 640px) {
+  .live-notes-columns {
+    grid-template-columns: 1fr;
+  }
+}

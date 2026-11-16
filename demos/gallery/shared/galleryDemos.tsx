@@ -45,4 +45,10 @@ export const bingoGalleryDemo = {
     };
   }),
 };
-export const galleryDemos = [transcriptionGalleryDemo, bingoGalleryDemo];
+export const notesGalleryDemo = {
+  ...galleryDemoDetails[2],
+  component: /* @__PURE__ */ lazy(async () => ({
+    default: (await import('./NotesGalleryDemo')).NotesGalleryDemo,
+  })),
+};
+export const galleryDemos = [transcriptionGalleryDemo, bingoGalleryDemo, notesGalleryDemo];

@@ -15,3 +15,14 @@ Methods are created on demand. Once created, methods from different plugins can 
 Configuration can transform user-facing options into the options consumed by all three parts. A plugin's own observables and methods are reused within one runtime rather than reconstructed for each lookup.
 
 For types and factory parameters, see [the core reference](../reference/core.md#makekatakitplugin). For concrete plugins and their options, see the [plugin catalog](../reference/plugins/README.md).
+
+## Calling a model from an effect
+
+The [live notes example](https://github.com/katabase-ai/katakit/tree/main/demos/notes-react)
+observes finalized conversation turns and sends a structured-output request through a host-supplied
+connection. The host owns admission and transport; the plugin owns its prompt, validation, and state.
+
+Its `latest` effect finishes the current request before handling the newest pending signal. The
+plugin reads accumulated turns from its processed cursor, so it retains turns received in flight.
+It advances that cursor only after validated output. Clear and close abort the request and discard
+late results. The example closes its own effect stream because the core runtime has no general stop method.

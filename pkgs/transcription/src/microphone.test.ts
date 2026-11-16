@@ -29,7 +29,7 @@ const setup = (onLevel?: (level: number) => void) => {
     }),
   };
   const capture = {
-    start: vi.fn(async () => {
+    start: vi.fn(async (_signal: AbortSignal) => {
       events.push('capture start');
     }),
     stop: vi.fn(async () => {
@@ -188,19 +188,25 @@ describe('microphone host adapter', () => {
     await expect(input.start()).rejects.toMatchObject({ code: 'disposed' });
   });
 
-  it('waits for microphone startup before disposing and releases resources once', async () => {
+  it('cancels microphone startup before disposing and releases resources once', async () => {
     const mock = setup();
     const { input, capture, model, states, onFinal, onProvisional } = mock;
-    const starting = Promise.withResolvers<void>();
-    capture.start.mockReturnValueOnce(starting.promise);
+    capture.start.mockImplementationOnce(
+      signal =>
+        new Promise((_resolve, reject) => {
+          signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+        })
+    );
     const start = input.start();
+    const cancelled = (async () => {
+      await expect(start).rejects.toMatchObject({ code: 'recognition-failed' });
+    })();
     await vi.waitFor(() => expect(capture.start).toHaveBeenCalledOnce());
     const disposal = input.dispose();
     const stateCalls = states.length;
     mock.callbacks.onFinal({ sourceId: 'late', id: '1', text: 'late' });
     mock.callbacks.onProvisional('late preview');
-    starting.resolve();
-    await Promise.all([start, disposal, input.dispose()]);
+    await Promise.all([cancelled, disposal, input.dispose()]);
     expect(states).toHaveLength(stateCalls);
     expect(capture.stop).toHaveBeenCalledOnce();
     expect(model.close).toHaveBeenCalledOnce();

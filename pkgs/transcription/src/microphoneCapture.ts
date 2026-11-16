@@ -38,12 +38,27 @@ export const createMicrophoneCapture = (
     }
   };
 
-  const start = async () => {
+  const start = async (signal: AbortSignal) => {
+    signal.throwIfAborted();
+    const cancelled = deferred<never>();
+    const abort = () => cancelled.reject(signal.reason);
+    signal.addEventListener('abort', abort, { once: true });
     try {
-      device = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // getUserMedia cannot be cancelled. Release late grants without constructing an audio graph.
+      const permission = (async () => {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        if (signal.aborted) {
+          for (const track of stream.getTracks()) track.stop();
+          signal.throwIfAborted();
+        }
+        return stream;
+      })();
+      device = await Promise.race([permission, cancelled.promise]);
+      signal.throwIfAborted();
       context = new AudioContext({ sampleRate: 16_000 });
-      if (context.state === 'suspended') await context.resume();
-      await context.audioWorklet.addModule(workletUrl);
+      if (context.state === 'suspended') await Promise.race([context.resume(), cancelled.promise]);
+      await Promise.race([context.audioWorklet.addModule(workletUrl), cancelled.promise]);
+      signal.throwIfAborted();
       source = context.createMediaStreamSource(device);
       processor = new AudioWorkletNode(context, 'transcription-microphone-capture', {
         channelCount: 1,
@@ -70,6 +85,8 @@ export const createMicrophoneCapture = (
     } catch (error) {
       await releaseAudio();
       throw error;
+    } finally {
+      signal.removeEventListener('abort', abort);
     }
   };
 
