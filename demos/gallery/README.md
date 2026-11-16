@@ -21,7 +21,7 @@ pnpm --filter @katakit/gallery preview
 ```
 
 Open <http://127.0.0.1:4348>. The built preview uses the local Workers runtime; no Cloudflare login
-is needed. There are no production routes or deployment credentials in this app.
+is needed. No Cloudflare credentials are needed for local development or preview.
 Use `pnpm --filter @katakit/gallery... build` to build the gallery and its upstream packages in dependency order.
 The gallery build itself does not rebuild shared assets while sibling apps may be copying them.
 
@@ -72,3 +72,11 @@ private website can supply its own model-select renderer without changing the pu
 The local host resolves workspace source for development. A consuming website must record its
 source SHA and actual built library dependencies, test released versions when selected, and use
 one React runtime. Gallery-only source updates do not require a library release.
+
+## Hosted PR previews
+
+GitHub Actions builds this same Start app and uploads its generated Worker configuration at
+`dist/server/wrangler.json`, including `dist/client/` and `transcription-assets/`. Direct demo
+links and unknown routes are handled by Start rather than an HTML fallback. `public/_headers`
+supplies document and runtime isolation headers. See the repository's
+[preview setup](../../.github/PREVIEWS.md).

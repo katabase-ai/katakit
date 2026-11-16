@@ -1,8 +1,9 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "katakit-gallery-local",
+  "name": "katakit-gallery-preview",
   "main": "@tanstack/react-start/server-entry",
   "compatibility_date": "2026-11-15",
   "compatibility_flags": ["nodejs_compat"],
-  "workers_dev": false,
+  "workers_dev": true,
+  "preview_urls": true,
 }

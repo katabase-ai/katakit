@@ -18,9 +18,9 @@ coverage/
 .hallmark/
 .openchamber/
 .opencode/
+.wrangler/
 npm-debug.log*
 pnpm-debug.log*
 
-# Local TanStack/Workers output
+# Local TanStack output
 .tanstack/
-.wrangler/

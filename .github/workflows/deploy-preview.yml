@@ -1,0 +1,80 @@
+name: Deploy Preview
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  preview:
+    name: ${{ matrix.site }} preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - site: Docs
+            package: '@katakit/docs'
+            config: wrangler.docs.jsonc
+          - site: Gallery
+            package: '@katakit/gallery'
+            config: demos/gallery/dist/server/wrangler.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Test preview reporting
+        run: node --test .github/scripts/*.test.mjs
+      - name: Check documentation
+        if: matrix.site == 'Docs'
+        run: pnpm -F @katakit/docs check
+      # Build the local viewers and their dependencies; Start emits the gallery Worker configuration.
+      - name: Build preview
+        run: pnpm --filter '${{ matrix.package }}...' build
+      - name: Report fork deployment limitation
+        if: github.event.pull_request.head.repo.full_name != github.repository
+        run: echo 'Fork PRs build both viewers but cannot upload previews without repository credentials.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload preview version
+        id: upload
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          WRANGLER_SEND_METRICS: 'false'
+        run: |
+          pnpm exec wrangler versions upload --config '${{ matrix.config }}' --preview-alias "pr-${PR_NUMBER}" | tee "$RUNNER_TEMP/preview-upload.log"
+      - name: Report preview result
+        if: ${{ !cancelled() && github.event.pull_request.head.repo.full_name == github.repository }}
+        uses: actions/github-script@v7
+        env:
+          PREVIEW_SITE: ${{ matrix.site }}
+          PREVIEW_STATUS: ${{ job.status }}
+        with:
+          script: |
+            const { pathToFileURL } = require('node:url');
+            const { readFileSync } = require('node:fs');
+            const { updatePreviewComment } = await import(pathToFileURL(process.env.GITHUB_WORKSPACE + '/.github/scripts/preview-comment.mjs').href);
+            const log = process.env.PREVIEW_STATUS === 'success'
+              ? readFileSync(process.env.RUNNER_TEMP + '/preview-upload.log', 'utf8')
+              : '';
+            await updatePreviewComment({ github, context, site: process.env.PREVIEW_SITE, status: process.env.PREVIEW_STATUS, log });
+
+defaults:
+  run:
+    shell: bash
