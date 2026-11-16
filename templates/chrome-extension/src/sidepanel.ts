@@ -93,9 +93,20 @@ void (async () => {
 })();
 button.onclick = async () => {
   button.disabled = true;
-  show(recording ? 'Stopping recording…' : 'Loading speech model…');
+  show(recording ? 'Stopping recording…' : 'Starting capture…');
   try {
     const action = recording ? 'STOP_CAPTURE' : 'START_CAPTURE';
+    if (action === 'START_CAPTURE') {
+      try {
+        // Chrome's hidden offscreen page cannot show the first mic permission
+        // prompt. Grant it in this visible extension page, then release this
+        // temporary stream; the offscreen page opens its own stream afterward.
+        const permission = await navigator.mediaDevices.getUserMedia({ audio: true });
+        permission.getTracks().forEach(track => track.stop());
+      } catch {
+        // Microphone is optional: tab-only recording must still work.
+      }
+    }
     const result = await chrome.runtime.sendMessage({ type: action });
     if (!result?.ok) throw new Error(result?.error || 'Capture failed');
     // CAPTURE_STATUS may have set recording before the response arrives.

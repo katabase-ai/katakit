@@ -15,6 +15,8 @@ let receive: (message: object) => void;
 let button: { disabled: boolean; textContent: string; onclick?: () => Promise<void> };
 let sendMessage: ReturnType<typeof vi.fn>;
 let savedCapture: object | undefined;
+let requestMic: ReturnType<typeof vi.fn>;
+let releaseMic: ReturnType<typeof vi.fn>;
 
 beforeEach(async () => {
   vi.resetModules();
@@ -28,6 +30,9 @@ beforeEach(async () => {
       ({ '#toggle': button, '#clear': clear, '#turns': list, '#status': status })[selector],
   });
   vi.stubGlobal('window', { addEventListener: vi.fn() });
+  releaseMic = vi.fn();
+  requestMic = vi.fn(async () => ({ getTracks: () => [{ stop: releaseMic }] }));
+  vi.stubGlobal('navigator', { mediaDevices: { getUserMedia: requestMic } });
   sendMessage = vi.fn(async (message: { type: string }) => {
     if (message.type === 'START_CAPTURE') receive({ type: 'CAPTURE_STATUS', phase: 'recording' });
     if (message.type === 'STOP_CAPTURE') receive({ type: 'CAPTURE_STATUS', phase: 'idle' });
@@ -64,6 +69,11 @@ test('a duplicate Start restores the running state so Stop remains available', a
 
 test('status before Start acknowledgement leaves the next click as Stop', async () => {
   await button.onclick?.();
+  expect(requestMic).toHaveBeenCalledWith({ audio: true });
+  expect(releaseMic).toHaveBeenCalledOnce();
+  expect(requestMic.mock.invocationCallOrder[0]).toBeLessThan(
+    sendMessage.mock.invocationCallOrder[0]
+  );
   expect(button.textContent).toBe('Stop recording');
   await button.onclick?.();
   expect(sendMessage.mock.calls.map(([message]) => message.type)).toEqual([
@@ -71,4 +81,11 @@ test('status before Start acknowledgement leaves the next click as Stop', async 
     'STOP_CAPTURE',
   ]);
   expect(button.textContent).toBe('Start recording');
+});
+
+test('denied microphone still starts tab-only capture', async () => {
+  requestMic.mockRejectedValueOnce(new Error('Permission denied'));
+  await button.onclick?.();
+  expect(sendMessage.mock.calls[0]?.[0]).toEqual({ type: 'START_CAPTURE' });
+  expect(button.textContent).toBe('Stop recording');
 });
