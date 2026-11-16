@@ -70,6 +70,7 @@ export const createColorClash = ({
       if (word === state.target.ink) {
         update({
           score: state.score + 1,
+          mistake: 0,
           popped: state.target,
           target: makeTarget(state.target.sequence + 1, state.target.ink),
         });
