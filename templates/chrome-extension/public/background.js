@@ -57,13 +57,15 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
         if (!tab?.id || !/^https?:/.test(tab.url ?? ''))
           throw new Error('Open a regular browser tab first.');
-        const streamId = await chrome.tabCapture.getMediaStreamId({ targetTabId: tab.id });
         await chrome.offscreen.createDocument({
           url: 'offscreen.html',
           reasons: ['USER_MEDIA'],
           justification: 'Transcribe tab and optional microphone audio locally into Katakit turns.',
         });
         created = true;
+        // Single-use stream IDs expire within seconds: request it only after
+        // the consumer document exists, then redeem it before model loading.
+        const streamId = await chrome.tabCapture.getMediaStreamId({ targetTabId: tab.id });
         const result = await chrome.runtime.sendMessage({ type: 'OFFSCREEN_START', streamId });
         if (!result?.ok) throw new Error(result?.error || 'Could not start capture.');
         respond({ ok: true });

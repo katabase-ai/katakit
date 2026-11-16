@@ -59,10 +59,12 @@ chrome.runtime.onMessage.addListener((message, _sender, respond) => {
           onFinal: segment =>
             void chrome.runtime.sendMessage({ type: 'TRANSCRIPT_SEGMENT', segment }),
         });
-        await recognizer.start();
-        if (failed) throw new Error('Recognition failed while starting.');
         const current = recognizer;
+        let ready = false;
         capture = createCapture(samples => {
+          // Capture must redeem Chrome's short-lived stream ID before the
+          // first model download. Discard audio until recognition is ready.
+          if (!ready) return;
           try {
             current.write(samples, 16_000);
           } catch (error) {
@@ -72,6 +74,8 @@ chrome.runtime.onMessage.addListener((message, _sender, respond) => {
           }
         });
         const { micConnected } = await capture.start(message.streamId);
+        await current.start();
+        ready = true;
         if (failed) throw new Error('Recognition failed while starting capture.');
         status('recording', { micConnected });
       }

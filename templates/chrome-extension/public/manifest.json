@@ -5,8 +5,6 @@
   "description": "Transcribe tab and optional microphone audio into Katakit turns.",
   "permissions": ["activeTab", "tabCapture", "offscreen", "sidePanel", "storage"],
   "host_permissions": ["https://download.moonshine.ai/*"],
-  "cross_origin_opener_policy": { "value": "same-origin" },
-  "cross_origin_embedder_policy": { "value": "require-corp" },
   "action": { "default_popup": "popup.html" },
   "side_panel": { "default_path": "sidepanel.html" },
   "background": { "service_worker": "background.js" },

@@ -51,6 +51,9 @@ beforeEach(async () => {
 
 test('serializes segments, drains storage before Stop, and clears on request', async () => {
   expect(await send({ type: 'START_CAPTURE' })).toEqual({ ok: true });
+  expect(chrome.offscreen.createDocument.mock.invocationCallOrder[0]).toBeLessThan(
+    chrome.tabCapture.getMediaStreamId.mock.invocationCallOrder[0]
+  );
   listener({ type: 'TRANSCRIPT_SEGMENT', segment: { id: '1', text: 'First' } });
   listener({ type: 'TRANSCRIPT_SEGMENT', segment: { id: '2', text: 'Second' } });
   expect(await send({ type: 'STOP_CAPTURE' })).toEqual({ ok: true });
