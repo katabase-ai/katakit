@@ -9,6 +9,7 @@ from the same Katakit revision. The local `pnpm -F @katakit/docs dev` viewer dis
 authored pages only.
 
 - [Core](core.md): runtime construction, plugin composition, effects, and reactive helpers.
+- [Tracing](tracing.md): OpenTelemetry setup and method/effect execution records.
 - [Transcription utilities](transcription.md): standalone recognition, microphone capture, and WASM/worker setup.
 - [Plugins](plugins/README.md): each plugin's inputs, outputs, options, and lifecycle.
 - [Templates](templates/README.md): application starters and their current status, starting with a work-in-progress Chrome extension.

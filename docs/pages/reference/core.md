@@ -6,6 +6,11 @@ Import public symbols from `@katakit/core`. These contracts describe the current
 
 `makeKatakit({ plugins })` accepts an array of **configured** plugins. Its return value provides `getObservables(plugin)` and `start()`. `start()` may be called once; it returns `getObservables(plugin)` and `getMethods(plugin)` and subscribes effects. Both lookup functions accept a plugin factory or configured value and throw when no matching type is registered.
 
+The optional `tracer` accepts an OpenTelemetry `Tracer`, or `false` to disable
+instrumentation for this runtime. By default it uses the global tracer named
+`@katakit/core`, which produces no telemetry until a host registers an SDK. See
+[Tracing](tracing.md) for setup and recorded execution boundaries.
+
 ## makeKatakitPlugin
 
 `makeKatakitPlugin({ type, configure, observables?, methods?, effects? })` creates a plugin factory. `configure(inputOptions)` produces the configured plugin added to `makeKatakit({ plugins })`. The `configure` callback transforms input options into options received by the other callbacks.
@@ -14,7 +19,9 @@ Import public symbols from `@katakit/core`. These contracts describe the current
 
 ## makeEffect
 
-`makeEffect({ on, backpressure, handler })` creates an effect. `on` is an RxJS observable; `handler(value)` may be synchronous or asynchronous. `backpressure` must be one of:
+`makeEffect({ name?, on, backpressure, handler })` creates an effect. `name` is an
+optional stable label for tracing. `on` is an RxJS observable;
+`handler(value)` may be synchronous or asynchronous. `backpressure` must be one of:
 
 - `queue`: handle every value in arrival order, one at a time.
 - `latest`: while busy, keep only the latest pending value.
