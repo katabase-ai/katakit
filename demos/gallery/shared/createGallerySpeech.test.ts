@@ -64,8 +64,11 @@ test('constructs lazily and retains the same loaded model after releasing and at
   const first = owner.attach(() => sink('first'));
   await first.ready;
   expect(inputs).toHaveLength(0);
+  expect(owner.getSnapshot().attached).toBe(true);
   await owner.load();
-  await first.release();
+  const release = first.release();
+  expect(owner.getSnapshot().attached).toBe(false);
+  await release;
   await owner.attach(() => sink('second')).ready;
   expect(inputs).toHaveLength(1);
   expect(inputs[0]?.disposed).toBe(false);
@@ -195,30 +198,34 @@ test('a failed load remains retryable without changing the selected model', asyn
   await owner.dispose();
 });
 
-test('root teardown disposes a helper immediately while an explicit preload is pending', async () => {
-  let finish!: () => void;
-  const dispose = vi.fn(async () => {
-    finish();
-  });
-  const owner = createGallerySpeech({
-    createTranscriber: callbacks => ({
-      load: async () => {
-        callbacks.onState?.({ phase: 'loading' });
-        await new Promise<void>(resolve => {
-          finish = resolve;
-        });
-      },
-      start: async () => undefined,
-      stop: async () => undefined,
-      dispose,
-    }),
-  });
-  const { sink } = fixture();
-  await owner.attach(() => sink('demo')).ready;
-  const loading = owner.load();
-  await vi.waitFor(() => expect(owner.getSnapshot().input.phase).toBe('loading'));
-  const disposal = owner.dispose();
-  await Promise.all([loading, disposal]);
-  expect(dispose).toHaveBeenCalledOnce();
-  expect(owner.getSnapshot().input.phase).toBe('disposed');
-});
+test.each(['dispose', 'cancel'] as const)(
+  '%s disposes a helper immediately while an explicit preload is pending',
+  async action => {
+    let finish!: () => void;
+    const dispose = vi.fn(async () => {
+      finish();
+    });
+    const owner = createGallerySpeech({
+      createTranscriber: callbacks => ({
+        load: async () => {
+          callbacks.onState?.({ phase: 'loading' });
+          await new Promise<void>(resolve => {
+            finish = resolve;
+          });
+        },
+        start: async () => undefined,
+        stop: async () => undefined,
+        dispose,
+      }),
+    });
+    const { sink } = fixture();
+    await owner.attach(() => sink('demo')).ready;
+    const loading = owner.load();
+    await vi.waitFor(() => expect(owner.getSnapshot().input.phase).toBe('loading'));
+    const disposal = owner[action]();
+    await Promise.all([loading, disposal]);
+    expect(dispose).toHaveBeenCalledOnce();
+    expect(owner.getSnapshot().input.phase).toBe(action === 'dispose' ? 'disposed' : 'idle');
+    expect(owner.getSnapshot().error).toBeUndefined();
+  }
+);

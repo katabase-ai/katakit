@@ -10,6 +10,7 @@ export const Gallery = ({
   activeDemo,
   renderLink,
   children,
+  input,
 }: {
   demos: readonly (typeof galleryDemoDetails)[number][];
   activeDemo?: (typeof galleryDemoDetails)[number];
@@ -19,16 +20,20 @@ export const Gallery = ({
     current: boolean;
   }) => ReactNode;
   children?: ReactNode;
+  input?: ReactNode;
 }) => (
   <div className="katakit-gallery">
-    <nav className="gallery-nav" aria-label="React demos">
-      {renderLink({ children: 'All demos', current: !activeDemo })}
-      {demos.map(demo => (
-        <span key={demo.id}>
-          {renderLink({ demo, children: demo.title, current: activeDemo?.id === demo.id })}
-        </span>
-      ))}
-    </nav>
+    <aside className="gallery-sidebar">
+      <nav className="gallery-nav" aria-label="React demos">
+        {renderLink({ children: 'All demos', current: !activeDemo })}
+        {demos.map(demo => (
+          <span key={demo.id}>
+            {renderLink({ demo, children: demo.title, current: activeDemo?.id === demo.id })}
+          </span>
+        ))}
+      </nav>
+      {input}
+    </aside>
     <div className="gallery-content">
       {activeDemo ? (
         children

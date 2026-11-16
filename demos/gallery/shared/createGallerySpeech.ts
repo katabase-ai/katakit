@@ -20,6 +20,7 @@ type Snapshot = {
   input: TranscriptionState;
   level: number;
   transitioning: boolean;
+  attached: boolean;
   blocked: boolean;
   error?: string;
 };
@@ -36,6 +37,7 @@ export const createGallerySpeech = ({
     input: { phase: 'idle' },
     level: 0,
     transitioning: false,
+    attached: false,
     blocked: false,
   };
   let listeners: (() => void)[] = [];
@@ -128,6 +130,7 @@ export const createGallerySpeech = ({
     } finally {
       outgoing?.sink.close();
       active = undefined;
+      update({ attached: false });
     }
   };
 
@@ -147,6 +150,7 @@ export const createGallerySpeech = ({
         const sink = create();
         lease.sink = sink;
         active = { sink, cancelled: false };
+        update({ attached: true });
         return sink;
       });
       return {
@@ -155,6 +159,7 @@ export const createGallerySpeech = ({
           lease.cancelled = true;
           if (lease.sink && active?.sink === lease.sink) {
             active.cancelled = true;
+            update({ attached: false });
             wantsRecording = false;
             if (pendingStart) cancelLoading();
           }
@@ -168,7 +173,12 @@ export const createGallerySpeech = ({
       enqueue(async () => {
         if (disposed || snapshot.blocked || !active || active.cancelled) return;
         update({ error: undefined });
-        await getHelper().load();
+        const current = getHelper();
+        try {
+          await current.load();
+        } catch (error) {
+          if (helper === current) throw error;
+        }
       }),
     start: () => {
       wantsRecording = true;
@@ -200,6 +210,12 @@ export const createGallerySpeech = ({
     stop: () => {
       wantsRecording = false;
       if (pendingStart) cancelLoading();
+      return enqueue(finish);
+    },
+    // Explicit cancellation also covers preload; ordinary navigation may retain a preload.
+    cancel: () => {
+      wantsRecording = false;
+      cancelLoading();
       return enqueue(finish);
     },
     select: (model: TranscriptionModelId) =>

@@ -1,6 +1,7 @@
 import { Suspense } from 'react';
 import { ClientOnly, Link } from '@tanstack/react-router';
 import { Gallery } from '../shared/Gallery';
+import { GallerySpeechControls } from '../shared/GallerySpeechControls';
 import { galleryDemos } from '../shared/galleryDemos';
 
 /** Browser demos are mounted only after hydration, never by the SSR Worker. */
@@ -10,6 +11,7 @@ export const GalleryPage = ({ demo }: { demo?: (typeof galleryDemos)[number] }) 
     <Gallery
       demos={galleryDemos}
       activeDemo={demo}
+      input={<GallerySpeechControls />}
       renderLink={({ demo: entry, children, current }) =>
         entry ? (
           <Link

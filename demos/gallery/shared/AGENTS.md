@@ -15,3 +15,7 @@ source checkout. They do not own application bootstraps, routing, or private ser
 - Instantiate demos only from a granted lease. Each demo owns its transcript plugin, projections,
   and explicit subscriptions; Bingo deliberately uses no core effects and completes its state
   through its close method. Do not assume a generic core disposal API exists. `#gallery-runtime-cleanup`
+
+- Hosts pass the shared input controls to Gallery’s input slot. Keep them outside demo views and
+  navigation landmarks; only the demo body remounts. Desktop controls anchor to the sidebar bottom;
+  mobile controls reserve their measured height and stay visible. `#gallery-shared-controls`

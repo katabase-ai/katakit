@@ -41,6 +41,8 @@ app's bootstrap. Import `shared/gallery.css` for the scoped presentation; it inh
 and typography and does not import the global site-ui reset.
 
 Pass the chosen entries, active entry, a host link renderer, and active content to `Gallery`.
+Pass `GallerySpeechControls` through its `input` slot; demo views receive no extra microphone or
+model selector. A host can provide its own model-select renderer to these shared controls.
 Each host owns its URLs, title metadata, not-found/loading/error handling, and router registration.
 Adding an entry here makes it eligible; each consuming website still chooses what to include.
 Examples continue to own their code and never import private website components.
@@ -48,7 +50,7 @@ Examples continue to own their code and never import private website components.
 ## Shared input and separate demo runtimes
 
 The mounted `GallerySpeechProvider` owns one `@katakit/transcription` microphone transcriber and
-selected model. Controls use the package catalogue/default. Models load only after Load/Start;
+selected model. Controls sit at the bottom of the shared sidebar, outside the keyed demo view, and become a bottom strip on phones. The transcription entry explains local recognition and teaches these actual controls; standalone demo controls remain independent. Controls use the package catalogue/default. Models load only after Load/Start;
 changing models is disabled while recording. Navigation retains the loaded model but stops capture.
 Each view acquires a runtime lease. Release keeps the outgoing sink attached through stop/drain and
 flush, closes its runtime, then permits the next factory to run. The next demo starts idle with no

@@ -4,6 +4,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, expect, test, vi } from 'vitest';
 import { GallerySpeechProvider } from './GallerySpeechProvider';
 import { GalleryDemo } from './GalleryDemo';
+import { GallerySpeechControls } from './GallerySpeechControls';
 
 afterEach(cleanup);
 
@@ -22,13 +23,13 @@ test('Strict Mode and repeated navigation release every created demo while keepi
   const content = (key: string) => (
     <StrictMode>
       <GallerySpeechProvider>
+        <GallerySpeechControls />
         <GalleryDemo
           key={key}
           create={create}
-          render={(_, controls) => (
+          render={() => (
             <>
               <p>Demo ready</p>
-              {controls}
             </>
           )}
         />
