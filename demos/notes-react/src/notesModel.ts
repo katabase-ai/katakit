@@ -34,12 +34,13 @@ export const NotesResultSchema = v.strictObject({
   ),
 });
 
-/** The host owns transport, admission, and user-facing failure messages. */
+/** The host owns transport, admission, and their failure messages; this example reads the response. */
 export type NotesConnection = {
   model: string;
   maxBodyBytes: number;
   maxOutputTokens: number;
-  requestNotes: (input: { body: string; signal: AbortSignal }) => Promise<unknown>;
+  /** Send the chat-completions request body and resolve with the parsed response body. */
+  requestCompletion: (input: { body: string; signal: AbortSignal }) => Promise<unknown>;
   /** Hosts can correlate validation failures with their transport's request ID. */
   reportFailure?: (failure: NotesRequestError) => void;
 };
@@ -61,6 +62,46 @@ export class NotesRequestError extends Error {
     super(message);
   }
 }
+
+const CompletionSchema = v.object({
+  choices: v.pipe(
+    v.array(
+      v.object({
+        finish_reason: v.nullable(v.string()),
+        message: v.object({ content: v.nullable(v.string()) }),
+      })
+    ),
+    v.minLength(1)
+  ),
+});
+
+/**
+ * Read the model's JSON out of a chat-completions response body. Every host gets the same
+ * failures for a truncated, unfinished, or unreadable completion instead of a parse crash.
+ */
+export const parseNotesCompletion = (completion: unknown) => {
+  const parsed = v.safeParse(CompletionSchema, completion);
+  if (!parsed.success)
+    throw new NotesRequestError('The model returned an unreadable response. Try again.', {
+      code: 'response_format',
+    });
+  const choice = parsed.output.choices[0]!;
+  if (choice.finish_reason === 'length')
+    throw new NotesRequestError('The model ran out of space for its notes. Try again.', {
+      code: 'response_truncated',
+    });
+  if (choice.finish_reason !== 'stop' || choice.message.content === null)
+    throw new NotesRequestError('The model stopped before completing its notes. Try again.', {
+      code: 'response_unfinished',
+    });
+  try {
+    return JSON.parse(choice.message.content) as unknown;
+  } catch {
+    throw new NotesRequestError('The model returned unreadable notes. Try again.', {
+      code: 'response_json',
+    });
+  }
+};
 
 // These instructions are public example source, independent of any private prompt helpers.
 const systemPrompt = Object.entries({

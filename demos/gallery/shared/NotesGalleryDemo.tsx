@@ -1,15 +1,40 @@
-import type { ComponentProps } from 'react';
+import { useCallback } from 'react';
 import { createNotesDemo } from '../../notes-react/src/createNotesDemo';
 import { NotesDemo } from '../../notes-react/src/NotesDemo';
+import { NotesRequestError } from '../../notes-react/src/notesModel';
 import { GalleryDemo } from './GalleryDemo';
+import { GalleryModelError, useGalleryModel } from './galleryModel';
 import { useGallerySpeech } from './GallerySpeechProvider';
 
-/** Hosts supply model admission; shared speech attaches only to this visit's runtime. */
-export const NotesGalleryDemo = ({
-  connect,
-  renderModelControls,
-}: Pick<ComponentProps<typeof NotesDemo>, 'connect' | 'renderModelControls'>) => {
+// The copyable example recognizes only its own error class, so host failures are rethrown as it.
+const toNotesError = (error: unknown) =>
+  error instanceof GalleryModelError ? new NotesRequestError(error.message, error.policy) : error;
+
+/** The gallery's host supplies model admission; shared speech attaches only to this visit's runtime. */
+export const NotesGalleryDemo = () => {
   const session = useGallerySpeech();
+  const model = useGalleryModel();
+  const connectGallery = model.connect;
+  const connect = useCallback(
+    async (input: { signal: AbortSignal }) => {
+      try {
+        const connection = await connectGallery!(input);
+        return {
+          ...connection,
+          requestCompletion: async (request: { body: string; signal: AbortSignal }) => {
+            try {
+              return await connection.requestCompletion(request);
+            } catch (error) {
+              throw toNotesError(error);
+            }
+          },
+        };
+      } catch (error) {
+        throw toNotesError(error);
+      }
+    },
+    [connectGallery]
+  );
   return (
     <GalleryDemo
       create={createNotesDemo}
@@ -17,8 +42,8 @@ export const NotesGalleryDemo = ({
         <NotesDemo
           runtime={runtime}
           listening={session?.snapshot.input.phase === 'running'}
-          connect={connect}
-          renderModelControls={renderModelControls}
+          connect={connectGallery && connect}
+          renderModelControls={model.renderControls}
         />
       )}
     />
