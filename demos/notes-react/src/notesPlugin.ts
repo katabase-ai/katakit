@@ -98,7 +98,9 @@ export const makeNotesPlugin = ({
               if (closed || abort.signal.aborted) return;
               const parsed = v.safeParse(NotesResultSchema, response);
               if (!parsed.success)
-                throw new NotesRequestError('The model returned incomplete notes. Try again.');
+                throw new NotesRequestError('The model returned invalid notes. Try again.', {
+                  code: 'notes_schema',
+                });
               const { additions, rewords } = parsed.output;
               // A missing target invalidates the whole update; never consume a turn we could not apply.
               if (
@@ -115,7 +117,9 @@ export const makeNotesPlugin = ({
                     )
                 )
               )
-                throw new NotesRequestError('The model returned incomplete notes. Try again.');
+                throw new NotesRequestError('The model referred to a missing note. Try again.', {
+                  code: 'notes_target',
+                });
               const reword = (note: { id: string; text: string }) => ({
                 ...note,
                 text: rewords.find(change => change.id === note.id)?.text ?? note.text,
@@ -138,6 +142,7 @@ export const makeNotesPlugin = ({
                 error instanceof NotesRequestError
                   ? error
                   : new NotesRequestError('Notes could not be updated. Try again.');
+              activeConnection.reportFailure?.(failure);
               const { retryAfterMs, retryLimit = 0 } = failure.policy;
               if (retryAfterMs === undefined || retries++ >= retryLimit) {
                 update({ status: 'paused', failure });
