@@ -36,3 +36,29 @@ test('workspace-only dependencies and missing build scripts are reported', () =>
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test('a bundled Katakit tarball must exist inside the template', () => {
+  const root = mkdtempSync(join(tmpdir(), 'katakit-manifests-'));
+  try {
+    mkdirSync(join(root, 'example'));
+    mkdirSync(join(root, 'example/vendor'));
+    writeFileSync(join(root, 'example/vendor/katakit-core-0.0.0.tgz'), 'test fixture');
+    writeFileSync(
+      join(root, 'example/package.json'),
+      JSON.stringify({
+        scripts: { build: 'tsc --noEmit' },
+        dependencies: {
+          '@katakit/core': 'file:vendor/katakit-core-0.0.0.tgz',
+          '@katakit/transcript-ingestion': 'file:vendor/missing.tgz',
+          rxjs: 'file:vendor/katakit-core-0.0.0.tgz',
+        },
+      })
+    );
+    assert.deepEqual(checkTemplateManifests(root), [
+      'example: dependencies.@katakit/transcript-ingestion is missing its bundled tarball',
+      'example: dependencies.rxjs must use an installable registry version',
+    ]);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});

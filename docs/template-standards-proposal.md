@@ -20,7 +20,7 @@ Each principle answers a different question about a template. The detailed code 
 
 ## Code and architecture conventions
 
-- Prefer TypeScript, the repo's Node/pnpm baseline, package-root imports (`@katakit/core`, etc.), and the existing formatter, linter, and test runner. Declare ordinary dependency versions and the build tools in each template so a copy can install outside the workspace; the workspace's `linkWorkspacePackages` setting supports local development without `workspace:*` dependencies in copied examples. Avoid new cross-repo conventions or aliases without a concrete platform need.
+- Prefer TypeScript, the repo's Node/pnpm baseline, package-root imports (`@katakit/core`, etc.), and the existing formatter, linter, and test runner. Declare ordinary registry dependency versions and build tools; until Katakit packages are published, include the required Katakit package tarballs inside each copied template. Do not rely on workspace links or files outside that directory. Avoid new cross-repo conventions or aliases without a concrete platform need.
 - Keep platform setup (permissions, lifecycle, platform APIs), input/storage connections, Katakit assembly, and UI easy to identify. These are responsibilities, not mandatory directory names. The examples do not need to communicate with one another.
 - When assembling Katakit, keep runtime and source startup/teardown explicit. If using event-log persistence, load history before constructing the runtime; `start()` is once-only, and core currently has no general disposal lifecycle. Close/flush specific plugins as documented; do not imply their shutdown proves durable storage.
 - Treat external input as untrusted: validate message shapes and origins, bound payload sizes where relevant, avoid leaking permissions through renderer or card bridges, and never put secrets in client bundles. Prefer narrow typed bridge methods over generic command execution.
@@ -56,7 +56,7 @@ Before labeling an experiment a maintained template, verify:
 
 ## Scope for this template push
 
-- **Distribution:** copy the template directory. It must declare the libraries and build tools it uses and work outside the Katakit workspace. A generator or CLI is not needed now.
+- **Distribution:** copy the template directory. It must declare its libraries and build tools and work outside the Katakit workspace. Since Katakit packages are not yet on npm, include their built tarballs in the copied directory as a temporary measure. A generator or CLI is not needed now.
 - **Dependencies:** the basic path should work without a paid service, account, separate local server, or downloading speech-model weights at first use. Declared libraries such as React or RxJS are fine. If the example needs an optional speech feature, keep that addition separate and explain its downloads and network access. The existing transcription utilities include WASM/runtime files in their package but download model weights from a provider on first use; those weights are what the earlier question called “model assets.”
 - **Independence:** each template illustrates Katakit on its own platform. There is no requirement for the Electron, Obsidian, extension, and chat examples to talk to one another or to use one shared message format.
 - **Platform testing:** name the platform and versions actually tested for each example. Do not imply macOS, Windows, mobile, or a chat app works merely because the code builds elsewhere.

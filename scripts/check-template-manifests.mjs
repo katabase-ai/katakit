@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync } from 'node:fs';
+import { lstatSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -11,6 +11,7 @@ const dependencyFields = [
 ];
 const localOrExternalSource =
   /^(?:workspace:|file:|link:|portal:|git(?:\+|:)|github:|https?:|ssh:)/i;
+const bundledKatakit = /^file:(?:\.\/)?vendor\/([a-z0-9][a-z0-9._-]*\.tgz)$/i;
 
 export const checkTemplateManifests = (directory = templates) => {
   const problems = [];
@@ -27,7 +28,19 @@ export const checkTemplateManifests = (directory = templates) => {
     if (!manifest.scripts?.build) problems.push(`${entry.name}: missing build script`);
     for (const field of dependencyFields) {
       for (const [name, version] of Object.entries(manifest[field] ?? {})) {
-        if (typeof version !== 'string' || !version.trim() || localOrExternalSource.test(version)) {
+        const local = typeof version === 'string' && version.match(bundledKatakit);
+        if (local && name.startsWith('@katakit/')) {
+          try {
+            if (lstatSync(join(directory, entry.name, 'vendor', local[1])).isFile()) continue;
+          } catch {
+            // A declared bundle must actually be included in the copied directory.
+          }
+          problems.push(`${entry.name}: ${field}.${name} is missing its bundled tarball`);
+        } else if (
+          typeof version !== 'string' ||
+          !version.trim() ||
+          localOrExternalSource.test(version)
+        ) {
           problems.push(`${entry.name}: ${field}.${name} must use an installable registry version`);
         }
       }
