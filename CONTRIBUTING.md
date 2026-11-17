@@ -54,10 +54,11 @@ Use [React-RxJS](docs/pages/getting-started/react.md) for React subscriptions to
 observables. The optional microphone ownership hook is exported from
 `@katakit/transcription/react`; `@katakit/react` remains reserved for future APIs.
 
-For official stateful plugins, follow the [event-log-backed plugin contract](docs/pages/concepts/plugins.md#official-stateful-plugin-contract).
-Current transcript-ingestion forwarding is an implementation gap; do not use its optional
-log connection as the pattern for a new official stateful plugin. Independent recognition
-utilities do not need to instantiate a plugin runtime or event log.
+## Stateful plugins
+
+Official stateful plugins must use `@katakit/event-log` as the source of application state and
+derive that state from its events. Keep recognition utilities independent: they do not need to
+instantiate a plugin runtime or event log. Persistent storage remains an application choice.
 
 ## Documentation
 

@@ -97,10 +97,8 @@ platform setup, permissions, and current verification.
 | [@katakit/persistence](pkgs/persistence/README.md)                   | Plugin  | Batched event writes through your storage callback or browser local storage.                                   |
 | [@katakit/transcription](pkgs/transcription/README.md)               | Utility | Moonshine/Whisper recognition, browser microphone and PCM helpers, runtime assets, and an optional React hook. |
 
-The transcription utility works independently of the plugin runtime. The accepted contract for
-official stateful plugins centers state on an event log; implementation alignment is still in
-progress. In particular, the current [transcript-ingestion integration](docs/pages/reference/plugins/transcript-ingestion.md)
-forwards events but does not rebuild its state from the log. Persistent storage is optional.
+The transcription utility works independently of the plugin runtime. Add persistent storage
+through your own adapter when you need events to survive a reload.
 React applications render runtime observables with [React-RxJS](docs/pages/getting-started/react.md).
 
 ## Documentation

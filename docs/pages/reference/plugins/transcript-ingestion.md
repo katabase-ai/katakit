@@ -17,14 +17,10 @@ Configure the plugin with `.configure({})` and register it with `makeKatakit`. T
 - `reset()`: begin a new session by clearing completed and current turns, provisional text, the pending timer, and seen segment IDs. It publishes a local reset event without finalizing the old turn.
 - `close()`: flush, cancel the timer, and complete the live event stream. The application must stop its audio or transcript source separately.
 
-The [accepted stateful-plugin contract](../../concepts/plugins.md#official-stateful-plugin-contract)
-requires an event log as the source of application state. The current ingestion implementation
-has not yet been aligned with that contract: it maintains local state and accepts optional
-forwarding callbacks. Registering an event log does not change this behavior. The following
-documents that current bridge, not a complete event-log-backed ingestion design.
+## Event-log forwarding
 
-To forward selected events into an application-owned log, provide `forward.createEvent` and
-`forward.emitEvent` when constructing the plugin:
+Transcript state is assembled locally. To forward selected events into an application-owned
+log, provide `forward.createEvent` and `forward.emitEvent` when constructing the plugin:
 
 ```ts
 const TranscriptIngestionPlugin = makeTranscriptIngestionPlugin({
