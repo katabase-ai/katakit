@@ -4,6 +4,11 @@ Try an example, change an interaction, or help improve a reusable building block
 questions, and examples through [GitHub issues](https://github.com/katabase-ai/katakit/issues).
 When proposing a change, explain the behavior it enables and how you checked it.
 
+Repository engineering standards live in [AGENTS.md](AGENTS.md), with narrower guidance
+under `pkgs/`, `demos/`, `templates/`, and `docs/`. They apply to human and agent changes.
+The [November 17 architecture audit](maintenance/jude-guidance-audit.md) separates the
+intended standards from existing migration gaps and records their proposed order.
+
 ## Set up the workspace
 
 Use Node.js 24+ and pnpm 11.9.0, as declared in `.node-version` and `package.json`:
