@@ -1,7 +1,11 @@
 # Contributing to Katakit
 
-Try an example, change an interaction, or help improve a reusable building block. Share bugs,
-questions, and examples through [GitHub issues](https://github.com/katabase-ai/katakit/issues).
+Try an example, change an interaction, or help improve a reusable building block. Start with a
+[feature request](https://github.com/katabase-ai/katakit/issues/new?template=feature_request.md),
+[integration proposal](https://github.com/katabase-ai/katakit/issues/new?template=integration_proposal.md),
+or [bug report](https://github.com/katabase-ai/katakit/issues/new?template=bug_report.md).
+For a larger change, open an issue so we can discuss the approach. You can also reach us at
+[katakit@katabase.com](mailto:katakit@katabase.com).
 When proposing a change, explain the behavior it enables and how you checked it.
 
 Repository engineering standards live in [AGENTS.md](AGENTS.md), with narrower guidance

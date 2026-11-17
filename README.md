@@ -1,5 +1,21 @@
 # Katakit
 
+This project is a seed.
+
+It contains a small sample of the experiments and prototypes we’ve been working on at [Katabase](https://katabase.com).
+
+There’s a lot more we’d love to share, and we’d like your help shaping what comes next.
+
+- Request a [feature](https://github.com/katabase-ai/katakit/issues/new?template=feature_request.md), propose an [integration](https://github.com/katabase-ai/katakit/issues/new?template=integration_proposal.md), or report a [bug](https://github.com/katabase-ai/katakit/issues/new?template=bug_report.md)
+- Make a [contribution](CONTRIBUTING.md)
+- Get in touch with us [directly](mailto:katakit@katabase.com)
+
+We're excited to see what you build!
+
+\- The katabase team ([Abe](https://github.com/abegong), [Jude](https://github.com/judehunter), [Drew](https://github.com/DrewHoo))
+
+---
+
 Katakit is an open-source TypeScript developer kit for building voice-to-visual UI: interfaces
 that take part in a conversation. Turn spoken words into something people can see, play with,
 and shape together.
