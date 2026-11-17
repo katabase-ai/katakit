@@ -8,6 +8,7 @@ export default defineConfig({
   target: 'es2022',
   fixedExtension: false,
   dts: true,
+  sourcemap: true,
   clean: true,
   deps: {
     neverBundle: true,
