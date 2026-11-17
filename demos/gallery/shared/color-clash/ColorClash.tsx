@@ -24,6 +24,7 @@ export const ColorClash = ({
   const state = useSyncExternalStore(runtime.subscribe, runtime.getSnapshot, runtime.getSnapshot);
   const [requested, setRequested] = useState(false);
   const transcript = useRef<HTMLDivElement>(null);
+  const stopRequested = useRef(false);
   const listening = input.phase === 'running';
   const preparing = input.phase === 'loading' || input.phase === 'starting';
   const active = state.phase === 'instructions' || state.phase === 'playing';
@@ -44,8 +45,12 @@ export const ColorClash = ({
   }, [active, listening, runtime]);
   useEffect(() => {
     // A replay can acquire capture before its instruction screen has rendered.
-    if (state.phase === 'finished' && listening && !requested) onStop();
-  }, [state.phase, listening, requested, onStop]);
+    if (active) stopRequested.current = false;
+    if (state.phase === 'finished' && listening && !requested && !stopRequested.current) {
+      stopRequested.current = true;
+      onStop();
+    }
+  }, [active, state.phase, listening, requested, onStop]);
   useLayoutEffect(() => {
     if (transcript.current) transcript.current.scrollLeft = transcript.current.scrollWidth;
   }, [state.transcript, state.provisional]);
@@ -133,7 +138,11 @@ export const ColorClash = ({
               <button
                 type="button"
                 className="color-clash-play"
-                disabled={disabled || requested}
+                disabled={
+                  disabled ||
+                  requested ||
+                  (state.phase === 'finished' && (listening || input.phase === 'stopping'))
+                }
                 onClick={() => void play()}
               >
                 {inputError ? 'Try again' : state.phase === 'finished' ? 'Play again' : 'Play'}

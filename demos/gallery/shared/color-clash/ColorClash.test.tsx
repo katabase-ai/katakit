@@ -53,5 +53,44 @@ test('a replay keeps newly acquired capture instead of stopping it as part of th
   });
   expect(runtime.getSnapshot().phase).toBe('playing');
   expect(stopped).toHaveBeenCalledTimes(1);
+  act(() => {
+    vi.advanceTimersByTime(20000);
+  });
+  expect(stopped).toHaveBeenCalledTimes(2);
+  runtime.close();
+});
+
+test('prevents replay and requests stop only once while the host is tearing down capture', async () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(0);
+  const runtime = createColorClash({ now: Date.now });
+  const stopped = vi.fn();
+  const Host = ({ version }: { version: number }) => {
+    const [input, setInput] = useState<TranscriptionState>({ phase: 'ready' });
+    return (
+      <ColorClash
+        runtime={runtime}
+        input={input}
+        disabled={false}
+        onPlay={async () => {
+          setInput({ phase: 'running' });
+          return true;
+        }}
+        onStop={() => stopped(version)}
+        onCancel={() => setInput({ phase: 'ready' })}
+      />
+    );
+  };
+  const view = render(<Host version={1} />);
+  await act(async () => {
+    fireEvent.click(screen.getByRole('button', { name: 'Play' }));
+  });
+  act(() => vi.advanceTimersByTime(21600));
+  expect(stopped).toHaveBeenCalledTimes(1);
+  expect((screen.getByRole('button', { name: 'Play again' }) as HTMLButtonElement).disabled).toBe(
+    true
+  );
+  view.rerender(<Host version={2} />);
+  expect(stopped).toHaveBeenCalledTimes(1);
   runtime.close();
 });
