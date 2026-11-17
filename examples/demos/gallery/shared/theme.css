@@ -66,6 +66,13 @@
   --shadow-key-press: inset 0 1px 2px oklch(21% 0.028 262 / 0.14);
   --gallery-body-weight: 400;
 }
+/* light-dark() follows color-scheme, not data-theme by itself. */
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
 /* Shadows are a material choice, so switch them with the palette rather than hard-coding
    a light raised edge into the dark skin. Explicit data-theme overrides the OS preference. */
 @media (prefers-color-scheme: dark) {
