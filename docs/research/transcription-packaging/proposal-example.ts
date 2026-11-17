@@ -62,7 +62,7 @@ export const connectSource = async (
       await cleanup();
     } catch (cleanupError) {
       throw new AggregateError([error, cleanupError], 'Transcription startup and cleanup failed', {
-        cause: error,
+        cause: cleanupError,
       });
     }
     throw error;
