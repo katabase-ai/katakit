@@ -5,6 +5,7 @@ import {
   lstatSync,
   mkdirSync,
   readFileSync,
+  realpathSync,
   readdirSync,
   writeFileSync,
 } from 'node:fs';
@@ -19,9 +20,20 @@ if (!/^(demos|starters)\/[a-z0-9-]+$/.test(example ?? '') || !destination) {
 const source = join(root, 'examples', example);
 const target = resolve(destination);
 if (!existsSync(join(source, 'package.json'))) throw new Error(`Unknown example: ${example}`);
-if (target === root.slice(0, -1) || target.startsWith(root))
+// lstat also catches dangling symlinks, which existsSync treats as absent.
+if (lstatSync(target, { throwIfNoEntry: false }))
+  throw new Error(`Destination already exists: ${target}`);
+// Resolve existing ancestors so a path through an external symlink cannot land in this checkout.
+let ancestor = resolve(target, '..');
+const missing = [];
+while (!lstatSync(ancestor, { throwIfNoEntry: false })) {
+  missing.unshift(ancestor.split(sep).at(-1));
+  ancestor = resolve(ancestor, '..');
+}
+const physicalTarget = join(realpathSync(ancestor), ...missing, target.split(sep).at(-1));
+const inside = relative(realpathSync(root), physicalTarget);
+if (!inside || (inside !== '..' && !inside.startsWith(`..${sep}`) && !inside.startsWith(sep)))
   throw new Error('Choose a destination outside this checkout');
-if (existsSync(target)) throw new Error(`Destination already exists: ${target}`);
 // A copy must not capture credentials, generated output, dependencies, or external symlinks.
 const copy = (from, to) =>
   cpSync(from, to, {

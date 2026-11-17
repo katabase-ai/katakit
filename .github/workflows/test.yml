@@ -68,4 +68,4 @@ jobs:
           node-version-file: .node-version
           cache: pnpm
       - name: Install and build a copied template
-        run: pnpm templates:copy-check
+        run: pnpm templates:copy-check && pnpm examples:check
