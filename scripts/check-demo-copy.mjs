@@ -5,7 +5,11 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const names = process.argv[2] ? [process.argv[2]] : readdirSync(join(root, 'examples/demos'));
+const names = process.argv[2]
+  ? [process.argv[2]]
+  : readdirSync(join(root, 'examples/demos'), { withFileTypes: true })
+      .filter(entry => entry.isDirectory())
+      .map(entry => entry.name);
 const run = (cwd, args) => {
   const result = spawnSync('pnpm', args, { cwd, stdio: 'inherit' });
   if (result.error) throw result.error;

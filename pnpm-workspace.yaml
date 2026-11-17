@@ -1,6 +1,6 @@
 packages:
   - 'pkgs/*'
-  - 'internal/packages/*'
+  - 'internal/pkgs/*'
   - 'examples/demos/*'
   - 'docs'
 

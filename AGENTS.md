@@ -1,25 +1,52 @@
 # Working in Katakit
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) for durable engineering rules, the
-[package layout](CONTRIBUTING.md#package-structure), and validation commands. Read the nearest
-scoped `AGENTS.md` before editing. Use Node.js 24+ and pnpm 11.9.0.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, public imports, and checks, then
+the `AGENTS.md` files in the directories you change. These rules apply to maintainers,
+contributors, and agents. Keep changes within the requested scope; existing deviations
+are migration work, not patterns to repeat.
 
-- Start with `git status`, current main, and the affected manifests/source/tests. Preserve unrelated
-  edits and use an isolated worktree when other work is active. Do not reset another checkout.
-- `pkgs/` is the publishable library boundary. `internal/packages/` owns private build tools;
-  plain internal assets have no manifest. Demos are workspace apps; starters install independently.
-  Choose the location from the contributor table before adding a new dependency or directory.
-- Trace a change through public entry points and callers. Keep application UI and host permissions
-  in examples. Stateful plugin state derives from event-log events; recognition utilities stay
-  independent of a plugin runtime. Do not assume core has a generic disposal API.
-- For layout/dependency changes, inspect workspace globs, test discovery, package exports,
-  copy preparation, docs coverage, and pinned website consumers. Record concrete companion
-  integration changes rather than silently changing an external source contract.
-- Use focused controlled tests for behavior changes. Run `pnpm check` before submission and
-  `pnpm docs:export` for public API/docs/exporter changes. For example dependencies, imports,
-  shared assets, or copy tooling, run the appropriate standalone copy checks as well.
-- Report commands and results at the actual PR head. Distinguish automated copy/build checks
-  from manual microphone/model/platform verification; do not claim untested behavior.
+The [package layout](CONTRIBUTING.md#package-structure) and
+[example copy workflow](examples/README.md) describe the current structure. Use Node.js 24+
+and pnpm 11.9.0. Check `git status` and current main before changing a branch; preserve
+unrelated work.
+
+## Ownership and architecture
+
+- Keep the core framework-independent and small. Publish a package only for a genuinely
+  reusable capability. Example-specific plugins, prompts, UI, and orchestration stay local.
+- Official stateful plugins and example plugins derive replayable application content
+  from `@katakit/event-log`. Methods record events; projections derive content. Do not
+  keep a second writable subject or mutable object as the authority for that content.
+- Resource handles, cancellation, retry status, provisional input, and display timing may
+  be transient. Explain their owner and lifetime. Replay must not call a model, generate
+  replacement IDs, restart timers, or reacquire resources.
+- Recognition and model adapters expose general callbacks outside the plugin runtime.
+  The application owns event schemas, input sources, credentials, admission, and storage.
+- Keep publishable libraries in `pkgs/`. Private build tools belong under
+  `internal/pkgs/` and CSS-only assets under `internal/site-ui/`. Copyable demos and
+  starters in `examples/` must not depend on internal tools. The gallery's composition
+  exception must be materialized by the copy workflow.
+
+## Maintenance
+
+- Import public APIs through declared package entry points. Do not introduce source-path
+  aliases or imports into another public package's implementation.
+- Put public API descriptions in source JSDoc; guides belong in `docs/pages/`. Update
+  package exports, docs coverage, examples, and affected links together when APIs change.
+- Prefer the documented React-RxJS pattern for runtime observable subscriptions. Keep
+  microphone ownership hooks separate from observable-binding utilities.
+- Identify who stops, drains, cancels, unsubscribes, and releases every resource. The core
+  currently has no general stop/dispose API; do not promise cleanup it does not perform.
+- Run the focused behavior checks for changed code and the affected contributor checks.
+  Verify copyability and published-package behavior outside the workspace where relevant.
+  Report commands, outcomes, skipped checks, and limits of mocked or build-only evidence.
+- Fix substantive review findings before repeating the affected pattern. Defer cosmetic
+  cleanup explicitly rather than folding speculative extractions into unrelated changes.
+
+For layout/dependency changes, inspect workspace globs, test discovery, package exports,
+copy preparation, docs coverage, and pinned website consumers. Run `pnpm check` and
+relevant standalone copy checks; report automated versus manual evidence separately.
 
 [Docs guidance](docs/AGENTS.md), [library guidance](pkgs/AGENTS.md),
-[internal guidance](internal/AGENTS.md), and [example guidance](examples/AGENTS.md) narrow these rules.
+[internal guidance](internal/AGENTS.md), and [example guidance](examples/AGENTS.md)
+narrow these rules.

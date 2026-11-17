@@ -4,6 +4,9 @@ Try an example, change an interaction, or help improve a reusable building block
 questions, and examples through [GitHub issues](https://github.com/katabase-ai/katakit/issues).
 When proposing a change, explain the behavior it enables and how you checked it.
 
+Repository engineering standards live in [AGENTS.md](AGENTS.md), with narrower guidance
+under `pkgs/`, `internal/`, `examples/`, and `docs/`. They apply to human and agent changes.
+
 ## Set up the workspace
 
 Use Node.js 24+ and pnpm 11.9.0, as declared in `.node-version` and `package.json`:
@@ -19,7 +22,7 @@ Choose placement by what the code ships and who owns its behavior:
 | Location                    | Role and publication intent                                                      | Dependency boundary                                                                                 |
 | --------------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
 | `pkgs/<name>/`              | Libraries intended for publication as `@katakit/<name>`, even while unpublished. | Public libraries and registry dependencies at runtime; private build tools may be dev dependencies. |
-| `internal/packages/<name>/` | Private workspace build tools with their own dependency manifests.               | May read repository source and docs; expose build commands rather than application APIs.            |
+| `internal/pkgs/<name>/`     | Private workspace build tools with their own dependency manifests.               | May read repository source and docs; expose build commands rather than application APIs.            |
 | `internal/<purpose>/`       | Plain assets, with no workspace manifest. `internal/site-ui/` is CSS-only.       | Assets stay in their directory; consumers own markup and behavior.                                  |
 | `examples/demos/<name>/`    | Private feature applications in the root workspace.                              | Ordinary library versions and local application files; no private workspace package dependencies.   |
 | `examples/starters/<name>/` | Private, independently installed platform starters outside the root workspace.   | Registry dependencies and their own bundled Katakit tarballs; no outside files.                     |
@@ -60,7 +63,7 @@ allowance in `scripts/check-structure.mjs`, then verify a standalone gallery cop
 
 ### Add or change an internal tool
 
-Put a dependency-owning tool under `internal/packages/` with `private: true`. Keep its output
+Put a dependency-owning tool under `internal/pkgs/` with `private: true`. Keep its output
 rebuildable and ignored, and preserve documented root commands used by outside consumers.
 For CSS sharing and the exporter, use the [internal tool and styling contract](#internal-tools-and-shared-styles).
 
@@ -143,8 +146,8 @@ the authored docs and setup instructions in the relevant package or application 
 
 ## Internal tools and shared styles
 
-`internal/packages/` contains private workspace build tools. The documentation producer is
-`internal/packages/docs-export`; its public command remains `pnpm docs:export` and its portable
+`internal/pkgs/` contains private workspace build tools. The documentation producer is
+`internal/pkgs/docs-export`; its public command remains `pnpm docs:export` and its portable
 output contract remains in [docs/EXPORT.md](docs/EXPORT.md).
 
 `internal/site-ui/` is plain CSS, with no manifest or JavaScript. The docs viewer and gallery

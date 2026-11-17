@@ -2,6 +2,11 @@
 
 Use [React-RxJS](https://react-rxjs.org/docs/getting-started) to render runtime observables. Install `@react-rxjs/core`, `rxjs`, `react`, and `react-dom` in the application alongside `@katakit/core`.
 
+`@react-rxjs/core` supplies the `bind` and `Subscribe` APIs used below; it is an external
+library, not a subpath or feature of `@katakit/react`. The latter is currently an empty
+placeholder reserved for future Katakit-specific React APIs (such as developer tools).
+Applications do not need to install `@katakit/react` for observable bindings.
+
 Create the runtime and its bindings outside rendering. Call `bind(source$)` once per stable observable to obtain a hook and a shared stream. Place a `Subscribe` boundary around the components that call that hook, passing the **bound stream** as `source$`.
 
 ## Minimal example
@@ -71,4 +76,5 @@ and [package example](https://github.com/katabase-ai/katakit/blob/main/pkgs/tran
 
 This hook manages microphone ownership; React-RxJS manages subscriptions to runtime observables.
 The [React web starter](../starters/react-web.md) shows the complete input-to-view setup.
-`@katakit/react` remains reserved for future React-specific APIs.
+Use `@react-rxjs/core` for subscriptions and `@katakit/transcription/react` for optional
+microphone ownership. Neither requires `@katakit/react` today.
