@@ -5,7 +5,7 @@
 export const galleryDemoDetails = [
   {
     id: 'transcription',
-    sourcePath: 'demos/transcription-react',
+    sourcePath: 'examples/demos/transcription-react',
     title: 'Local transcription',
     description:
       'Set up local speech recognition, test your microphone, and learn the shared controls.',
@@ -13,14 +13,14 @@ export const galleryDemoDetails = [
   },
   {
     id: 'bingo',
-    sourcePath: 'demos/bingo-react',
+    sourcePath: 'examples/demos/bingo-react',
     title: 'Conversation bingo',
     description: 'Play a live bingo board using on-device microphone transcription.',
     capabilities: ['microphone', 'localTranscription'],
   },
   {
     id: 'notes',
-    sourcePath: 'demos/notes-react',
+    sourcePath: 'examples/demos/notes-react',
     title: 'Structured notes',
     description:
       'Turn your speech into notes and correct misheard names. Audio stays local; notes use a host-supplied model connection.',

@@ -28,7 +28,7 @@ jobs:
             config: wrangler.docs.jsonc
           - site: Gallery
             package: '@katakit/gallery'
-            config: demos/gallery/dist/server/wrangler.json
+            config: examples/demos/gallery/dist/server/wrangler.json
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

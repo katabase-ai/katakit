@@ -12,8 +12,8 @@ Use Node.js 24+ and pnpm 11.9.0, as declared in `.node-version` and `package.jso
 pnpm install --frozen-lockfile
 ```
 
-Public libraries live in `pkgs/`; applications and feature examples live in `demos/`.
-The copyable `templates/` are independent pnpm projects, outside the root workspace.
+Public libraries live in `pkgs/`; applications and feature examples live in `examples/demos/`.
+The copyable `examples/starters/` are independent pnpm projects, outside the root workspace.
 Follow the selected template's README and run its commands from its own directory.
 
 The libraries are currently unpublished. Examples copied outside the repository need built
@@ -24,18 +24,18 @@ README when copying a demo or rebuilding those archives.
 
 Run commands from the repository root:
 
-| Command                     | Purpose                                                                                    |
-| --------------------------- | ------------------------------------------------------------------------------------------ |
-| `pnpm tsc`                  | Check each workspace package, including its tests, with its own TypeScript config.         |
-| `pnpm test:ci`              | Run workspace tests.                                                                       |
-| `pnpm build`                | Build library JavaScript/declarations, demos, and the docs viewer.                         |
-| `pnpm check`                | Run formatting, lint, licenses, template manifests, types, tests, docs checks, and builds. |
-| `pnpm docs:export`          | Validate and export authored docs and generated API reference.                             |
-| `pnpm templates:copy-check` | Copy, install, and build the independent starters outside the workspace.                   |
+| Command                    | Purpose                                                                                    |
+| -------------------------- | ------------------------------------------------------------------------------------------ |
+| `pnpm tsc`                 | Check each workspace package, including its tests, with its own TypeScript config.         |
+| `pnpm test:ci`             | Run workspace tests.                                                                       |
+| `pnpm build`               | Build library JavaScript/declarations, demos, and the docs viewer.                         |
+| `pnpm check`               | Run formatting, lint, licenses, template manifests, types, tests, docs checks, and builds. |
+| `pnpm docs:export`         | Validate and export authored docs and generated API reference.                             |
+| `pnpm examples:copy-check` | Copy, install, build, and test every demo and starter outside the workspace.               |
 
 For focused work, use `pnpm --filter <package-name> <command>`. Before submitting, run the
 checks appropriate to the change; the CI workflow runs the full set. For template changes,
-also follow the manual platform checks in [templates/README.md](templates/README.md).
+also follow the manual platform checks in [examples/starters/README.md](examples/starters/README.md).
 
 ## Package imports and TypeScript
 
@@ -84,16 +84,27 @@ Run the local gallery with:
 pnpm -F @katakit/gallery dev
 ```
 
-The [gallery README](demos/gallery/README.md) covers adding entries, building the host,
+The [gallery README](examples/demos/gallery/README.md) covers adding entries, building the host,
 shared input ownership, model connections, and microphone hosting requirements.
 The [starter guides](docs/pages/starters/README.md) help users choose a platform;
-[template contributor guidance](templates/README.md) defines copyability and verification.
+[template contributor guidance](examples/starters/README.md) defines copyability and verification.
 
-The [browser bingo](demos/bingo-react/README.md) and
-[extension bingo](demos/bingo-extension/README.md) examples each own their UI, styling, board
+The [browser bingo](examples/demos/bingo-react/README.md) and
+[extension bingo](examples/demos/bingo-extension/README.md) examples each own their UI, styling, board
 state, and audio host so they can be copied independently. Their READMEs explain standalone
-setup. Bingo behavior is maintained in `demos/bingo-react/src/bingo/` and copied into the
+setup. Bingo behavior is maintained in `examples/demos/bingo-react/src/bingo/` and copied into the
 extension; `pnpm bingo:check-copy` checks that those copies agree.
+
+## Website source consumers
+
+A pinned website must update its source aliases when adopting this layout. In Protozoa's
+`pkgs/website`, change `.katakit/source/demos/gallery/shared` to
+`.katakit/source/examples/demos/gallery/shared` in both `tsconfig.json` and `vite.config.ts`.
+Source links must use `examples/demos/` too. Adopt the new source SHA together with those
+changes; existing pins keep their old layout. `prepareKatakitRuntime.mjs` still builds libraries
+under `pkgs/`, and `prepareDocs.mjs` still invokes `pnpm docs:export`.
+The open Color Clash PR also needs its new gallery files moved beneath `examples/demos/`
+when rebased; this structural change does not incorporate that feature.
 
 ## Pull request previews
 

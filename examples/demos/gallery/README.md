@@ -1,5 +1,21 @@
 # Demo gallery
 
+## Prepare an independent copy
+
+From an installed Katakit checkout, run:
+
+```sh
+pnpm examples:copy demos/gallery /tmp/my-gallery
+cd /tmp/my-gallery
+pnpm install
+pnpm build
+pnpm preview
+```
+
+The copy includes built Katakit tarballs and local dependency overrides while the libraries
+are unpublished. Keep `vendor/` with it. The gallery also carries its composed demo sources under `sources/`.
+No original checkout is needed after copying. Follow the platform and hosting instructions below.
+
 This is the local TanStack Start host for the React demo gallery. It runs without the private
 website, account credentials, or a model-provider key. Install dependencies from the Katakit root:
 
@@ -90,4 +106,4 @@ GitHub Actions builds this same Start app and uploads its generated Worker confi
 `dist/server/wrangler.json`, including `dist/client/` and `transcription-assets/`. Direct demo
 links and unknown routes are handled by Start rather than an HTML fallback. `public/_headers`
 supplies document and runtime isolation headers. See the repository's
-[preview setup](../../.github/PREVIEWS.md).
+[preview setup](../../../.github/PREVIEWS.md).

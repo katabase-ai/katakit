@@ -1,5 +1,21 @@
 # Conversation bingo extension example
 
+## Prepare an independent copy
+
+From an installed Katakit checkout, run:
+
+```sh
+pnpm examples:copy demos/bingo-extension /tmp/my-bingo-extension
+cd /tmp/my-bingo-extension
+pnpm install
+pnpm build
+pnpm test
+```
+
+The copy includes built Katakit tarballs and local dependency overrides while the libraries
+are unpublished. Keep `vendor/` with it. All application source stays in this directory.
+No original checkout is needed after copying. Follow the platform and hosting instructions below.
+
 ## Standalone setup
 
 Use Node.js 24 or newer and pnpm 11.9.0. Copy this entire directory anywhere outside the
@@ -97,10 +113,10 @@ after editing source files.
 
 ## Maintaining the repository copy
 
-`demos/bingo-react/src/bingo/` is the canonical implementation. The extension
+`examples/demos/bingo-react/src/bingo/` is the canonical implementation. The extension
 contains an identical local copy so either example remains independently usable.
 When changing Bingo behavior, update the canonical directory and copy it to
-`demos/bingo-extension/src/bingo/`, including its tests and README. Run
+`examples/demos/bingo-extension/src/bingo/`, including its tests and README. Run
 `pnpm bingo:check-copy` from the repository root; the lint check rejects missing,
 extra, or changed files in the extension copy. Standalone users can modify their
 local copy without the repository check.

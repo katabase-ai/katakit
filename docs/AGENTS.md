@@ -11,7 +11,7 @@ website consumers. See [EXPORT.md](EXPORT.md) for that boundary and bundle contr
 - Write introductions and task instructions in `pages/getting-started/`, shared
   concepts in `pages/concepts/`, platform walkthroughs in `pages/starters/`,
   and reusable API behavior, lifecycle, configuration, and examples in
-  `pages/reference/`. The copied `templates/*/README.md` files own the exact
+  `pages/reference/`. The copied `examples/starters/*/README.md` files own the exact
   install and run commands; docs pages explain how and why to adapt them.
 - Describe public symbols beside their source declarations with JSDoc. The
   exporter generates signatures, types, and symbol pages from those declarations;

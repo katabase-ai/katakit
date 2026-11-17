@@ -3,8 +3,8 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const canonical = join(root, 'demos/bingo-react/src/bingo');
-const standalone = join(root, 'demos/bingo-extension/src/bingo');
+const canonical = join(root, 'examples/demos/bingo-react/src/bingo');
+const standalone = join(root, 'examples/demos/bingo-extension/src/bingo');
 const files = directory =>
   readdirSync(directory, { withFileTypes: true }).flatMap(entry =>
     entry.isDirectory()
@@ -23,7 +23,7 @@ const differences = [...new Set([...sourceFiles, ...copiedFiles])].filter(
 
 if (differences.length) {
   throw new Error(
-    `Bingo copy differs: ${differences.join(', ')}. Copy demos/bingo-react/src/bingo/ to demos/bingo-extension/src/bingo/ and run pnpm bingo:check-copy.`
+    `Bingo copy differs: ${differences.join(', ')}. Copy examples/demos/bingo-react/src/bingo/ to examples/demos/bingo-extension/src/bingo/ and run pnpm bingo:check-copy.`
   );
 }
 

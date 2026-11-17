@@ -17,7 +17,10 @@
     "docs:export": "pnpm --filter @katakit/docs-export export",
     "bingo:check-copy": "node scripts/check-bingo-copy.mjs",
     "templates:check": "node scripts/check-template-manifests.mjs && node --test scripts/check-template-manifests.test.mjs",
-    "templates:copy-check": "node scripts/check-template-copy.mjs"
+    "templates:copy-check": "node scripts/check-template-copy.mjs",
+    "examples:copy": "node scripts/copy-example.mjs",
+    "examples:copy-check": "node scripts/check-demo-copy.mjs && pnpm templates:copy-check",
+    "demos:copy-check": "node scripts/check-demo-copy.mjs"
   },
   "devDependencies": {
     "@types/node": "24.13.3",

@@ -1,5 +1,21 @@
 # Structured notes
 
+## Prepare an independent copy
+
+From an installed Katakit checkout, run:
+
+```sh
+pnpm examples:copy demos/notes-react /tmp/my-notes-react
+cd /tmp/my-notes-react
+pnpm install
+pnpm build
+pnpm dev
+```
+
+The copy includes built Katakit tarballs and local dependency overrides while the libraries
+are unpublished. Keep `vendor/` with it. All application source stays in this directory.
+No original checkout is needed after copying. Follow the platform and hosting instructions below.
+
 This React example turns on-device speech recognition into a two-level outline rendered as Markdown.
 Starting the microphone connects the model automatically. Finalized turns trigger requests. Later speech can correct a
 misheard name in an existing note. The transcript keeps the original recognition text.
@@ -15,7 +31,7 @@ pnpm -F @katakit/demo-notes dev
 ```
 
 Set `VITE_NOTES_ENDPOINT` to an OpenAI-compatible chat-completions endpoint and
-`VITE_NOTES_CREDENTIAL` to its credential in an ignored `demos/notes-react/.env.local` file.
+`VITE_NOTES_CREDENTIAL` to its credential in an ignored `examples/demos/notes-react/.env.local` file.
 The endpoint must accept browser requests from your local origin. The standalone host uses
 `z-ai/glm-5.3`. These Vite values are visible in the browser; use this host locally with your own
 connection. A public host should supply anonymous admission through its own proxy instead.
@@ -27,7 +43,7 @@ turns with the existing outline. A hosted connection may require browser verific
 
 ## Embed the example
 
-The gallery exports `notesGalleryDemo` from `demos/gallery/shared/galleryDemos.tsx`. Its lazy
+The gallery exports `notesGalleryDemo` from `examples/demos/gallery/shared/galleryDemos.tsx`. Its lazy
 component takes no props: it uses the host's `GallerySpeechProvider` and the model connection the
 host passes to `Gallery` as `connectModel`. Catalogue metadata and source paths live in Katakit.
 A host can consume them through an exact source pin without publishing a demo package. Without a

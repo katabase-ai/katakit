@@ -1,6 +1,6 @@
 packages:
   - 'pkgs/*'
-  - 'demos/*'
+  - 'examples/demos/*'
   - 'docs'
 
 allowBuilds:

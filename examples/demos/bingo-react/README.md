@@ -1,4 +1,20 @@
-# React transcription example
+# Browser conversation bingo example
+
+## Prepare an independent copy
+
+From an installed Katakit checkout, run:
+
+```sh
+pnpm examples:copy demos/bingo-react /tmp/my-bingo-react
+cd /tmp/my-bingo-react
+pnpm install
+pnpm build
+pnpm dev
+```
+
+The copy includes built Katakit tarballs and local dependency overrides while the libraries
+are unpublished. Keep `vendor/` with it. All application source stays in this directory.
+No original checkout is needed after copying. Follow the platform and hosting instructions below.
 
 ## Standalone setup
 
@@ -58,33 +74,43 @@ Inside the repository, build the utility before starting the example:
 ```sh
 pnpm install
 pnpm -F @katakit/transcription build
-pnpm -F @katakit/demo-transcription dev
+pnpm -F @katakit/demo-bingo-react dev
 ```
 
 ## Using the example
 
-Choose Moonshine Tiny, Small (the default), or Medium Streaming, or Whisper Tiny
-English. Grant microphone access and speak; finalized lines are grouped into
-conversation turns. Moonshine offers live provisional text. Whisper runs in a
-worker on roughly ten-second audio chunks, so its text appears later and has no
-live preview.
+Start Moonshine Tiny streaming transcription with your microphone. The first use
+downloads a model. Audio stays in the browser; the board and transcript reset on
+reload. Finalized words appear in Last heard; interim recognition text is not
+displayed or used for bingo.
 
-The first use of each model downloads its assets from its provider. Audio stays
-in the browser and is not sent to an application server. Transcripts are held in
-memory and cleared on reload. Stop drains pending recognition and flushes the
-current turn. Change models only between recordings: the old model is closed,
-existing turns remain visible, and each recording gets a distinct source ID.
+Choose a word list. Built-in packs draw a mix of familiar, less familiar, and
+wildcard entries; choose **Shuffle** for another draw. Rare names and tricky words
+may be misheard by the recognizer; click a square to correct it. Switching lists
+or shuffling rechecks the current transcript and clears manual corrections. You
+can do either without stopping transcription.
 
 ## Modifying and hosting
 
-Edit `src/App.tsx` for React UI and transcript wiring, `src/controls.tsx` and
-`src/AudioLevelMeter.tsx` for controls, and `src/base.css`, `src/style.css`, and
-`src/audio-level-meter.css` for styling. Model selection and transcript wiring
-are local. The transcription utility owns microphone capture, speech recognition, workers, and runtime asset serving.
+Edit `src/App.tsx` for React UI and transcript wiring, `src/bingo/` for board state,
+matching rules, and word lists, and `src/controls.tsx` and `src/AudioLevelMeter.tsx`
+for controls. Styling lives in `src/base.css`, `src/style.css`, and
+`src/audio-level-meter.css`. The microphone host uses the transcription utility.
+Its Vite asset plugin serves and copies the installed runtime files. No Chrome extension APIs are used.
 
 Microphone access requires a secure, cross-origin-isolated context. Vite serves
 the required headers on localhost. Static hosting must serve
 `Cross-Origin-Opener-Policy: same-origin` on the document and
 `Cross-Origin-Embedder-Policy: require-corp` on the document and runtime assets.
-`transcriptionAssetsPlugin` includes the installed speech runtime in
+`transcriptionAssetsPlugin` copies the installed speech runtime into
 `dist/transcription-assets/`.
+
+## Maintaining the repository copy
+
+`examples/demos/bingo-react/src/bingo/` is the canonical implementation. The extension
+contains an identical local copy so either example remains independently usable.
+When changing Bingo behavior, update the canonical directory and copy it to
+`examples/demos/bingo-extension/src/bingo/`, including its tests and README. Run
+`pnpm bingo:check-copy` from the repository root; the lint check rejects missing,
+extra, or changed files in the extension copy. Standalone users can modify their
+local copy without the repository check.

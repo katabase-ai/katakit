@@ -16,6 +16,6 @@
     "build/",
     "coverage/",
     "**/__generated__/",
-    "demos/gallery/src/routeTree.gen.ts"
+    "examples/demos/gallery/src/routeTree.gen.ts"
   ]
 }
