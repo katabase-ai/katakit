@@ -43,9 +43,13 @@ jobs:
       - name: Check documentation
         if: matrix.site == 'Docs'
         run: pnpm -F @katakit/docs check
-      # Build the local viewers and their dependencies; Start emits the gallery Worker configuration.
+      # Registry pins can lag local versions, so dependency filters may omit these libraries.
+      - name: Build gallery libraries
+        if: matrix.site == 'Gallery'
+        run: pnpm build:pkgs
+      # Start emits the gallery Worker configuration.
       - name: Build preview
-        run: pnpm --filter '${{ matrix.package }}...' build
+        run: pnpm --filter '${{ matrix.package }}' build
       - name: Report fork deployment limitation
         if: github.event.pull_request.head.repo.full_name != github.repository
         run: echo 'Fork PRs build both viewers but cannot upload previews without repository credentials.' >> "$GITHUB_STEP_SUMMARY"
