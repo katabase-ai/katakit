@@ -1,11 +1,12 @@
 # Working in Katakit
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup, public imports, and checks, then
+Read [CONTRIBUTING.md](CONTRIBUTING.md) for setup and contributing, and
+[DEVELOPMENT.md](DEVELOPMENT.md) for public imports and engineering checks, then
 the `AGENTS.md` files in the directories you change. These rules apply to maintainers,
 contributors, and agents. Keep changes within the requested scope; existing deviations
 are migration work, not patterns to repeat.
 
-The [package layout](CONTRIBUTING.md#package-structure) and
+The [package layout](DEVELOPMENT.md#package-structure) and
 [example copy workflow](examples/README.md) describe the current structure. Use Node.js 24+
 and pnpm 11.9.0. Check `git status` and current main before changing a branch; preserve
 unrelated work.

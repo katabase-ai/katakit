@@ -1,7 +1,7 @@
 # Internal tooling and assets
 
-Use the [placement table](../CONTRIBUTING.md#package-structure) and
-[internal sharing contract](../CONTRIBUTING.md#internal-tools-and-shared-styles).
+Use the [placement table](../DEVELOPMENT.md#package-structure) and
+[internal sharing contract](../DEVELOPMENT.md#internal-tools-and-shared-styles).
 
 - Dependency-owning build tools live in `pkgs/<name>/` with `private: true`.
   Preserve supported root commands and portable output contracts when moving implementation.

@@ -1,5 +1,24 @@
 # Katakit
 
+> [!NOTE]
+> <img src=".github/assets/seed.png" alt="A golden seed sprouting three green leaves" width="160" align="right" />
+>
+> This project is a seed.
+>
+> It contains a small sample of the experiments and prototypes we’ve been working on at [Katabase](https://katabase.com).
+>
+> There’s a lot more we’d love to share, and we’d appreciate your help shaping what comes next.
+>
+> - Request a [feature](https://github.com/katabase-ai/katakit/issues/new?template=feature_request.md), propose an [integration](https://github.com/katabase-ai/katakit/issues/new?template=integration_proposal.md), or report a [bug](https://github.com/katabase-ai/katakit/issues/new?template=bug_report.md)
+> - Make a [contribution](CONTRIBUTING.md)
+> - Get in touch with us [directly](mailto:katakit@katabase.com)
+>
+> We're excited to see what you build!
+>
+> \- The Katabase team (Abe, Jude, Drew)
+
+---
+
 Katakit is an open-source TypeScript developer kit for building voice-to-visual UI: interfaces
 that take part in a conversation. Turn spoken words into something people can see, play with,
 and shape together.
@@ -120,8 +139,9 @@ pnpm test:ci
 pnpm build
 ```
 
-See [Contributing](CONTRIBUTING.md) for workspace conventions, the complete checks, documentation,
-and previews. Try an example, adapt it to something you care about, and share what you build or
+See [Contributing](CONTRIBUTING.md) for ways to help, local setup, and submitting a pull request.
+The [development reference](DEVELOPMENT.md) covers workspace conventions, checks, and previews.
+Try an example, adapt it to something you care about, and share what you build or
 where the pieces get in your way through [GitHub issues](https://github.com/katabase-ai/katakit/issues).
 
 ## License

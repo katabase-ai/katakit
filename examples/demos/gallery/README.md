@@ -20,6 +20,7 @@ website, account credentials, or a model-provider key. Install dependencies from
 
 ```sh
 pnpm install --frozen-lockfile
+pnpm build:pkgs
 pnpm -F @katakit/gallery dev
 ```
 
@@ -31,14 +32,16 @@ responses are handled by Start. Browser-only demo modules mount after hydration,
 ## Build and inspect
 
 ```sh
-pnpm --filter @katakit/gallery... build
+pnpm build:pkgs
+pnpm --filter @katakit/gallery build
 pnpm --filter @katakit/gallery tsc
 pnpm --filter @katakit/gallery preview
 ```
 
 Open <http://127.0.0.1:4348>. The built preview uses the local Workers runtime; no Cloudflare login
 is needed. No Cloudflare credentials are needed for local development or preview.
-Use `pnpm --filter @katakit/gallery... build` to build the gallery and its upstream packages in dependency order.
+Build libraries explicitly before the gallery: dependency filters can omit local packages
+while the examples' registry pins lag behind local versions.
 The gallery build itself does not rebuild shared assets while sibling apps may be copying them.
 
 The `pnpm-workspace.yaml` build allowance for `workerd` installs the local runtime binary.

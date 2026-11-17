@@ -1,6 +1,6 @@
 # Publishable libraries
 
-Follow [library standards](../CONTRIBUTING.md#add-or-change-a-library) and each package's
+Follow [library standards](../DEVELOPMENT.md#add-or-change-a-library) and each package's
 scoped instructions. All packages here are intended for publication under `@katakit/`;
 private tools belong in `internal/pkgs/`.
 
