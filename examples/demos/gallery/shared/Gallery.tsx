@@ -54,11 +54,11 @@ export const Gallery = ({
   onConfigureOperation?: (operation?: GalleryOperation) => void;
 }) => {
   const inference = useGalleryInference();
-  const { editing } = useGalleryMode();
+  const { isDeveloperView } = useGalleryMode();
   const connect = useMemo<GalleryModelConnect | undefined>(() => {
     if (!inference) return undefined;
     const sourceSignal = inference.owner.getSignal();
-    if (editing && inference.settings.source === 'key')
+    if (isDeveloperView && inference.settings.source === 'key')
       return connectWithKey(inference.settings, sourceSignal);
     if (!connectModel) return undefined;
     return async input => {
@@ -77,15 +77,15 @@ export const Gallery = ({
         },
       };
     };
-  }, [connectModel, inference, editing]);
+  }, [connectModel, inference, isDeveloperView]);
   const model = useMemo(
     () => ({
       connect,
       hostAvailable: !!connectModel,
-      developer: editing,
-      configure: editing ? onConfigureOperation : undefined,
+      isDeveloperView,
+      configure: isDeveloperView ? onConfigureOperation : undefined,
     }),
-    [connect, connectModel, editing, onConfigureOperation]
+    [connect, connectModel, isDeveloperView, onConfigureOperation]
   );
   return (
     <GalleryModelContext value={model}>
@@ -93,7 +93,7 @@ export const Gallery = ({
         <aside className="gallery-sidebar">
           <nav className="gallery-nav" aria-label="React demos">
             {renderLink({ children: 'Welcome', current: !activeDemo && !developerPage })}
-            {editing && <p className="gallery-nav-label">Demos</p>}
+            {isDeveloperView && <p className="gallery-nav-label">Demos</p>}
             {demos.map(demo => (
               <span key={demo.id}>
                 {renderLink({
@@ -105,7 +105,7 @@ export const Gallery = ({
             ))}
           </nav>
           <GalleryFooter>
-            {editing ? (
+            {isDeveloperView ? (
               <nav className="gallery-developer-nav" aria-label="Developer tools">
                 {(['setup', 'grid'] as const).map(page => (
                   <span key={page}>
@@ -123,7 +123,7 @@ export const Gallery = ({
           </GalleryFooter>
         </aside>
         <div className="gallery-content">
-          {editing && developerPage ? (
+          {isDeveloperView && developerPage ? (
             <Suspense fallback={<p role="status">Loading operations…</p>}>
               {developerPage === 'setup' ? (
                 <OperationSetup />

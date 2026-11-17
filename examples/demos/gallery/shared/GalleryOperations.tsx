@@ -9,7 +9,7 @@ import type { Gallery } from './Gallery';
 
 /** Developer configuration is scoped to implemented operations; no account/unsupported-model placeholders. */
 export const GalleryOperationSetup = () => {
-  const { editing } = useGalleryMode();
+  const { isDeveloperView } = useGalleryMode();
   const inference = useGalleryInference();
   const speech = useGallerySpeech();
   const { hostAvailable } = useContext(GalleryModelContext);
@@ -24,7 +24,7 @@ export const GalleryOperationSetup = () => {
   useEffect(() => {
     setDraft(initial());
   }, [inference?.settings, hostAvailable]);
-  if (!editing) return null;
+  if (!isDeveloperView) return null;
   if (!inference || !speech || !draft) return <p role="status">Preparing operation settings…</p>;
   const apply = (action: () => void, message: string) => {
     try {
@@ -272,9 +272,9 @@ export const GalleryOperationGrid = ({
   demos,
   renderLink,
 }: Pick<Parameters<typeof Gallery>[0], 'demos' | 'renderLink'>) => {
-  const { editing } = useGalleryMode();
+  const { isDeveloperView } = useGalleryMode();
   const { connect, configure } = useContext(GalleryModelContext);
-  if (!editing) return null;
+  if (!isDeveloperView) return null;
   return (
     <section className="gallery-developer-page" aria-label="Operation Grid">
       <h1>Operation Grid</h1>

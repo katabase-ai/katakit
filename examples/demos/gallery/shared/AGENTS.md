@@ -27,6 +27,9 @@ source checkout. They do not own application bootstraps, routing, or private ser
 - Public mode is the default. `GalleryModeProvider` enables developer tools only when a host explicitly
   opts in through build configuration. Public mode and public preview ignore saved developer keys;
   never enable BYOK through a visitor URL or local-storage flag. `#gallery-developer-mode`
+- `developerMode` describes the host build's capability. `GalleryModeProvider` owns `isPublicPreview`
+  and derives `isDeveloperView` for every UI/connection decision. Keep environment checks in the
+  host; do not create independent mode flags in gallery components. `#gallery-mode-state`
 - Keep `GallerySpeechProvider` and `GalleryModeProvider` above the host header/outlet. The header’s
   `GalleryPreviewToggle` remains visible in developer builds while previewing public mode; it never
   renders in a public build. Mode transitions invalidate inference immediately, preserve saved

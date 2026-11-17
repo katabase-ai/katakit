@@ -37,8 +37,9 @@ pnpm --filter @katakit/gallery tsc
 pnpm --filter @katakit/gallery preview
 ```
 
-Open <http://127.0.0.1:4348>. The built preview uses the local Workers runtime; no Cloudflare login
-is needed. No Cloudflare credentials are needed for local development or preview.
+Open <http://127.0.0.1:4348>. The `preview` command serves the last built artifact using the local
+Workers runtime; it does not select the gallery mode. A normal build is public. No Cloudflare
+login or credentials are needed for local development or serving a local build.
 Use `pnpm --filter @katakit/gallery... build` to build the gallery and its upstream packages in dependency order.
 The gallery build itself does not rebuild shared assets while sibling apps may be copying them.
 
@@ -124,22 +125,42 @@ See [the notes example](../notes-react/README.md) for the generic contract.
 
 ## Developer mode and public preview
 
+Gallery mode controls the UI and inference policy independently of build optimization:
+
+| How the gallery runs                             | Gallery experience                                    |
+| ------------------------------------------------ | ----------------------------------------------------- |
+| Vite dev server (`pnpm -F @katakit/gallery dev`) | Developer                                             |
+| Normal production build                          | Public                                                |
+| Build with `VITE_GALLERY_DEV_MODE=true`          | Developer, in an optimized build                      |
+| Hosted PR deployment                             | Developer, with the header's Preview toggle           |
+| Header Preview enabled in a developer build      | Public experience, with the toggle retained to return |
+
+Three uses of “preview” have different meanings: the header's **Preview** toggle changes the live
+gallery experience; `pnpm preview` serves an existing build locally; a hosted PR preview deploys a
+build for review. Neither local serving nor the deployment URL itself selects the gallery mode.
+
 The shared gallery defaults to public mode. BYOK, Operation Setup/Grid, and developer recovery
 controls exist only inside a host’s explicit `GalleryModeProvider developerMode={true}` opt-in.
 Mount that provider inside `GallerySpeechProvider`, above the header and route outlet. Hosts own
 their developer links/routes and pass `developerPage`, `renderDeveloperLink`, and
 `onConfigureOperation` to Gallery. `GalleryPreviewToggle` belongs beside the host’s theme switch.
 Public website builds should omit the developer opt-in; URL and local-storage flags cannot enable it.
+The provider owns `isPublicPreview` and derives `isDeveloperView = developerMode && !isPublicPreview`.
+UI controls and connection selection use that same effective policy; host route guards additionally
+check whether the build supports developer tools.
 
-The reference host enables developer mode on the Vite dev server. Normal builds and previews use
-public mode. To review a production-like developer build explicitly:
+The reference host's `src/galleryEnvironment.ts` enables developer mode on the Vite dev server or
+when `VITE_GALLERY_DEV_MODE=true` is set at build time. Normal builds are public. `pnpm preview`
+serves the mode compiled into the last build; setting the flag only when serving cannot change it.
+To review an optimized developer build locally:
 
 ```sh
 VITE_GALLERY_DEV_MODE=true pnpm -F @katakit/gallery build
 pnpm -F @katakit/gallery preview
 ```
 
-Do not set that build flag for the public deployment. `/operations/setup` and `/operations/grid`
+The PR deployment workflow sets this flag for gallery review builds. Omit it for public production
+deployments. `/operations/setup` and `/operations/grid`
 redirect to Welcome in public builds. In a developer build, the header’s Preview toggle switches
 the live gallery into public mode. It hides developer tools and ignores developer keys, retaining
 the toggle as the way back. Entering preview from a tools page opens Welcome; leaving returns to
@@ -195,5 +216,8 @@ one React runtime. Gallery-only source updates do not require a library release.
 GitHub Actions builds this same Start app and uploads its generated Worker configuration at
 `dist/server/wrangler.json`, including `dist/client/` and `transcription-assets/`. Direct demo
 links and unknown routes are handled by Start rather than an HTML fallback. `public/_headers`
-supplies document and runtime isolation headers. See the repository's
+supplies document and runtime isolation headers. The workflow sets `VITE_GALLERY_DEV_MODE=true`
+only for the gallery PR build, so reviewers can use developer tools and the header's Preview toggle
+to inspect the public experience. This does not add managed inference to the standalone host.
+Normal production builds remain public. See the repository's
 [preview setup](../../../.github/PREVIEWS.md).

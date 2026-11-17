@@ -57,7 +57,7 @@ export type GalleryModelConnect = (input: {
 export const GalleryModelContext = createContext<{
   connect?: GalleryModelConnect;
   hostAvailable?: boolean;
-  developer?: boolean;
+  isDeveloperView?: boolean;
   configure?: (operation?: GalleryOperation) => void;
 }>({});
 
@@ -66,7 +66,7 @@ export const GalleryModelContext = createContext<{
  * check, and usage meter render inside the demo view.
  */
 export const useGalleryModel = () => {
-  const { connect, developer, configure } = useContext(GalleryModelContext);
+  const { connect, isDeveloperView, configure } = useContext(GalleryModelContext);
   const verification = useRef<HTMLDivElement>(null);
   const [allowance, setAllowance] = useState<{ remaining: number; total: number }>();
   const usageId = useId();
@@ -84,7 +84,7 @@ export const useGalleryModel = () => {
   );
   return {
     connect: connect && connectVisit,
-    configure: developer ? configure : undefined,
+    configure: isDeveloperView ? configure : undefined,
     renderControls: (controls: ReactNode) => (
       <>
         {controls}

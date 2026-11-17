@@ -14,7 +14,7 @@ export const GalleryPage = ({
   demo?: (typeof galleryDemos)[number];
   developerPage?: GalleryDeveloperPage;
 }) => {
-  const { editing } = useGalleryMode();
+  const { isDeveloperView } = useGalleryMode();
   const navigate = useNavigate();
   const configure = useCallback(
     (operation?: GalleryOperation) => {
@@ -23,7 +23,7 @@ export const GalleryPage = ({
     [navigate]
   );
   const Component = demo?.component;
-  if (developerPage && !editing) return <Navigate to="/" replace />;
+  if (developerPage && !isDeveloperView) return <Navigate to="/" replace />;
   return (
     <Gallery
       demos={galleryDemos}

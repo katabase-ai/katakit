@@ -13,6 +13,15 @@ pages only. Neither preview checks out ProtoZoa, exports the documentation
 bundle, or builds the consuming website. The website's rendering of Katakit
 content is reviewed in that website's own previews.
 
+Gallery PR builds explicitly set `VITE_GALLERY_DEV_MODE=true` so reviewers can inspect Operation
+Setup/Grid and developer-only BYOK. The header's **Preview** toggle switches to the public gallery
+experience while preserving a way back to developer tools. Public preview ignores saved developer
+keys and uses the host's managed connection if one exists; this standalone host does not supply one.
+Switching either direction pauses inference and requires an explicit restart. This build flag is
+scoped to the gallery PR build step; normal production builds remain public. The `pnpm preview`
+command only serves the last built artifact locally and does not choose its mode. See the gallery's
+[mode reference](../examples/demos/gallery/README.md#developer-mode-and-public-preview).
+
 ## Cloudflare setup
 
 This follows protozoa-app's `wrangler versions upload --preview-alias` workflow.
@@ -60,6 +69,9 @@ memory, matching the local server's isolation settings. Keep the generated
 
 ## Verify a preview
 
+- In the gallery, open Operation Setup and Operation Grid. Enable the header's Preview toggle:
+  developer controls should disappear, leaving public status/download rows. Disable it to return.
+  Do not enter real provider credentials just to review the layout.
 - Follow and reload a docs page and a gallery demo URL directly; both should
   render through the docs HTML fallback or the gallery Start Worker, respectively.
 - On a gallery demo, confirm `crossOriginIsolated` is `true`, runtime JavaScript

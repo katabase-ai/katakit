@@ -13,8 +13,8 @@ export const GalleryHeader = () => {
       <Link to="/">Katakit · Demos</Link>
       <div className="gallery-header-actions">
         <GalleryPreviewToggle
-          onChange={preview => {
-            if (preview) {
+          onChange={isPublicPreview => {
+            if (isPublicPreview) {
               previousTools.current =
                 pathname === '/operations/setup' || pathname === '/operations/grid'
                   ? pathname

@@ -45,6 +45,10 @@ jobs:
         run: pnpm -F @katakit/docs check
       # Build the local viewers and their dependencies; Start emits the gallery Worker configuration.
       - name: Build preview
+        # Gallery PR deployments expose developer tools and the header's public Preview toggle.
+        # Scope this opt-in to PR builds; ordinary production builds remain public.
+        env:
+          VITE_GALLERY_DEV_MODE: ${{ matrix.site == 'Gallery' && 'true' || 'false' }}
         run: pnpm --filter '${{ matrix.package }}...' build
       - name: Report fork deployment limitation
         if: github.event.pull_request.head.repo.full_name != github.repository
