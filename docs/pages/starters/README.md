@@ -1,4 +1,4 @@
-# Templates
+# Starters
 
 Choose a copyable application starter for your platform. Each guide explains its input path, permissions, and current verification. The starter's README owns the exact install and run commands.
 
@@ -23,11 +23,11 @@ The intended path for React, Electron, Chrome extension, and Obsidian is **recor
 3. Change one input, plugin, or display at a time. If adding persistence or a server, document where audio/text goes and who can access it. The client-side starters do not upload recordings to an application service.
 4. Verify the **copied** project on its actual platform: first model load, a final turn, Stop/Start, denied microphone permission, close/reopen, and cleanup. A browser preview cannot stand in for an Obsidian, Chrome, Electron, or chat-host smoke test.
 
-## Templates, applications, and demos
+## Starters, applications, and demos
 
 A **plugin** supplies reusable behavior, such as event history or conversation-turn grouping. An **application** connects plugins to its inputs, UI, storage, and external services. Its **platform** is the host it runs in, such as the browser, Electron, or Obsidian.
 
-A **template**, called a starter in the repository, is a minimal copyable application for one platform. It includes assembly and host-specific setup. A **demo** is an application showing a user-facing capability and can contain more behavior than a starter. Templates live in `examples/starters/`; demos live in `examples/demos/`; reusable libraries live in `pkgs/`.
+A **starter** is a minimal copyable application for one platform. It includes assembly and host-specific setup. A **demo** is an application showing a user-facing capability and can contain more behavior than a starter. Starters live in `examples/starters/`; demos live in `examples/demos/`; reusable libraries live in `pkgs/`.
 
 Platform permissions, audio capture, and UI belong to the application. The transcript-ingestion plugin accepts normalized text regardless of its source. A successful build verifies the code can compile; the platform guides separately record which real host interactions have been checked.
 

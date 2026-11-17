@@ -1,4 +1,4 @@
-# Event log
+# @katakit/event-log
 
 `@katakit/event-log` records an ordered, replayable history in memory. Use it as the source for application content that should be reconstructable from events. Storage is optional and belongs to a separate [persistence plugin](persistence.md).
 

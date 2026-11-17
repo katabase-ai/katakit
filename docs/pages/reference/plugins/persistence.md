@@ -1,4 +1,4 @@
-# Persistence
+# @katakit/persistence
 
 `@katakit/persistence` appends new event-log entries to application-owned storage. It batches writes and retries failed batches. The application chooses the stored log's identity and loads its history before constructing the runtime.
 

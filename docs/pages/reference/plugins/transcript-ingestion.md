@@ -1,4 +1,4 @@
-# Transcript ingestion
+# @katakit/transcript-ingestion
 
 `@katakit/transcript-ingestion` groups finalized text segments from any source into conversation turns. It does **not** capture audio, load a speech model, or persist transcripts. The application owns the source and its lifecycle.
 
@@ -65,7 +65,7 @@ const TranscriptIngestionPlugin = makeTranscriptIngestionPlugin({
 
 The callback is invoked synchronously after the local event is published; returning `undefined` from `createEvent` skips forwarding. This is a **forward-only** integration: `conversationTurns$` derives from local events, not from the application's persisted or hydrated event log. The application must handle rehydration separately if it needs saved turns after a reload. Provisional text can be consumed locally without persisting it.
 
-`examples/demos/transcription-react/` is a feature demo. For copyable application integrations and their verification limits, see [Templates](../../starters/README.md), including the [Obsidian starter](../../starters/obsidian.md).
+`examples/demos/transcription-react/` is a feature demo. For copyable application integrations and their verification limits, see [Starters](../../starters/README.md), including the [Obsidian starter](../../starters/obsidian.md).
 
 ## Microphone and model integration
 

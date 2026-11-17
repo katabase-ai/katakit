@@ -119,7 +119,7 @@ Vite consumers can select workspace source through `resolve.conditions` and, for
 packages. There is no root TypeScript config or workspace source-path alias; each project owns
 its configuration.
 
-Use [React-RxJS](docs/pages/getting-started/react.md) for React subscriptions to runtime
+Use [React-RxJS](docs/pages/reference/react.md#react-rxjs-bindings) for React subscriptions to runtime
 observables. The optional microphone ownership hook is exported from
 `@katakit/transcription/react`; `@katakit/react` remains reserved for future APIs.
 

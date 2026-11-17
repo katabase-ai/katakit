@@ -33,7 +33,7 @@ addMessage('Hello from the view');
 export const removeMessageView = () => subscription.unsubscribe();
 ```
 
-The example uses `textContent` so message text is displayed as text. In React, use [React-RxJS bindings](../getting-started/react.md) to subscribe during the component's lifetime. Unsubscribing the view does not stop the runtime's effects or property subscriptions.
+The example uses `textContent` so message text is displayed as text. In React, use [React-RxJS bindings](../reference/react.md#react-rxjs-bindings) to subscribe during the component's lifetime. Unsubscribing the view does not stop the runtime's effects or property subscriptions.
 
 ## Connect speech
 
@@ -41,9 +41,9 @@ Use [transcription utilities](../reference/transcription.md) to recognize audio.
 
 For conversation turns rather than individual recognition segments, connect the recognizer to [transcript ingestion](../reference/plugins/transcript-ingestion.md). That plugin groups segments and flushes an unfinished turn on Stop. Its event-log integration forwards new events; restoring saved conversation turns remains the application's responsibility.
 
-## Choose a platform template
+## Choose a platform starter
 
-The [Templates catalog](../starters/README.md) provides the permissions, model assets, input wiring, and controls for each host. Copy a starter using its README, then find these connections before replacing its behavior:
+The [Starters catalog](../starters/README.md) provides the permissions, model assets, input wiring, and controls for each host. Copy a starter using its README, then find these connections before replacing its behavior:
 
 1. Where a final recognized segment enters `ingestSegment`.
 2. Where a view subscribes to completed and provisional text.

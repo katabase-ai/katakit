@@ -1,4 +1,4 @@
-# Core
+# @katakit/core
 
 `@katakit/core` connects typed plugins in a framework-independent runtime. Plugins expose streams of values, callable methods, and effects that react to stream values. The application owns the UI, inputs, storage, and external connections.
 

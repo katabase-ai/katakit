@@ -16,4 +16,4 @@ Each page extends the same TypeScript example. You'll use `@katakit/core`, `@kat
 
 The walkthrough names the source files to create and shows the expected result after each step. Put them in the same directory in your TypeScript application. The first four steps print their results to the console; they need no microphone or model connection.
 
-For a complete application you can copy and run immediately, choose a [platform template](../starters/README.md). For contracts and lifecycle details, use [Reference](../reference/README.md).
+For a complete application you can copy and run immediately, choose a [platform starter](../starters/README.md). For contracts and lifecycle details, use [Reference](../reference/README.md).

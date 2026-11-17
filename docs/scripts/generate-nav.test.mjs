@@ -8,7 +8,7 @@ test('navigation follows the section order and uses directory READMEs as landing
     {
       label: 'Quickstart',
       slug: 'getting-started',
-      children: [{ label: 'React integration', slug: 'getting-started/react' }],
+      children: [],
     },
     {
       label: 'Tutorial',
@@ -22,31 +22,26 @@ test('navigation follows the section order and uses directory READMEs as landing
       ],
     },
     {
+      label: 'Starters',
+      slug: 'starters',
+      children: [
+        { label: 'Build a Chrome extension', slug: 'starters/chrome-extension' },
+        { label: 'Build an Electron desktop app', slug: 'starters/electron' },
+        { label: 'MCP App card — WIP', slug: 'starters/mcp-app' },
+        { label: 'Build an Obsidian plugin', slug: 'starters/obsidian' },
+        { label: 'Build a React web app', slug: 'starters/react-web' },
+      ],
+    },
+    {
       label: 'Reference',
       slug: 'reference',
       children: [
-        { label: 'Core', slug: 'reference/core' },
-        { label: 'Transcription utilities', slug: 'reference/transcription' },
-        {
-          label: 'Plugins',
-          slug: 'reference/plugins',
-          children: [
-            { label: 'Event log', slug: 'reference/plugins/event-log' },
-            { label: 'Persistence', slug: 'reference/plugins/persistence' },
-            { label: 'Transcript ingestion', slug: 'reference/plugins/transcript-ingestion' },
-          ],
-        },
-        {
-          label: 'Templates',
-          slug: 'starters',
-          children: [
-            { label: 'Build a Chrome extension', slug: 'starters/chrome-extension' },
-            { label: 'Build an Electron desktop app', slug: 'starters/electron' },
-            { label: 'MCP App card — WIP', slug: 'starters/mcp-app' },
-            { label: 'Build an Obsidian plugin', slug: 'starters/obsidian' },
-            { label: 'Build a React web app', slug: 'starters/react-web' },
-          ],
-        },
+        { label: '@katakit/core', slug: 'reference/core' },
+        { label: '@katakit/event-log', slug: 'reference/plugins/event-log' },
+        { label: '@katakit/persistence', slug: 'reference/plugins/persistence' },
+        { label: '@katakit/react', slug: 'reference/react' },
+        { label: '@katakit/transcript-ingestion', slug: 'reference/plugins/transcript-ingestion' },
+        { label: '@katakit/transcription', slug: 'reference/transcription' },
       ],
     },
   ]);

@@ -4,6 +4,6 @@ A plugin supplies behavior that an application registers in a runtime. Its obser
 
 Each page below includes setup, configuration, observables, methods, and resource ownership:
 
-- [Event log](event-log.md) — validated live events and replayable in-memory history.
-- [Persistence](persistence.md) — append new events with application-owned storage or browser local storage.
-- [Transcript ingestion](transcript-ingestion.md) — assemble finalized transcript segments into conversation turns.
+- [@katakit/event-log](event-log.md) — validated live events and replayable in-memory history.
+- [@katakit/persistence](persistence.md) — append new events with application-owned storage or browser local storage.
+- [@katakit/transcript-ingestion](transcript-ingestion.md) — assemble finalized transcript segments into conversation turns.

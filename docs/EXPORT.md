@@ -34,7 +34,7 @@ Generated API reference covers `@katakit/core`, `@katakit/event-log`,
 `@katakit/persistence`, `@katakit/transcript-ingestion`, `@katakit/transcription`,
 and `@katakit/react`. The package list is explicit in
 [`exportDocs.mjs`](../internal/pkgs/docs-export/exportDocs.mjs), not discovered from every
-workspace package. Private build tools, site UI, demos, and templates are outside
+workspace package. Private build tools, site UI, demos, and starters are outside
 generated API coverage; authored pages can still explain them.
 
 For a new public package, add it to that list and to
@@ -57,7 +57,7 @@ documentation assets. All manifest paths are relative to the bundle directory. P
 `slug`, `kind`, `title`, `file`, heading IDs, and an authored `sourcePath` where applicable.
 `kind: "guide"` covers all authored pages, including handwritten Reference pages;
 `kind: "api"` identifies generated API reference.
-`navigation` contains authored pages, with templates grouped under Reference. Generated API
+`navigation` contains authored pages, with Starters above the package-named Reference section. Generated API
 pages remain in `pages` for existing links and public-export coverage, without sidebar entries.
 Navigation placement does not change page slugs or relative content links.
 `packages` records each public

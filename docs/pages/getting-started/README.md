@@ -39,7 +39,7 @@ Report the files changed, commands and results, local URL, and any
 microphone or platform checks that still need me to perform them.
 ```
 
-The [template guides](../starters/README.md) also cover Electron, Chrome extensions, Obsidian, and the WIP MCP App. Each starter's README owns its exact setup commands and platform requirements.
+The [starter guides](../starters/README.md) also cover Electron, Chrome extensions, Obsidian, and the WIP MCP App. Each starter's README owns its exact setup commands and platform requirements.
 
 ## Try the result
 
@@ -49,4 +49,4 @@ The starter keeps audio processing and transcript text on your computer. Model d
 
 ## Keep building
 
-Follow the [Tutorial](../concepts/README.md) to build a message list from events and learn how plugins fit together. Use [Reference](../reference/README.md) for package contracts, or [React integration](react.md) to connect runtime observables to a React view.
+Follow the [Tutorial](../concepts/README.md) to build a message list from events and learn how plugins fit together. Use [Reference](../reference/README.md) for package contracts, or [React-RxJS bindings](../reference/react.md#react-rxjs-bindings) to connect runtime observables to a React view.

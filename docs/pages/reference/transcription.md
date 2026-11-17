@@ -1,4 +1,4 @@
-# Transcription utilities
+# @katakit/transcription
 
 `@katakit/transcription` provides Moonshine and Whisper recognition independently of React,
 RxJS, and the Katakit plugin system. React applications can use the optional
@@ -69,7 +69,7 @@ Model weights download on first use; recognition processes audio locally.
 
 `useMicrophoneTranscriber({ createSink })` owns capture and the object receiving its results for a component's lifetime. Supply a stable factory returning `ingestSegment`, optional `updateProvisional` and `flush`, and `close`. On unmount the hook drains capture before closing that object. It exposes `sink`, `state`, `level`, `listening`, `busy`, and `toggle`.
 
-This manages capture resources. Use [React-RxJS](../getting-started/react.md) separately for subscriptions to runtime observables. The [React template](../starters/react-web.md) shows a complete application.
+This manages capture resources. Use [React-RxJS](react.md#react-rxjs-bindings) separately for subscriptions to runtime observables. The [React starter](../starters/react-web.md) shows a complete application.
 
 See the [package guide](https://github.com/katabase-ai/katakit/blob/main/pkgs/transcription/README.md)
 for model capabilities, PCM and custom-engine examples, lifecycle and error handling,

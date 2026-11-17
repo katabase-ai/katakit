@@ -99,13 +99,13 @@ platform setup, permissions, and current verification.
 
 The transcription utility works independently of the plugin runtime. Add persistent storage
 through your own adapter when you need events to survive a reload.
-React applications render runtime observables with [React-RxJS](docs/pages/getting-started/react.md).
+React applications render runtime observables with [React-RxJS](docs/pages/reference/react.md#react-rxjs-bindings).
 
 ## Documentation
 
 - [Quickstart](docs/pages/getting-started/README.md) — build from a starter with your coding agent.
 - [Tutorial](docs/pages/concepts/README.md) — build an event-driven message list, add a plugin, and save its history.
-- [React integration](docs/pages/getting-started/react.md) — render runtime state and connect speech.
+- [@katakit/react](docs/pages/reference/react.md) — developer workbench availability, React-RxJS bindings, and microphone ownership.
 - [Transcription](docs/pages/reference/transcription.md) — configure recognition and its resources.
 - [Reference](docs/pages/reference/README.md) — explore the reusable building blocks and API guidance.
 

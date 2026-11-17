@@ -262,7 +262,15 @@ const indexRoute = createRoute({
     throw redirect({ to: '/$', params: { _splat: firstPage(tree) } });
   },
 });
-const pageRoute = createRoute({ getParentRoute: () => rootRoute, path: '$', component: Page });
+const pageRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '$',
+  beforeLoad: ({ params, location }) => {
+    if (params._splat === 'getting-started/react')
+      throw redirect({ href: `/reference/react${location.hash ? `#${location.hash}` : ''}` });
+  },
+  component: Page,
+});
 const routeTree = rootRoute.addChildren([indexRoute, pageRoute]);
 const router = createRouter({ routeTree });
 declare module '@tanstack/react-router' {
