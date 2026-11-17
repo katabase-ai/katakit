@@ -1,4 +1,4 @@
-# Concepts
+# Tutorial
 
 Build a small message list to learn how Katakit's pieces work together. You'll record messages as events, derive the displayed list from that history, and add behavior that responds to new messages. Then you'll save the history and connect the same behavior to an interface.
 

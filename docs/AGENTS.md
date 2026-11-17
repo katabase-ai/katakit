@@ -1,7 +1,7 @@
 # Documentation
 
 This directory owns Katakit's authored documentation and its local Vite viewer.
-`pages/` contains Getting started, Concepts, Starters, and authored Reference pages;
+`pages/` contains Getting started, Tutorial, Starters, and authored Reference pages;
 `src/` renders them; `scripts/` generates navigation and checks links.
 `../internal/packages/docs-export/` combines these pages with generated API reference for
 website consumers. See [EXPORT.md](EXPORT.md) for that boundary and bundle contract.
@@ -24,10 +24,10 @@ website consumers. See [EXPORT.md](EXPORT.md) for that boundary and bundle contr
 - After adding, moving, or retitling a page, run
   `pnpm --filter @katakit/docs exec node scripts/generate-nav.mjs` from the repository
   root and commit `src/nav.json`. Root section order is defined in that script;
-  Concepts follows its explicit tutorial order; other children are ordered by filename,
+  Tutorial follows its explicit learning order; other children are ordered by filename,
   with pages before subsections. Navigation groups
   the existing `starters` pages under Reference → Templates without changing their URLs.
-  Standalone conceptual explanations belong in Reference; Concepts teaches through use.
+  Standalone conceptual explanations belong in Reference; Tutorial teaches through use.
 
 ## Verification
 

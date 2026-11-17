@@ -1,6 +1,6 @@
 # Reference
 
-Use Reference to configure a building block, look up its methods and observables, or check who owns its resources. For a walkthrough that combines these pieces, follow [Concepts](../concepts/README.md).
+Use Reference to configure a building block, look up its methods and observables, or check who owns its resources. For a walkthrough that combines these pieces, follow the [Tutorial](../concepts/README.md).
 
 - [Core](core.md): runtime construction, plugin composition, effects, and reactive helpers.
 - [Transcription utilities](transcription.md): standalone recognition, microphone capture, and WASM/worker setup.

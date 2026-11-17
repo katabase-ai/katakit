@@ -36,4 +36,4 @@ subscription.unsubscribe();
 
 `makeKatakit` accepts **configured** plugins. `start()` starts methods and effects once; it returns the running runtime, which exposes `getMethods`. The original runtime also has `getObservables` for observable-only reads without starting methods or effects.
 
-Continue with [Concepts](../concepts/README.md) to build a message list from this event history, add a plugin, and save the result. For a React view, see [React integration](react.md). Choose a [platform template](../starters/README.md) for a complete application, or use [Reference](../reference/README.md) to look up a contract.
+Continue with the [Tutorial](../concepts/README.md) to build a message list from this event history, add a plugin, and save the result. For a React view, see [React integration](react.md). Choose a [platform template](../starters/README.md) for a complete application, or use [Reference](../reference/README.md) to look up a contract.

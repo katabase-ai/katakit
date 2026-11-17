@@ -11,7 +11,7 @@ test('navigation follows the section order and uses directory READMEs as landing
       children: [{ label: 'React integration', slug: 'getting-started/react' }],
     },
     {
-      label: 'Concepts',
+      label: 'Tutorial',
       slug: 'concepts',
       children: [
         { label: 'Start a runtime', slug: 'concepts/runtime' },
