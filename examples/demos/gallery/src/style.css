@@ -1,14 +1,18 @@
 @import '../../../../internal/site-ui/styles.css';
+@import '../shared/theme.css';
 @import '../shared/gallery.css';
 @import '../../transcription-react/src/style.css';
 
 .gallery-host {
-  max-width: 1120px;
+  width: min(var(--container), calc(100% - var(--gutter) * 2));
   margin-inline: auto;
   min-height: 100svh;
 }
 .gallery-header {
-  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 89px;
   border-bottom: 1px solid var(--color-rule);
 }
 .gallery-header a {
@@ -18,7 +22,20 @@
 .gallery-message {
   padding: 2rem 1.5rem;
 }
-.katakit-gallery .transcription-demo {
-  max-width: none;
-  padding: 0;
+.gallery-host .katakit-gallery {
+  margin-top: var(--space-xl);
+}
+
+.gallery-theme-toggle {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--color-rule-2);
+  border-radius: 50%;
+  background: var(--color-key-face);
+  box-shadow: var(--shadow-key);
+  color: var(--color-ink);
+  font-size: 1.25rem;
+  cursor: pointer;
 }

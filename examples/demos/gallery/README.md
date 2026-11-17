@@ -54,8 +54,24 @@ expected content types. Models download on Download model or an explicit microph
 `shared/galleryDemoDetails.ts` is the eligible React catalogue, including stable IDs, names,
 descriptions, source paths, and required capabilities. `shared/galleryDemos.tsx` adds lazy component loaders.
 A host can select metadata and render `shared/Gallery.tsx` without importing recognizers or this
-app's bootstrap. Import `shared/gallery.css` for the scoped presentation; it inherits host colors
-and typography and does not import the global shared reset.
+app's bootstrap. Import `shared/gallery.css` for the scoped presentation. It owns the gallery’s
+inner type scale, spacing, control styles, and demo layout resets while using the host’s font and
+palette tokens. It does not import a global reset.
+
+The default local gallery uses the Katabase website’s adapted **Cobalt** theme in both light and
+dark modes. `shared/theme.css` provides that application-level skin: cool paper surfaces, Inter
+body type, Plus Jakarta Sans display type, JetBrains Mono code, and raised 44px controls. The local header’s theme switch saves a preference in this browser; otherwise it uses the OS
+color preference. Hosts can set `data-theme="light"` or `data-theme="dark"` on the root.
+The gallery itself uses body type for its headings, matching the website’s gallery adaptation.
+Theme tokens come from the website’s `tokens.css` and `styles.css` at revision
+`869ac4dff3382b8b35cd9b67affd043c5c07f294`; no private website modules are imported.
+
+A host that wants those defaults can also import `shared/theme.css` and serve the supplied
+`public/fonts/` assets at `/fonts/`. The font files retain their SIL Open Font Licenses beside them.
+A host with its own theme imports only `shared/gallery.css` and supplies the existing `--color-*`,
+`--font-*`, and optional `--shadow-key*` tokens. Keep palette/branding changes in those tokens;
+keep gallery layout rules in the shared stylesheet so local and embedded views stay consistent.
+The standalone gallery copy includes the skin, fonts, licenses, and all imported CSS.
 
 Pass the chosen entries, active entry, a host link renderer, and active content to `Gallery`.
 Pass `GallerySpeechControls` through its `input` slot for the two compact Transcription/Inference

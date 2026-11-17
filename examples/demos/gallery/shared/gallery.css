@@ -1,11 +1,11 @@
 @import '../../../../internal/site-ui/components.css';
-/* Portable presentation inherits the host's palette and typography; no global reset. */
+/* The host supplies font/palette tokens. Inner typography, spacing and controls are scoped
+   here so marketing rules and demo-local button styles cannot change the gallery's layout. */
 .katakit-gallery {
   --font-display: var(--font-body, ui-sans-serif);
-  --font-outlier: ui-monospace, monospace;
   --text-sm: 0.875rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.5rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5625rem;
   --text-3xl: var(--text-8, 2.2rem);
   --space-3xs: 2px;
   --space-2xs: 4px;
@@ -14,19 +14,96 @@
   --space-md: 16px;
   --space-lg: 24px;
   --space-xl: 40px;
-  --radius-input: 10px;
+  --radius-input: 6px;
   --dur-micro: 120ms;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --color-paper-2: var(--color-surface-muted, light-dark(#f9f9fb, #18191b));
-  --color-paper-3: var(--color-surface-muted, light-dark(#f0f0f3, #212225));
-  --color-rule-2: var(--color-rule);
-  --color-accent-deep: var(--color-link, light-dark(#085eac, #c2e6ff));
-  --color-accent-wash: var(--color-surface-muted, light-dark(#e6f4fe, #0d2847));
-  --color-error: light-dark(#d13415, #ff977d);
-  --color-success: light-dark(#287b3f, #6fcd8a);
   --gallery-gutter: 1.5rem;
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr);
+}
+/* Match the website's type scale without importing its page-wide reset. Demo-specific
+   headings keep their own smaller sizes; generic page titles use the display scale. */
+.katakit-gallery h1,
+.katakit-gallery h2,
+.katakit-gallery h3 {
+  margin: 0 0 var(--space-lg);
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: var(--tracking-display, -0.028em);
+  line-height: 1.05;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+  color: var(--color-ink);
+}
+.katakit-gallery h1 {
+  font-size: var(--text-display, clamp(2.75rem, 5vw + 1rem, 5.25rem));
+}
+.katakit-gallery h2 {
+  font-size: var(--text-section, clamp(2rem, 2.5vw + 1rem, 3.5rem));
+}
+.katakit-gallery h3 {
+  font-size: var(--text-lg);
+}
+.katakit-gallery p {
+  margin: 0 0 var(--space-md);
+}
+.katakit-gallery .transcription-demo,
+.katakit-gallery .browser-bingo {
+  max-width: none;
+  padding: 0;
+}
+/* The same native controls render inside different demo roots. Their specificity must
+   beat demo-local button defaults as well as the shared component's neutral skin. */
+.katakit-gallery .site-button,
+.katakit-gallery .structured-notes-model-controls button,
+.katakit-gallery .structured-notes-heading button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  padding: 0 0.85rem;
+  border: 1px solid var(--color-rule-2);
+  border-radius: var(--radius-input);
+  background: var(--color-key-face, var(--color-paper-3));
+  box-shadow: var(--shadow-key, none);
+  color: var(--color-ink);
+  font: 600 var(--text-sm)/1 var(--font-body, system-ui, sans-serif);
+  cursor: pointer;
+}
+.katakit-gallery .site-button:hover:not(:disabled),
+.katakit-gallery .structured-notes-model-controls button:hover:not(:disabled),
+.katakit-gallery .structured-notes-heading button:hover:not(:disabled) {
+  background: var(--color-paper-3);
+}
+.katakit-gallery .site-button:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: var(--shadow-key-press, none);
+}
+.katakit-gallery .site-button.site-button--blue {
+  background: var(--color-accent);
+  color: var(--color-accent-ink, var(--color-paper));
+  border-color: var(--color-accent-edge, var(--color-accent));
+  box-shadow: var(--shadow-key-accent, none);
+}
+.katakit-gallery .site-button.site-button--ghost {
+  background: transparent;
+  box-shadow: none;
+  border-color: transparent;
+}
+.katakit-gallery .site-button.site-button--border {
+  background: transparent;
+  box-shadow: none;
+}
+.katakit-gallery .site-button.site-button--icon {
+  width: 44px;
+  padding: 0;
+}
+.katakit-gallery .site-select {
+  min-height: 44px;
+  background: var(--color-key-face, var(--color-paper-2));
+  box-shadow: var(--shadow-key, none);
+  border-radius: var(--radius-input);
 }
 .katakit-gallery .gallery-sidebar {
   position: sticky;
@@ -57,9 +134,9 @@
   background: var(--color-surface-muted, var(--color-paper-2));
   color: var(--color-link, var(--color-accent));
 }
-.katakit-gallery a:focus-visible {
+.katakit-gallery :is(a, button, input, select, textarea, summary):focus-visible {
   outline: 2px solid var(--color-focus);
-  outline-offset: 3px;
+  outline-offset: 4px;
 }
 .katakit-gallery .gallery-content {
   min-width: 0;
@@ -137,6 +214,7 @@
   background: #0005;
 }
 .katakit-gallery .gallery-inference-dialog h2 {
+  font-size: 1.5rem;
   margin-top: 0;
 }
 .katakit-gallery .gallery-inference-dialog label,
@@ -181,6 +259,9 @@
 }
 .katakit-gallery [role='alert'] {
   color: var(--color-error);
+}
+.katakit-gallery .gallery-microphone-test h2 {
+  font-size: var(--text-xl);
 }
 .katakit-gallery .gallery-welcome {
   max-width: 52rem;
@@ -247,6 +328,90 @@
 @media (max-width: 650px) {
   .katakit-gallery {
     display: block;
+  }
+  /* Match the website's type scale without importing its page-wide reset. Demo-specific
+   headings keep their own smaller sizes; generic page titles use the display scale. */
+  .katakit-gallery h1,
+  .katakit-gallery h2,
+  .katakit-gallery h3 {
+    margin: 0 0 var(--space-lg);
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: var(--tracking-display, -0.028em);
+    line-height: 1.05;
+    overflow-wrap: break-word;
+    text-wrap: balance;
+    color: var(--color-ink);
+  }
+  .katakit-gallery h1 {
+    font-size: var(--text-display, clamp(2.75rem, 5vw + 1rem, 5.25rem));
+  }
+  .katakit-gallery h2 {
+    font-size: var(--text-section, clamp(2rem, 2.5vw + 1rem, 3.5rem));
+  }
+  .katakit-gallery h3 {
+    font-size: var(--text-lg);
+  }
+  .katakit-gallery p {
+    margin: 0 0 var(--space-md);
+  }
+  .katakit-gallery .transcription-demo,
+  .katakit-gallery .browser-bingo {
+    max-width: none;
+    padding: 0;
+  }
+  /* The same native controls render inside different demo roots. Their specificity must
+   beat demo-local button defaults as well as the shared component's neutral skin. */
+  .katakit-gallery .site-button,
+  .katakit-gallery .structured-notes-model-controls button,
+  .katakit-gallery .structured-notes-heading button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    min-height: 44px;
+    padding: 0 0.85rem;
+    border: 1px solid var(--color-rule-2);
+    border-radius: var(--radius-input);
+    background: var(--color-key-face, var(--color-paper-3));
+    box-shadow: var(--shadow-key, none);
+    color: var(--color-ink);
+    font: 600 var(--text-sm)/1 var(--font-body, system-ui, sans-serif);
+    cursor: pointer;
+  }
+  .katakit-gallery .site-button:hover:not(:disabled),
+  .katakit-gallery .structured-notes-model-controls button:hover:not(:disabled),
+  .katakit-gallery .structured-notes-heading button:hover:not(:disabled) {
+    background: var(--color-paper-3);
+  }
+  .katakit-gallery .site-button:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: var(--shadow-key-press, none);
+  }
+  .katakit-gallery .site-button.site-button--blue {
+    background: var(--color-accent);
+    color: var(--color-accent-ink, var(--color-paper));
+    border-color: var(--color-accent-edge, var(--color-accent));
+    box-shadow: var(--shadow-key-accent, none);
+  }
+  .katakit-gallery .site-button.site-button--ghost {
+    background: transparent;
+    box-shadow: none;
+    border-color: transparent;
+  }
+  .katakit-gallery .site-button.site-button--border {
+    background: transparent;
+    box-shadow: none;
+  }
+  .katakit-gallery .site-button.site-button--icon {
+    width: 44px;
+    padding: 0;
+  }
+  .katakit-gallery .site-select {
+    min-height: 44px;
+    background: var(--color-key-face, var(--color-paper-2));
+    box-shadow: var(--shadow-key, none);
+    border-radius: var(--radius-input);
   }
   .katakit-gallery .gallery-sidebar {
     position: static;

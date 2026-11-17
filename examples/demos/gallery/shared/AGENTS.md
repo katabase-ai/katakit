@@ -7,8 +7,11 @@ source checkout. They do not own application bootstraps, routing, or private ser
   components. Keep extension information pages out of both. `#gallery-react-catalogue`
 - Keep metadata and `Gallery.tsx` free of eager recognizer/runtime imports. Welcome loads lazily. Accept host-rendered links
   and children instead of importing a host router. `#gallery-portable-presentation`
-- Scope gallery CSS beneath `.katakit-gallery`; import only `internal/site-ui/components.css`, inherit
-  host typography/colors, and never import the global shared reset into portable modules. `#gallery-scoped-styles`
+- Scope portable gallery CSS beneath `.katakit-gallery`; import only `internal/site-ui/components.css`.
+  Own inner typography, spacing, and control rules here so host marketing CSS and demo-local button
+  defaults cannot change the composition. The host supplies font/palette tokens. The local host opts
+  into `theme.css`, the website-aligned Cobalt skin, with locally served licensed fonts; other hosts
+  may use their own tokens. Never import a global reset from portable gallery modules. `#gallery-scoped-styles`
 - `createGallerySpeech` wraps the delivered microphone transcriber. Keep a single active sink
   through awaited stop/drain, then close its runtime before creating the next. Keep only the model
   across navigation. Hiding the tab stops capture; root teardown disposes it. `#gallery-input-lifecycle`

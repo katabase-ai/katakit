@@ -45,7 +45,7 @@ export const NotesGalleryDemo = () => {
           connectionHelp={
             <p>
               No inference is configured. You can still transcribe locally.{' '}
-              <button type="button" onClick={model.configure}>
+              <button type="button" className="site-button" onClick={model.configure}>
                 Add API key
               </button>
             </p>
