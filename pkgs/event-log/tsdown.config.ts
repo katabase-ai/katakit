@@ -6,7 +6,7 @@ export default defineConfig({
   platform: 'neutral',
   target: 'es2022',
   fixedExtension: false,
-  dts: true,
+  dts: { sourcemap: true },
   sourcemap: true,
   clean: true,
   deps: {
