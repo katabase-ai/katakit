@@ -20,7 +20,7 @@ const fixture = t => {
   };
   write(
     'pnpm-workspace.yaml',
-    "packages:\n  - 'pkgs/*'\n  - 'internal/packages/*'\n  - 'examples/demos/*'\n  - 'docs'\n\nlinkWorkspacePackages: true\n"
+    "packages:\n  - 'pkgs/*'\n  - 'internal/pkgs/*'\n  - 'examples/demos/*'\n  - 'docs'\n\nlinkWorkspacePackages: true\n"
   );
   write(
     'pkgs/core/package.json',
@@ -33,7 +33,7 @@ const fixture = t => {
   );
   write('pkgs/core/src/index.ts', 'export const value = 1;');
   write(
-    'internal/packages/docs-export/package.json',
+    'internal/pkgs/docs-export/package.json',
     JSON.stringify({ name: '@katakit/docs-export', private: true })
   );
   write('internal/site-ui/styles.css', "@import './components.css';");
@@ -93,7 +93,7 @@ test('internal build tools must stay private', t =>
   rejects(
     t,
     ({ manifest }) =>
-      manifest('internal/packages/docs-export', value => {
+      manifest('internal/pkgs/docs-export', value => {
         delete value.private;
       }),
     /tool packages must declare private/
@@ -170,7 +170,7 @@ test('shared CSS cannot import files elsewhere in the repository', t =>
       ),
     /shared CSS imports must stay inside/
   ));
-test('other private tools cannot create manifests outside internal/packages', t =>
+test('other private tools cannot create manifests outside internal/pkgs', t =>
   rejects(
     t,
     ({ write }) => write('internal/loose-tool/package.json', '{"private":true}'),
