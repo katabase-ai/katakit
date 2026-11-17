@@ -1,8 +1,18 @@
-import { lazy, Suspense, useMemo, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useMemo, type ReactNode } from 'react';
 import type { galleryDemoDetails } from './galleryDemoDetails';
 import { GalleryModelContext, type GalleryModelConnect } from './galleryModel';
 import { useGalleryInference } from './GalleryInferenceProvider';
 import { connectWithKey } from './galleryInference';
+import { GalleryFooter } from './GalleryFooter';
+import { useGalleryMode } from './GalleryModeProvider';
+import type { GalleryDeveloperPage, GalleryOperation } from './operationDetails';
+
+const OperationSetup = lazy(async () => ({
+  default: (await import('./GalleryOperations')).GalleryOperationSetup,
+}));
+const OperationGrid = lazy(async () => ({
+  default: (await import('./GalleryOperations')).GalleryOperationGrid,
+}));
 
 const Welcome = lazy(async () => ({ default: (await import('./GalleryWelcome')).GalleryWelcome }));
 
@@ -19,6 +29,9 @@ export const Gallery = ({
   input,
   connectModel,
   privacyUrl,
+  developerPage,
+  renderDeveloperLink,
+  onConfigureOperation,
 }: {
   demos: readonly (typeof galleryDemoDetails)[number][];
   activeDemo?: (typeof galleryDemoDetails)[number];
@@ -32,13 +45,20 @@ export const Gallery = ({
   connectModel?: GalleryModelConnect;
   /** Absolute host privacy URL, opened separately to preserve this conversation. */
   privacyUrl?: string;
+  developerPage?: GalleryDeveloperPage;
+  renderDeveloperLink?: (link: {
+    page: GalleryDeveloperPage;
+    children: ReactNode;
+    current: boolean;
+  }) => ReactNode;
+  onConfigureOperation?: (operation?: GalleryOperation) => void;
 }) => {
   const inference = useGalleryInference();
-  const [settingsOpen, setSettingsOpen] = useState(false);
+  const { editing } = useGalleryMode();
   const connect = useMemo<GalleryModelConnect | undefined>(() => {
     if (!inference) return undefined;
     const sourceSignal = inference.owner.getSignal();
-    if (inference.settings.source === 'key')
+    if (editing && inference.settings.source === 'key')
       return connectWithKey(inference.settings, sourceSignal);
     if (!connectModel) return undefined;
     return async input => {
@@ -57,27 +77,61 @@ export const Gallery = ({
         },
       };
     };
-  }, [connectModel, inference]);
+  }, [connectModel, inference, editing]);
   const model = useMemo(
-    () => ({ connect, hostAvailable: !!connectModel, settingsOpen, setSettingsOpen }),
-    [connect, connectModel, settingsOpen]
+    () => ({
+      connect,
+      hostAvailable: !!connectModel,
+      developer: editing,
+      configure: editing ? onConfigureOperation : undefined,
+    }),
+    [connect, connectModel, editing, onConfigureOperation]
   );
   return (
     <GalleryModelContext value={model}>
       <div className="katakit-gallery">
         <aside className="gallery-sidebar">
           <nav className="gallery-nav" aria-label="React demos">
-            {renderLink({ children: 'Welcome', current: !activeDemo })}
+            {renderLink({ children: 'Welcome', current: !activeDemo && !developerPage })}
+            {editing && <p className="gallery-nav-label">Demos</p>}
             {demos.map(demo => (
               <span key={demo.id}>
-                {renderLink({ demo, children: demo.title, current: activeDemo?.id === demo.id })}
+                {renderLink({
+                  demo,
+                  children: demo.title,
+                  current: !developerPage && activeDemo?.id === demo.id,
+                })}
               </span>
             ))}
           </nav>
-          {input}
+          <GalleryFooter>
+            {editing ? (
+              <nav className="gallery-developer-nav" aria-label="Developer tools">
+                {(['setup', 'grid'] as const).map(page => (
+                  <span key={page}>
+                    {renderDeveloperLink?.({
+                      page,
+                      children: page === 'setup' ? 'Operation Setup' : 'Operation Grid',
+                      current: developerPage === page,
+                    })}
+                  </span>
+                ))}
+              </nav>
+            ) : (
+              input
+            )}
+          </GalleryFooter>
         </aside>
         <div className="gallery-content">
-          {activeDemo ? (
+          {editing && developerPage ? (
+            <Suspense fallback={<p role="status">Loading operations…</p>}>
+              {developerPage === 'setup' ? (
+                <OperationSetup />
+              ) : (
+                <OperationGrid demos={demos} renderLink={renderLink} />
+              )}
+            </Suspense>
+          ) : activeDemo ? (
             children
           ) : (
             <>

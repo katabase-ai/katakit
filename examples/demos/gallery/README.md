@@ -26,7 +26,7 @@ pnpm -F @katakit/gallery dev
 
 Open <http://127.0.0.1:4347>. Welcome is `/`; React demos are at `/demos/transcription`,
 `/demos/bingo`, and `/demos/notes`. Notes transcription runs locally; generating notes requires
-a host-supplied model connection or your own OpenRouter key. Extension setup pages are outside this catalogue. Direct links and unknown-demo
+a host-supplied model connection. Developer mode can instead use your own OpenRouter key. Extension setup pages are outside this catalogue. Direct links and unknown-demo
 responses are handled by Start. Browser-only demo modules mount after hydration, not during SSR.
 
 ## Build and inspect
@@ -74,8 +74,9 @@ keep gallery layout rules in the shared stylesheet so local and embedded views s
 The standalone gallery copy includes the skin, fonts, licenses, and all imported CSS.
 
 Pass the chosen entries, active entry, a host link renderer, and active content to `Gallery`.
-Pass `GallerySpeechControls` through its `input` slot for the two compact Transcription/Inference
-rows. Launch defaults use the delivered recognizer without an upfront model picker. Welcome and
+Pass `GallerySpeechControls` through its `input` slot for compact public Transcription/Inference
+status rows. Public visitors cannot select a provider, enter a key, or override a model. Launch
+defaults use the delivered recognizer without an upfront model picker. Welcome and
 the demo views render `GalleryCaptureControls` beside their content. Pass an absolute `privacyUrl`
 to link to the host’s policy in a separate tab (`noopener noreferrer`); independent hosts may omit
 it or supply their own. The local reference host passes `https://katabase.com/privacy`; Katabase’s
@@ -87,8 +88,9 @@ Examples continue to own their code and never import private website components.
 ## Shared input and separate demo runtimes
 
 Mount `GallerySpeechProvider` once above the route outlet. It owns one `@katakit/transcription`
-microphone transcriber and the inference-settings provider. The two compact setup rows sit at the
-bottom of the shared sidebar, outside navigation, and become a measured bottom strip on phones.
+microphone transcriber and the inference-settings provider. Public status rows sit at the bottom
+of the shared sidebar, outside demo navigation, and become a measured bottom strip on phones.
+Developer mode uses that space for Operation Setup and Operation Grid links instead.
 Download model leaves the microphone off, including without a demo attachment. Welcome’s Test
 transcription can download first and then request microphone permission. Start/Stop listening
 belongs inside each demo. Models load only after a visitor action. Standalone controls remain
@@ -109,8 +111,8 @@ the same instance-owned views; they do not import this gallery.
 A host passes one `connectModel` to `Gallery` for its model admission/transport; see
 `shared/galleryModel.tsx` for the contract. Every entry with the `remoteModel` capability uses it,
 so a new such demo needs no host code. With a connected host, Free demo is the default; without
-one, the footer offers Add API key and notes explains the missing connection while transcription
-remains usable. Every demo link stays clickable. Hosts throw `GalleryModelError` for failures they
+one, the footer reports Not connected and notes explains that managed inference is unavailable
+while transcription remains usable. Public mode never falls back to a saved developer key. Every demo link stays clickable. Hosts throw `GalleryModelError` for failures they
 want shown or retried. Connection controls, browser verification, allowance, and errors render
 inside the active demo, not the setup footer.
 
@@ -120,28 +122,69 @@ source changes, saving overrides, and key removal abort remote work and retain l
 Start notes is required to resume. Route exit aborts admission and model work before capture drains.
 See [the notes example](../notes-react/README.md) for the generic contract.
 
-## Optional visitor key
+## Developer mode and public preview
 
-Inference opens a keyboard-accessible native dialog. My API key starts with OpenRouter,
-`z-ai/glm-5.3`, and `https://openrouter.ai/api/v1/chat/completions`. Model ID and full endpoint
-URL overrides are under collapsed Advanced. Endpoints must support chat completions with JSON
-schema output and browser CORS. HTTPS is required except for loopback HTTP development endpoints;
-URL credentials, query strings, and fragments are rejected. Requests send the key and transcript
-directly to the chosen endpoint, omit cookies/referrers, and reject redirects. They never call
-host admission or consume its free allowance. Provider failures pause notes and require an action;
-there is no automatic fallback to host inference. Raw provider/fetch errors never reach diagnostics.
+The shared gallery defaults to public mode. BYOK, Operation Setup/Grid, and developer recovery
+controls exist only inside a host’s explicit `GalleryModeProvider developerMode={true}` opt-in.
+Mount that provider inside `GallerySpeechProvider`, above the header and route outlet. Hosts own
+their developer links/routes and pass `developerPage`, `renderDeveloperLink`, and
+`onConfigureOperation` to Gallery. `GalleryPreviewToggle` belongs beside the host’s theme switch.
+Public website builds should omit the developer opt-in; URL and local-storage flags cannot enable it.
 
-As agreed for this interface, the key, source, model, and endpoint persist in **localStorage**
-under `katakit.gallery.inference.v1`, surviving refresh and tab closure on that origin. Remove key
-removes the saved record and returns to the host default. Changes in other tabs invalidate active
-requests too. If storage is blocked, saving/removal reports an error instead of claiming success.
-No signup, private website dependency, or analytics service is required.
+The reference host enables developer mode on the Vite dev server. Normal builds and previews use
+public mode. To review a production-like developer build explicitly:
 
-Run `pnpm --filter @katakit/gallery test:ci` from the root. Controlled tests cover explicit starts,
-late-result cancellation, source changes, persistence/removal, missing-host/exhaustion behavior,
-and real request serialization/response validation. They do not establish live microphone behavior,
-provider model quality, or a private host’s browser verification and allowance integration. Verify
-those separately when consuming this source revision; website acceptance is tracked in Protozoa #2265.
+```sh
+VITE_GALLERY_DEV_MODE=true pnpm -F @katakit/gallery build
+pnpm -F @katakit/gallery preview
+```
+
+Do not set that build flag for the public deployment. `/operations/setup` and `/operations/grid`
+redirect to Welcome in public builds. In a developer build, the header’s Preview toggle switches
+the live gallery into public mode. It hides developer tools and ignores developer keys, retaining
+the toggle as the way back. Entering preview from a tools page opens Welcome; leaving returns to
+that tools page. From a demo, the same local content remains, but inference pauses in both directions
+and requires another explicit Start notes. Saved developer settings survive. Unsaved form edits are
+ordinary page-local drafts.
+
+Preview uses the current host’s real managed inference contract. It does not create a proxy,
+account, or free allowance: a local host without that service shows the public missing-service
+state rather than quietly using a developer key. Navigation into Operation Setup is ordinary route
+navigation, so it stops/drains the outgoing demo. The loaded speech model and saved settings remain.
+
+## Developer operation setup
+
+Operation Setup groups supported work under Audio and Language. Transcription uses the delivered
+local model catalogue with a download-only action. Inference offers the host’s Free demo or a personal
+OpenRouter key. The API key and model ID are visible together; only the full endpoint override is
+under collapsed Advanced. Defaults are `z-ai/glm-5.3` and
+`https://openrouter.ai/api/v1/chat/completions`. The key authorizes an account; the model ID chooses
+what runs. Structured notes needs JSON schema output. Setup saves configuration without making
+an inference request.
+
+Operation Grid derives requirements from the same selected demo catalogue. It distinguishes required
+and configured, required but missing a connection, and not used. Configured means a selection exists;
+downloads, microphone permission, provider credentials, and availability are checked on use. All
+current demo links remain clickable. Signup/account integration and additional operations pictured
+in earlier mockups are future integrations, not placeholder controls in these pages.
+
+Developer-key endpoints must support chat completions with JSON schema output and browser CORS.
+HTTPS is required except for loopback HTTP endpoints; URL credentials, queries, and fragments are
+rejected. Requests send the key and transcript directly to the chosen endpoint, omit cookies/referrers,
+and reject redirects. They never call host admission or consume its allowance. Failures pause notes;
+there is no automatic fallback. Raw provider/fetch errors never reach diagnostics.
+
+As agreed, developer key/source/model/endpoint settings persist in **localStorage** under
+`katakit.gallery.inference.v1`, surviving refresh and tab closure on that origin. Remove key deletes
+the record. Cross-tab changes invalidate requests and reset open forms so stale drafts cannot restore
+a removed key. Public mode and public preview ignore the record. If storage is blocked, save/removal
+reports an error instead of claiming success.
+
+Run `pnpm --filter @katakit/gallery test:ci`. Controlled tests cover public-mode key isolation,
+preview cancellation/late results, explicit restarts, retained content/settings, grid requirements,
+source changes, persistence/removal, missing-host/exhaustion, and request/response handling. They do
+not establish live microphone behavior, provider quality, or the private host’s verification/allowance.
+Website integration and real-host acceptance remain in Protozoa #2265.
 
 The local host resolves workspace source for development. A consuming website must record its
 source SHA and actual built library dependencies, test released versions when selected, and use

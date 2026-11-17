@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import type { GalleryOperation } from './operationDetails';
 
 /** Only failures a host marks retryable are retried automatically; the rest need a click. */
 export class GalleryModelError extends Error {
@@ -56,8 +57,8 @@ export type GalleryModelConnect = (input: {
 export const GalleryModelContext = createContext<{
   connect?: GalleryModelConnect;
   hostAvailable?: boolean;
-  settingsOpen?: boolean;
-  setSettingsOpen?: (open: boolean) => void;
+  developer?: boolean;
+  configure?: (operation?: GalleryOperation) => void;
 }>({});
 
 /**
@@ -65,8 +66,7 @@ export const GalleryModelContext = createContext<{
  * check, and usage meter render inside the demo view.
  */
 export const useGalleryModel = () => {
-  const { connect, setSettingsOpen } = useContext(GalleryModelContext);
-  const configure = useCallback(() => setSettingsOpen?.(true), [setSettingsOpen]);
+  const { connect, developer, configure } = useContext(GalleryModelContext);
   const verification = useRef<HTMLDivElement>(null);
   const [allowance, setAllowance] = useState<{ remaining: number; total: number }>();
   const usageId = useId();
@@ -84,7 +84,7 @@ export const useGalleryModel = () => {
   );
   return {
     connect: connect && connectVisit,
-    configure,
+    configure: developer ? configure : undefined,
     renderControls: (controls: ReactNode) => (
       <>
         {controls}

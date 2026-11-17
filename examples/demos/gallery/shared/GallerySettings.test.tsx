@@ -1,22 +1,32 @@
 // @vitest-environment happy-dom
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, expect, test, vi } from 'vitest';
 import { Gallery } from './Gallery';
 import { GallerySpeechProvider } from './GallerySpeechProvider';
 import { GallerySpeechControls } from './GallerySpeechControls';
+import { GalleryModeProvider, GalleryPreviewToggle } from './GalleryModeProvider';
+import type { GalleryDeveloperPage } from './operationDetails';
 import { galleryDemoDetails } from './galleryDemoDetails';
 import { GalleryModelError, useGalleryModel, type GalleryModelConnect } from './galleryModel';
-import { inferenceStorageKey } from './galleryInference';
+import { defaultInference, inferenceStorageKey } from './galleryInference';
 import { NotesDemo } from '../../notes-react/src/NotesDemo';
 import { createNotesDemo } from '../../notes-react/src/createNotesDemo';
 import { NotesRequestError, type NotesConnection } from '../../notes-react/src/notesModel';
 
-const completion = {
+const completion = (text?: string) => ({
   choices: [
-    { finish_reason: 'stop', message: { content: JSON.stringify({ additions: [], rewords: [] }) } },
+    {
+      finish_reason: 'stop',
+      message: { content: JSON.stringify({ additions: text ? [{ text }] : [], rewords: [] }) },
+    },
   ],
-};
+});
+const savedKey = () =>
+  window.localStorage.setItem(
+    inferenceStorageKey,
+    JSON.stringify({ ...defaultInference, source: 'key', key: 'test-developer-key' })
+  );
 const Notes = ({ runtime }: { runtime: ReturnType<typeof createNotesDemo> }) => {
   const model = useGalleryModel();
   const connect = useCallback(
@@ -43,177 +53,280 @@ const Notes = ({ runtime }: { runtime: ReturnType<typeof createNotesDemo> }) => 
       listening
       connect={model.connect && connect}
       renderModelControls={model.renderControls}
+      connectionHelp={
+        <p>
+          No managed inference is available.
+          {model.configure && (
+            <button type="button" onClick={() => model.configure?.('inference')}>
+              Configure inference
+            </button>
+          )}
+        </p>
+      }
     />
   );
 };
-const View = ({
+const Content = ({
   runtime,
   connectModel,
+  initialPage,
 }: {
   runtime: ReturnType<typeof createNotesDemo>;
   connectModel?: GalleryModelConnect;
-}) => (
+  initialPage?: GalleryDeveloperPage;
+}) => {
+  const [page, setPage] = useState(initialPage);
+  return (
+    <>
+      <GalleryPreviewToggle />
+      <Gallery
+        demos={galleryDemoDetails}
+        activeDemo={galleryDemoDetails[2]}
+        developerPage={page}
+        input={<GallerySpeechControls />}
+        connectModel={connectModel}
+        onConfigureOperation={() => setPage('setup')}
+        renderDeveloperLink={({ page: destination, children }) => (
+          <button type="button" onClick={() => setPage(destination)}>
+            {children}
+          </button>
+        )}
+        renderLink={({ children, current }) => (
+          <a
+            href="#demo"
+            aria-current={current ? 'page' : undefined}
+            onClick={event => {
+              event.preventDefault();
+              setPage(undefined);
+            }}
+          >
+            {children}
+          </a>
+        )}
+      >
+        <Notes runtime={runtime} />
+      </Gallery>
+    </>
+  );
+};
+const View = ({
+  developerMode = false,
+  ...props
+}: Parameters<typeof Content>[0] & { developerMode?: boolean }) => (
   <GallerySpeechProvider>
-    <Gallery
-      demos={galleryDemoDetails}
-      activeDemo={galleryDemoDetails[2]}
-      input={<GallerySpeechControls />}
-      connectModel={connectModel}
-      renderLink={({ children, current }) => (
-        <a href="#demo" aria-current={current ? 'page' : undefined}>
-          {children}
-        </a>
-      )}
-    >
-      <Notes runtime={runtime} />
-    </Gallery>
+    <GalleryModeProvider developerMode={developerMode}>
+      <Content {...props} />
+    </GalleryModeProvider>
   </GallerySpeechProvider>
 );
 const turn = (runtime: ReturnType<typeof createNotesDemo>, text: string) => {
   runtime.ingestSegment({ id: crypto.randomUUID(), sourceId: 'test', text });
   runtime.flush();
 };
+const hostConnection = (
+  requestCompletion: NotesConnection['requestCompletion']
+): NotesConnection => ({
+  model: 'host/model',
+  maxBodyBytes: 65536,
+  maxOutputTokens: 1024,
+  requestCompletion,
+});
 afterEach(() => {
   cleanup();
   window.localStorage.clear();
+  window.history.replaceState(null, '', '/');
   vi.unstubAllGlobals();
 });
 
-test('shared key settings cancel hosted work, use the real schema transport without allowance, persist and remove', async () => {
+test('public mode ignores saved developer keys and visitor flags, and uses only host inference', async () => {
+  savedKey();
+  window.localStorage.setItem('katakit.gallery.developer', 'true');
+  window.history.replaceState(null, '', '/?dev=true');
   const runtime = createNotesDemo();
-  let finishHost!: (value: unknown) => void;
-  let hostSignal!: AbortSignal;
-  const host = vi.fn<GalleryModelConnect>(async ({ signal, verification, onAllowance }) => {
-    hostSignal = signal;
+  const request = vi.fn<NotesConnection['requestCompletion']>(async () =>
+    completion('Public note')
+  );
+  const host = vi.fn<GalleryModelConnect>(async ({ verification, onAllowance }) => {
     expect(verification.isConnected).toBe(true);
     onAllowance({ remaining: 4, total: 5 });
-    return {
-      model: 'host/model',
-      maxBodyBytes: 65536,
-      maxOutputTokens: 1024,
-      requestCompletion: () =>
-        new Promise(resolve => {
-          finishHost = resolve;
-        }),
-    };
+    return hostConnection(request);
   });
-  const direct = vi.fn<typeof fetch>(async () => Response.json(completion));
+  const direct = vi.fn<typeof fetch>();
   vi.stubGlobal('fetch', direct);
   const view = render(<View runtime={runtime} connectModel={host} />);
-  await screen.findByRole('button', { name: 'Free demo ▾' });
-  const nav = screen.getByRole('navigation');
-  expect(within(nav).getByRole('link', { name: 'Welcome' })).toBeDefined();
-  expect(within(nav).getAllByRole('link')).toHaveLength(4);
-  expect(within(nav).queryByRole('button')).toBeNull();
-  act(() => turn(runtime, 'A pending thought.'));
+  await screen.findByText('Free demo');
+  expect(screen.queryByRole('button', { name: 'Preview' })).toBeNull();
+  expect(screen.queryByRole('navigation', { name: 'Developer tools' })).toBeNull();
+  expect(screen.queryByLabelText('API key')).toBeNull();
+  expect(screen.queryByRole('button', { name: /Configure inference|Add API key/ })).toBeNull();
+  act(() => turn(runtime, 'A public thought.'));
   expect(host).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
-  await screen.findByText('4 / 5 requests left');
-  fireEvent.click(screen.getByRole('button', { name: 'Free demo ▾' }));
-  fireEvent.click(screen.getByRole('radio', { name: 'My API key' }));
-  expect(screen.getByText('Advanced').closest('details')!.open).toBe(false);
-  fireEvent.change(screen.getByLabelText('API key'), { target: { value: 'test-saved-key' } });
-  fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-  expect(hostSignal.aborted).toBe(true);
-  await act(async () => {
-    finishHost(completion);
-  });
-  expect(direct).not.toHaveBeenCalled();
-  expect(screen.queryByText('4 / 5 requests left')).toBeNull();
-  expect(JSON.parse(window.localStorage.getItem(inferenceStorageKey)!).key).toBe('test-saved-key');
-  fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
-  await vi.waitFor(() => expect(direct).toHaveBeenCalledOnce());
-  const body = JSON.parse(direct.mock.calls[0]![1]!.body as string);
-  expect(body.response_format.json_schema.strict).toBe(true);
-  expect(body.response_format.json_schema.schema.properties).toHaveProperty('additions');
-  expect(body.messages[1].content).toContain('A pending thought.');
+  await screen.findByText('Public note');
   expect(host).toHaveBeenCalledOnce();
+  expect(direct).not.toHaveBeenCalled();
+  expect(JSON.parse(request.mock.calls[0]![0].body).model).toBe('host/model');
+  expect(window.localStorage.getItem(inferenceStorageKey)).toContain('test-developer-key');
   view.unmount();
   runtime.close();
+});
 
-  // A new root represents reload/tab reopening: same saved provider, fresh demo content.
+test('developer setup exposes the model alongside the key, keeps only the endpoint advanced, and persists/removes settings', async () => {
+  const runtime = createNotesDemo();
+  const direct = vi.fn<typeof fetch>(async () => Response.json(completion()));
+  vi.stubGlobal('fetch', direct);
+  const view = render(<View developerMode initialPage="setup" runtime={runtime} />);
+  const model = await screen.findByLabelText('Model ID');
+  expect(model.closest('details')).toBeNull();
+  expect(screen.getByLabelText('API key').closest('details')).toBeNull();
+  expect(screen.getByLabelText('Chat-completions endpoint').closest('details')!.open).toBe(false);
+  fireEvent.change(model, { target: { value: 'custom/model' } });
+  fireEvent.change(screen.getByLabelText('API key'), { target: { value: 'test-saved-key' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+  await screen.findByText('Inference settings saved. Start notes in a demo when ready.');
+  expect(JSON.parse(window.localStorage.getItem(inferenceStorageKey)!)).toMatchObject({
+    key: 'test-saved-key',
+    model: 'custom/model',
+  });
+  fireEvent.click(
+    within(screen.getByRole('navigation', { name: 'React demos' })).getByRole('link', {
+      name: 'Structured notes',
+    })
+  );
+  act(() => turn(runtime, 'Test the selected model.'));
+  fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
+  await vi.waitFor(() => expect(direct).toHaveBeenCalledOnce());
+  expect(JSON.parse(direct.mock.calls[0]![1]!.body as string).model).toBe('custom/model');
+  view.unmount();
+  runtime.close();
   const fresh = createNotesDemo();
-  const reloaded = render(<View runtime={fresh} connectModel={host} />);
-  await screen.findByRole('button', { name: 'My key ▾' });
-  fireEvent.click(screen.getByRole('button', { name: 'My key ▾' }));
+  const reloaded = render(<View developerMode initialPage="setup" runtime={fresh} />);
+  expect(((await screen.findByLabelText('Model ID')) as HTMLInputElement).value).toBe(
+    'custom/model'
+  );
+  expect((screen.getByLabelText('API key') as HTMLInputElement).value).toBe('test-saved-key');
   fireEvent.click(screen.getByRole('button', { name: 'Remove key' }));
   expect(window.localStorage.getItem(inferenceStorageKey)).toBeNull();
-  expect(screen.getByRole('button', { name: 'Free demo ▾' })).toBeDefined();
-  expect(host).toHaveBeenCalledOnce();
+  expect((screen.getByLabelText('API key') as HTMLInputElement).value).toBe('');
   reloaded.unmount();
   fresh.close();
 });
 
-test('missing-host and browser storage changes keep navigation and local content available without starting notes', async () => {
+test('public preview aborts BYOK, ignores late results, preserves content/settings and requires explicit starts in both directions', async () => {
+  savedKey();
   const runtime = createNotesDemo();
-  const view = render(<View runtime={runtime} />);
-  await screen.findByRole('button', { name: 'Add API key ▾' });
-  expect(screen.getByText(/No model connection is configured/)).toBeDefined();
+  let finish!: (response: Response) => void;
+  const direct = vi.fn<typeof fetch>(
+    () =>
+      new Promise(resolve => {
+        finish = resolve;
+      })
+  );
+  vi.stubGlobal('fetch', direct);
+  let hostSignal!: AbortSignal;
+  const host = vi.fn<GalleryModelConnect>(async ({ signal }) => {
+    hostSignal = signal;
+    return hostConnection(async () => completion('Managed note'));
+  });
+  const view = render(<View developerMode runtime={runtime} connectModel={host} />);
+  act(() => turn(runtime, 'Keep these local words.'));
+  fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
+  await vi.waitFor(() => expect(direct).toHaveBeenCalledOnce());
+  fireEvent.click(screen.getByRole('button', { name: 'Preview' }));
+  expect(direct.mock.calls[0]![1]!.signal!.aborted).toBe(true);
+  expect(screen.queryByRole('navigation', { name: 'Developer tools' })).toBeNull();
+  expect(runtime.state$.get().notes.turns).toHaveLength(1);
+  await act(async () => {
+    finish(Response.json(completion('Obsolete developer note')));
+  });
+  expect(runtime.state$.get().notes.notes).toEqual([]);
+  expect(host).not.toHaveBeenCalled();
+  expect(window.localStorage.getItem(inferenceStorageKey)).toContain('test-developer-key');
+  fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
+  await screen.findByText('Managed note');
+  fireEvent.click(screen.getByRole('button', { name: 'Public preview' }));
+  expect(hostSignal.aborted).toBe(true);
+  expect(runtime.state$.get().notes.notes[0]?.text).toBe('Managed note');
+  expect(screen.getByRole('navigation', { name: 'Developer tools' })).toBeDefined();
+  expect(screen.getByRole('button', { name: 'Start notes' })).toBeDefined();
+  expect(direct).toHaveBeenCalledOnce();
+  expect(host).toHaveBeenCalledOnce();
+  view.unmount();
+  runtime.close();
+});
+
+test('a public preview without host inference never falls back to the saved developer key', async () => {
+  savedKey();
+  const runtime = createNotesDemo();
+  const direct = vi.fn<typeof fetch>();
+  vi.stubGlobal('fetch', direct);
+  const view = render(<View developerMode runtime={runtime} />);
+  await vi.waitFor(() =>
+    expect(
+      (screen.getByRole('button', { name: 'Start notes' }) as HTMLButtonElement).disabled
+    ).toBe(false)
+  );
+  fireEvent.click(screen.getByRole('button', { name: 'Preview' }));
   expect((screen.getByRole('button', { name: 'Start notes' }) as HTMLButtonElement).disabled).toBe(
     true
   );
-  act(() => turn(runtime, 'Locally retained.'));
-  fireEvent.click(screen.getByRole('button', { name: 'Add API key ▾' }));
-  expect((screen.getByRole('radio', { name: 'Free demo' }) as HTMLInputElement).disabled).toBe(
-    true
-  );
-  fireEvent.click(screen.getByRole('radio', { name: 'My API key' }));
-  fireEvent.change(screen.getByLabelText('API key'), { target: { value: 'test-key' } });
-  fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+  expect(screen.getByText('Not connected')).toBeDefined();
+  expect(screen.queryByRole('button', { name: 'Configure inference' })).toBeNull();
+  act(() => turn(runtime, 'Still local.'));
+  expect(direct).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('button', { name: 'Public preview' }));
   expect((screen.getByRole('button', { name: 'Start notes' }) as HTMLButtonElement).disabled).toBe(
     false
   );
-  act(() => {
-    window.localStorage.removeItem(inferenceStorageKey);
-    window.dispatchEvent(new StorageEvent('storage', { key: inferenceStorageKey }));
-  });
   expect(runtime.state$.get().notes.turns).toHaveLength(1);
-  expect((screen.getByRole('button', { name: 'Start notes' }) as HTMLButtonElement).disabled).toBe(
-    true
-  );
-  expect(screen.getByRole('button', { name: 'Add API key ▾' })).toBeDefined();
   view.unmount();
   runtime.close();
 });
 
-test('another tab removing a key cannot be undone by saving a stale open settings dialog', async () => {
-  const runtime = createNotesDemo();
-  const view = render(<View runtime={runtime} connectModel={vi.fn()} />);
-  await screen.findByRole('button', { name: 'Free demo ▾' });
-  fireEvent.click(screen.getByRole('button', { name: 'Free demo ▾' }));
-  fireEvent.click(screen.getByRole('radio', { name: 'My API key' }));
-  fireEvent.change(screen.getByLabelText('API key'), { target: { value: 'old-key' } });
-  fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-  fireEvent.click(screen.getByRole('button', { name: 'My key ▾' }));
-  expect((screen.getByLabelText('API key') as HTMLInputElement).value).toBe('old-key');
+test.each([true, false])(
+  'cross-tab key removal cannot be undone by a stale operation setup form (managed host: %s)',
+  async managed => {
+    savedKey();
+    const runtime = createNotesDemo();
+    const view = render(
+      <View
+        developerMode
+        initialPage="setup"
+        runtime={runtime}
+        connectModel={managed ? vi.fn() : undefined}
+      />
+    );
+    expect(((await screen.findByLabelText('API key')) as HTMLInputElement).value).toBe(
+      'test-developer-key'
+    );
+    act(() => {
+      window.localStorage.removeItem(inferenceStorageKey);
+      window.dispatchEvent(new StorageEvent('storage', { key: inferenceStorageKey }));
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    expect(window.localStorage.getItem(inferenceStorageKey) ?? '').not.toContain(
+      'test-developer-key'
+    );
+    view.unmount();
+    runtime.close();
+  }
+);
 
-  act(() => {
-    window.localStorage.removeItem(inferenceStorageKey);
-    window.dispatchEvent(new StorageEvent('storage', { key: inferenceStorageKey }));
-  });
-  expect(screen.queryByLabelText('API key')).toBeNull();
-  fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-  expect(window.localStorage.getItem(inferenceStorageKey)).not.toContain('old-key');
-  view.unmount();
-  runtime.close();
-});
-
-test('a dialog left open cannot restore a key removed in another tab', async () => {
+test('developer operation grid uses catalogue requirements, remains navigable and opens setup', async () => {
   const runtime = createNotesDemo();
-  const view = render(<View runtime={runtime} />);
-  await screen.findByRole('button', { name: 'Add API key ▾' });
-  fireEvent.click(screen.getByRole('button', { name: 'Add API key ▾' }));
-  fireEvent.change(screen.getByLabelText('API key'), { target: { value: 'first-key' } });
-  fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-  fireEvent.click(screen.getByRole('button', { name: 'My key ▾' }));
-  expect((screen.getByLabelText('API key') as HTMLInputElement).value).toBe('first-key');
-  act(() => {
-    window.localStorage.removeItem(inferenceStorageKey);
-    window.dispatchEvent(new StorageEvent('storage', { key: inferenceStorageKey }));
-  });
-  expect((screen.getByLabelText('API key') as HTMLInputElement).value).toBe('');
-  fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-  expect(window.localStorage.getItem(inferenceStorageKey)).toBeNull();
+  const view = render(<View developerMode initialPage="grid" runtime={runtime} />);
+  const table = await screen.findByRole('table');
+  expect(within(table).getAllByRole('link')).toHaveLength(galleryDemoDetails.length);
+  expect(
+    within(table).getAllByRole('img', { name: 'Transcription: Required · configured' })
+  ).toHaveLength(3);
+  expect(
+    within(table).getByRole('img', { name: 'Inference: Required · needs a connection' })
+  ).toBeDefined();
+  expect(screen.queryByText('Diarization')).toBeNull();
+  expect(screen.queryByRole('button', { name: /Sign up/ })).toBeNull();
+  fireEvent.click(within(table).getByRole('button', { name: 'Inference' }));
+  await screen.findByLabelText('Model ID');
   view.unmount();
   runtime.close();
 });

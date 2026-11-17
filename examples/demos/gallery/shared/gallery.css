@@ -121,6 +121,16 @@
   gap: 0.25rem;
   padding: 1.5rem 0.75rem;
 }
+.katakit-gallery .gallery-nav-label {
+  margin: 1.5rem 0 0.5rem;
+  padding: 1.25rem 0.75rem 0;
+  border-top: 1px solid var(--color-rule);
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
 .katakit-gallery .gallery-nav a {
   display: block;
   padding: 0.5rem 0.75rem;
@@ -198,47 +208,158 @@
   cursor: default;
   opacity: 0.55;
 }
-.katakit-gallery .gallery-inference-dialog {
-  color: var(--color-text, inherit);
-  background: var(--color-paper, var(--color-paper-2));
-  border: 1px solid var(--color-rule);
-  border-radius: 0.875rem;
-  box-shadow: 0 12px 48px #0003;
-  width: min(28rem, calc(100vw - 2rem));
-  max-height: calc(100dvh - 2rem);
-  box-sizing: border-box;
-  padding: 1.5rem;
-  overflow-y: auto;
+/* Developer-only operation pages share the application's live configuration. */
+.katakit-gallery .gallery-developer-nav {
+  display: grid;
+  gap: 0.25rem;
 }
-.katakit-gallery .gallery-inference-dialog::backdrop {
-  background: #0005;
-}
-.katakit-gallery .gallery-inference-dialog h2 {
-  font-size: 1.5rem;
-  margin-top: 0;
-}
-.katakit-gallery .gallery-inference-dialog label,
-.katakit-gallery .gallery-inference-dialog summary {
+.katakit-gallery .gallery-developer-nav a {
   display: block;
-  margin-block: 0.75rem 0.375rem;
-}
-.katakit-gallery .gallery-inference-dialog fieldset {
-  border: 1px solid var(--color-rule);
+  padding: 0.75rem;
   border-radius: 0.5rem;
+  font-size: 0.875rem;
+  text-decoration: none;
+  color: var(--color-ink);
 }
-.katakit-gallery .gallery-inference-dialog input:not([type='radio']) {
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
-  padding: 0.625rem;
-  font: inherit;
-  color: inherit;
-  background: var(--color-paper-2);
+.katakit-gallery .gallery-developer-nav a:hover,
+.katakit-gallery .gallery-developer-nav a[aria-current='page'] {
+  background: var(--color-accent-wash);
+  color: var(--color-accent-deep);
+}
+.katakit-gallery .gallery-developer-page h1 {
+  font-size: var(--text-3xl);
+}
+.katakit-gallery .gallery-developer-page > p {
+  color: var(--color-muted);
+}
+.katakit-gallery .gallery-developer-page h2 {
+  font-size: var(--text-xl);
+}
+.katakit-gallery .gallery-developer-page h3 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+.katakit-gallery .gallery-managed-card {
+  margin-block: 2rem;
+  padding: 1.5rem;
   border: 1px solid var(--color-rule);
-  border-radius: 0.375rem;
+  border-radius: 0.75rem;
+  background: var(--color-accent-wash);
+}
+.katakit-gallery .gallery-operation-section {
+  margin-top: 2.5rem;
+  scroll-margin-top: 1.5rem;
+}
+.katakit-gallery .gallery-operation-section h2 span {
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: var(--color-muted);
+  margin-left: 0.5rem;
+}
+.katakit-gallery .gallery-setup-row {
+  display: grid;
+  grid-template-columns: minmax(9rem, 1fr) minmax(10rem, 1fr) minmax(10rem, 1.2fr);
+  align-items: start;
+  gap: 1rem;
+  padding-block: 1.25rem;
+  border-block: 1px solid var(--color-rule);
+  margin-bottom: 1rem;
+}
+.katakit-gallery .gallery-setup-row p {
+  font-size: 0.875rem;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.katakit-gallery .gallery-inference-form label,
+.katakit-gallery .gallery-setup-row label {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.katakit-gallery .gallery-field-label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+.katakit-gallery .gallery-operation-section input,
+.katakit-gallery .gallery-operation-section select {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.625rem;
+  border: 1px solid var(--color-rule-2);
+  border-radius: var(--radius-input);
+  background: var(--color-key-face, var(--color-paper-2));
+  color: var(--color-ink);
+  font: inherit;
+}
+.katakit-gallery .gallery-key-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-block: 1.5rem 1rem;
+}
+.katakit-gallery .gallery-inference-form details {
+  margin-block: 1.5rem;
+}
+.katakit-gallery .gallery-inference-form summary {
+  cursor: pointer;
+  margin-bottom: 1rem;
+}
+.katakit-gallery .gallery-operation-section > [role='status'] {
+  color: var(--color-muted);
+  font-size: 0.875rem;
+  margin-top: 1rem;
+}
+.katakit-gallery .gallery-grid-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  margin-block: 2rem;
+}
+.katakit-gallery .gallery-operation-grid {
+  width: 100%;
+  min-width: 28rem;
+  border-collapse: collapse;
+}
+.katakit-gallery .gallery-operation-grid th,
+.katakit-gallery .gallery-operation-grid td {
+  padding: 1.25rem 0.75rem;
+  border-bottom: 1px solid var(--color-rule);
+  text-align: center;
+}
+.katakit-gallery .gallery-operation-grid th:first-child {
+  text-align: left;
+}
+.katakit-gallery .gallery-operation-grid tbody th {
+  font-weight: 400;
+}
+.katakit-gallery .gallery-operation-grid tbody td {
+  font-size: 1.5rem;
+}
+.katakit-gallery .gallery-operation-grid button {
+  background: transparent;
+  color: var(--color-link, var(--color-accent));
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+  padding: 0.375rem;
+}
+.katakit-gallery .gallery-operation-missing {
+  color: light-dark(#a65c00, #ffca80);
+}
+.katakit-gallery .gallery-grid-legend {
+  color: var(--color-muted);
+  font-size: 0.8125rem;
+}
+.katakit-gallery .gallery-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 .katakit-gallery .gallery-settings-note,
-.katakit-gallery .gallery-inference-dialog details p {
+.katakit-gallery .gallery-inference-form details p {
   color: var(--color-muted);
 }
 .katakit-gallery .gallery-settings-actions {
@@ -326,6 +447,20 @@
   margin-block: 0.75rem;
 }
 @media (max-width: 650px) {
+  .katakit-gallery .gallery-nav-label {
+    display: none;
+  }
+  .katakit-gallery .gallery-developer-nav {
+    grid-template-columns: 1fr 1fr;
+  }
+  .katakit-gallery .gallery-setup-row,
+  .katakit-gallery .gallery-key-fields {
+    grid-template-columns: 1fr;
+  }
+  .katakit-gallery .gallery-operation-section h2 span {
+    display: block;
+    margin: 0.5rem 0 0;
+  }
   .katakit-gallery {
     display: block;
   }

@@ -99,6 +99,8 @@ export const createGalleryInference = (
       replace({ ...defaultInference });
     },
     reload: () => replace(read()),
+    /** Pause a source lifetime without changing or persisting developer settings. */
+    invalidate: () => replace(settings),
     dispose: () => {
       lifetime.abort();
       listeners.clear();
@@ -144,7 +146,7 @@ export const connectWithKey =
                   : response.status === 429
                     ? 'The provider is rate limiting requests. Wait, then start notes again.'
                     : response.status === 400 || response.status === 404 || response.status === 422
-                      ? 'Check the model ID, endpoint, and structured-output support under Advanced.'
+                      ? 'Check the model ID and structured-output support in Operation Setup, and the endpoint under Advanced.'
                       : 'The provider could not complete this request. Start notes again when ready.';
             throw new GalleryModelError(message);
           }

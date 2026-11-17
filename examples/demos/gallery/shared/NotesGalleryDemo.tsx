@@ -43,12 +43,20 @@ export const NotesGalleryDemo = () => {
         <NotesDemo
           runtime={runtime}
           connectionHelp={
-            <p>
-              No inference is configured. You can still transcribe locally.{' '}
-              <button type="button" className="site-button" onClick={model.configure}>
-                Add API key
-              </button>
-            </p>
+            model.configure ? (
+              <p>
+                No inference is configured. You can still transcribe locally.{' '}
+                <button
+                  type="button"
+                  className="site-button"
+                  onClick={() => model.configure?.('inference')}
+                >
+                  Configure inference
+                </button>
+              </p>
+            ) : (
+              <p>Free inference is not available here. You can still transcribe locally.</p>
+            )
           }
           controls={<GalleryCaptureControls />}
           listening={session?.snapshot.input.phase === 'running'}

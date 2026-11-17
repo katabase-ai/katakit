@@ -24,10 +24,20 @@ source checkout. They do not own application bootstraps, routing, or private ser
   errors to its example's own error class. Keep it free of any one demo's types, and keep
   host admission and private service URLs in the host. `galleryInference.ts` owns the optional
   visitor-key transport and local-storage policy; never include keys or endpoint URLs in diagnostics. `#gallery-model-connection`
-- Hosts pass `GallerySpeechControls` to Gallery’s input slot. Only the compact download/status
-  and inference-source rows belong there, outside navigation landmarks. Desktop setup anchors to the
-  sidebar bottom; mobile setup reserves its measured height and stays visible. Put testing/listening
-  in Welcome or the demo using `GalleryCaptureControls`. Keep inference admission, verification,
-  allowance, and errors inside the demo. `GallerySpeechProvider` also mounts the root inference
-  settings provider so source choices survive navigation. Source changes invalidate remote work;
-  local capture and content continue, and only Start notes resumes inference. `#gallery-shared-controls`
+- Public mode is the default. `GalleryModeProvider` enables developer tools only when a host explicitly
+  opts in through build configuration. Public mode and public preview ignore saved developer keys;
+  never enable BYOK through a visitor URL or local-storage flag. `#gallery-developer-mode`
+- Keep `GallerySpeechProvider` and `GalleryModeProvider` above the host header/outlet. The header’s
+  `GalleryPreviewToggle` remains visible in developer builds while previewing public mode; it never
+  renders in a public build. Mode transitions invalidate inference immediately, preserve saved
+  developer settings/local content, and require explicit Start notes to resume. `#gallery-public-preview`
+- Public `GallerySpeechControls` contains only transcription download/status and managed inference
+  status. Developer mode replaces those rows with Operation Setup/Grid links. `GalleryFooter` measures
+  either footer for mobile spacing; keep these controls outside demo navigation. `#gallery-shared-controls`
+- Developer pages use the current catalogue/capability metadata. Operation Setup configures local
+  transcription and inference; key and model are visible together, endpoint overrides under Advanced.
+  Configured indicates a selection, not a successful model/provider check. Do not add simulated signup
+  actions, unsupported operations, or disabled demo navigation. `#gallery-operation-pages`
+- Testing/listening stays in Welcome or each demo using `GalleryCaptureControls`. Keep inference
+  admission, verification, allowance, and errors inside the demo. Navigating to setup is ordinary route
+  exit: stop/drain the outgoing demo; retain the loaded model and saved settings. `#gallery-runtime-handoff`
