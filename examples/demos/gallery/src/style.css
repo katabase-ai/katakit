@@ -1,0 +1,24 @@
+@import '../../../../internal/site-ui/styles.css';
+@import '../shared/gallery.css';
+@import '../../transcription-react/src/style.css';
+
+.gallery-host {
+  max-width: 1120px;
+  margin-inline: auto;
+  min-height: 100svh;
+}
+.gallery-header {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--color-rule);
+}
+.gallery-header a {
+  font-weight: 600;
+  text-decoration: none;
+}
+.gallery-message {
+  padding: 2rem 1.5rem;
+}
+.katakit-gallery .transcription-demo {
+  max-width: none;
+  padding: 0;
+}

@@ -43,7 +43,7 @@ root.render(
 The property observable replays its current value on subscription. The hook renders that value
 and updates when `increment()` emits a new one; calling `count$.get()` alone in a component
 would not subscribe it to changes. The
-[transcription view](https://github.com/katabase-ai/katakit/blob/main/demos/transcription-react/src/TranscriptionDemo.tsx)
+[transcription view](https://github.com/katabase-ai/katakit/blob/main/examples/demos/transcription-react/src/TranscriptionDemo.tsx)
 renders conversation state from a runtime owned by its host. `currentTurn$` and `provisional$`
 initially emit `undefined` until there is an unfinished turn or provisional text.
 
@@ -55,7 +55,7 @@ This cleanup covers React's subscriptions. It does not stop a runtime, release s
 
 For a view that reads several bound streams, create a stable
 `combineLatest([firstState$, secondState$])` from RxJS and pass it to the boundary's `source$`.
-The [browser bingo runtime](https://github.com/katabase-ai/katakit/blob/main/demos/bingo-react/src/createBrowserBingoDemo.ts)
+The [browser bingo runtime](https://github.com/katabase-ai/katakit/blob/main/examples/demos/bingo-react/src/createBrowserBingoDemo.ts)
 also demonstrates combining transcript and board state into one view stream. Its synchronous
 transcript bridge owns a separate subscription and releases it when the runtime closes.
 

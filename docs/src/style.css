@@ -2,7 +2,7 @@
  * nav: left document index · signature: directory-backed Markdown tree · states: current, missing
  * axes: light/grotesk-sans/cool · posture: restrained · contrast: pass · v2.0.0 */
 /* Hallmark · pre-emit critique: precision over ornament; the placeholder pages test hierarchy and code without pretending to be product content. */
-@import url('@katakit/site-ui/styles.css');
+@import url('../../internal/site-ui/styles.css');
 
 .site {
   max-width: var(--container);

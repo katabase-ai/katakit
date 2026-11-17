@@ -19,8 +19,8 @@ This follows protozoa-app's `wrangler versions upload --preview-alias` workflow.
 The two preview Workers are `katakit-docs-preview` and
 `katakit-gallery-preview`; their Wrangler configurations enable version
 URLs. Docs use an HTML fallback for direct links; Start handles gallery routes and
-not-found responses. The gallery source configuration is `demos/gallery/wrangler.jsonc`;
-the Vite build generates `demos/gallery/dist/server/wrangler.json` for upload.
+not-found responses. The gallery source configuration is `examples/demos/gallery/wrangler.jsonc`;
+the Vite build generates `examples/demos/gallery/dist/server/wrangler.json` for upload.
 
 Both Workers have been initialized in protozoa-app's Cloudflare account
 (`df336523814581dc72f26c5b15fcfa8f`). Their default deployments are available at
@@ -42,7 +42,7 @@ update their aliases independently of these default deployments.
    pnpm --filter @katakit/docs... build
    pnpm --filter @katakit/gallery... build
    pnpm exec wrangler deploy --config wrangler.docs.jsonc
-   pnpm exec wrangler deploy --config demos/gallery/dist/server/wrangler.json
+   pnpm exec wrangler deploy --config examples/demos/gallery/dist/server/wrangler.json
    ```
 
    Set `CLOUDFLARE_ACCOUNT_ID` in that shell too. An initial deployment is

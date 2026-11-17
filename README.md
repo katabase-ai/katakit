@@ -8,7 +8,7 @@ Compose typed plugins for live state, actions, and asynchronous work, independen
 framework. Build around typed event history, connect speech recognition and conversation turns,
 and add persistence through your own storage.
 
-[Getting started](docs/pages/getting-started/README.md) · [Demos](demos/gallery/README.md) ·
+[Getting started](docs/pages/getting-started/README.md) · [Demos](examples/demos/gallery/README.md) ·
 [Starters](docs/pages/starters/README.md) · [Documentation](docs/pages/reference/README.md)
 
 We're sharing an early collection of patterns and examples from our work on **voice-to-visual
@@ -69,17 +69,17 @@ New subscribers receive recorded events before subsequent live events. Plugins c
 application state from this history; saving it across visits requires a storage connection.
 
 For live speech, connect the transcription utility's `onFinal`, `onProvisional`, and `onStop`
-callbacks to the ingestion methods. The [React web starter](templates/react-web/README.md)
+callbacks to the ingestion methods. The [React web starter](examples/starters/react-web/README.md)
 includes recognition, model assets, microphone controls, UI, and cleanup. The
-[conversation bingo demo](demos/bingo-react/README.md) adds a custom plugin that turns recognized
+[conversation bingo demo](examples/demos/bingo-react/README.md) adds a custom plugin that turns recognized
 phrases into changes on a game board.
 
 ## Try Katakit
 
-- **Explore a demo:** run the [gallery](demos/gallery/README.md) to try local transcription,
+- **Explore a demo:** run the [gallery](examples/demos/gallery/README.md) to try local transcription,
   conversation bingo, and structured notes. Transcription runs locally; generating structured
   notes requires a host-supplied model connection. Each example links to its source and setup.
-- **Start an application:** copy the [React web starter](templates/react-web/README.md), including
+- **Start an application:** copy the [React web starter](examples/starters/react-web/README.md), including
   its `vendor/` directory, then follow its install and run instructions. First use downloads a
   speech model; no paid speech account is needed.
 
