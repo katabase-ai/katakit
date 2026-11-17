@@ -138,8 +138,9 @@ pnpm test:ci
 pnpm build
 ```
 
-See [Contributing](CONTRIBUTING.md) for workspace conventions, the complete checks, documentation,
-and previews. Try an example, adapt it to something you care about, and share what you build or
+See [Contributing](CONTRIBUTING.md) for ways to help, local setup, and submitting a pull request.
+The [development reference](DEVELOPMENT.md) covers workspace conventions, checks, and previews.
+Try an example, adapt it to something you care about, and share what you build or
 where the pieces get in your way through [GitHub issues](https://github.com/katabase-ai/katakit/issues).
 
 ## License

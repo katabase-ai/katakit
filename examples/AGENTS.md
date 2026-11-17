@@ -1,6 +1,6 @@
 # Demos and starters
 
-Follow the [example contract](../CONTRIBUTING.md#add-or-change-an-example),
+Follow the [example contract](../DEVELOPMENT.md#add-or-change-an-example),
 [copy workflow](README.md), and the selected example's README/scoped instructions.
 
 - Demos use the root workspace; starters are independent projects with their own install settings.
