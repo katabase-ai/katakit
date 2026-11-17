@@ -49,19 +49,19 @@ test('words expire individually within twenty seconds while inference retains ev
     'Plan the release.',
     'Ship on Tuesday.',
   ]);
-  const requestNotes = vi
-    .fn<NotesConnection['requestNotes']>()
-    .mockResolvedValue({ additions: [], rewords: [] });
+  const requestCompletion = vi.fn<NotesConnection['requestCompletion']>().mockResolvedValue({
+    choices: [{ finish_reason: 'stop', message: { content: '{"additions":[],"rewords":[]}' } }],
+  });
   preview.runtime.notes.connect({
     model: 'test',
     maxBodyBytes: 16384,
     maxOutputTokens: 1024,
-    requestNotes,
+    requestCompletion,
   });
   await vi.advanceTimersByTimeAsync(0);
-  expect(requestNotes).toHaveBeenCalledOnce();
-  expect(requestNotes.mock.calls[0]![0].body).toContain('Plan the release.');
-  expect(requestNotes.mock.calls[0]![0].body).toContain('Ship on Tuesday.');
+  expect(requestCompletion).toHaveBeenCalledOnce();
+  expect(requestCompletion.mock.calls[0]![0].body).toContain('Plan the release.');
+  expect(requestCompletion.mock.calls[0]![0].body).toContain('Ship on Tuesday.');
   preview.close();
 });
 

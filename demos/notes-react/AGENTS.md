@@ -2,7 +2,7 @@
 
 `createNotesDemo.ts` owns one visit's runtime. `NotesDemo.tsx` renders it. `useNotesConnection.ts`
 owns automatic admission, explicit retry, and visit cancellation.
-`App.tsx` owns standalone capture; the gallery supplies shared input.
+`App.tsx` owns standalone capture through `useMicrophoneTranscriber`; the gallery supplies shared input.
 `notesEvents.ts` defines finalized turns, accepted outlines, and clears. `notesPlugin.ts` derives
 the outline, processed-turn cursor, and Markdown from that log. `applyNotesResult.ts` validates a
 whole model result and copies the accepted outline without mutating recorded events. `notesModel.ts` owns the public
@@ -11,7 +11,9 @@ host contract, prompt, schema, and wire sizing.
 twenty-second display lifetime. Keep display timing outside the event log; finalization preserves word age.
 `main.tsx` is the local standalone host. See `README.md` for embedding and verification.
 
-Keep model transport and admission in the host. The example stays independently copyable with
+Keep model transport and admission in the host. The host returns the chat-completions response
+body; `notesModel.ts` reads and validates it so every host reports the same failures.
+The example stays independently copyable with
 its own manifest and no sibling demo or private website imports. Gallery adapters live in the gallery.
 
 Record IDs and cursors with accepted outlines. Replay restores content without generating IDs or

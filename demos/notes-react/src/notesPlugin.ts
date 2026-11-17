@@ -19,6 +19,7 @@ import type { NotesEvent } from './notesEvents';
 import {
   createNotesRequest,
   NotesRequestError,
+  parseNotesCompletion,
   type Note,
   type NotesConnection,
 } from './notesModel';
@@ -146,12 +147,15 @@ export const makeNotesPlugin = ({
               const content = content$.get();
               const request = createNotesRequest({ ...content, connection: activeConnection });
               requestStarted = true;
-              const response = await activeConnection.requestNotes({
+              const completion = await activeConnection.requestCompletion({
                 body: request.body,
                 signal: abort.signal,
               });
               if (closed || abort.signal.aborted) return;
-              const notes = applyNotesResult({ notes: content.notes, response });
+              const notes = applyNotesResult({
+                notes: content.notes,
+                response: parseNotesCompletion(completion),
+              });
               emitEvent({ type: 'notesUpdated', notes, cursor: request.end });
               retries = 0;
               options.request.next({ status: 'idle' });

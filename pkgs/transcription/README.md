@@ -81,6 +81,33 @@ levels, and delivers the last worklet buffer before draining recognition. Browse
 for microphone access, AudioContext, and AudioWorklet is required. Microphone permission
 is requested only on `start()`. Construction has no side effects.
 
+## React
+
+`@katakit/transcription/react` exports `useMicrophoneTranscriber`. React is an optional peer
+dependency; the other entry points do not import it.
+
+```tsx
+import { useMicrophoneTranscriber } from '@katakit/transcription/react';
+
+const Recorder = () => {
+  const microphone = useMicrophoneTranscriber({ createSink: createTranscript });
+  if (!microphone.sink) return null;
+  return (
+    <button disabled={microphone.busy} onClick={() => void microphone.toggle()}>
+      {microphone.listening ? 'Stop listening' : 'Start listening'}
+    </button>
+  );
+};
+```
+
+`createSink` returns the object one session writes to: `ingestSegment` for final segments,
+optional `updateProvisional` and `flush`, and `close`. The hook creates the sink and the
+microphone transcriber together and returns `sink`, `state`, `level`, `listening`, `busy`, and
+`toggle`. On unmount it stops capture, waits for pending results, releases the model, and then
+closes the sink. Pass a stable `createSink`, such as a module-level function. A new function or
+a new `model` ends the session and starts another with a fresh sink, so an application that
+switches models while keeping its transcript should own `createMicrophoneTranscriber` directly.
+
 ## Models and results
 
 `transcriptionModels` from `@katakit/transcription/browser` is the shared catalog for application model

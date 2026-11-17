@@ -16,6 +16,10 @@ source checkout. They do not own application bootstraps, routing, or private ser
   and explicit subscriptions; Bingo deliberately uses no core effects and completes its state
   through its close method. Do not assume a generic core disposal API exists. `#gallery-runtime-cleanup`
 
+- `galleryModel.tsx` owns the host model contract for `remoteModel` demos. `Gallery` takes one
+  `connectModel`; a demo's gallery adapter reads it through `useGalleryModel` and converts host
+  errors to its example's own error class. Keep it free of any one demo's types, and keep
+  admission, credentials, and service URLs in the host. `#gallery-model-connection`
 - Hosts pass the shared input controls to Gallery’s input slot. Keep them outside demo views and
   navigation landmarks; only the demo body remounts. Desktop controls anchor to the sidebar bottom;
   mobile controls reserve their measured height and stay visible. `#gallery-shared-controls`

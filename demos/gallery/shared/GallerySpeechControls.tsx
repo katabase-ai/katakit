@@ -1,6 +1,7 @@
-import { useCallback, type ReactNode, type RefCallback } from 'react';
+import { useCallback, useContext, type ReactNode, type RefCallback } from 'react';
 import { transcriptionModels, type TranscriptionModelId } from '@katakit/transcription/browser';
 import { AudioLevelMeter, Button, SelectField } from '@katakit/site-ui';
+import { GalleryModelContext } from './galleryModel';
 import { useGallerySpeech } from './GallerySpeechProvider';
 
 /** The private host supplies its existing Select without a private demo dependency. */
@@ -13,11 +14,10 @@ export type GalleryModelSelect = (props: {
 /** Stay mounted outside the keyed demo view, including during lazy input handoffs. */
 export const GallerySpeechControls = ({
   renderModelSelect,
-  children,
 }: {
   renderModelSelect?: GalleryModelSelect;
-  children?: ReactNode;
 }) => {
+  const { setControls } = useContext(GalleryModelContext);
   // Fit the host header and reserve mobile space for variable-height hints and errors.
   const measureInput: RefCallback<HTMLElement> = useCallback(node => {
     const gallery = node?.closest('.katakit-gallery');
@@ -167,7 +167,8 @@ export const GallerySpeechControls = ({
         </p>
       )}
       <p className="gallery-processing-notice">Processed on your device.</p>
-      {children && <div className="gallery-model-controls">{children}</div>}
+      {/* A remoteModel demo portals its connection controls here; empty for the other demos. */}
+      <div className="gallery-model-controls" ref={setControls} />
     </section>
   );
 };
