@@ -7,8 +7,8 @@ source checkout. They do not own application bootstraps, routing, or private ser
   components. Keep extension information pages out of both. `#gallery-react-catalogue`
 - Keep metadata and `Gallery.tsx` free of recognizer/runtime imports. Accept host-rendered links
   and children instead of importing a host router. `#gallery-portable-presentation`
-- Scope gallery CSS beneath `.katakit-gallery`; import only site-ui component styles, inherit
-  host typography/colors, and never import the global site-ui reset into portable modules. `#gallery-scoped-styles`
+- Scope gallery CSS beneath `.katakit-gallery`; import only `internal/site-ui/components.css`, inherit
+  host typography/colors, and never import the global shared reset into portable modules. `#gallery-scoped-styles`
 - `createGallerySpeech` wraps the delivered microphone transcriber. Keep a single active sink
   through awaited stop/drain, then close its runtime before creating the next. Keep only the model
   across navigation. Hiding the tab stops capture; root teardown disposes it. `#gallery-input-lifecycle`

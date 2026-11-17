@@ -13,7 +13,6 @@ import {
 import Markdown from 'react-markdown';
 import rehypeSlug from 'rehype-slug';
 import remarkGfm from 'remark-gfm';
-import { Button } from '@katakit/site-ui';
 import nav from './nav.json';
 import './style.css';
 
@@ -76,17 +75,16 @@ const NavBranch = ({ item, idPrefix }: { item: NavItem; idPrefix: string }) => {
     <>
       <div className="nav-row">
         <NavLabel item={item} />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="nav-toggle"
+        <button
+          type="button"
+          className="site-button site-button--ghost site-button--icon nav-toggle"
           aria-label={`${expanded ? 'Collapse' : 'Expand'} ${item.label}`}
           aria-expanded={expanded}
           aria-controls={childrenId}
           onClick={() => setExpanded(value => !value)}
         >
           <span className="chevron" aria-hidden="true" />
-        </Button>
+        </button>
       </div>
       <div id={childrenId} hidden={!expanded}>
         <NavItems items={item.children ?? []} idPrefix={idPrefix} />
@@ -145,10 +143,9 @@ const ThemeToggle = () => {
 
   return (
     <span className="theme-control">
-      <Button
-        variant="border"
-        size="icon"
-        className="theme-toggle"
+      <button
+        type="button"
+        className="site-button site-button--border site-button--icon theme-toggle"
         aria-label="Toggle color theme"
         aria-describedby="theme-tooltip"
         onClick={toggle}
@@ -178,7 +175,7 @@ const ThemeToggle = () => {
             <path d="M20.3 15.6A8.5 8.5 0 0 1 8.4 3.7a8.5 8.5 0 1 0 11.9 11.9Z" />
           </svg>
         )}
-      </Button>
+      </button>
       <span className="theme-tooltip" id="theme-tooltip" role="tooltip">
         Switch to {theme === 'dark' ? 'light' : 'dark'} mode
       </span>

@@ -13,12 +13,12 @@
     "ignoreDeprecations": "6.0"
   },
   "include": [
-    "../core/src",
-    "../event-log/src",
-    "../persistence/src",
-    "../transcription/src",
-    "../react/src",
-    "../transcript-ingestion/src"
+    "../../../pkgs/core/src",
+    "../../../pkgs/event-log/src",
+    "../../../pkgs/persistence/src",
+    "../../../pkgs/transcription/src",
+    "../../../pkgs/react/src",
+    "../../../pkgs/transcript-ingestion/src"
   ],
-  "exclude": ["../**/*.test.ts", "../**/*.test.tsx"]
+  "exclude": ["../../../pkgs/**/*.test.ts", "../../../pkgs/**/*.test.tsx"]
 }

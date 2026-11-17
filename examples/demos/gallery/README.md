@@ -13,7 +13,7 @@ pnpm preview
 ```
 
 The copy includes built Katakit tarballs and local dependency overrides while the libraries
-are unpublished. Keep `vendor/` with it. The gallery also carries its composed demo sources under `sources/`.
+are unpublished. Keep `vendor/` with it. The gallery also carries its composed demo sources under `sources/` and plain shared CSS under `styles/`.
 No original checkout is needed after copying. Follow the platform and hosting instructions below.
 
 This is the local TanStack Start host for the React demo gallery. It runs without the private
@@ -55,7 +55,7 @@ expected content types. Models download on explicit recording; microphone audio 
 descriptions, source paths, and required capabilities. `shared/galleryDemos.tsx` adds lazy component loaders.
 A host can select metadata and render `shared/Gallery.tsx` without importing recognizers or this
 app's bootstrap. Import `shared/gallery.css` for the scoped presentation; it inherits host colors
-and typography and does not import the global site-ui reset.
+and typography and does not import the global shared reset.
 
 Pass the chosen entries, active entry, a host link renderer, and active content to `Gallery`.
 Pass `GallerySpeechControls` through its `input` slot; demo views receive no extra microphone or
@@ -93,7 +93,7 @@ aborts admission and model work on unmount before its capture drains. Its runtim
 notes effect stream explicitly. See [the notes example](../notes-react/README.md) for the contract.
 
 Run `pnpm --filter @katakit/gallery test:ci` from the root. Each host owns its route registration.
-No authentication or analytics service is required. Public defaults use site-ui controls; the
+No authentication or analytics service is required. Public defaults use gallery-owned native controls; the
 private website can supply its own model-select renderer without changing the public examples.
 
 The local host resolves workspace source for development. A consuming website must record its

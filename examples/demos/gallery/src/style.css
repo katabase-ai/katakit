@@ -1,4 +1,4 @@
-@import '@katakit/site-ui/styles.css';
+@import '../../../../internal/site-ui/styles.css';
 @import '../shared/gallery.css';
 @import '../../transcription-react/src/style.css';
 

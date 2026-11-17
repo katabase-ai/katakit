@@ -10,11 +10,11 @@ import ts from 'typescript';
 import { remark } from 'remark';
 import GithubSlugger from 'github-slugger';
 import remarkGfm from 'remark-gfm';
-import { buildNav } from '../../docs/scripts/generate-nav.mjs';
-import { checkLinks } from '../../docs/scripts/check-links.mjs';
+import { buildNav } from '../../../docs/scripts/generate-nav.mjs';
+import { checkLinks } from '../../../docs/scripts/check-links.mjs';
 
 const directory = dirname(fileURLToPath(import.meta.url));
-const root = resolve(directory, '../..');
+const root = resolve(directory, '../../..');
 const packages = [
   'core',
   'event-log',
