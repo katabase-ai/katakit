@@ -15,7 +15,7 @@
 >
 > We're excited to see what you build!
 >
-> \- The katabase team (Abe, Jude, Drew)
+> \- The Katabase team (Abe, Jude, Drew)
 
 ---
 
