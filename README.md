@@ -104,7 +104,7 @@ React applications render runtime observables with [React-RxJS](docs/pages/getti
 ## Documentation
 
 - [Getting started](docs/pages/getting-started/README.md) — assemble your first runtime.
-- [Plugin model](docs/pages/concepts/plugins.md) — understand observables, methods, and effects.
+- [Concepts](docs/pages/concepts/README.md) — build an event-driven message list, add a plugin, and save its history.
 - [React integration](docs/pages/getting-started/react.md) — render runtime state and connect speech.
 - [Transcription](docs/pages/reference/transcription.md) — configure recognition and its resources.
 - [Reference](docs/pages/reference/README.md) — explore the reusable building blocks and API guidance.

@@ -1,6 +1,6 @@
 # React integration
 
-Use [React-RxJS](https://react-rxjs.org/docs/getting-started) to render runtime observables. Install `@react-rxjs/core`, `rxjs`, `react`, and `react-dom` in the application alongside `@katakit/core`.
+Use [React-RxJS](https://react-rxjs.org/docs/getting-started) to render runtime observables. Install `@react-rxjs/core`, `rxjs`, `react`, and `react-dom` in the application alongside its Katakit packages. The example below also uses `@katakit/event-log` and `valibot`.
 
 `@react-rxjs/core` supplies the `bind` and `Subscribe` APIs used below; it is an external
 library, not a subpath or feature of `@katakit/react`. The latter is currently an empty
@@ -16,18 +16,33 @@ This complete client entry point expects an HTML element with `id="root"`:
 ```tsx
 import { createRoot } from 'react-dom/client';
 import { bind, Subscribe } from '@react-rxjs/core';
-import { BehaviorSubject } from 'rxjs';
+import { scan, shareReplay, startWith } from 'rxjs';
 import { makeKatakit, makeKatakitPlugin, property } from '@katakit/core';
+import { makeEventLogPlugin } from '@katakit/event-log';
+import * as v from 'valibot';
 
+const EventLog = makeEventLogPlugin({
+  validateEvent: v.strictObject({ type: v.literal('increment') }),
+});
 const Counter = makeKatakitPlugin({
   type: 'Counter',
-  configure: ({ initial }: { initial: number }) => ({ count: new BehaviorSubject(initial) }),
-  observables: ({ options }) => ({ count$: property(options.count.asObservable()) }),
-  methods: ({ options }) => ({
-    increment: () => options.count.next(options.count.value + 1),
+  configure: (options: {}) => options,
+  observables: ({ getObservables }) => ({
+    count$: property(
+      getObservables(EventLog).events$.pipe(
+        scan(count => count + 1, 0),
+        startWith(0),
+        shareReplay({ bufferSize: 1, refCount: true })
+      )
+    ),
+  }),
+  methods: ({ getMethods }) => ({
+    increment: () => getMethods(EventLog).emitEvent({ type: 'increment' }),
   }),
 });
-const running = makeKatakit({ plugins: [Counter.configure({ initial: 0 })] }).start();
+const running = makeKatakit({
+  plugins: [EventLog.configure({ initialEvents: [] }), Counter.configure({})],
+}).start();
 const { count$ } = running.getObservables(Counter);
 const { increment } = running.getMethods(Counter);
 const [useCount, countState$] = bind(count$);
@@ -45,8 +60,8 @@ root.render(
 );
 ```
 
-The property observable replays its current value on subscription. The hook renders that value
-and updates when `increment()` emits a new one; calling `count$.get()` alone in a component
+`shareReplay` supplies the current count to new subscribers. The hook renders that value
+and updates when `increment()` records another event; calling `count$.get()` alone in a component
 would not subscribe it to changes. The
 [transcription view](https://github.com/katabase-ai/katakit/blob/main/examples/demos/transcription-react/src/TranscriptionDemo.tsx)
 renders conversation state from a runtime owned by its host. `currentTurn$` and `provisional$`
@@ -56,7 +71,7 @@ initially emit `undefined` until there is an unfinished turn or provisional text
 
 [`Subscribe`](https://react-rxjs.org/docs/api/core/subscribe) establishes the bound subscription before rendering its children and releases it when the boundary unmounts. For example, `root.unmount()` removes the UI subscription; remounting a boundary subscribes again and reads the source's latest replayed value. Several views under one boundary can share the hook. Do not recreate the runtime or call `bind` on every render.
 
-This cleanup covers React's subscriptions. It does not stop a runtime, release subscriptions created by core helpers, or dispose microphones, workers, or other application resources. Keep those resources under application control; see [runtime and lifecycle](../concepts/runtime.md).
+This cleanup covers React's subscriptions. It does not stop a runtime, release subscriptions created by core helpers, or dispose microphones, workers, or other application resources. Keep those resources under application control; see [ownership and shutdown](../reference/core.md#ownership-and-shutdown).
 
 For a view that reads several bound streams, create a stable
 `combineLatest([firstState$, secondState$])` from RxJS and pass it to the boundary's `source$`.

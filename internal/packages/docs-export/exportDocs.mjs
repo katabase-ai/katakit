@@ -274,28 +274,6 @@ export const exportDocs = async ({ output }) => {
   }
   const slugs = pages.map(page => page.slug);
   if (new Set(slugs).size !== slugs.length) throw new Error('Duplicate exported page slugs');
-  const apiNavigation = pages
-    .filter(page => page.kind === 'api' && /^api\/[^/]+$/.test(page.slug))
-    .map(page => ({
-      label: page.title,
-      slug: page.slug,
-      children: pages
-        .filter(child => child.slug.startsWith(`${page.slug}/`))
-        .map(child => ({ label: child.title, slug: child.slug })),
-    }));
-  const navigation = buildNav();
-  const reference = navigation.find(item => item.slug === 'reference');
-  const plugins = reference.children.find(item => item.slug === 'reference/plugins');
-  // Package reference owns discovery; generated pages retain their existing API URLs.
-  for (const api of apiNavigation) {
-    const packageName = api.slug.slice('api/'.length);
-    const guide = [...reference.children, ...plugins.children].find(
-      item =>
-        item.slug === `reference/${packageName}` || item.slug === `reference/plugins/${packageName}`
-    );
-    if (guide) guide.children = [{ ...api, label: 'API reference' }, ...(guide.children ?? [])];
-    else reference.children.push(api);
-  }
   const manifest = {
     formatVersion: 1,
     revision,
@@ -304,7 +282,8 @@ export const exportDocs = async ({ output }) => {
     timings: { extractionMs, exportMs: performance.now() - started },
     packages: coverage,
     nonCodeExports,
-    navigation,
+    // Authored pages own navigation. Retain generated URLs for existing links and export coverage.
+    navigation: buildNav(),
     pages,
     assets,
   };

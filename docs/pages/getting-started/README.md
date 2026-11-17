@@ -1,6 +1,6 @@
 # Getting started
 
-Katakit composes framework-independent plugins into a runtime. The event-log plugin provides an ordered, replayable stream of events; persistence is optional.
+Katakit is an open-source TypeScript developer kit for building voice-to-visual interfaces. It connects application behavior through typed plugins, independently of your UI framework. This first example records a message and reads it back from an event log.
 
 To start with a complete application, choose a [starter](../starters/README.md). The React web
 starter connects local microphone recognition to conversation turns and includes built Katakit
@@ -36,4 +36,4 @@ subscription.unsubscribe();
 
 `makeKatakit` accepts **configured** plugins. `start()` starts methods and effects once; it returns the running runtime, which exposes `getMethods`. The original runtime also has `getObservables` for observable-only reads without starting methods or effects.
 
-For a React application, continue with [React integration](react.md). To install and change a runnable application rather than just read a code snippet, choose a [starter](../starters/README.md). You can also read [how runtimes work](../concepts/runtime.md), [how plugins fit together](../concepts/plugins.md), or the [reference](../reference/README.md).
+Continue with [Concepts](../concepts/README.md) to build a message list from this event history, add a plugin, and save the result. For a React view, see [React integration](react.md). Choose a [platform template](../starters/README.md) for a complete application, or use [Reference](../reference/README.md) to look up a contract.

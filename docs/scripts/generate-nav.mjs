@@ -6,6 +6,13 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const pages = join(root, 'pages');
 const output = join(root, 'src', 'nav.json');
 const sectionOrder = ['why-katakit.md', 'getting-started', 'concepts', 'starters', 'reference'];
+const conceptOrder = [
+  'runtime.md',
+  'event-history.md',
+  'plugins.md',
+  'persistence.md',
+  'templates.md',
+];
 
 const titleOf = path => {
   const title = readFileSync(path, 'utf8').match(/^# (.+)$/m)?.[1];
@@ -28,6 +35,9 @@ export const buildNav = (directory = pages) => {
         const right = sectionOrder.indexOf(b.name);
         if (left !== right) return (left < 0 ? Infinity : left) - (right < 0 ? Infinity : right);
       }
+      // The tutorial's learning sequence is independent of its existing URL names.
+      if (directory === join(pages, 'concepts'))
+        return conceptOrder.indexOf(a.name) - conceptOrder.indexOf(b.name);
       return (
         Number(a.isDirectory()) - Number(b.isDirectory()) || a.name.localeCompare(b.name, 'en')
       );

@@ -1,13 +1,55 @@
-# Templates and applications
+# Connect an input and a view
 
-A **plugin** supplies reusable behavior—such as an event log or transcription—without prescribing an application shell. An **application** assembles plugins into a Katakit instance and connects them to its inputs, UI, and storage. The application runs on a **platform**, such as the web, Electron, or a browser extension.
+The [message-list plugin](plugins.md) exposes an action and a stream. A text form, a speech recognizer, or another input can call the action. A view subscribes to the stream. Neither needs to maintain a second copy of the message list.
 
-A **template** is a copyable starting point that shows how to build a Katakit application for one platform. It includes plugin assembly and the platform-specific setup needed to run it, such as permissions, assets, and build configuration. Template code belongs beside `pkgs/`, not inside a library package. See [Starters](../starters/README.md) to choose and adapt one.
+## Display the list
 
-A **demo** is an application built to show a user-facing capability, not a minimal starting point. It may borrow from a template. Platform-specific requirements belong in the application, not core: for example, it may need browser microphone permission or a server webhook, while the transcript ingestion plugin accepts normalized text independent of its source. See the [plugin catalog](../reference/plugins/README.md) for reusable behavior and [Starters](../starters/README.md) for platform guides and their current status.
+Keep `eventLog.ts` and `messageList.ts`. For a plain browser view, add `<ul id="messages"></ul>` to your HTML and use this `main.ts`:
 
-## What to expect from a template
+```ts
+import { makeKatakit } from '@katakit/core';
+import { EventLogPlugin } from './eventLog';
+import { MessageListPlugin } from './messageList';
 
-Copy its directory into a new project, install its declared libraries, and follow its README to run the example on the stated platform. Until Katakit packages are published, each template includes local copies of the Katakit package artifacts it needs. The React, Electron, Chrome, and Obsidian starters target real local speech transcription into Katakit turns. Their models may download on first use, with the source and permission requirements stated in their READMEs. They do not require a paid speech service. The MCP App remains WIP and needs a separately started local server to transcribe audio.
+const running = makeKatakit({
+  plugins: [EventLogPlugin.configure({ initialEvents: [] }), MessageListPlugin.configure({})],
+}).start();
+const list = document.querySelector<HTMLUListElement>('#messages')!;
+const subscription = running.getObservables(MessageListPlugin).messages$.subscribe(messages => {
+  list.replaceChildren(
+    ...messages.map(text => {
+      const item = document.createElement('li');
+      item.textContent = text;
+      return item;
+    })
+  );
+});
 
-Templates need not share the same UI, source layout, or way of exchanging data. Their common purpose is to make the Katakit setup visible and easy to replace. Instantiating Katakit and passing a build do not establish that the integration works on its target platform. The [starter guides](../starters/README.md) identify which platform interactions have been checked and which remain provisional.
+const { addMessage } = running.getMethods(MessageListPlugin);
+addMessage('Hello from the view');
+// The list now contains one item: Hello from the view.
+
+// Call this when your application removes the view.
+export const removeMessageView = () => subscription.unsubscribe();
+```
+
+The example uses `textContent` so message text is displayed as text. In React, use [React-RxJS bindings](../getting-started/react.md) to subscribe during the component's lifetime. Unsubscribing the view does not stop the runtime's effects or property subscriptions.
+
+## Connect speech
+
+Use [transcription utilities](../reference/transcription.md) to recognize audio. Their `onFinal` callback receives a finalized text segment; it can call the same `addMessage(segment.text)` method. Provisional text changes while recognition runs, so display it separately until it becomes final.
+
+For conversation turns rather than individual recognition segments, connect the recognizer to [transcript ingestion](../reference/plugins/transcript-ingestion.md). That plugin groups segments and flushes an unfinished turn on Stop. Its event-log integration forwards new events; restoring saved conversation turns remains the application's responsibility.
+
+## Choose a platform template
+
+The [Templates catalog](../starters/README.md) provides the permissions, model assets, input wiring, and controls for each host. Copy a starter using its README, then find these connections before replacing its behavior:
+
+1. Where a final recognized segment enters `ingestSegment`.
+2. Where a view subscribes to completed and provisional text.
+3. Where Stop drains recognition and flushes the last turn.
+4. Where closing the application releases capture, workers, and subscriptions.
+
+Start with [React web](../starters/react-web.md), [Electron](../starters/electron.md), [Chrome extension](../starters/chrome-extension.md), or [Obsidian](../starters/obsidian.md). Each guide records its actual verification limits. The [MCP App](../starters/mcp-app.md) remains WIP. React Native has no dedicated starter yet.
+
+You now have the complete path from an input method to a recorded event and an observable view. Use [Reference](../reference/README.md) when changing a plugin's configuration, storage behavior, or resource ownership.

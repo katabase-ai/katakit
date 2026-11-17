@@ -57,8 +57,9 @@ documentation assets. All manifest paths are relative to the bundle directory. P
 `slug`, `kind`, `title`, `file`, heading IDs, and an authored `sourcePath` where applicable.
 `kind: "guide"` covers all authored pages, including handwritten Reference pages;
 `kind: "api"` identifies generated API reference.
-`navigation` groups templates under Reference and API pages beneath their authored package
-reference. Navigation placement does not change page slugs or relative content links.
+`navigation` contains authored pages, with templates grouped under Reference. Generated API
+pages remain in `pages` for existing links and public-export coverage, without sidebar entries.
+Navigation placement does not change page slugs or relative content links.
 `packages` records each public
 entry point and its exported symbol names. `assets` lists exported documentation files. `nonCodeExports` records package metadata
 exports that do not expose TypeScript declarations; these are not invented API pages. The
