@@ -12,9 +12,7 @@ pnpm build
 pnpm dev
 ```
 
-The copy includes built Katakit tarballs and local dependency overrides while the libraries
-are unpublished. Keep `vendor/` with it. All application source stays in this directory.
-No original checkout is needed after copying. Follow the platform and hosting instructions below.
+Katakit `0.0.0` is not yet published on npm; standalone installation requires its publication.
 
 This React example turns on-device speech recognition into a two-level outline rendered as Markdown.
 Start listening captures locally; **Start notes** connects the model. Finalized turns then trigger requests. Later speech can correct a
@@ -127,15 +125,10 @@ unmount releases it. Pending microphone permission is cancelled, including late 
 
 ## Copy outside the workspace
 
-This directory has its own TypeScript/Vite configuration and dependency manifest. While the
-Katakit libraries remain unpublished, build and pack `@katakit/core`, `@katakit/event-log`,
-`@katakit/transcript-ingestion`, and `@katakit/transcription` from one commit. Install those tarballs in the copied directory, then
-run `pnpm install` and `pnpm build`. Keep their versions compatible. The example's dependencies
-use ordinary versions so published libraries can replace those tarballs when available.
+Run `pnpm install` and `pnpm build` in the copied directory.
 The manifest includes `react-markdown` for rendering, `ts-pattern` for exhaustive event handling,
 and `es-toolkit` for abortable retry delays and word-expiry selection.
-With pnpm 11, use `pnpm-workspace.yaml` overrides for all four tarballs so transitive Katakit
-dependencies also resolve locally. Allow the `esbuild` install script in that file.
+The included `pnpm-workspace.yaml` allows the `esbuild` install script.
 
 Requests include the full outline, pending turns, and up to six preceding context turns. The
 complete UTF-8 body must fit the host's limit. Oversized input pauses instead of silently dropping

@@ -15,3 +15,13 @@ minimumReleaseAgeExclude:
 
 # Demos use ordinary version ranges so their manifests also work outside this workspace.
 linkWorkspacePackages: true
+
+# Keep workspace consumers on local libraries while their registry pins await a release.
+# Standalone example copies have their own settings and do not inherit these overrides.
+overrides:
+  '@katakit/core': 'workspace:*'
+  '@katakit/event-log': 'workspace:*'
+  '@katakit/persistence': 'workspace:*'
+  '@katakit/react': 'workspace:*'
+  '@katakit/transcript-ingestion': 'workspace:*'
+  '@katakit/transcription': 'workspace:*'

@@ -1,6 +1,6 @@
 # Starters
 
-Copy one directory under [`examples/starters/`](https://github.com/katabase-ai/katakit/tree/main/templates), including its `vendor/` tarballs, and install from that copy. Each is a separate pnpm project, not part of the repository workspace. Until Katakit is published, the built package tarballs travel with the copy. The speech-model weights do **not**: client-side starters download a model on first use. Use Node.js 24+ and pnpm 11.9.0 unless a README says otherwise.
+Copy one directory under [`examples/starters/`](https://github.com/katabase-ai/katakit/tree/main/examples/starters) and install from that copy. Each is an independent pnpm project. Katakit `0.0.0` is not yet published on npm; standalone installation requires its publication. Client-side starters download speech-model weights on first use. Use Node.js 24+ and pnpm 11.9.0 unless a README says otherwise.
 
 The intended path for React, Electron, Chrome extension, and Obsidian is **record audio → recognize speech locally → send finalized text to Katakit transcript ingestion → display conversation turns**. React and Electron have documented live checks; Chrome has reported successful tab and microphone transcription with additional paths still unverified. Obsidian awaits a complete installed-plugin check. A copied build and a fake-segment test alone do not verify a platform integration. A real model download requires internet access, but no paid speech account. The [MCP App](mcp-app.md) is **WIP**: it needs a separate local transcription server and does not yet have an audio path.
 

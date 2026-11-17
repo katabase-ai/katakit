@@ -1,6 +1,6 @@
 # Publishable libraries
 
-Follow [library standards](../CONTRIBUTING.md#add-or-change-a-library) and each package's
+Follow [library standards](../DEVELOPMENT.md#add-or-change-a-library) and each package's
 scoped instructions. All packages here are intended for publication under `@katakit/`;
 private tools belong in `internal/pkgs/`.
 
@@ -20,4 +20,4 @@ private tools belong in `internal/pkgs/`.
 - Test meaningful contracts: replay, ordering, failure/retry behavior, cancellation,
   ownership, and public typing. Use controlled inputs rather than timing sleeps.
 - Runtime source cannot import examples, docs, internal assets, or private tool APIs.
-  Check affected standalone copies and rebuild their archives when library source changes.
+  Check affected standalone copies against freshly packed libraries when source changes.
