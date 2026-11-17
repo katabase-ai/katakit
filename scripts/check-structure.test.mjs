@@ -73,11 +73,7 @@ const rejects = (t, mutate, expected) => {
 };
 
 test('public libraries, private tools, CSS assets, composed gallery, and independent examples pass', t => {
-  const { root, write, manifest } = fixture(t);
-  write('examples/starters/react-web/vendor/core.tgz', 'bundled library fixture');
-  manifest('examples/starters/react-web', value => {
-    value.dependencies['@katakit/core'] = 'file:vendor/core.tgz';
-  });
+  const { root } = fixture(t);
   assert.deepEqual(checkStructure(root), []);
 });
 test('private packages cannot live under pkgs', t =>

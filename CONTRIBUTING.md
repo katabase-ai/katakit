@@ -25,7 +25,7 @@ Choose placement by what the code ships and who owns its behavior:
 | `internal/pkgs/<name>/`     | Private workspace build tools with their own dependency manifests.               | May read repository source and docs; expose build commands rather than application APIs.            |
 | `internal/<purpose>/`       | Plain assets, with no workspace manifest. `internal/site-ui/` is CSS-only.       | Assets stay in their directory; consumers own markup and behavior.                                  |
 | `examples/demos/<name>/`    | Private feature applications in the root workspace.                              | Ordinary library versions and local application files; no private workspace package dependencies.   |
-| `examples/starters/<name>/` | Private, independently installed platform starters outside the root workspace.   | Registry dependencies and their own bundled Katakit tarballs; no outside files.                     |
+| `examples/starters/<name>/` | Private, independently installed platform starters outside the root workspace.   | Registry dependencies and local application files; no outside files.                                |
 | `docs/`                     | Authored guides and a private workspace viewer.                                  | Public APIs and plain internal CSS; the exporter owns the portable bundle.                          |
 
 Root `scripts/` orchestrates repository checks and copying; use a private tool package when a
@@ -33,10 +33,8 @@ build tool needs its own dependencies. Do not turn an asset directory into a pac
 share it. Public library source must not import applications, private tools, or internal assets.
 Import other libraries through their public entry points, not relative sibling source paths.
 
-Examples own their code, configuration, permissions, and small local UI. Use ordinary package
-versions in demo manifests so they can install outside the workspace; root linking is only a
-development convenience. The libraries are unpublished: `examples:copy` builds and packs them
-for demos, while starter directories already carry `vendor/` tarballs and local overrides.
+Examples own their code, configuration, permissions, and small local UI. Use registry versions
+in example manifests. Root workspace linking supports local demo development.
 No example source or asset may be a symlink. A feature demo or starter must not import sibling
 examples or files elsewhere in the repository.
 
@@ -58,8 +56,8 @@ allowance in `scripts/check-structure.mjs`, then verify a standalone gallery cop
    tooling, applications, or local `file:`/`link:` paths are not publishable. Keep tests controlled
    and cover observable lifecycle/error behavior rather than duplicating implementation details.
 3. Add public API descriptions beside declarations and follow
-   [documentation package coverage](docs/EXPORT.md#package-coverage). Rebuild any starter archives
-   whose source changed using that starter's documented procedure; inspect what they contain.
+   [documentation package coverage](docs/EXPORT.md#package-coverage). Run affected standalone
+   copy checks against freshly packed libraries; inspect what the packages contain.
 
 ### Add or change an internal tool
 
@@ -74,8 +72,8 @@ required runtime assets. Document exact install/run commands, input/model requir
 manual target-platform checks. A starter has its own `pnpm-workspace.yaml` and is run from its
 own directory; never add it to the root workspace. Follow the detailed
 [starter checklist](examples/starters/README.md) and the
-[copy workflow](examples/README.md). Update the copy tool's bundled-library list if an example
-requires another unpublished Katakit package.
+[copy workflow](examples/README.md). Update the contributor test-package list in
+`scripts/example-test-packages.mjs` if an example requires another Katakit package.
 
 Run the relevant standalone copy check after changing imports, dependencies, configuration,
 shared CSS, or runtime assets. A passing workspace build can hide a missing dependency or file.
@@ -100,8 +98,9 @@ checks appropriate to the change; the CI workflow runs the full set. For templat
 also follow the manual platform checks in [examples/starters/README.md](examples/starters/README.md).
 To check one copy, use `pnpm demos:copy-check gallery` or `pnpm templates:copy-check react-web`.
 CI runs structural checks through lint and separately installs/builds/tests all demo and starter
-copies. The structural checker examines manifests and literal module/CSS imports; it is not a
-complete module resolver and does not evaluate computed asset paths. Copy builds and the HTTP
+copies against freshly packed local libraries. The structural checker examines manifests and
+literal module/CSS imports; it is not a complete module resolver and does not evaluate computed
+asset paths. Copy builds and the HTTP
 worklet/isolation checks exercise those distributions. Microphone/model behavior and native
 platform interaction still require the selected example's manual checks.
 

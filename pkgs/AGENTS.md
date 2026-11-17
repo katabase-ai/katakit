@@ -20,4 +20,4 @@ private tools belong in `internal/pkgs/`.
 - Test meaningful contracts: replay, ordering, failure/retry behavior, cancellation,
   ownership, and public typing. Use controlled inputs rather than timing sleeps.
 - Runtime source cannot import examples, docs, internal assets, or private tool APIs.
-  Check affected standalone copies and rebuild their archives when library source changes.
+  Check affected standalone copies against freshly packed libraries when source changes.
