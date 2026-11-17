@@ -18,9 +18,24 @@ import { transcriptionAssetsPlugin } from '@katakit/transcription/vite';
 export default defineConfig({ plugins: [transcriptionAssetsPlugin({ isolate: true })] });
 ```
 
-`isolate: true` sets COOP/COEP headers in development and preview for Moonshine. Omit it
-for Whisper-only applications or when your host configures those headers itself. Production
-Moonshine hosting must also set COOP/COEP; model weights are downloaded on first use.
+Moonshine runs WebAssembly on multiple threads and uses `SharedArrayBuffer` to share memory
+between them. Browsers restrict shared memory to **cross-origin isolated** pages, which enforce
+stricter rules for interacting with other sites. The page must also use HTTPS or localhost.
+
+`isolate: true` enables this isolation in Vite's development and preview servers by adding two
+HTTP response headers:
+
+- **Cross-Origin-Opener-Policy (COOP)**: `Cross-Origin-Opener-Policy: same-origin` separates the
+  page from windows opened on other origins. See [COOP on MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cross-Origin-Opener-Policy).
+- **Cross-Origin-Embedder-Policy (COEP)**: `Cross-Origin-Embedder-Policy: require-corp` requires
+  resources loaded from other origins to permit that use through CORS or a Cross-Origin-Resource-Policy
+  response header. Resources without that permission are blocked. See [COEP on MDN](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cross-Origin-Embedder-Policy).
+
+For production, configure your web server or hosting provider to send these headers too;
+Vite's setting does not configure the deployed host. Check `window.crossOriginIsolated` in
+the browser console on the running page: it should be `true` before starting Moonshine.
+Whisper does not require cross-origin isolation. Omit `isolate: true` for Whisper-only applications
+or when your host already supplies the headers.
 
 ```ts
 import { createMicrophoneTranscriber } from '@katakit/transcription/browser';
@@ -48,7 +63,7 @@ Construction does not request microphone permission or download a model. `load()
 
 `stop()` closes capture and drains accepted recognition work, including remaining final results. It keeps the model loaded for another start. `dispose()` releases capture, model, and worker resources and is terminal. Call `stop()` before `dispose()` when you need final results. Awaited operations can reject; handle failures in the application's event handlers.
 
-Moonshine's threaded runtime needs HTTPS or localhost and cross-origin isolation. The Vite helper sets development and preview headers, but production hosting must set them too. Whisper does not need cross-origin isolation. Model weights download on first use; recognition processes audio locally.
+Model weights download on first use; recognition processes audio locally.
 
 ## React ownership
 
