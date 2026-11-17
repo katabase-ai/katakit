@@ -33,19 +33,19 @@ consumer separately generates HTML for individual documentation pages.
 Generated API reference covers `@katakit/core`, `@katakit/event-log`,
 `@katakit/persistence`, `@katakit/transcript-ingestion`, `@katakit/transcription`,
 and `@katakit/react`. The package list is explicit in
-[`exportDocs.mjs`](../pkgs/docs-export/exportDocs.mjs), not discovered from every
+[`exportDocs.mjs`](../internal/packages/docs-export/exportDocs.mjs), not discovered from every
 workspace package. Private build tools, site UI, demos, and templates are outside
 generated API coverage; authored pages can still explain them.
 
 For a new public package, add it to that list and to
-[`tsconfig.reference.json`](../pkgs/docs-export/tsconfig.reference.json). Define its
+[`tsconfig.reference.json`](../internal/packages/docs-export/tsconfig.reference.json). Define its
 public entry points through the package manifest's `exports` and `source`
 conditions, then run `pnpm docs:export` and inspect the manifest's `packages` and
 generated pages. Each selected package's public code subpaths are included
 automatically, including transcription's browser, asset, Vite, and recognizer
 entry points. JSON metadata exports are recorded separately in `nonCodeExports`.
 
-`pkgs/docs-export` owns API extraction with TypeDoc 0.28.20, its Markdown plugin 4.14.1,
+`internal/packages/docs-export` owns API extraction with TypeDoc 0.28.20, its Markdown plugin 4.14.1,
 and supported TypeScript 6.0.3. Application checking remains on TypeScript 7. Export validates
 actual public package entry points and guide links, and fails conversion errors. React currently
 has no public symbols; the manifest reports that without inventing an API page.

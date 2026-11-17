@@ -5,7 +5,7 @@ import { join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkTemplateManifests } from './check-template-manifests.mjs';
 
-const templates = fileURLToPath(new URL('../templates/', import.meta.url));
+const templates = fileURLToPath(new URL('../examples/starters/', import.meta.url));
 const selected = process.argv[2];
 if (selected && !/^[a-z0-9-]+$/.test(selected)) {
   throw new Error(`Invalid template directory: ${selected}`);
@@ -41,13 +41,13 @@ for (const name of names) {
         return true;
       },
     });
-    console.log(`Checking standalone copy of templates/${name} in ${target}`);
+    console.log(`Checking standalone copy of examples/starters/${name} in ${target}`);
     run(target, ['install', '--no-frozen-lockfile']);
     run(target, ['build']);
     if (JSON.parse(readFileSync(join(target, 'package.json'), 'utf8')).scripts?.test) {
       run(target, ['test']);
     }
-    console.log(`Standalone copy of templates/${name} builds and tests successfully.`);
+    console.log(`Standalone copy of examples/starters/${name} builds and tests successfully.`);
   } finally {
     rmSync(temporary, { recursive: true, force: true });
   }

@@ -9,7 +9,6 @@
     "check": "node scripts/generate-nav.mjs --check && node scripts/check-links.mjs && node --test scripts/*.test.mjs"
   },
   "dependencies": {
-    "@katakit/site-ui": "workspace:*",
     "@tanstack/react-router": "^1.120.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

@@ -8,7 +8,7 @@ build/
 coverage/
 *.tsbuildinfo
 *.tgz
-!templates/**/vendor/*.tgz
+!examples/starters/**/vendor/*.tgz
 
 # Local configuration and tooling
 .env

@@ -2,7 +2,7 @@ import { lstatSync, readFileSync, readdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const templates = fileURLToPath(new URL('../templates/', import.meta.url));
+const templates = fileURLToPath(new URL('../examples/starters/', import.meta.url));
 const dependencyFields = [
   'dependencies',
   'devDependencies',
