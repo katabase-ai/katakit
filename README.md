@@ -1,5 +1,7 @@
 # Katakit
 
+<img src=".github/assets/seed.png" alt="A golden seed sprouting three green leaves" width="160" align="right" />
+
 This project is a seed.
 
 It contains a small sample of the experiments and prototypes we’ve been working on at [Katabase](https://katabase.com).
