@@ -127,6 +127,13 @@ test('feature demos cannot import a sibling example', t =>
       write('examples/demos/bingo-react/src/main.ts', "import '../../gallery/shared/view';"),
     /escapes its demo directory/
   ));
+test('literal template-string imports cannot escape an example', t =>
+  rejects(
+    t,
+    ({ write }) =>
+      write('examples/demos/bingo-react/src/main.ts', 'void import(`../../gallery/shared/view`);'),
+    /escapes its demo directory/
+  ));
 test('demo manifests reject workspace protocols', t =>
   rejects(
     t,

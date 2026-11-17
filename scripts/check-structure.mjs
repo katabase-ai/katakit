@@ -31,7 +31,7 @@ const entries = directory =>
       )
     : [];
 const imports =
-  /(?:\b(?:import|export)\s+(?:[^'";]*?\bfrom\s*)?|\bimport\s*\(\s*|\brequire\s*\(\s*|@import\s+(?:url\(\s*)?)['"]([^'"]+)['"]/g;
+  /(?:\b(?:import|export)\s+(?:[^`'";]*?\bfrom\s*)?|\bimport\s*\(\s*|\brequire\s*\(\s*|@import\s+(?:url\(\s*)?)([`'"])([^`'"]+)\1/g;
 
 /** Small filesystem checks; builds and independent-copy checks remain the portability proof. */
 export const checkStructure = (root = repository) => {
@@ -137,7 +137,8 @@ export const checkStructure = (root = repository) => {
     walk(scope, file => {
       if (!/\.(?:[cm]?[jt]sx?|css)$/.test(file)) return;
       for (const match of readFileSync(file, 'utf8').matchAll(imports)) {
-        const specifier = match[1];
+        const specifier = match[2];
+        if (specifier.includes('${')) continue;
         if (
           [...privateNames].some(name => specifier === name || specifier.startsWith(`${name}/`))
         ) {
@@ -181,8 +182,8 @@ export const checkStructure = (root = repository) => {
     else {
       for (const match of readFileSync(file, 'utf8').matchAll(imports)) {
         if (
-          match[1].startsWith('.') &&
-          !inside(join(root, 'internal/site-ui'), resolve(dirname(file), match[1]))
+          match[2].startsWith('.') &&
+          !inside(join(root, 'internal/site-ui'), resolve(dirname(file), match[2]))
         )
           report(file, 'shared CSS imports must stay inside internal/site-ui');
       }
