@@ -39,10 +39,8 @@
     "test": "vitest",
     "test:ci": "vitest run --passWithNoTests"
   },
-  "dependencies": {
-    "@katakit/core": "workspace:*"
-  },
   "devDependencies": {
+    "@katakit/core": "workspace:*",
     "@testing-library/react": "^16.1.0",
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
@@ -51,6 +49,7 @@
     "react-dom": "^19.0.0"
   },
   "peerDependencies": {
+    "@katakit/core": "workspace:^",
     "react": "^19.0.0"
   }
 }

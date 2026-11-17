@@ -51,9 +51,11 @@ allowance in `scripts/check-structure.mjs`, then verify a standalone gallery cop
    `exports`; use a workspace-only `source` condition for development and strip it in
    `publishConfig.exports`. List distributable files explicitly. Match the existing library
    manifests and package smoke tests; building in the workspace does not prove a tarball works.
-2. Declare runtime and development dependencies in the owning manifest. `workspace:` links
-   between publishable libraries are rewritten by pnpm pack; runtime dependencies on private
-   tooling, applications, or local `file:`/`link:` paths are not publishable. Keep tests controlled
+2. Declare runtime and development dependencies in the owning manifest. Katakit libraries use
+   `workspace:^` peer dependencies for other Katakit libraries, with `workspace:*` development
+   dependencies for local builds and tests. pnpm pack rewrites peer ranges to caret versions.
+   Runtime dependencies on private tooling, applications, or local `file:`/`link:` paths are
+   not publishable. Keep tests controlled
    and cover observable lifecycle/error behavior rather than duplicating implementation details.
 3. Add public API descriptions beside declarations and follow
    [documentation package coverage](docs/EXPORT.md#package-coverage). Run affected standalone

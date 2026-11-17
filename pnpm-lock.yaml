@@ -410,9 +410,6 @@ importers:
 
   pkgs/event-log:
     dependencies:
-      '@katakit/core':
-        specifier: workspace:*
-        version: link:../core
       '@standard-schema/spec':
         specifier: ^1.1.0
         version: 1.1.0
@@ -420,18 +417,15 @@ importers:
         specifier: ^7.8.2
         version: 7.8.2
     devDependencies:
+      '@katakit/core':
+        specifier: workspace:*
+        version: link:../core
       valibot:
         specifier: 1.2.0
         version: 1.2.0(typescript@7.0.2)
 
   pkgs/persistence:
     dependencies:
-      '@katakit/core':
-        specifier: workspace:*
-        version: link:../core
-      '@katakit/event-log':
-        specifier: workspace:*
-        version: link:../event-log
       p-limit:
         specifier: ^7.3.0
         version: 7.3.3
@@ -439,16 +433,21 @@ importers:
         specifier: ^7.8.2
         version: 7.8.2
     devDependencies:
+      '@katakit/core':
+        specifier: workspace:*
+        version: link:../core
+      '@katakit/event-log':
+        specifier: workspace:*
+        version: link:../event-log
       valibot:
         specifier: 1.2.0
         version: 1.2.0(typescript@7.0.2)
 
   pkgs/react:
-    dependencies:
+    devDependencies:
       '@katakit/core':
         specifier: workspace:*
         version: link:../core
-    devDependencies:
       '@testing-library/react':
         specifier: ^16.1.0
         version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
@@ -470,12 +469,13 @@ importers:
 
   pkgs/transcript-ingestion:
     dependencies:
-      '@katakit/core':
-        specifier: workspace:*
-        version: link:../core
       rxjs:
         specifier: ^7.8.2
         version: 7.8.2
+    devDependencies:
+      '@katakit/core':
+        specifier: workspace:*
+        version: link:../core
 
   pkgs/transcription:
     devDependencies:
