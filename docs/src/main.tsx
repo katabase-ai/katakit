@@ -61,11 +61,14 @@ const NavLabel = ({ item }: { item: NavItem }) =>
     <span className="nav-group">{item.label}</span>
   );
 
+// A navigation parent can contain pages whose URL belongs to another directory.
+const containsPath = (item: NavItem, pathname: string): boolean =>
+  pathname === `/${item.slug}` ||
+  (item.children ?? []).some(child => containsPath(child, pathname));
+
 const NavBranch = ({ item, idPrefix }: { item: NavItem; idPrefix: string }) => {
   const pathname = useLocation({ select: location => location.pathname });
-  const inSection = Boolean(
-    item.slug && (pathname === `/${item.slug}` || pathname.startsWith(`/${item.slug}/`))
-  );
+  const inSection = containsPath(item, pathname);
   const [expanded, setExpanded] = useState(inSection);
   useEffect(() => {
     if (inSection) setExpanded(true);

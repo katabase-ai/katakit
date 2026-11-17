@@ -16,7 +16,7 @@ const titleOf = path => {
 // Each directory is a section; its README is the landing page, not a duplicate child.
 export const buildNav = (directory = pages) => {
   const isRoot = directory === pages;
-  return readdirSync(directory, { withFileTypes: true })
+  const items = readdirSync(directory, { withFileTypes: true })
     .filter(
       entry =>
         entry.isDirectory() ||
@@ -48,6 +48,17 @@ export const buildNav = (directory = pages) => {
       };
     })
     .filter(item => item.slug || item.children.length);
+
+  // Navigation can group existing pages without changing their published URLs.
+  if (!isRoot) return items;
+  const starters = items.find(item => item.slug === 'starters');
+  return items
+    .filter(item => item !== starters)
+    .map(item =>
+      item.slug === 'reference' && starters
+        ? { ...item, children: [...item.children, { ...starters, label: 'Templates' }] }
+        : item
+    );
 };
 
 export const generateNav = ({ check = false } = {}) => {

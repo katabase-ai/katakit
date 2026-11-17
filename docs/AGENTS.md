@@ -8,8 +8,8 @@ website consumers. See [EXPORT.md](EXPORT.md) for that boundary and bundle contr
 
 ## Editing
 
-- Write introductions and task instructions in `pages/getting-started/`, shared
-  concepts in `pages/concepts/`, platform walkthroughs in `pages/starters/`,
+- Write introductions and task instructions in `pages/getting-started/`, guided
+  conceptual walkthroughs in `pages/concepts/`, platform walkthroughs in `pages/starters/`,
   and reusable API behavior, lifecycle, configuration, and examples in
   `pages/reference/`. The copied `examples/starters/*/README.md` files own the exact
   install and run commands; docs pages explain how and why to adapt them.
@@ -18,13 +18,15 @@ website consumers. See [EXPORT.md](EXPORT.md) for that boundary and bundle contr
   edit the source rather than the generated Markdown.
 - Keep package README files focused on package setup and entry points; link to
   authored pages for extended explanations instead of maintaining duplicate prose.
-- Each page needs a level-one title. Directories define sections; a section's
+- Each page needs a level-one title. Directories define page URLs; a section's
   `README.md` is its landing page. Link to other authored pages with relative
   Markdown paths and heading anchors. Images belong in `public/`.
 - After adding, moving, or retitling a page, run
   `pnpm --filter @katakit/docs exec node scripts/generate-nav.mjs` from the repository
   root and commit `src/nav.json`. Root section order is defined in that script;
-  children are ordered by filename, with pages before subsections.
+  children are ordered by filename, with pages before subsections. Navigation groups
+  the existing `starters` pages under Reference → Templates without changing their URLs.
+  Standalone conceptual explanations belong in Reference; Concepts teaches through use.
 
 ## Verification
 

@@ -6,12 +6,14 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { performance } from 'node:perf_hooks';
 import { Application } from 'typedoc';
+import { MarkdownPageEvent } from 'typedoc-plugin-markdown';
 import ts from 'typescript';
 import { remark } from 'remark';
 import GithubSlugger from 'github-slugger';
 import remarkGfm from 'remark-gfm';
 import { buildNav } from '../../../docs/scripts/generate-nav.mjs';
 import { checkLinks } from '../../../docs/scripts/check-links.mjs';
+import { renderPluginReference } from './renderPluginReference.mjs';
 
 const directory = dirname(fileURLToPath(import.meta.url));
 const root = resolve(directory, '../../..');
@@ -131,6 +133,7 @@ export const exportDocs = async ({ output }) => {
   if (!project || app.logger.hasErrors()) throw new Error('Public API conversion failed');
   app.validate(project);
   if (app.logger.hasErrors()) throw new Error('Public API validation failed');
+  const referenceSymbols = {};
   for (const entry of coverage) {
     if (!entry.symbols.length) continue;
     const moduleName = entry.sourcePath.replace(/\/index\.ts$/, '').replace(/\.tsx?$/, '');
@@ -139,7 +142,18 @@ export const exportDocs = async ({ output }) => {
     const names = (module.children ?? []).map(reflection => reflection.name);
     const missing = entry.symbols.filter(name => !names.includes(name));
     if (missing.length) throw new Error(`${entry.package}: omitted exports ${missing.join(', ')}`);
+    const source = program.getSourceFile(join(root, entry.sourcePath));
+    const symbols = checker.getExportsOfModule(checker.getSymbolAtLocation(source));
+    for (const reflection of module.children ?? []) {
+      const symbol = symbols.find(symbol => symbol.name === reflection.name);
+      if (symbol) referenceSymbols[reflection.id] = { symbol, source };
+    }
   }
+  app.renderer.on(MarkdownPageEvent.END, event => {
+    const reference = referenceSymbols[event.model.id];
+    if (reference)
+      event.contents = renderPluginReference({ ...reference, checker, markdown: event.contents });
+  });
   await app.generateOutputs(project);
   if (app.logger.hasErrors()) throw new Error('API Markdown generation failed');
   const extractionMs = performance.now() - extractionStarted;
@@ -269,6 +283,19 @@ export const exportDocs = async ({ output }) => {
         .filter(child => child.slug.startsWith(`${page.slug}/`))
         .map(child => ({ label: child.title, slug: child.slug })),
     }));
+  const navigation = buildNav();
+  const reference = navigation.find(item => item.slug === 'reference');
+  const plugins = reference.children.find(item => item.slug === 'reference/plugins');
+  // Package reference owns discovery; generated pages retain their existing API URLs.
+  for (const api of apiNavigation) {
+    const packageName = api.slug.slice('api/'.length);
+    const guide = [...reference.children, ...plugins.children].find(
+      item =>
+        item.slug === `reference/${packageName}` || item.slug === `reference/plugins/${packageName}`
+    );
+    if (guide) guide.children = [{ ...api, label: 'API reference' }, ...(guide.children ?? [])];
+    else reference.children.push(api);
+  }
   const manifest = {
     formatVersion: 1,
     revision,
@@ -277,7 +304,7 @@ export const exportDocs = async ({ output }) => {
     timings: { extractionMs, exportMs: performance.now() - started },
     packages: coverage,
     nonCodeExports,
-    navigation: [...buildNav(), { label: 'API reference', slug: 'api', children: apiNavigation }],
+    navigation,
     pages,
     assets,
   };
