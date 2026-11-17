@@ -84,6 +84,7 @@ Run commands from the repository root:
 | Command                    | Purpose                                                                                                                            |
 | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | `pnpm structure:check`     | Check package placement, publication intent, dependency boundaries, CSS-only assets, and example manifests; run negative fixtures. |
+| `pnpm examples:check`      | Reject existing and symlink-routed copy destinations; verify an ordinary external copy.                                            |
 | `pnpm tsc`                 | Check each workspace package, including its tests, with its own TypeScript config.                                                 |
 | `pnpm test:ci`             | Run workspace tests.                                                                                                               |
 | `pnpm build`               | Build library JavaScript/declarations, demos, and the docs viewer.                                                                 |

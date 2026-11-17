@@ -31,6 +31,8 @@ jobs:
             script: licenses:check
           - name: Template manifests
             script: templates:check
+          - name: Example copy destinations
+            script: examples:check
           - name: Typecheck
             script: tsc
           - name: Unit tests
