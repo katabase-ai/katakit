@@ -63,7 +63,8 @@ export const ColorClash = ({
     onCancel();
   };
   const inputError = error ?? input.error?.message;
-  const permissionDenied = input.error?.code === 'microphone-permission-denied';
+  const permissionDenied =
+    error === undefined && input.error?.code === 'microphone-permission-denied';
   return (
     <section className="color-clash" aria-label="Color Clash game">
       <header className="color-clash-hud">

@@ -73,6 +73,28 @@ test('retains a distinct retry for failures unrelated to microphone permission',
   runtime.close();
 });
 
+test('a host error takes priority over an earlier microphone permission error', () => {
+  const runtime = createColorClash();
+  render(
+    <ColorClash
+      runtime={runtime}
+      input={{
+        phase: 'error',
+        error: new TranscriptionError('microphone-permission-denied', 'Permission denied'),
+      }}
+      error="Host connection unavailable"
+      disabled={false}
+      onPlay={async () => false}
+      onStop={() => undefined}
+      onCancel={() => undefined}
+    />
+  );
+  expect(screen.getByRole('alert').textContent).toContain('Host connection unavailable');
+  expect(screen.getByRole('button', { name: 'Try again' })).toBeTruthy();
+  expect(screen.queryByText('How to enable it')).toBeNull();
+  runtime.close();
+});
+
 test('a replay keeps newly acquired capture instead of stopping it as part of the previous round', async () => {
   vi.useFakeTimers();
   vi.setSystemTime(0);
