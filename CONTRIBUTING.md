@@ -91,7 +91,9 @@ Run commands from the repository root:
 | `pnpm tsc`                 | Check each workspace package, including its tests, with its own TypeScript config.                                                 |
 | `pnpm test:ci`             | Run workspace tests.                                                                                                               |
 | `pnpm build`               | Build library JavaScript/declarations, demos, and the docs viewer.                                                                 |
-| `pnpm check`               | Run formatting, lint (including structure), licenses, starter manifests, types, tests, docs checks, and builds.                    |
+| `pnpm build:pkgs`          | Build all public libraries under `pkgs/` in dependency order.                                                                      |
+| `pnpm publint`             | Lint all public libraries' pnpm-packed outputs; build first. Warnings fail the check.                                              |
+| `pnpm check`               | Run formatting, lint (including structure), licenses, starter manifests, types, tests, docs checks, builds, and publint.           |
 | `pnpm docs:export`         | Validate and export authored docs and generated API reference.                                                                     |
 | `pnpm examples:copy-check` | Copy, install, build, and test every demo and starter outside the workspace.                                                       |
 

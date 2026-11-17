@@ -44,7 +44,7 @@ jobs:
       - name: Check standalone examples against packed packages
         if: steps.plan.outputs.count != '0'
         run: pnpm examples:copy-check
-      - name: Publish packages, tag the merge, and create GitHub releases
+      - name: Lint release tarballs, publish, tag the merge, and create GitHub releases
         if: steps.plan.outputs.count != '0'
         env:
           BASE_SHA: ${{ github.event.before }}

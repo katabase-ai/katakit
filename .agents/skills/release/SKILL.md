@@ -56,7 +56,7 @@ Paths below are relative to the repository root. Read `AGENTS.md`, `CONTRIBUTING
    ```
 
    The first command lists the exact release selection and validates versions and notes.
-   The second creates npm archives locally using pnpm, checks their public exports and
+   The second creates npm archives locally using pnpm, runs strict publint on them, checks their public exports and
    required files, and checks that Katakit dependencies can be satisfied. It does not
    publish. Inspect any affected runtime assets and run relevant installed-package smoke
    checks too; manifest validation alone does not prove runtime behavior.

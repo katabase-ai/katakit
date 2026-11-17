@@ -39,8 +39,8 @@ jobs:
             script: tsc
           - name: Unit tests
             script: test:ci
-          - name: Build
-            script: build
+          - name: Build and package lint
+            script: build && pnpm publint
           - name: Documentation
             script: -F @katakit/docs check
           - name: Documentation export

@@ -144,6 +144,8 @@ const pack = (item, temporary) => {
   const manifest = JSON.parse(run('tar', ['-xOf', archive, 'package/package.json']));
   const files = run('tar', ['-tzf', archive]).split(/\r?\n/);
   validateArchive(item, manifest, files);
+  // Check the exact bytes we will publish, before publishing any selected package.
+  console.log(run('pnpm', ['exec', 'publint', archive, '--strict']));
   return {
     ...item,
     manifest,

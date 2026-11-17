@@ -44,8 +44,9 @@ pnpm release:pack origin/main HEAD
 ```
 
 `release:plan` reads committed manifests and notes. `release:pack` builds and packs the
-selected libraries, verifies exported files, README/license inclusion and rewritten dependency
-ranges, and checks Katakit dependency availability. It performs public npm lookups but does
+selected libraries, runs strict publint on each resulting tarball, verifies exported files,
+README/license inclusion and rewritten dependency ranges, and checks Katakit dependency availability.
+It performs public npm lookups but does
 not publish. These commands require Git, Node, pnpm, npm, and tar.
 
 PR CI validates version increases and changelog sections. Use the usual required checks and
@@ -61,7 +62,9 @@ New public packages must have a nonzero initial version and release notes.
 
 CI checks out that exact SHA, runs the contributor and standalone-copy checks, and packs only
 the selected packages with pnpm. It validates all archives and existing versions/tags before
-publishing, then publishes dependency-first using the npm token. Private packages are excluded.
+publishing, including strict publint on the exact tarballs that will be published. A publint
+warning or error stops the release before any package is published. CI then publishes
+dependency-first using the npm token. Private packages are excluded.
 
 After every selected package is available on npm with the expected archive integrity, CI pushes
 all package tags atomically. Each tag, such as `@katakit/core@0.1.0`, points to the merged SHA,
