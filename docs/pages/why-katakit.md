@@ -13,7 +13,7 @@ Then there are the engineering questions: where do events come from, how is stat
 
 ## A kit for experimenting
 
-Katakit is an open-source TypeScript dev kit for exploring these interactions. It composes
+Katakit is an open-source TypeScript developer kit for building voice-to-visual interfaces. It composes
 plugins that expose observables, methods, and effects. Applications connect those pieces to
 their own UI, inputs, model connections, and storage. The core runtime is independent of the
 UI framework, and the speech-recognition utilities can also be used independently of the runtime.
@@ -29,7 +29,7 @@ Demos show local transcription, conversation bingo, and structured notes; notes 
 uses a host-supplied model connection. [Copyable platform starters](starters/README.md) show
 smaller application integrations and record their current verification.
 
-Start with [Getting started](getting-started/README.md) to run the smallest example, then use the [Reference](reference/README.md) to see what each building block provides. The kit does not yet solve every problem of live collaboration, model choice, or evaluation.
+Start with [Quickstart](getting-started/README.md) to build from a starter with your coding agent, or follow the [Tutorial](concepts/README.md) to learn the runtime step by step. Use [Reference](reference/README.md) to look up each building block. The kit does not yet solve every problem of live collaboration, model choice, or evaluation.
 
 ## Build with us
 

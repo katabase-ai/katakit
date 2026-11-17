@@ -10,3 +10,6 @@ It never imports private website code or Fumadocs presentation.
   authored guides and public declarations remain authoritative. `#docs-export-provenance`
 - Keep manifest paths relative to the export directory, links portable, and public export coverage
   explicit. No source checkout or credentials belong in the bundle. `#docs-export-contract`
+- Use authored pages for navigation; generated API pages have no sidebar sections.
+  Retain their URLs and public-export coverage. Derive plugin contracts from the supported compiler;
+  preserve complete TypeDoc details and anchors after the concise member sections.

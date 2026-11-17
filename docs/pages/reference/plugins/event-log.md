@@ -1,8 +1,11 @@
-# Event log
+# @katakit/event-log
 
-`@katakit/event-log` exports `makeEventLogPlugin({ validateEvent })`. `validateEvent` is a synchronous Standard Schema validator; its output type determines the event type.
+`@katakit/event-log` records an ordered, replayable history in memory. Use it as the source for application content that should be reconstructable from events. Storage is optional and belongs to a separate [persistence plugin](persistence.md).
+
+## Example
 
 ```ts
+import { makeKatakit } from '@katakit/core';
 import { makeEventLogPlugin } from '@katakit/event-log';
 import * as v from 'valibot';
 
@@ -10,9 +13,35 @@ const EventLogPlugin = makeEventLogPlugin({
   validateEvent: v.strictObject({ type: v.literal('message'), text: v.string() }),
 });
 const eventLog = EventLogPlugin.configure({ initialEvents: [] });
+const runtime = makeKatakit({ plugins: [eventLog] });
+const running = runtime.start();
+
+running.getMethods(EventLogPlugin).emitEvent({ type: 'message', text: 'Hello' });
+const history = running.getObservables(EventLogPlugin).events$.getAll();
+// history contains [{ type: 'message', text: 'Hello' }].
 ```
 
-Register `eventLog` with `makeKatakit({ plugins: [eventLog] })`. The plugin's `events$` observable replays the complete history and offers `getAll(): Event[]`, which returns a snapshot array. After `start()`, `getMethods(EventLogPlugin).emitEvent(event)` validates and publishes one event synchronously. Failed validation throws; asynchronous validators are rejected.
+## Configuration
+
+`makeEventLogPlugin({ validateEvent })` creates a factory of type `EventLog`. `validateEvent` is a synchronous Standard Schema validator; its output type determines the event type.
+
+`EventLogPlugin.configure({ initialEvents })` requires an array of events. The host loads and validates that array before configuration. The log replays it as supplied without revalidation.
+
+## Observables
+
+`getObservables(EventLogPlugin).events$` emits the complete history synchronously to each new subscriber, then emits subsequent events in order. `events$.getAll()` returns a snapshot array of the history. Mutating that array does not append to the log.
+
+Derive lists, counts, and other application values from this history instead of keeping a second writable copy. These projections can run through `getObservables` before starting methods or effects.
+
+## Methods
+
+After `start()`, `getMethods(EventLogPlugin).emitEvent(event)` validates and publishes one event synchronously. Invalid input throws without recording an event. A successful schema transformation publishes the transformed value.
+
+## Effects and lifecycle
+
+This plugin declares no effects. It records initial history when its observables are first constructed and retains every event for that runtime's lifetime. It has no close or history-trimming method.
+
+The log does not load or write storage. Replaying its events also does not distinguish a historical event from a new one for downstream effects; those effects must use an appropriate input such as `events$.pipe(skipReplay())` when external work should run only for new events.
 
 ## Validation requirements
 
@@ -23,4 +52,4 @@ Register `eventLog` with `makeKatakit({ plugins: [eventLog] })`. The plugin's `e
 - A successful result's `value` is published, including synchronous transformations. The schema's **output** type determines both the stream's event type and the `emitEvent` argument type; the method does not expose a separate schema-input type.
 - `initialEvents` are added without revalidation. Validate loaded data before passing it to the plugin.
 
-See [event history](../../concepts/event-history.md) and [Getting started](../../getting-started/README.md).
+Follow [Derive state from events](../../concepts/event-history.md) for a complete projection example.

@@ -1,23 +1,27 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { existsSync, globSync, readFileSync } from 'node:fs';
+import { dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import GithubSlugger from 'github-slugger';
 import { fromMarkdown } from 'mdast-util-from-markdown';
-import { buildNav } from './generate-nav.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const pageRoot = join(root, 'pages');
 
-const leaves = items =>
-  items.flatMap(item => [...(item.slug ? [item.slug] : []), ...leaves(item.children ?? [])]);
 const walk = (node, visit) => {
   visit(node);
   for (const child of node.children ?? []) walk(child, visit);
 };
 const text = node => node.value ?? node.children?.map(text).join('') ?? '';
 
-export const checkLinks = (items = buildNav()) => {
-  const slugs = leaves(items);
+export const checkLinks = () => {
+  // The viewer and exporter publish authored pages even when navigation omits them.
+  const slugs = globSync('**/*.md', { cwd: pageRoot }).map(file =>
+    file
+      .split(sep)
+      .join('/')
+      .replace(/\/README\.md$/, '')
+      .replace(/\.md$/, '')
+  );
   const known = new Set(slugs);
   const headings = new Map();
   const references = [];

@@ -6,19 +6,19 @@ test('navigation follows the section order and uses directory READMEs as landing
   assert.deepEqual(buildNav(), [
     { label: 'Why Katakit?', slug: 'why-katakit' },
     {
-      label: 'Getting started',
+      label: 'Quickstart',
       slug: 'getting-started',
-      children: [{ label: 'React integration', slug: 'getting-started/react' }],
+      children: [],
     },
     {
-      label: 'Concepts',
+      label: 'Tutorial',
       slug: 'concepts',
       children: [
-        { label: 'Event history', slug: 'concepts/event-history' },
-        { label: 'Event-log persistence', slug: 'concepts/persistence' },
-        { label: 'Plugins', slug: 'concepts/plugins' },
-        { label: 'Runtime and lifecycle', slug: 'concepts/runtime' },
-        { label: 'Templates and applications', slug: 'concepts/templates' },
+        { label: 'Start a runtime', slug: 'concepts/runtime' },
+        { label: 'Derive state from events', slug: 'concepts/event-history' },
+        { label: 'Add a plugin and an effect', slug: 'concepts/plugins' },
+        { label: 'Restore and save history', slug: 'concepts/persistence' },
+        { label: 'Connect an input and a view', slug: 'concepts/templates' },
       ],
     },
     {
@@ -36,17 +36,12 @@ test('navigation follows the section order and uses directory READMEs as landing
       label: 'Reference',
       slug: 'reference',
       children: [
-        { label: 'Core', slug: 'reference/core' },
-        { label: 'Transcription utilities', slug: 'reference/transcription' },
-        {
-          label: 'Plugins',
-          slug: 'reference/plugins',
-          children: [
-            { label: 'Event log', slug: 'reference/plugins/event-log' },
-            { label: 'Persistence', slug: 'reference/plugins/persistence' },
-            { label: 'Transcript ingestion', slug: 'reference/plugins/transcript-ingestion' },
-          ],
-        },
+        { label: '@katakit/core', slug: 'reference/core' },
+        { label: '@katakit/event-log', slug: 'reference/plugins/event-log' },
+        { label: '@katakit/persistence', slug: 'reference/plugins/persistence' },
+        { label: '@katakit/react', slug: 'reference/react' },
+        { label: '@katakit/transcript-ingestion', slug: 'reference/plugins/transcript-ingestion' },
+        { label: '@katakit/transcription', slug: 'reference/transcription' },
       ],
     },
   ]);

@@ -1,31 +1,79 @@
-# Plugins
+# Add a plugin and an effect
 
-A plugin declares a stable `type`, maps input options through `configure`, and can define observables, methods, and effects. `makeKatakitPlugin` supplies empty observables, methods, or effects when a part is omitted.
+The [previous step](event-history.md) derived a list directly in `main.ts`. Move that calculation into a plugin so an application can look up the list and call `addMessage(text)` without handling event shapes itself.
 
-## Three parts
+Create `messageList.ts` beside `eventLog.ts`:
 
-- **Observables** expose RxJS streams as properties with `$`-suffixed keys. A plugin may read another registered plugin's streams with `getObservables`.
-- **Methods** expose callable operations and can access their own observables and other plugins' observables or methods.
-- **Effects** subscribe to streams when the runtime starts. Each effect supplies an `on` observable, a handler, and a [backpressure strategy](../reference/core.md#makeeffect).
+```ts
+import { makeEffect, makeKatakitPlugin, property, skipReplay } from '@katakit/core';
+import { scan, shareReplay, startWith } from 'rxjs';
+import { EventLogPlugin } from './eventLog';
 
-Dependencies are requested by plugin type rather than registration position. Both the dependency and its consumer must be in the runtime's `plugins` list.
+export const MessageListPlugin = makeKatakitPlugin({
+  type: 'MessageList',
+  configure: (options: {}) => options,
+  observables: ({ getObservables }) => ({
+    messages$: property(
+      getObservables(EventLogPlugin).events$.pipe(
+        scan((messages: string[], event) => [...messages, event.text], []),
+        startWith([] as string[]),
+        shareReplay({ bufferSize: 1, refCount: true })
+      )
+    ),
+  }),
+  methods: ({ getMethods }) => ({
+    addMessage: (text: string) => getMethods(EventLogPlugin).emitEvent({ type: 'message', text }),
+  }),
+  effects: ({ getObservables }) => [
+    makeEffect({
+      on: getObservables(EventLogPlugin).events$.pipe(skipReplay()),
+      backpressure: 'queue',
+      handler: event => console.log(`New message: ${event.text}`),
+    }),
+  ],
+});
+```
 
-Methods are created on demand. Once created, methods from different plugins can call each other, even in both directions. Calling `getMethods` inside a plugin's `methods` callback also starts constructing the requested plugin's methods. If those methods call back into the first plugin before its callback finishes, construction can crash because of recursive loops. To avoid this, do not make mutually dependent `getMethods` calls inside `methods` callbacks; look up the other plugin when a returned method is called instead.
+The plugin has three parts:
 
-Configuration can transform user-facing options into the options consumed by all three parts. A plugin's own observables and methods are reused within one runtime rather than reconstructed for each lookup.
+- **Observables** expose the message list derived from events.
+- **Methods** give callers an explicit action. `addMessage` records an event rather than editing the list.
+- **Effects** react automatically to values from a stream after the runtime starts. This effect prints a notification for each new message.
 
-For types and factory parameters, see [the core reference](../reference/core.md#makekatakitplugin). For concrete plugins and their options, see the [plugin catalog](../reference/plugins/README.md).
+`skipReplay()` keeps old messages from triggering the notification when the effect subscribes. It belongs on this effect's input, not on the projection: the list needs the complete history. `queue` handles every new event in order. See [makeEffect](../reference/core.md#makeeffect) for the other scheduling choices.
+
+## Register both plugins
+
+Replace `main.ts` with:
+
+```ts
+import { makeKatakit } from '@katakit/core';
+import { EventLogPlugin } from './eventLog';
+import { MessageListPlugin } from './messageList';
+
+const runtime = makeKatakit({
+  plugins: [
+    EventLogPlugin.configure({
+      initialEvents: [{ type: 'message', text: 'Earlier message' }],
+    }),
+    MessageListPlugin.configure({}),
+  ],
+});
+const { messages$ } = runtime.getObservables(MessageListPlugin);
+console.log(messages$.get()); // ['Earlier message']
+
+const running = runtime.start();
+running.getMethods(MessageListPlugin).addMessage('Hello');
+console.log(messages$.get()); // ['Earlier message', 'Hello']
+// The effect also prints: New message: Hello
+```
+
+The runtime resolves `EventLogPlugin` by its registered type. Both plugins must be registered. Reading `messages$` reconstructs the list before effects start; starting does not print a notification for `Earlier message`.
 
 ## Calling a model from an effect
 
-The [structured notes example](https://github.com/katabase-ai/katakit/tree/main/examples/demos/notes-react)
-observes finalized conversation turns and sends a structured-output request through a host-supplied
-connection. The host owns admission and transport; the plugin owns its prompt and validation.
-The event log records finalized turns, accepted outlines with stable IDs and cursors, and clears.
-The plugin derives its outline and Markdown from those events. Replay restores content without
-calling a model. Connection and retry state stay transient.
+A model request can follow the same separation: an effect reads new input, calls a host-supplied connection, validates the result, and records an event. An observable derives the displayed result from that event. Replay then restores the accepted result without calling the model again.
 
-Its `latest` effect finishes the current request before handling the newest pending signal. The
-plugin reads accumulated turns from its processed cursor, so it retains turns received in flight.
-It advances that cursor only after validated output. Clear and close abort the request and discard
-late results. The example closes its own effect stream because the core runtime has no general stop method.
+The [structured notes demo](https://github.com/katabase-ai/katakit/tree/main/examples/demos/notes-react) implements that pattern with cancellation and retries. Those resources need application-owned cleanup; core has no general stop method. See [effect ownership](../reference/core.md#ownership-and-shutdown) before replacing the console notification with external work.
+
+Next: [restore and save the message history](persistence.md).
