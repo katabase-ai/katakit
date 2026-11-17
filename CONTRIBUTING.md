@@ -76,6 +76,24 @@ See [docs/AGENTS.md](docs/AGENTS.md) for editing and verification instructions a
 Keep the root README focused on understanding and trying Katakit; put detailed behavior in
 the authored docs and setup instructions in the relevant package or application README.
 
+## Internal tools and shared styles
+
+`internal/packages/` contains private workspace build tools. The documentation producer is
+`internal/packages/docs-export`; its public command remains `pnpm docs:export` and its portable
+output contract remains in [docs/EXPORT.md](docs/EXPORT.md).
+
+`internal/site-ui/` is plain CSS, with no manifest or JavaScript. The docs viewer and gallery
+import it by relative path. `components.css` has control/meter styles without a page reset;
+`styles.css` adds the local viewers' theme and reset. Gallery controls own their native markup
+and behavior; microphone PCM activity belongs to the transcription input and the extension's
+local capture helper. Feature demos and starters continue to own their small local UI copies.
+
+For standalone gallery copies, `examples:copy` materializes the CSS under `styles/` and rewrites
+only the copied imports. Straightforward duplication keeps feature examples directly usable;
+the composed gallery's copy workflow carries its extra inputs. Symlinks require checkout support
+and are not a portable download contract; a shared React package would add a UI dependency to
+examples intended to be modified independently. No global source/CSS synchronization is required.
+
 ## Demos and starters
 
 Run the local gallery with:

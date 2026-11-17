@@ -1,4 +1,4 @@
-@import '@katakit/site-ui/components.css';
+@import '../../../../internal/site-ui/components.css';
 /* Portable presentation inherits the host's palette and typography; no global reset. */
 .katakit-gallery {
   --font-display: var(--font-body, ui-sans-serif);

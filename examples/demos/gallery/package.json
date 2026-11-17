@@ -12,7 +12,6 @@
   "dependencies": {
     "@katakit/core": "0.0.0",
     "@katakit/event-log": "0.0.0",
-    "@katakit/site-ui": "0.0.0",
     "@katakit/transcript-ingestion": "0.0.0",
     "@katakit/transcription": "0.0.0",
     "@react-rxjs/core": "^0.10.8",

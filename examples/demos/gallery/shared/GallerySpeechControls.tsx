@@ -1,6 +1,5 @@
 import { useCallback, useContext, type ReactNode, type RefCallback } from 'react';
 import { transcriptionModels, type TranscriptionModelId } from '@katakit/transcription/browser';
-import { AudioLevelMeter, Button, SelectField } from '@katakit/site-ui';
 import { GalleryModelContext } from './galleryModel';
 import { useGallerySpeech } from './GallerySpeechProvider';
 
@@ -79,27 +78,31 @@ export const GallerySpeechControls = ({
           onChange: select,
         })
       ) : (
-        <SelectField
-          id="gallery-model"
-          label="Transcription model"
-          value={snapshot.model}
-          disabled={disabled || recording}
-          onChange={event => select(event.target.value as TranscriptionModelId)}
-        >
-          {transcriptionModels.map(model => (
-            <option key={model.id} value={model.id}>
-              {model.label}
-            </option>
-          ))}
-        </SelectField>
+        <div className="site-field">
+          <label htmlFor="gallery-model">Transcription model</label>
+          <select
+            id="gallery-model"
+            className="site-select"
+            value={snapshot.model}
+            disabled={disabled || recording}
+            onChange={event => select(event.target.value as TranscriptionModelId)}
+          >
+            {transcriptionModels.map(model => (
+              <option key={model.id} value={model.id}>
+                {model.label}
+              </option>
+            ))}
+          </select>
+        </div>
       )}
       <div className="gallery-speech-actions">
-        <Button
+        <button
+          type="button"
           disabled={
             snapshot.blocked || (!preparing && (snapshot.transitioning || !snapshot.attached))
           }
           aria-describedby="gallery-input-status"
-          className={recording ? 'gallery-microphone is-listening' : 'gallery-microphone'}
+          className={`site-button site-button--slate gallery-microphone${recording ? ' is-listening' : ''}`}
           onClick={() =>
             void (preparing ? owner.cancel() : recording ? owner.stop() : owner.start())
           }
@@ -123,16 +126,16 @@ export const GallerySpeechControls = ({
             )}
           </svg>
           {preparing ? 'Cancel' : recording ? 'Stop listening' : 'Start listening'}
-        </Button>
+        </button>
         {!preparing && !recording && !ready && (
-          <Button
-            variant="ghost"
-            className="gallery-load-model"
+          <button
+            type="button"
+            className="site-button site-button--ghost gallery-load-model"
             disabled={disabled || !snapshot.attached}
             onClick={() => void owner.load()}
           >
             Load model
-          </Button>
+          </button>
         )}
       </div>
       <p id="gallery-input-status" role="status" aria-live="polite">
@@ -152,7 +155,18 @@ export const GallerySpeechControls = ({
                   ? 'Model ready · microphone off'
                   : 'Model not loaded · microphone off'}
       </p>
-      {recording && <AudioLevelMeter active level={snapshot.level} />}
+      {recording && (
+        <div className="site-audio-level" role="img" aria-label="Microphone: listening">
+          <span className="site-audio-level__label">Microphone</span>
+          <span className="site-audio-level__track" aria-hidden="true">
+            <span
+              className="site-audio-level__fill"
+              style={{ width: `${Math.round(Math.max(0, Math.min(1, snapshot.level)) * 100)}%` }}
+            />
+          </span>
+          <span className="site-audio-level__state">Listening</span>
+        </div>
+      )}
       {(snapshot.error || snapshot.input.error) && (
         <p role="alert">
           {snapshot.error ?? snapshot.input.error?.message}{' '}
