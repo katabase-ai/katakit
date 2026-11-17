@@ -31,8 +31,8 @@ and add persistence through your own storage.
 [Starters](docs/pages/starters/README.md) · [Documentation](docs/pages/reference/README.md)
 
 We're sharing an early collection of patterns and examples from our work on **voice-to-visual
-interfaces**. The packages are currently version `0.0.0` and unpublished; the copyable starters
-include built Katakit packages so you can try them before a registry release.
+interfaces**. The initial `0.1.0` packages are available on npm; the copyable demos and starters
+install those packages directly.
 
 ## Why Katakit?
 

@@ -3,11 +3,17 @@
 Katakit composes framework-independent plugins into a runtime. The event-log plugin provides an ordered, replayable stream of events; persistence is optional.
 
 To start with a complete application, choose a [starter](../starters/README.md). The React web
-starter connects local microphone recognition to conversation turns and includes built Katakit
-packages for use before a registry release. To explore the runtime itself, follow the event-log
+starter connects local microphone recognition to conversation turns and installs Katakit
+packages from npm. To explore the runtime itself, follow the event-log
 example below.
 
-The packages in this repository are currently version `0.0.0`. For development in this workspace, run `pnpm install` at the repository root. When the packages are available to your application, it needs `@katakit/core`, `@katakit/event-log`, and a synchronous [Standard Schema](https://standardschema.dev/schema) validator. This example uses Valibot; any Standard Schema v1 implementation that validates synchronously can be used. See [validation requirements](../reference/plugins/event-log.md#validation-requirements) for limitations.
+Install the packages for this example in your application:
+
+```sh
+pnpm add @katakit/core@0.1.0 @katakit/event-log@0.1.0 valibot
+```
+
+The event-log plugin needs a synchronous [Standard Schema](https://standardschema.dev/schema) validator. This example uses Valibot; any Standard Schema v1 implementation that validates synchronously can be used. See [validation requirements](../reference/plugins/event-log.md#validation-requirements) for limitations.
 
 ## Start a runtime
 
