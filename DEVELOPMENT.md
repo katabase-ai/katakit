@@ -26,7 +26,12 @@ share it. Public library source must not import applications, private tools, or 
 Import other libraries through their public entry points, not relative sibling source paths.
 
 Examples own their code, configuration, permissions, and small local UI. Use registry versions
-in example manifests. Root workspace linking supports local demo development.
+in example manifests. Root workspace linking and root-only `workspace:*` overrides keep
+local demo development on the checkout's libraries, including between a library release and
+the follow-up update to example dependency versions. Add new public libraries to these
+root overrides. Independent starters and standalone copies do not inherit the root settings.
+The root build completes public libraries before building consumers, because pnpm's
+recursive ordering can miss local dependency edges when registry pins differ from local versions.
 No example source or asset may be a symlink. A feature demo or starter must not import sibling
 examples or files elsewhere in the repository.
 

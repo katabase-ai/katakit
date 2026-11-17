@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm -r build",
+    "build": "pnpm build:pkgs && pnpm --filter \"!./pkgs/*\" -r build",
     "build:pkgs": "pnpm --filter \"./pkgs/*\" -r build",
     "publint": "pnpm --filter \"./pkgs/*\" -r exec publint --pack pnpm --strict",
     "tsc": "pnpm -r tsc",
