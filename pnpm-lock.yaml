@@ -4,6 +4,14 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  '@katakit/core': workspace:*
+  '@katakit/event-log': workspace:*
+  '@katakit/persistence': workspace:*
+  '@katakit/react': workspace:*
+  '@katakit/transcript-ingestion': workspace:*
+  '@katakit/transcription': workspace:*
+
 importers:
 
   .:
@@ -85,13 +93,13 @@ importers:
   examples/demos/bingo-extension:
     dependencies:
       '@katakit/core':
-        specifier: 0.0.0
+        specifier: workspace:*
         version: link:../../../pkgs/core
       '@katakit/transcript-ingestion':
-        specifier: 0.0.0
+        specifier: workspace:*
         version: link:../../../pkgs/transcript-ingestion
       '@katakit/transcription':
-        specifier: 0.0.0
+        specifier: workspace:*
         version: link:../../../pkgs/transcription
       '@react-rxjs/core':
         specifier: ^0.10.8
@@ -134,13 +142,13 @@ importers:
   examples/demos/bingo-react:
     dependencies:
       '@katakit/core':
-        specifier: 0.0.0
+        specifier: workspace:*
         version: link:../../../pkgs/core
       '@katakit/transcript-ingestion':
-        specifier: 0.0.0
+        specifier: workspace:*
         version: link:../../../pkgs/transcript-ingestion
       '@katakit/transcription':
-        specifier: 0.0.0
+        specifier: workspace:*
         version: link:../../../pkgs/transcription
       '@react-rxjs/core':
         specifier: ^0.10.8
@@ -180,16 +188,16 @@ importers:
   examples/demos/gallery:
     dependencies:
       '@katakit/core':
-        specifier: 0.0.0
+        specifier: workspace:*
         version: link:../../../pkgs/core
       '@katakit/event-log':
-        specifier: 0.0.0
+        specifier: workspace:*
         version: link:../../../pkgs/event-log
       '@katakit/transcript-ingestion':
-        specifier: 0.0.0
+        specifier: workspace:*
         version: link:../../../pkgs/transcript-ingestion
       '@katakit/transcription':
-        specifier: 0.0.0
+        specifier: workspace:*
         version: link:../../../pkgs/transcription
       '@react-rxjs/core':
         specifier: ^0.10.8
@@ -265,16 +273,16 @@ importers:
   examples/demos/notes-react:
     dependencies:
       '@katakit/core':
-        specifier: 0.0.0
+        specifier: workspace:*
         version: link:../../../pkgs/core
       '@katakit/event-log':
-        specifier: 0.0.0
+        specifier: workspace:*
         version: link:../../../pkgs/event-log
       '@katakit/transcript-ingestion':
-        specifier: 0.0.0
+        specifier: workspace:*
         version: link:../../../pkgs/transcript-ingestion
       '@katakit/transcription':
-        specifier: 0.0.0
+        specifier: workspace:*
         version: link:../../../pkgs/transcription
       '@toon-format/toon':
         specifier: 2.1.0
@@ -329,13 +337,13 @@ importers:
   examples/demos/transcription-react:
     dependencies:
       '@katakit/core':
-        specifier: 0.0.0
+        specifier: workspace:*
         version: link:../../../pkgs/core
       '@katakit/transcript-ingestion':
-        specifier: 0.0.0
+        specifier: workspace:*
         version: link:../../../pkgs/transcript-ingestion
       '@katakit/transcription':
-        specifier: 0.0.0
+        specifier: workspace:*
         version: link:../../../pkgs/transcription
       '@react-rxjs/core':
         specifier: ^0.10.8

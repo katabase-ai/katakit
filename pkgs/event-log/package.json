@@ -1,6 +1,6 @@
 {
   "name": "@katakit/event-log",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Event log plugin for Katakit.",
   "license": "Apache-2.0",
   "repository": {

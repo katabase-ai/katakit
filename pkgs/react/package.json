@@ -1,7 +1,7 @@
 {
   "name": "@katakit/react",
-  "version": "0.0.0",
-  "description": "React bindings for Katakit.",
+  "version": "0.1.0",
+  "description": "Placeholder for future Katakit-specific React APIs.",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
