@@ -5,7 +5,7 @@ export default defineConfig({
   format: 'esm',
   platform: 'neutral',
   target: 'es2022',
-  dts: true,
+  dts: { sourcemap: true },
   sourcemap: true,
   clean: true,
   deps: { neverBundle: true },
