@@ -112,6 +112,51 @@
   font-size: 13px;
   overflow-wrap: anywhere;
 }
+.katakit-gallery .color-clash-permission {
+  margin-top: 24px;
+  padding: 16px;
+  border: 1px solid #ffe17b66;
+  border-radius: 8px;
+  background: #ffe17b0d;
+  text-align: left;
+}
+.katakit-gallery .color-clash-permission > strong {
+  display: block;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.katakit-gallery .color-clash-message .color-clash-permission p {
+  margin: 8px 0 0;
+  color: #e3e6f2;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.katakit-gallery .color-clash-permission-help {
+  color: #b8bfd5;
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: left;
+}
+.katakit-gallery .color-clash-permission-help summary {
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.katakit-gallery .color-clash-permission-help summary:focus-visible {
+  outline: 2px solid #d4cbff;
+  outline-offset: 4px;
+}
+.katakit-gallery .color-clash-permission-help ol {
+  margin: 16px 0;
+  padding-left: 24px;
+}
+.katakit-gallery .color-clash-permission-help li + li {
+  margin-top: 8px;
+}
+.katakit-gallery .color-clash-message .color-clash-permission-help p {
+  margin: 0;
+  font-size: 14px;
+}
 .katakit-gallery .color-clash-message progress {
   max-width: 100%;
   width: 200px;

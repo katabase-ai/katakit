@@ -63,6 +63,7 @@ export const ColorClash = ({
     onCancel();
   };
   const inputError = error ?? input.error?.message;
+  const permissionDenied = input.error?.code === 'microphone-permission-denied';
   return (
     <section className="color-clash" aria-label="Color Clash game">
       <header className="color-clash-hud">
@@ -135,23 +136,56 @@ export const ColorClash = ({
                 </button>
               </>
             ) : (
-              <button
-                type="button"
-                className="color-clash-play"
-                disabled={
-                  disabled ||
-                  requested ||
-                  (state.phase === 'finished' && (listening || input.phase === 'stopping'))
-                }
-                onClick={() => void play()}
-              >
-                {inputError ? 'Try again' : state.phase === 'finished' ? 'Play again' : 'Play'}
-              </button>
-            )}
-            {inputError && (
-              <p className="color-clash-error" role="alert">
-                {inputError}
-              </p>
+              <>
+                {permissionDenied ? (
+                  <div className="color-clash-permission" role="alert">
+                    <strong>Microphone access needed</strong>
+                    <p>
+                      Color Clash listens for the colors you say. Allow microphone access to play.
+                    </p>
+                    <p>
+                      If your browser has blocked this site, allow Microphone in site settings
+                      first.
+                    </p>
+                  </div>
+                ) : inputError ? (
+                  <p className="color-clash-error" role="alert">
+                    {inputError}
+                  </p>
+                ) : undefined}
+                <button
+                  type="button"
+                  className="color-clash-play"
+                  disabled={
+                    disabled ||
+                    requested ||
+                    (state.phase === 'finished' && (listening || input.phase === 'stopping'))
+                  }
+                  onClick={() => void play()}
+                >
+                  {permissionDenied
+                    ? 'Try microphone again'
+                    : inputError
+                      ? 'Try again'
+                      : state.phase === 'finished'
+                        ? 'Play again'
+                        : 'Play'}
+                </button>
+                {permissionDenied && (
+                  <details className="color-clash-permission-help">
+                    <summary>How to enable it</summary>
+                    <ol>
+                      <li>Open this site's permissions beside your browser's address bar.</li>
+                      <li>Set Microphone to Allow, or reset the blocked permission.</li>
+                      <li>Return here and choose Try microphone again.</li>
+                    </ol>
+                    <p>
+                      Still blocked? Check that your computer's privacy settings allow your browser
+                      to use the microphone.
+                    </p>
+                  </details>
+                )}
+              </>
             )}
             {state.phase === 'ready' && input.phase === 'idle' && (
               <p className="color-clash-privacy">
