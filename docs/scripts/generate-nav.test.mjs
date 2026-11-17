@@ -6,7 +6,7 @@ test('navigation follows the section order and uses directory READMEs as landing
   assert.deepEqual(buildNav(), [
     { label: 'Why Katakit?', slug: 'why-katakit' },
     {
-      label: 'Getting started',
+      label: 'Quickstart',
       slug: 'getting-started',
       children: [{ label: 'React integration', slug: 'getting-started/react' }],
     },

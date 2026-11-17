@@ -29,7 +29,7 @@ Demos show local transcription, conversation bingo, and structured notes; notes 
 uses a host-supplied model connection. [Copyable platform starters](starters/README.md) show
 smaller application integrations and record their current verification.
 
-Start with [Getting started](getting-started/README.md) for the smallest example, then follow the [Tutorial](concepts/README.md) to build an application step by step. Use [Reference](reference/README.md) to look up each building block. The kit does not yet solve every problem of live collaboration, model choice, or evaluation.
+Start with [Quickstart](getting-started/README.md) to build from a starter with your coding agent, or follow the [Tutorial](concepts/README.md) to learn the runtime step by step. Use [Reference](reference/README.md) to look up each building block. The kit does not yet solve every problem of live collaboration, model choice, or evaluation.
 
 ## Build with us
 

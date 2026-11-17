@@ -12,7 +12,7 @@ Keeping the events lets you reconstruct the list instead of maintaining a separa
 4. [Restore and save history](persistence.md): validate stored events and append new ones.
 5. [Connect an input and a view](templates.md): display the list and choose a platform starter.
 
-Each page extends the same TypeScript example. Start with the package setup in [Getting started](../getting-started/README.md). You'll use `@katakit/core`, `@katakit/event-log`, `rxjs`, and `valibot`; the storage step also uses `@katakit/persistence` in a browser. Katakit packages are currently unpublished, so use built workspace packages or locally packed artifacts rather than assuming a registry install is available.
+Each page extends the same TypeScript example. You'll use `@katakit/core`, `@katakit/event-log`, `rxjs`, and `valibot`; the storage step also uses `@katakit/persistence` in a browser. Katakit packages are currently unpublished, so use built workspace packages or locally packed artifacts rather than assuming a registry install is available. For a complete platform application and an agent-guided setup, use [Quickstart](../getting-started/README.md).
 
 The walkthrough names the source files to create and shows the expected result after each step. Put them in the same directory in your TypeScript application. The first four steps print their results to the console; they need no microphone or model connection.
 
