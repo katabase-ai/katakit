@@ -1,0 +1,54 @@
+name: Release npm packages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'pkgs/*/package.json'
+
+permissions:
+  contents: write
+
+# Finish an in-flight publication before starting another one.
+concurrency:
+  group: npm-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - name: Identify bumped packages at this merge
+        id: plan
+        env:
+          BASE_SHA: ${{ github.event.before }}
+          RELEASE_SHA: ${{ github.sha }}
+        run: node scripts/release.mjs plan "$BASE_SHA" "$RELEASE_SHA"
+      - name: Install dependencies
+        if: steps.plan.outputs.count != '0'
+        run: pnpm install --frozen-lockfile
+      - name: Check and build the release commit
+        if: steps.plan.outputs.count != '0'
+        run: pnpm check
+      - name: Check standalone examples against packed packages
+        if: steps.plan.outputs.count != '0'
+        run: pnpm examples:copy-check
+      - name: Lint release tarballs, publish, tag the merge, and create GitHub releases
+        if: steps.plan.outputs.count != '0'
+        env:
+          BASE_SHA: ${{ github.event.before }}
+          RELEASE_SHA: ${{ github.sha }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+        run: pnpm release:publish "$BASE_SHA" "$RELEASE_SHA"

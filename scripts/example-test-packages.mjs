@@ -20,7 +20,11 @@ export const runPnpm = (cwd, args) => {
 
 // Build packages for standalone copy checks. The runner owns the packed artifacts
 // until every temporary installation is finished.
-export const withExamplePackages = async check => {
+export const withExamplePackages = async (check, { registry = false } = {}) => {
+  if (registry) {
+    console.log('Checking examples against registry dependencies (no local package overrides).');
+    return check(() => {});
+  }
   const temporary = mkdtempSync(join(tmpdir(), 'katakit-test-packages-'));
   try {
     const overrides = {};

@@ -80,6 +80,7 @@ pnpm --filter @katakit/core test:ci
 For docs changes, follow the [documentation checks](docs/AGENTS.md#verification).
 For demo or starter changes, use the [example verification instructions](examples/AGENTS.md)
 to check that your example still works outside the workspace.
+For package releases, follow the [release setup and verification](.github/RELEASING.md).
 
 `pnpm check` runs the full repository checks. See the [check reference](DEVELOPMENT.md#checks)
 for individual commands. If you can't run a relevant check, explain what you tried and

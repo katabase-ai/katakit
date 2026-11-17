@@ -83,7 +83,9 @@ Run commands from the repository root:
 | `pnpm tsc`                 | Check each workspace package, including its tests, with its own TypeScript config.                                                 |
 | `pnpm test:ci`             | Run workspace tests.                                                                                                               |
 | `pnpm build`               | Build library JavaScript/declarations, demos, and the docs viewer.                                                                 |
-| `pnpm check`               | Run formatting, lint (including structure), licenses, starter manifests, types, tests, docs checks, and builds.                    |
+| `pnpm build:pkgs`          | Build all public libraries under `pkgs/` in dependency order.                                                                      |
+| `pnpm publint`             | Lint all public libraries' pnpm-packed outputs; build first. Warnings fail the check.                                              |
+| `pnpm check`               | Run formatting, lint (including structure), licenses, starter manifests, types, tests, docs checks, builds, and publint.           |
 | `pnpm docs:export`         | Validate and export authored docs and generated API reference.                                                                     |
 | `pnpm examples:copy-check` | Copy, install, build, and test every demo and starter outside the workspace.                                                       |
 
@@ -191,3 +193,15 @@ Pull requests build standalone docs and gallery previews. Same-repository PRs up
 to Cloudflare Workers and receive preview links in PR comments. Fork PRs build without
 uploading or commenting. See [preview setup and verification](.github/PREVIEWS.md) for the
 required account, token, initial deployments, and review steps.
+
+## Package releases
+
+Use the repository's [release skill](.agents/skills/release/SKILL.md) to present proposed
+changelogs and version bumps, then prepare a release PR after agreement. Merging version bumps
+publishes only the selected packages and creates package-specific tags and GitHub releases.
+See [release setup and recovery](.github/RELEASING.md).
+
+Once the versions are live on npm, the separate
+[example update skill](.agents/skills/update-examples/SKILL.md) updates demos and starters.
+Use `pnpm demos:copy-check --registry` and `pnpm templates:copy-check --registry` to verify
+standalone copies against npm; the default copy checks use locally packed libraries.
