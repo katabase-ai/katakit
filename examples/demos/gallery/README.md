@@ -25,9 +25,17 @@ pnpm -F @katakit/gallery dev
 ```
 
 Open <http://127.0.0.1:4347>. Welcome is `/`; React demos are at `/demos/transcription`,
-`/demos/bingo`, and `/demos/notes`. Notes transcription runs locally; generating notes requires
+`/demos/bingo`, `/demos/notes`, and `/demos/color-clash`. Color Clash uses local transcription
+and its Play button starts capture and a timed round; it needs no inference connection. Notes
+transcription runs locally; generating notes requires
 a host-supplied model connection. Developer mode can instead use your own OpenRouter key. Extension setup pages are outside this catalogue. Direct links and unknown-demo
 responses are handled by Start. Browser-only demo modules mount after hydration, not during SSR.
+
+`shared/ColorClashGalleryDemo.tsx` adapts the existing game to the shared speech owner and runtime
+lease. The game directory is unchanged. Navigation stops/drains capture and releases the game,
+while the loaded speech model remains ready for the next demo. Named `colorClashGalleryDemo`
+is available from `shared/galleryDemos.tsx`; embedding hosts with an explicit selection must add
+that entry when adopting this source revision. This does not remove the website's homepage embed.
 
 ## Build and inspect
 

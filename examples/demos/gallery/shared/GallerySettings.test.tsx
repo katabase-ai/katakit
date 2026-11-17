@@ -319,7 +319,10 @@ test('developer operation grid uses catalogue requirements, remains navigable an
   expect(within(table).getAllByRole('link')).toHaveLength(galleryDemoDetails.length);
   expect(
     within(table).getAllByRole('img', { name: 'Transcription: Required · configured' })
-  ).toHaveLength(3);
+  ).toHaveLength(4);
+  const game = within(table).getByRole('row', { name: /Color Clash/ });
+  expect(within(game).getByRole('link', { name: 'Color Clash' })).toBeDefined();
+  expect(within(game).getByRole('img', { name: 'Inference: Not used' })).toBeDefined();
   expect(
     within(table).getByRole('img', { name: 'Inference: Required · needs a connection' })
   ).toBeDefined();

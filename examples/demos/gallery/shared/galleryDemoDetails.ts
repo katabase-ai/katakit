@@ -26,4 +26,11 @@ export const galleryDemoDetails = [
       'Turn your speech into notes and correct misheard names. Audio stays local; notes use a host-supplied model connection.',
     capabilities: ['microphone', 'localTranscription', 'remoteModel'],
   },
+  {
+    id: 'color-clash',
+    sourcePath: 'examples/demos/gallery/shared/color-clash',
+    title: 'Color Clash',
+    description: 'Say the ink color before time runs out using on-device speech recognition.',
+    capabilities: ['microphone', 'localTranscription'],
+  },
 ] as const;

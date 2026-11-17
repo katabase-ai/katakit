@@ -55,4 +55,15 @@ export const notesGalleryDemo = {
     default: (await import('./NotesGalleryDemo')).NotesGalleryDemo,
   })),
 };
-export const galleryDemos = [transcriptionGalleryDemo, bingoGalleryDemo, notesGalleryDemo];
+export const colorClashGalleryDemo = {
+  ...galleryDemoDetails[3],
+  component: /* @__PURE__ */ lazy(async () => ({
+    default: (await import('./ColorClashGalleryDemo')).ColorClashGalleryDemo,
+  })),
+};
+export const galleryDemos = [
+  transcriptionGalleryDemo,
+  bingoGalleryDemo,
+  notesGalleryDemo,
+  colorClashGalleryDemo,
+];
