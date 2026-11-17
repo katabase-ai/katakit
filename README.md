@@ -1,7 +1,8 @@
 # Katakit
 
-Katakit is an open-source TypeScript developer kit for building interfaces that take part in a
-conversation. Turn spoken words into something people can see, play with, and shape together.
+Katakit is an open-source TypeScript developer kit for building voice-to-visual UI: interfaces
+that take part in a conversation. Turn spoken words into something people can see, play with,
+and shape together.
 
 Compose typed plugins for live state, actions, and asynchronous work, independently of your UI
 framework. Build around typed event history, connect speech recognition and conversation turns,
