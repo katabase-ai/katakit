@@ -5,9 +5,7 @@ questions, and examples through [GitHub issues](https://github.com/katabase-ai/k
 When proposing a change, explain the behavior it enables and how you checked it.
 
 Repository engineering standards live in [AGENTS.md](AGENTS.md), with narrower guidance
-under `pkgs/`, `demos/`, `templates/`, and `docs/`. They apply to human and agent changes.
-The [November 17 architecture audit](maintenance/jude-guidance-audit.md) separates the
-intended standards from existing migration gaps and records their proposed order.
+under `pkgs/`, `internal/`, `examples/`, and `docs/`. They apply to human and agent changes.
 
 ## Set up the workspace
 
@@ -17,30 +15,95 @@ Use Node.js 24+ and pnpm 11.9.0, as declared in `.node-version` and `package.jso
 pnpm install --frozen-lockfile
 ```
 
-Public libraries live in `pkgs/`; applications and feature examples live in `demos/`.
-The copyable `templates/` are independent pnpm projects, outside the root workspace.
-Follow the selected template's README and run its commands from its own directory.
+## Package structure
 
-The libraries are currently unpublished. Examples copied outside the repository need built
-Katakit packages; starter directories carry their own `vendor/` tarballs. Follow the relevant
-README when copying a demo or rebuilding those archives.
+Choose placement by what the code ships and who owns its behavior:
+
+| Location                    | Role and publication intent                                                      | Dependency boundary                                                                                 |
+| --------------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `pkgs/<name>/`              | Libraries intended for publication as `@katakit/<name>`, even while unpublished. | Public libraries and registry dependencies at runtime; private build tools may be dev dependencies. |
+| `internal/packages/<name>/` | Private workspace build tools with their own dependency manifests.               | May read repository source and docs; expose build commands rather than application APIs.            |
+| `internal/<purpose>/`       | Plain assets, with no workspace manifest. `internal/site-ui/` is CSS-only.       | Assets stay in their directory; consumers own markup and behavior.                                  |
+| `examples/demos/<name>/`    | Private feature applications in the root workspace.                              | Ordinary library versions and local application files; no private workspace package dependencies.   |
+| `examples/starters/<name>/` | Private, independently installed platform starters outside the root workspace.   | Registry dependencies and their own bundled Katakit tarballs; no outside files.                     |
+| `docs/`                     | Authored guides and a private workspace viewer.                                  | Public APIs and plain internal CSS; the exporter owns the portable bundle.                          |
+
+Root `scripts/` orchestrates repository checks and copying; use a private tool package when a
+build tool needs its own dependencies. Do not turn an asset directory into a package merely to
+share it. Public library source must not import applications, private tools, or internal assets.
+Import other libraries through their public entry points, not relative sibling source paths.
+
+Examples own their code, configuration, permissions, and small local UI. Use ordinary package
+versions in demo manifests so they can install outside the workspace; root linking is only a
+development convenience. The libraries are unpublished: `examples:copy` builds and packs them
+for demos, while starter directories already carry `vendor/` tarballs and local overrides.
+No example source or asset may be a symlink. A feature demo or starter must not import sibling
+examples or files elsewhere in the repository.
+
+The gallery is an explicit composition exception: it imports the three feature demos' `src/`
+directories and plain internal CSS. Its copy workflow carries those inputs as regular files and
+rewrites the copied imports. When adding another gallery source input, update the gallery's
+own dependencies, the copy inputs in `scripts/copy-example.mjs`, and the corresponding narrow
+allowance in `scripts/check-structure.mjs`, then verify a standalone gallery copy.
+
+### Add or change a library
+
+1. Give it a versioned `@katakit/` name, public publication intent, a real Apache-2.0 `LICENSE`,
+   README, and build/typecheck scripts. Ship built JavaScript and declarations through public
+   `exports`; use a workspace-only `source` condition for development and strip it in
+   `publishConfig.exports`. List distributable files explicitly. Match the existing library
+   manifests and package smoke tests; building in the workspace does not prove a tarball works.
+2. Declare runtime and development dependencies in the owning manifest. `workspace:` links
+   between publishable libraries are rewritten by pnpm pack; runtime dependencies on private
+   tooling, applications, or local `file:`/`link:` paths are not publishable. Keep tests controlled
+   and cover observable lifecycle/error behavior rather than duplicating implementation details.
+3. Add public API descriptions beside declarations and follow
+   [documentation package coverage](docs/EXPORT.md#package-coverage). Rebuild any starter archives
+   whose source changed using that starter's documented procedure; inspect what they contain.
+
+### Add or change an internal tool
+
+Put a dependency-owning tool under `internal/packages/` with `private: true`. Keep its output
+rebuildable and ignored, and preserve documented root commands used by outside consumers.
+For CSS sharing and the exporter, use the [internal tool and styling contract](#internal-tools-and-shared-styles).
+
+### Add or change an example
+
+Include its README, real LICENSE, build script, declared dependencies, platform files, and any
+required runtime assets. Document exact install/run commands, input/model requirements, and
+manual target-platform checks. A starter has its own `pnpm-workspace.yaml` and is run from its
+own directory; never add it to the root workspace. Follow the detailed
+[starter checklist](examples/starters/README.md) and the
+[copy workflow](examples/README.md). Update the copy tool's bundled-library list if an example
+requires another unpublished Katakit package.
+
+Run the relevant standalone copy check after changing imports, dependencies, configuration,
+shared CSS, or runtime assets. A passing workspace build can hide a missing dependency or file.
 
 ## Checks
 
 Run commands from the repository root:
 
-| Command                     | Purpose                                                                                    |
-| --------------------------- | ------------------------------------------------------------------------------------------ |
-| `pnpm tsc`                  | Check each workspace package, including its tests, with its own TypeScript config.         |
-| `pnpm test:ci`              | Run workspace tests.                                                                       |
-| `pnpm build`                | Build library JavaScript/declarations, demos, and the docs viewer.                         |
-| `pnpm check`                | Run formatting, lint, licenses, template manifests, types, tests, docs checks, and builds. |
-| `pnpm docs:export`          | Validate and export authored docs and generated API reference.                             |
-| `pnpm templates:copy-check` | Copy, install, and build the independent starters outside the workspace.                   |
+| Command                    | Purpose                                                                                                                            |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm structure:check`     | Check package placement, publication intent, dependency boundaries, CSS-only assets, and example manifests; run negative fixtures. |
+| `pnpm examples:check`      | Reject existing and symlink-routed copy destinations; verify an ordinary external copy.                                            |
+| `pnpm tsc`                 | Check each workspace package, including its tests, with its own TypeScript config.                                                 |
+| `pnpm test:ci`             | Run workspace tests.                                                                                                               |
+| `pnpm build`               | Build library JavaScript/declarations, demos, and the docs viewer.                                                                 |
+| `pnpm check`               | Run formatting, lint (including structure), licenses, starter manifests, types, tests, docs checks, and builds.                    |
+| `pnpm docs:export`         | Validate and export authored docs and generated API reference.                                                                     |
+| `pnpm examples:copy-check` | Copy, install, build, and test every demo and starter outside the workspace.                                                       |
 
 For focused work, use `pnpm --filter <package-name> <command>`. Before submitting, run the
 checks appropriate to the change; the CI workflow runs the full set. For template changes,
-also follow the manual platform checks in [templates/README.md](templates/README.md).
+also follow the manual platform checks in [examples/starters/README.md](examples/starters/README.md).
+To check one copy, use `pnpm demos:copy-check gallery` or `pnpm templates:copy-check react-web`.
+CI runs structural checks through lint and separately installs/builds/tests all demo and starter
+copies. The structural checker examines manifests and literal module/CSS imports; it is not a
+complete module resolver and does not evaluate computed asset paths. Copy builds and the HTTP
+worklet/isolation checks exercise those distributions. Microphone/model behavior and native
+platform interaction still require the selected example's manual checks.
 
 ## Package imports and TypeScript
 
@@ -81,6 +144,24 @@ See [docs/AGENTS.md](docs/AGENTS.md) for editing and verification instructions a
 Keep the root README focused on understanding and trying Katakit; put detailed behavior in
 the authored docs and setup instructions in the relevant package or application README.
 
+## Internal tools and shared styles
+
+`internal/packages/` contains private workspace build tools. The documentation producer is
+`internal/packages/docs-export`; its public command remains `pnpm docs:export` and its portable
+output contract remains in [docs/EXPORT.md](docs/EXPORT.md).
+
+`internal/site-ui/` is plain CSS, with no manifest or JavaScript. The docs viewer and gallery
+import it by relative path. `components.css` has control/meter styles without a page reset;
+`styles.css` adds the local viewers' theme and reset. Gallery controls own their native markup
+and behavior; microphone PCM activity belongs to the transcription input and the extension's
+local capture helper. Feature demos and starters continue to own their small local UI copies.
+
+For standalone gallery copies, `examples:copy` materializes the CSS under `styles/` and rewrites
+only the copied imports. Straightforward duplication keeps feature examples directly usable;
+the composed gallery's copy workflow carries its extra inputs. Symlinks require checkout support
+and are not a portable download contract; a shared React package would add a UI dependency to
+examples intended to be modified independently. No global source/CSS synchronization is required.
+
 ## Demos and starters
 
 Run the local gallery with:
@@ -89,16 +170,27 @@ Run the local gallery with:
 pnpm -F @katakit/gallery dev
 ```
 
-The [gallery README](demos/gallery/README.md) covers adding entries, building the host,
+The [gallery README](examples/demos/gallery/README.md) covers adding entries, building the host,
 shared input ownership, model connections, and microphone hosting requirements.
 The [starter guides](docs/pages/starters/README.md) help users choose a platform;
-[template contributor guidance](templates/README.md) defines copyability and verification.
+[template contributor guidance](examples/starters/README.md) defines copyability and verification.
 
-The [browser bingo](demos/bingo-react/README.md) and
-[extension bingo](demos/bingo-extension/README.md) examples each own their UI, styling, board
+The [browser bingo](examples/demos/bingo-react/README.md) and
+[extension bingo](examples/demos/bingo-extension/README.md) examples each own their UI, styling, board
 state, and audio host so they can be copied independently. Their READMEs explain standalone
-setup. Bingo behavior is maintained in `demos/bingo-react/src/bingo/` and copied into the
+setup. Bingo behavior is maintained in `examples/demos/bingo-react/src/bingo/` and copied into the
 extension; `pnpm bingo:check-copy` checks that those copies agree.
+
+## Website source consumers
+
+A pinned website must update its source aliases when adopting this layout. In Protozoa's
+`pkgs/website`, change `.katakit/source/demos/gallery/shared` to
+`.katakit/source/examples/demos/gallery/shared` in both `tsconfig.json` and `vite.config.ts`.
+Source links must use `examples/demos/` too. Adopt the new source SHA together with those
+changes; existing pins keep their old layout. `prepareKatakitRuntime.mjs` still builds libraries
+under `pkgs/`, and `prepareDocs.mjs` still invokes `pnpm docs:export`.
+The open Color Clash PR also needs its new gallery files moved beneath `examples/demos/`
+when rebased; this structural change does not incorporate that feature.
 
 ## Pull request previews
 

@@ -5,6 +5,11 @@ the `AGENTS.md` files in the directories you change. These rules apply to mainta
 contributors, and agents. Keep changes within the requested scope; existing deviations
 are migration work, not patterns to repeat.
 
+The [package layout](CONTRIBUTING.md#package-structure) and
+[example copy workflow](examples/README.md) describe the current structure. Use Node.js 24+
+and pnpm 11.9.0. Check `git status` and current main before changing a branch; preserve
+unrelated work.
+
 ## Ownership and architecture
 
 - Keep the core framework-independent and small. Publish a package only for a genuinely
@@ -17,9 +22,10 @@ are migration work, not patterns to repeat.
   replacement IDs, restart timers, or reacquire resources.
 - Recognition and model adapters expose general callbacks outside the plugin runtime.
   The application owns event schemas, input sources, credentials, admission, and storage.
-- Keep public libraries in `pkgs/` until the planned layout migration. Private build and
-  presentation tools belong under `internal/`; do not add another private package to
-  `pkgs/`. Copyable demos and starters must not depend on internal tools.
+- Keep publishable libraries in `pkgs/`. Private build tools belong under
+  `internal/packages/` and CSS-only assets under `internal/site-ui/`. Copyable demos and
+  starters in `examples/` must not depend on internal tools. The gallery's composition
+  exception must be materialized by the copy workflow.
 
 ## Maintenance
 
@@ -37,5 +43,10 @@ are migration work, not patterns to repeat.
 - Fix substantive review findings before repeating the affected pattern. Defer cosmetic
   cleanup explicitly rather than folding speculative extractions into unrelated changes.
 
-The dated audit and migration order are in
-[maintenance/jude-guidance-audit.md](maintenance/jude-guidance-audit.md).
+For layout/dependency changes, inspect workspace globs, test discovery, package exports,
+copy preparation, docs coverage, and pinned website consumers. Run `pnpm check` and
+relevant standalone copy checks; report automated versus manual evidence separately.
+
+[Docs guidance](docs/AGENTS.md), [library guidance](pkgs/AGENTS.md),
+[internal guidance](internal/AGENTS.md), and [example guidance](examples/AGENTS.md)
+narrow these rules.

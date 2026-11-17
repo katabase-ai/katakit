@@ -1,8 +1,8 @@
-# Public library packages
+# Publishable libraries
 
-These directories contain reusable runtime, plugin, and recognition APIs. Existing
-`docs-export/` and `site-ui/` are private tooling awaiting the internal-directory migration;
-they are not precedents for new public packages.
+Follow [library standards](../CONTRIBUTING.md#add-or-change-a-library) and each package's
+scoped instructions. All packages here are intended for publication under `@katakit/`;
+private tools belong in `internal/packages/`.
 
 - Export supported APIs through `package.json` entry points and generated declarations.
   Keep the development `source` condition out of published exports. Private tools must
@@ -19,3 +19,5 @@ they are not precedents for new public packages.
   successful workspace imports do not establish that a package can be consumed.
 - Test meaningful contracts: replay, ordering, failure/retry behavior, cancellation,
   ownership, and public typing. Use controlled inputs rather than timing sleeps.
+- Runtime source cannot import examples, docs, internal assets, or private tool APIs.
+  Check affected standalone copies and rebuild their archives when library source changes.

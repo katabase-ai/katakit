@@ -3,7 +3,10 @@
 This package is currently a buildable placeholder. Do not document or import DevTools
 until they exist.
 
-- Recommend React-RxJS for runtime observable bindings; do not recreate those hooks here.
+- Applications use `@react-rxjs/core` for observable subscriptions today; this is an
+  existing third-party binding, not an API exported by `@katakit/react`. Keep the
+  placeholder for future Katakit-specific React APIs, not a competing subscription hook.
+  See the [React integration guide](../../docs/pages/getting-started/react.md).
 - The agreed home for future DevTools is this package. Keep their richer UI components
   internal to DevTools rather than exposing a public design system or duplicating them
   into examples.
