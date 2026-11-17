@@ -70,21 +70,21 @@ export const checkStructure = (root = repository) => {
   const patterns = [...section.matchAll(/^\s*-\s*['"]?([^'"\s#]+)['"]?\s*$/gm)]
     .map(match => match[1])
     .toSorted();
-  const expected = ['pkgs/*', 'internal/packages/*', 'examples/demos/*', 'docs'].toSorted();
+  const expected = ['pkgs/*', 'internal/pkgs/*', 'examples/demos/*', 'docs'].toSorted();
   if (JSON.stringify(patterns) !== JSON.stringify(expected))
     report(
       workspace,
       `workspace packages must be ${expected.join(', ')}; starters and plain assets stay outside`
     );
 
-  for (const directory of ['pkgs', 'internal/packages', 'examples/demos', 'examples/starters']) {
+  for (const directory of ['pkgs', 'internal/pkgs', 'examples/demos', 'examples/starters']) {
     for (const entry of entries(join(root, directory))) {
       if (entry.isSymbolicLink())
         report(join(root, directory, entry.name), 'package directories must not be symlinks');
     }
   }
   const libraries = packages('pkgs', 'library');
-  const tools = packages('internal/packages', 'tool');
+  const tools = packages('internal/pkgs', 'tool');
   const demos = packages('examples/demos', 'demo');
   const starters = packages('examples/starters', 'starter');
   const all = [...libraries, ...tools, ...demos, ...starters];
@@ -102,7 +102,7 @@ export const checkStructure = (root = repository) => {
       ) {
         report(
           path,
-          'pkgs/ requires a versioned, public @katakit library; move private tools to internal/packages/'
+          'pkgs/ requires a versioned, public @katakit library; move private tools to internal/pkgs/'
         );
       }
       for (const field of runtimeFields) {
@@ -173,7 +173,7 @@ export const checkStructure = (root = repository) => {
       file.endsWith(`${sep}package.json`) &&
       !tools.some(tool => file === join(tool.path, 'package.json'))
     ) {
-      report(file, 'internal workspace manifests belong directly under internal/packages/<name>/');
+      report(file, 'internal workspace manifests belong directly under internal/pkgs/<name>/');
     }
   });
   walk(join(root, 'internal/site-ui'), file => {
