@@ -1,4 +1,12 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useId,
+  useState,
+  type ReactNode,
+} from 'react';
 import { useGalleryInference } from './GalleryInferenceProvider';
 
 const Context = createContext({
@@ -53,19 +61,46 @@ export const GalleryPreviewToggle = ({
   onChange?: (isPublicPreview: boolean) => void;
 }) => {
   const { developerMode, isPublicPreview, setPublicPreview } = useGalleryMode();
+  const tooltipId = useId();
+  const [tooltipDismissed, setTooltipDismissed] = useState(false);
+  useEffect(() => {
+    if (!developerMode) return;
+    const dismiss = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setTooltipDismissed(true);
+    };
+    window.addEventListener('keydown', dismiss);
+    return () => window.removeEventListener('keydown', dismiss);
+  }, [developerMode]);
   if (!developerMode) return null;
   return (
-    <button
-      type="button"
-      className="gallery-preview-toggle"
-      aria-pressed={isPublicPreview}
-      title={isPublicPreview ? 'Return to developer mode' : 'Preview the public gallery'}
-      onClick={() => {
-        setPublicPreview(!isPublicPreview);
-        onChange?.(!isPublicPreview);
-      }}
+    <span
+      className="gallery-preview-control"
+      data-tooltip-dismissed={tooltipDismissed}
+      onPointerEnter={() => setTooltipDismissed(false)}
     >
-      {isPublicPreview ? 'Public preview' : 'Preview'}
-    </button>
+      <label className="gallery-preview-toggle">
+        <input
+          type="checkbox"
+          role="switch"
+          checked={isPublicPreview}
+          aria-describedby={tooltipId}
+          onFocus={() => setTooltipDismissed(false)}
+          onChange={event => {
+            const next = event.target.checked;
+            setPublicPreview(next);
+            onChange?.(next);
+          }}
+        />
+        <span className="gallery-preview-label">
+          {isPublicPreview ? 'Public preview' : 'Developer mode'}
+        </span>
+        <span className="gallery-preview-track" aria-hidden="true" />
+      </label>
+      <span className="gallery-preview-tooltip" id={tooltipId} role="tooltip">
+        {isPublicPreview
+          ? 'This is what people will see on the public gallery.'
+          : 'Configure and test model connections.'}
+      </span>
+    </span>
   );
 };

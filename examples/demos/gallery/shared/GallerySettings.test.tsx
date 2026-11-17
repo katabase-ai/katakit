@@ -155,7 +155,7 @@ test('public mode ignores saved developer keys and visitor flags, and uses only 
   vi.stubGlobal('fetch', direct);
   const view = render(<View runtime={runtime} connectModel={host} />);
   await screen.findByText('Free demo');
-  expect(screen.queryByRole('button', { name: 'Preview' })).toBeNull();
+  expect(screen.queryByRole('switch')).toBeNull();
   expect(screen.queryByRole('navigation', { name: 'Developer tools' })).toBeNull();
   expect(screen.queryByLabelText('API key')).toBeNull();
   expect(screen.queryByRole('button', { name: /Configure inference|Add API key/ })).toBeNull();
@@ -232,7 +232,13 @@ test('public preview aborts BYOK, ignores late results, preserves content/settin
   act(() => turn(runtime, 'Keep these local words.'));
   fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
   await vi.waitFor(() => expect(direct).toHaveBeenCalledOnce());
-  fireEvent.click(screen.getByRole('button', { name: 'Preview' }));
+  expect((screen.getByRole('switch', { name: 'Developer mode' }) as HTMLInputElement).checked).toBe(
+    false
+  );
+  fireEvent.click(screen.getByRole('switch', { name: 'Developer mode' }));
+  expect((screen.getByRole('switch', { name: 'Public preview' }) as HTMLInputElement).checked).toBe(
+    true
+  );
   expect(direct.mock.calls[0]![1]!.signal!.aborted).toBe(true);
   expect(screen.queryByRole('navigation', { name: 'Developer tools' })).toBeNull();
   expect(runtime.state$.get().notes.turns).toHaveLength(1);
@@ -244,7 +250,10 @@ test('public preview aborts BYOK, ignores late results, preserves content/settin
   expect(window.localStorage.getItem(inferenceStorageKey)).toContain('test-developer-key');
   fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
   await screen.findByText('Managed note');
-  fireEvent.click(screen.getByRole('button', { name: 'Public preview' }));
+  fireEvent.click(screen.getByRole('switch', { name: 'Public preview' }));
+  expect((screen.getByRole('switch', { name: 'Developer mode' }) as HTMLInputElement).checked).toBe(
+    false
+  );
   expect(hostSignal.aborted).toBe(true);
   expect(runtime.state$.get().notes.notes[0]?.text).toBe('Managed note');
   expect(screen.getByRole('navigation', { name: 'Developer tools' })).toBeDefined();
@@ -266,7 +275,7 @@ test('a public preview without host inference never falls back to the saved deve
       (screen.getByRole('button', { name: 'Start notes' }) as HTMLButtonElement).disabled
     ).toBe(false)
   );
-  fireEvent.click(screen.getByRole('button', { name: 'Preview' }));
+  fireEvent.click(screen.getByRole('switch', { name: 'Developer mode' }));
   expect((screen.getByRole('button', { name: 'Start notes' }) as HTMLButtonElement).disabled).toBe(
     true
   );
@@ -274,7 +283,7 @@ test('a public preview without host inference never falls back to the saved deve
   expect(screen.queryByRole('button', { name: 'Configure inference' })).toBeNull();
   act(() => turn(runtime, 'Still local.'));
   expect(direct).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole('button', { name: 'Public preview' }));
+  fireEvent.click(screen.getByRole('switch', { name: 'Public preview' }));
   expect((screen.getByRole('button', { name: 'Start notes' }) as HTMLButtonElement).disabled).toBe(
     false
   );

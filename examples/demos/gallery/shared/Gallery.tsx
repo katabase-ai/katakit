@@ -93,7 +93,6 @@ export const Gallery = ({
         <aside className="gallery-sidebar">
           <nav className="gallery-nav" aria-label="React demos">
             {renderLink({ children: 'Welcome', current: !activeDemo && !developerPage })}
-            {isDeveloperView && <p className="gallery-nav-label">Demos</p>}
             {demos.map(demo => (
               <span key={demo.id}>
                 {renderLink({
