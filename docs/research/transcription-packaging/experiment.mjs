@@ -12,6 +12,26 @@ import { pathToFileURL, fileURLToPath } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const pkg = join(root, 'pkgs/transcription');
+const baseline = '5efcb3134f1b014e15978ac7fb02e31e9400241e';
+// The report's measurements are only comparable when the measured package and
+// build inputs still match the pinned baseline. The research docs themselves
+// may be committed on top of that revision.
+const inputs = [
+  'pkgs/transcription',
+  'pnpm-lock.yaml',
+  'pnpm-workspace.yaml',
+  'package.json',
+  '.npmrc',
+];
+const changedInputs = execFileSync('git', ['diff', '--name-only', baseline, '--', ...inputs], {
+  cwd: root,
+  encoding: 'utf8',
+}).trim();
+assert.equal(
+  changedInputs,
+  '',
+  `Packaging inputs differ from ${baseline}; reproduce the recorded measurements on the pinned baseline instead:\n${changedInputs}`
+);
 const scratch = await realpath(await mkdtemp(join(tmpdir(), 'katakit-61-')));
 const run = (cmd, args, cwd = scratch) => {
   try {
@@ -242,7 +262,7 @@ process.exit(0);
     optional.push({ omitOptional: omit, installed: present });
   }
   const results = {
-    baseline: run('git', ['rev-parse', 'HEAD'], root),
+    baseline,
     environment: {
       node: process.version,
       pnpm: run('pnpm', ['--version'], root),

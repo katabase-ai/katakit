@@ -26,19 +26,45 @@ export const connectSource = async (
         onUpdate: update => comparison.record(update),
       })
     : undefined;
-  await primary.start(run);
-  await diagnostic?.start({ ...run, runId: crypto.randomUUID(), modelId: 'whisper-tiny' });
-  // Host establishes run.audioOriginMs and source clock before this call.
-  // AudioSource isolates subscriber errors; adapters copy any retained samples.
-  const subscription = source.subscribe(frame => primary.write(frame));
-  const diagnosticSubscription = diagnostic && source.subscribe(frame => diagnostic.write(frame));
-  await source.start();
-  return async () => {
-    await source.stop();
-    subscription.unsubscribe();
-    diagnosticSubscription?.unsubscribe();
-    await Promise.all([primary.stop(), diagnostic?.stop()]);
-    await Promise.all([primary.dispose(), diagnostic?.dispose()]);
-    await source.dispose();
+  let started = false;
+  let sourceStarted = false;
+  let subscription: ReturnType<AudioSource['subscribe']> | undefined;
+  let diagnosticSubscription: ReturnType<AudioSource['subscribe']> | undefined;
+  const cleanup = async () => {
+    const failures: unknown[] = [];
+    const settle = async (tasks: (() => unknown)[]) => {
+      for (const result of await Promise.allSettled(
+        tasks.map(task => Promise.resolve().then(task))
+      )) {
+        if (result.status === 'rejected') failures.push(result.reason);
+      }
+    };
+    // Flush capture while both subscribers are still attached, even if one stop fails.
+    if (sourceStarted) await settle([() => source.stop()]);
+    await settle([() => subscription?.unsubscribe(), () => diagnosticSubscription?.unsubscribe()]);
+    if (started) await settle([() => primary.stop(), () => diagnostic?.stop()]);
+    await settle([() => primary.dispose(), () => diagnostic?.dispose(), () => source.dispose()]);
+    if (failures.length) throw new AggregateError(failures, 'Could not fully stop transcription');
   };
+  try {
+    started = true;
+    await primary.start(run);
+    await diagnostic?.start({ ...run, runId: crypto.randomUUID(), modelId: 'whisper-tiny' });
+    // Host establishes run.audioOriginMs and source clock before this call.
+    // AudioSource isolates subscriber errors; adapters copy any retained samples.
+    subscription = source.subscribe(frame => primary.write(frame));
+    diagnosticSubscription = diagnostic && source.subscribe(frame => diagnostic.write(frame));
+    sourceStarted = true;
+    await source.start();
+    return cleanup;
+  } catch (error) {
+    try {
+      await cleanup();
+    } catch (cleanupError) {
+      throw new AggregateError([error, cleanupError], 'Transcription startup and cleanup failed', {
+        cause: error,
+      });
+    }
+    throw error;
+  }
 };

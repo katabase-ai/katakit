@@ -107,6 +107,9 @@ implement proposed packages. [results.json](results.json) records file hashes, s
 closures, model manifests and assertions. [upstream.json](upstream.json) records exact upstream
 revisions, npm integrity values, and metadata retrieval commands. Units below are decimal bytes/MB,
 not filesystem blocks or browser transfer compression.
+Run the experiment from this research checkout while the transcription package, root build inputs,
+and lockfile still match the pinned baseline. The script fails before packing if those tracked inputs
+have changed; do not treat measurements from a newer package revision as reproducing these results.
 
 ```sh
 pnpm install --frozen-lockfile
