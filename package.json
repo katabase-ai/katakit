@@ -5,7 +5,7 @@
   "scripts": {
     "build": "pnpm -r build",
     "tsc": "pnpm -r tsc",
-    "lint": "oxlint --deny-warnings && pnpm bingo:check-copy",
+    "lint": "oxlint --deny-warnings && pnpm bingo:check-copy && pnpm structure:check",
     "licenses:check": "node scripts/check-licenses.mjs",
     "lint:fix": "oxlint --fix",
     "format": "oxfmt \"**/*.{js,jsx,ts,tsx,json,md}\"",
@@ -21,7 +21,8 @@
     "examples:copy": "node scripts/copy-example.mjs",
     "examples:check": "node --test scripts/copy-example.test.mjs",
     "examples:copy-check": "node scripts/check-demo-copy.mjs && pnpm templates:copy-check",
-    "demos:copy-check": "node scripts/check-demo-copy.mjs"
+    "demos:copy-check": "node scripts/check-demo-copy.mjs",
+    "structure:check": "node scripts/check-structure.mjs && node --test scripts/check-structure.test.mjs"
   },
   "devDependencies": {
     "@types/node": "24.13.3",
