@@ -1,6 +1,9 @@
 # Why Katakit?
 
-What if AI could join a conversation and contribute to what people are making together—not just summarize it afterward? We call one family of these interfaces **smart whiteboards**: people talk, AI participates visually, and the group can shape a shared artifact as the conversation unfolds. The same ideas can also work alongside chat or other interfaces.
+What if AI could join a conversation and contribute to what people are making together? In
+**voice-to-visual interfaces**, human speech is a primary input and AI participates visually.
+People can create and refine a shared artifact—notes, a diagram, or a plan—as the conversation
+unfolds. The same ideas can support a solo activity or blend with chat and other interfaces.
 
 ## The interaction is the hard part
 
@@ -10,13 +13,21 @@ Then there are the engineering questions: where do events come from, how is stat
 
 ## A kit for experimenting
 
-Katakit is an open-source dev kit for exploring these interactions. It composes plugins that expose state, methods, and effects. An application can connect those pieces to its own UI and inputs instead of inheriting a prescribed whiteboard or meeting app.
+Katakit is an open-source TypeScript dev kit for exploring these interactions. It composes
+plugins that expose observables, methods, and effects. Applications connect those pieces to
+their own UI, inputs, model connections, and storage. The core runtime is independent of the
+UI framework, and the speech-recognition utilities can also be used independently of the runtime.
 
 That separation matters when you want to try a different source of input, change how an interaction behaves, or build for another form factor. It leaves room to experiment without treating one prototype as the finished product.
 
 ## What’s here today
 
-This is a seed, not a complete smart-whiteboard platform. The repository currently includes the [core runtime](reference/core.md), [plugins](reference/plugins/README.md) for event history, persistence, and transcription turns, React transcription and browser-bingo demos, a conversation-bingo extension demo, and [copyable platform starters](starters/README.md). Demos show user-facing capabilities; starters show smaller, platform-specific Katakit interactions. Some starters still need manual verification on their stated platforms.
+We're sharing an early collection of patterns and examples. The repository includes the
+[core runtime](reference/core.md), [plugins](reference/plugins/README.md) for event history,
+persistence, and transcript turns, and independent [transcription utilities](reference/transcription.md).
+Demos show local transcription, conversation bingo, and structured notes; notes generation
+uses a host-supplied model connection. [Copyable platform starters](starters/README.md) show
+smaller application integrations and record their current verification.
 
 Start with [Getting started](getting-started/README.md) to run the smallest example, then use the [Reference](reference/README.md) to see what each building block provides. The kit does not yet solve every problem of live collaboration, model choice, or evaluation.
 
