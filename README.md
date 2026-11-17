@@ -4,8 +4,8 @@ Katakit is an open-source TypeScript developer kit for building interfaces that 
 conversation. Turn spoken words into something people can see, play with, and shape together.
 
 Compose typed plugins for live state, actions, and asynchronous work, independently of your UI
-framework. Pick the pieces you need for speech recognition, conversation turns, event history,
-and persistence.
+framework. Build around typed event history, connect speech recognition and conversation turns,
+and add persistence through your own storage.
 
 [Getting started](docs/pages/getting-started/README.md) · [Demos](demos/gallery/README.md) ·
 [Starters](docs/pages/starters/README.md) · [Documentation](docs/pages/reference/README.md)
@@ -23,8 +23,8 @@ behavior, and a responsive UI. Katakit gives you composable foundations for expl
 - **Compose behavior.** Combine plugins for your application's state, actions, and asynchronous work.
 - **Connect your own inputs and UI.** Use speech, supplied text, or another source, and render the
   result in the interface that fits your application.
-- **Pick the pieces you need.** Add transcript turns, replayable event history, or storage without
-  requiring every application to use the same pipeline.
+- **Keep history explicit.** Use validated events to drive application state, and add persistent
+  storage when you need it.
 
 Plugins expose RxJS **observables**, callable **methods**, and reactive **effects**. Applications
 own their UI, input sources, model connections, and storage. The same runtime can support a
@@ -34,36 +34,38 @@ Read [Why Katakit?](docs/pages/why-katakit.md) for the motivation and the questi
 
 ## A small example
 
-Feed finalized text into a plugin and subscribe to the conversation turns it produces. This
-example uses supplied text so you can see the runtime behavior without a microphone or model:
+Record a typed event and observe it through the runtime's replayable history. This example uses
+supplied text so you can see the behavior without a microphone or model. It uses Valibot as its
+synchronous Standard Schema validator:
 
 ```ts
 import { makeKatakit } from '@katakit/core';
-import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
+import { makeEventLogPlugin } from '@katakit/event-log';
+import * as v from 'valibot';
 
-const Transcript = makeTranscriptIngestionPlugin();
-const kit = makeKatakit({ plugins: [Transcript.configure({})] }).start();
-const { conversationTurns$ } = kit.getObservables(Transcript);
-const { ingestSegment, flush, close } = kit.getMethods(Transcript);
+const EventLog = makeEventLogPlugin({
+  validateEvent: v.strictObject({
+    type: v.literal('message'),
+    text: v.string(),
+  }),
+});
+const kit = makeKatakit({ plugins: [EventLog.configure({ initialEvents: [] })] }).start();
+const { events$ } = kit.getObservables(EventLog);
+const { emitEvent } = kit.getMethods(EventLog);
 
-const subscription = conversationTurns$.subscribe(turns => {
-  console.log(turns.map(turn => turn.text));
+const subscription = events$.subscribe(event => {
+  console.log(event.text);
 });
 
-ingestSegment({
-  id: '1',
-  sourceId: 'demo',
-  text: 'Let’s map the next steps.',
-});
-flush();
+emitEvent({ type: 'message', text: 'Let’s map the next steps.' });
+console.log(events$.getAll().length); // 1
 
 subscription.unsubscribe();
-close();
 ```
 
-The subscription logs `[]`, then `['Let’s map the next steps.']` when `flush()` completes the
-turn. A view can subscribe to that state; another plugin can use it to change application behavior.
-Turns stay in memory unless you connect storage.
+The subscription logs `Let’s map the next steps.`; the history contains one validated event.
+New subscribers receive recorded events before subsequent live events. Plugins can derive
+application state from this history; saving it across visits requires a storage connection.
 
 For live speech, connect the transcription utility's `onFinal`, `onProvisional`, and `onStop`
 callbacks to the ingestion methods. The [React web starter](templates/react-web/README.md)
@@ -94,9 +96,11 @@ platform setup, permissions, and current verification.
 | [@katakit/persistence](pkgs/persistence/README.md)                   | Plugin  | Batched event writes through your storage callback or browser local storage.                                   |
 | [@katakit/transcription](pkgs/transcription/README.md)               | Utility | Moonshine/Whisper recognition, browser microphone and PCM helpers, runtime assets, and an optional React hook. |
 
-The transcription utility works independently of the plugin runtime. Transcript ingestion does
-not require an event log; history and persistence are optional. React applications render runtime
-observables with [React-RxJS](docs/pages/getting-started/react.md).
+The transcription utility works independently of the plugin runtime. The accepted contract for
+official stateful plugins centers state on an event log; implementation alignment is still in
+progress. In particular, the current [transcript-ingestion integration](docs/pages/reference/plugins/transcript-ingestion.md)
+forwards events but does not rebuild its state from the log. Persistent storage is optional.
+React applications render runtime observables with [React-RxJS](docs/pages/getting-started/react.md).
 
 ## Documentation
 

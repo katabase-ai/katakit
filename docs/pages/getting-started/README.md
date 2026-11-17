@@ -4,9 +4,11 @@ Katakit composes framework-independent plugins into a runtime. The event-log plu
 
 To start with a complete application, choose a [starter](../starters/README.md). The React web
 starter connects local microphone recognition to conversation turns and includes built Katakit
-packages for use before a registry release. To explore the runtime itself, follow the example
-below. The [transcript example in the root README](https://github.com/katabase-ai/katakit#a-small-example)
-shows the same configure/start/subscribe pattern with transcript ingestion instead of an event log.
+packages for use before a registry release. To explore the runtime itself, follow the event-log
+example below. For the intended relationship between stateful official plugins and their log,
+see the [plugin contract](../concepts/plugins.md#official-stateful-plugin-contract). Current
+transcript-ingestion state is still local, with forward-only event-log integration; the starter
+does not yet demonstrate rebuilding transcript state from an event log.
 
 The packages in this repository are currently version `0.0.0`. For development in this workspace, run `pnpm install` at the repository root. When the packages are available to your application, it needs `@katakit/core`, `@katakit/event-log`, and a synchronous [Standard Schema](https://standardschema.dev/schema) validator. This example uses Valibot; any Standard Schema v1 implementation that validates synchronously can be used. See [validation requirements](../reference/plugins/event-log.md#validation-requirements) for limitations.
 

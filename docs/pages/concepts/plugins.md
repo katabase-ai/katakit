@@ -16,6 +16,19 @@ Configuration can transform user-facing options into the options consumed by all
 
 For types and factory parameters, see [the core reference](../reference/core.md#makekatakitplugin). For concrete plugins and their options, see the [plugin catalog](../reference/plugins/README.md).
 
+## Official stateful plugin contract
+
+The accepted design direction is for official stateful plugins to require an event log and
+derive their application state from its events. Recognition utilities remain independent of
+that contract. An in-memory log supplies history and replay; persistent storage is a separate
+application choice.
+
+This contract is not yet implemented consistently across the existing plugins and examples.
+In particular, [transcript ingestion](../reference/plugins/transcript-ingestion.md) currently
+maintains local state and optionally forwards selected events to a log. That bridge does not
+make the log authoritative or restore transcript state on replay. Treat this as an implementation
+gap, rather than a second supported architectural path for official stateful plugins.
+
 ## Calling a model from an effect
 
 The [structured notes example](https://github.com/katabase-ai/katakit/tree/main/demos/notes-react)
