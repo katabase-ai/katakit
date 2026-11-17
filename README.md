@@ -79,9 +79,9 @@ phrases into changes on a game board.
 - **Explore a demo:** run the [gallery](examples/demos/gallery/README.md) to try local transcription,
   conversation bingo, and structured notes. Transcription runs locally; generating structured
   notes requires a host-supplied model connection. Each example links to its source and setup.
-- **Start an application:** copy the [React web starter](examples/starters/react-web/README.md), including
-  its `vendor/` directory, then follow its install and run instructions. First use downloads a
-  speech model; no paid speech account is needed.
+- **Start an application:** copy the [React web starter](examples/starters/react-web/README.md),
+  then follow its install and run instructions. First use downloads a speech model; no paid
+  speech account is needed.
 
 The [starter catalog](docs/pages/starters/README.md) also covers Electron, Chrome extensions,
 experimental Obsidian desktop integration, and a work-in-progress MCP App. Each guide records
