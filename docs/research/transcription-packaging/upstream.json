@@ -1,0 +1,50 @@
+{
+  "moonshine-head": {
+    "sha": "d8d8fa29d05ca67441a7719e70099f9f48917a93",
+    "date": "2026-11-06T01:18:42Z"
+  },
+  "moonshine-npm": {
+    "name": "@moonshine-ai/moonshine-wasm",
+    "version": "0.1.5",
+    "gitHead": "234f60faa0eb388b01cdf7e60aca232af37aefda",
+    "license": "MIT",
+    "dist": {
+      "tarball": "https://registry.npmjs.org/@moonshine-ai/moonshine-wasm/-/moonshine-wasm-0.1.5.tgz",
+      "integrity": "sha512-b90GVFkbuQQthW8wZFU/dvJpnnsISHSSxs/p6Xv/NMfaHotLhRp0e9Risy5/np6QSF3SFust3jGE3Uj2LdecmQ==",
+      "unpackedSize": 13734259
+    }
+  },
+  "transformers-npm": {
+    "name": "@xenova/transformers",
+    "version": "2.17.2",
+    "gitHead": "da2688626d7812ad1ea47fd304c2072cc685051b",
+    "license": "Apache-2.0",
+    "dist": {
+      "tarball": "https://registry.npmjs.org/@xenova/transformers/-/transformers-2.17.2.tgz",
+      "integrity": "sha512-lZmHqzrVIkSvZdKZEx7IYY51TK0WDrC8eR0c5IMnBsO8di8are1zzw8BlLhyO2TklZKLN5UffNGs1IJwT6oOqQ==",
+      "unpackedSize": 46618273
+    }
+  },
+  "whisper-model": {
+    "sha": "79fb389fc764e7c395bd330e9531d9d32ada7049",
+    "license": "apache-2.0",
+    "quantizedOnnxFiles": [
+      {
+        "path": "onnx/decoder_model_merged_quantized.onnx",
+        "bytes": 30727382
+      },
+      {
+        "path": "onnx/encoder_model_quantized.onnx",
+        "bytes": 10124913
+      }
+    ]
+  },
+  "retrieved": "2026-11-17",
+  "metadataCommands": [
+    "curl https://registry.npmjs.org/@moonshine-ai/moonshine-wasm/0.1.5",
+    "curl https://registry.npmjs.org/@xenova/transformers/2.17.2",
+    "curl https://api.github.com/repos/moonshine-ai/moonshine/commits/main",
+    "curl https://huggingface.co/api/models/Xenova/whisper-tiny.en",
+    "curl https://huggingface.co/api/models/Xenova/whisper-tiny.en/tree/79fb389fc764e7c395bd330e9531d9d32ada7049/onnx"
+  ]
+}

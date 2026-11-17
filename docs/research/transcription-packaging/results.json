@@ -1,0 +1,851 @@
+{
+  "baseline": "5efcb3134f1b014e15978ac7fb02e31e9400241e",
+  "environment": {
+    "node": "v24.14.1",
+    "pnpm": "11.9.0",
+    "npm": "11.11.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "package": {
+    "archiveBytes": 17706898,
+    "unpackedBytes": 53209350,
+    "files": 55,
+    "exports": [
+      ".",
+      "./moonshine",
+      "./whisper",
+      "./browser",
+      "./react",
+      "./assets",
+      "./vite",
+      "./package.json"
+    ],
+    "dependencies": {},
+    "optionalPeers": {
+      "react": {
+        "optional": true
+      },
+      "vite": {
+        "optional": true
+      }
+    },
+    "installedTree": {
+      "@katakit/transcription": {
+        "version": "0.0.0",
+        "overridden": false,
+        "dependencies": {
+          "react": {},
+          "vite": {}
+        }
+      }
+    }
+  },
+  "assets": [
+    {
+      "name": "dist/assets/microphone-worklet.js",
+      "bytes": 1076,
+      "sha256": "77481e7622b8612fd252779e238a42953026f4ae33ab75b280a47ad73d57e134"
+    },
+    {
+      "name": "dist/assets/moonshine/agent-flow.js",
+      "bytes": 25486,
+      "sha256": "8435b476ef927c5422a20632b1b75b8ed83a896e6bb13af9b85ed5e4d3fadd24"
+    },
+    {
+      "name": "dist/assets/moonshine/asset-downloader.js",
+      "bytes": 7398,
+      "sha256": "1887c3895d4d05aefacd9c7d0ca638c3b209c30de537fe65cd56595ff732d42e"
+    },
+    {
+      "name": "dist/assets/moonshine/embedding-model.js",
+      "bytes": 5457,
+      "sha256": "17c60df8bc6efc52765221f71e67e9cf1892f5671d3e1fc3afbf5f9fff122f15"
+    },
+    {
+      "name": "dist/assets/moonshine/enums.js",
+      "bytes": 2058,
+      "sha256": "149edff4d610640fc268a18ae0d207b443a5e5d841045e555b39788f9db802ed"
+    },
+    {
+      "name": "dist/assets/moonshine/errors.js",
+      "bytes": 4712,
+      "sha256": "1f3abb56d6d28213adbb3f45e2c59eafecb48302d1e1a95164cdcb10c03576e0"
+    },
+    {
+      "name": "dist/assets/moonshine/events.js",
+      "bytes": 2105,
+      "sha256": "2dd5076fcc75d27d531df3de86e3fe4829e98cb39a9e9214b252ac7b10923faa"
+    },
+    {
+      "name": "dist/assets/moonshine/grapheme-to-phonemizer.js",
+      "bytes": 2095,
+      "sha256": "076f14e7d9d660eea1c44cd5d22eff36875cbe7db51705d3a4970ab4c1d8b1fe"
+    },
+    {
+      "name": "dist/assets/moonshine/index.js",
+      "bytes": 1733,
+      "sha256": "02ac8a34d1d9cf84cf8d9ed49fa3ed832610495c5aef5fd751b250681e8e62ea"
+    },
+    {
+      "name": "dist/assets/moonshine/intent-recognizer.js",
+      "bytes": 3733,
+      "sha256": "a0893eecbab1396e52c0364790fe515cf0e268c2c16b0a69f6529ab9066df74e"
+    },
+    {
+      "name": "dist/assets/moonshine/mic-transcriber.js",
+      "bytes": 13397,
+      "sha256": "cef76a39506424dc413e42be47f9a608fde376e2d086d68fc112518418e47d1f"
+    },
+    {
+      "name": "dist/assets/moonshine/microphone-transcriber.js",
+      "bytes": 5859,
+      "sha256": "487cf6c24370b44ae89382f4eb6ef6836c883bab0abb414e351088452b638e14"
+    },
+    {
+      "name": "dist/assets/moonshine/module.js",
+      "bytes": 4053,
+      "sha256": "76ac4333a21258c9d80cf27a0d7804865e8fe56314fd31baf20cf286d77d3534"
+    },
+    {
+      "name": "dist/assets/moonshine/moonshine.mjs",
+      "bytes": 156457,
+      "sha256": "a4b40a7cf7a810e3cdbe8c12f3dd47598900566117b824da690585deb79c59e2"
+    },
+    {
+      "name": "dist/assets/moonshine/moonshine.wasm",
+      "bytes": 13155937,
+      "sha256": "d0e783f661f8be68f7af48d859d3bbc7a6381a980b35b4128fc36344218a6682"
+    },
+    {
+      "name": "dist/assets/moonshine/stream.js",
+      "bytes": 6681,
+      "sha256": "443a90c0fa92f4a75d85015f9c109ab48f4201b7546bccae0749111a885fd21b"
+    },
+    {
+      "name": "dist/assets/moonshine/stt-worker-host.js",
+      "bytes": 7826,
+      "sha256": "4d44cc4c9a7a6f349e1b47955147b990cb1faf31e60bd8bf044a2222a056cef5"
+    },
+    {
+      "name": "dist/assets/moonshine/stt-worker-protocol.js",
+      "bytes": 352,
+      "sha256": "a321cf5a6cb323df23de1fcd2934239c95b6229943eba04f5486099db4a5b4be"
+    },
+    {
+      "name": "dist/assets/moonshine/stt-worker.js",
+      "bytes": 7573,
+      "sha256": "5a702ebd1bba145487a284daa7aa72ab5de3978e6a528b654f0f8065b4af1233"
+    },
+    {
+      "name": "dist/assets/moonshine/text-to-speech.js",
+      "bytes": 32049,
+      "sha256": "7235b7cafae9cc31988a8a6d06a6ed753b147bd363035c5aac8e8361c3d3cbad"
+    },
+    {
+      "name": "dist/assets/moonshine/transcriber.js",
+      "bytes": 10646,
+      "sha256": "7d18f6123a3a69a10a687c86662b3aa93748a27c95b26dc2f562ea34fe3f30d0"
+    },
+    {
+      "name": "dist/assets/moonshine/tts-worker-host.js",
+      "bytes": 4440,
+      "sha256": "9be81a3edc1b17a480fd35a1b043507fd293299f487f51285e194f57b08d5d0b"
+    },
+    {
+      "name": "dist/assets/moonshine/tts-worker-protocol.js",
+      "bytes": 343,
+      "sha256": "e6a83c0945e5c9c0d16725d60e4d0b15d72cee553798c5f055652bd9f94c5122"
+    },
+    {
+      "name": "dist/assets/moonshine/tts-worker.js",
+      "bytes": 2669,
+      "sha256": "f657d9468e59dc51ba7c2188082d7075b4cb2f7e2c522629693c7c413306c182"
+    },
+    {
+      "name": "dist/assets/moonshine/types.js",
+      "bytes": 2373,
+      "sha256": "7fb0bd0c6e9168b3f8b637e9267d799a570c2fb333a7fbdd69c0b067da7e2b85"
+    },
+    {
+      "name": "dist/assets/moonshine/voice-clone.js",
+      "bytes": 8568,
+      "sha256": "0dda9172452407fa7de9ff5bdfbe5b23b08b4566fb266f1d883505f48c49010f"
+    },
+    {
+      "name": "dist/assets/onnx/ort-wasm-simd-threaded.wasm",
+      "bytes": 9960821,
+      "sha256": "ac23f2f3cbd519a65a0796f7c79eb34ead4c1f6f31eb06e14ed8a9579d697ef6"
+    },
+    {
+      "name": "dist/assets/onnx/ort-wasm-simd.wasm",
+      "bytes": 10014674,
+      "sha256": "9bd07bababc65f53d061f457233eeae501be7ceb8a2adb9eef52d87fe776d865"
+    },
+    {
+      "name": "dist/assets/onnx/ort-wasm-threaded.wasm",
+      "bytes": 9149637,
+      "sha256": "2ee2f715093aaacc0344bfb1610313eb49a3474e8afde5e4635f30ddfc7615c8"
+    },
+    {
+      "name": "dist/assets/onnx/ort-wasm.wasm",
+      "bytes": 9223228,
+      "sha256": "bbdcb6b3c7d294577d806077630460be4e13ca35a345acb5e81188e9649fa74a"
+    },
+    {
+      "name": "dist/assets/THIRD_PARTY_NOTICES.txt",
+      "bytes": 60738,
+      "sha256": "eb707a389c3c9324f00deb2e95ce36a319a173c328ca594bf029960c6cb7a1e7"
+    },
+    {
+      "name": "dist/assets/transcription-worker.js",
+      "bytes": 10659,
+      "sha256": "80e9bec59c646e6053ca2f59f770b85ec2f6cf87bc0e3abcf18431d12aa4e4b4"
+    },
+    {
+      "name": "dist/assets/whisper-worker.js",
+      "bytes": 1250049,
+      "sha256": "2fea02c9a2d3a403e6db6d85a0fdda1983e1d35735015952aab16ecbe49502c4"
+    }
+  ],
+  "moonshineModelManifests": {
+    "2": {
+      "groups": [
+        {
+          "base_url": "https://download.moonshine.ai/model/tiny-streaming-en/quantized_26_07_30",
+          "files": [
+            {
+              "name": "adapter.ort",
+              "url": "https://download.moonshine.ai/model/tiny-streaming-en/quantized_26_07_30/adapter.ort",
+              "size": 1319664,
+              "checksum": "kwQ+Bw==",
+              "checksum_type": "crc32c"
+            },
+            {
+              "name": "cross_kv.ort",
+              "url": "https://download.moonshine.ai/model/tiny-streaming-en/quantized_26_07_30/cross_kv.ort",
+              "size": 1287544,
+              "checksum": "76wzFQ==",
+              "checksum_type": "crc32c"
+            },
+            {
+              "name": "decoder_kv.ort",
+              "url": "https://download.moonshine.ai/model/tiny-streaming-en/quantized_26_07_30/decoder_kv.ort",
+              "size": 32583720,
+              "checksum": "KJjeNw==",
+              "checksum_type": "crc32c"
+            },
+            {
+              "name": "encoder.ort",
+              "url": "https://download.moonshine.ai/model/tiny-streaming-en/quantized_26_07_30/encoder.ort",
+              "size": 7675440,
+              "checksum": "UjAIpQ==",
+              "checksum_type": "crc32c"
+            },
+            {
+              "name": "frontend.ort",
+              "url": "https://download.moonshine.ai/model/tiny-streaming-en/quantized_26_07_30/frontend.ort",
+              "size": 8324920,
+              "checksum": "AW9qsg==",
+              "checksum_type": "crc32c"
+            },
+            {
+              "name": "streaming_config.json",
+              "url": "https://download.moonshine.ai/model/tiny-streaming-en/quantized_26_07_30/streaming_config.json",
+              "size": 509,
+              "checksum": "HGL0Ug==",
+              "checksum_type": "crc32c"
+            },
+            {
+              "name": "tokenizer.bin",
+              "url": "https://download.moonshine.ai/model/tiny-streaming-en/quantized_26_07_30/tokenizer.bin",
+              "size": 249974,
+              "checksum": "B7s10Q==",
+              "checksum_type": "crc32c"
+            }
+          ]
+        }
+      ]
+    },
+    "4": {
+      "groups": [
+        {
+          "base_url": "https://download.moonshine.ai/model/small-streaming-en/quantized_26_07_30",
+          "files": [
+            {
+              "name": "adapter.ort",
+              "url": "https://download.moonshine.ai/model/small-streaming-en/quantized_26_07_30/adapter.ort",
+              "size": 2870368,
+              "checksum": "XlWjTg==",
+              "checksum_type": "crc32c"
+            },
+            {
+              "name": "cross_kv.ort",
+              "url": "https://download.moonshine.ai/model/small-streaming-en/quantized_26_07_30/cross_kv.ort",
+              "size": 5356536,
+              "checksum": "5ySK8g==",
+              "checksum_type": "crc32c"
+            },
+            {
+              "name": "decoder_kv.ort",
+              "url": "https://download.moonshine.ai/model/small-streaming-en/quantized_26_07_30/decoder_kv.ort",
+              "size": 81878600,
+              "checksum": "Rn/VUA==",
+              "checksum_type": "crc32c"
+            },
+            {
+              "name": "encoder.ort",
+              "url": "https://download.moonshine.ai/model/small-streaming-en/quantized_26_07_30/encoder.ort",
+              "size": 44148576,
+              "checksum": "41D2jQ==",
+              "checksum_type": "crc32c"
+            },
+            {
+              "name": "frontend.ort",
+              "url": "https://download.moonshine.ai/model/small-streaming-en/quantized_26_07_30/frontend.ort",
+              "size": 30984520,
+              "checksum": "m6NCLA==",
+              "checksum_type": "crc32c"
+            },
+            {
+              "name": "streaming_config.json",
+              "url": "https://download.moonshine.ai/model/small-streaming-en/quantized_26_07_30/streaming_config.json",
+              "size": 512,
+              "checksum": "dPbFiw==",
+              "checksum_type": "crc32c"
+            },
+            {
+              "name": "tokenizer.bin",
+              "url": "https://download.moonshine.ai/model/small-streaming-en/quantized_26_07_30/tokenizer.bin",
+              "size": 249974,
+              "checksum": "B7s10Q==",
+              "checksum_type": "crc32c"
+            }
+          ]
+        }
+      ]
+    },
+    "5": {
+      "groups": [
+        {
+          "base_url": "https://download.moonshine.ai/model/medium-streaming-en/quantized_26_07_30",
+          "files": [
+            {
+              "name": "adapter.ort",
+              "url": "https://download.moonshine.ai/model/medium-streaming-en/quantized_26_07_30/adapter.ort",
+              "size": 3651296,
+              "checksum": "Ds3Hsg==",
+              "checksum_type": "crc32c"
+            },
+            {
+              "name": "cross_kv.ort",
+              "url": "https://download.moonshine.ai/model/medium-streaming-en/quantized_26_07_30/cross_kv.ort",
+              "size": 11643776,
+              "checksum": "liqlOg==",
+              "checksum_type": "crc32c"
+            },
+            {
+              "name": "decoder_kv.ort",
+              "url": "https://download.moonshine.ai/model/medium-streaming-en/quantized_26_07_30/decoder_kv.ort",
+              "size": 146972408,
+              "checksum": "GPnzeQ==",
+              "checksum_type": "crc32c"
+            },
+            {
+              "name": "encoder.ort",
+              "url": "https://download.moonshine.ai/model/medium-streaming-en/quantized_26_07_30/encoder.ort",
+              "size": 94705376,
+              "checksum": "yWvDwA==",
+              "checksum_type": "crc32c"
+            },
+            {
+              "name": "frontend.ort",
+              "url": "https://download.moonshine.ai/model/medium-streaming-en/quantized_26_07_30/frontend.ort",
+              "size": 47467576,
+              "checksum": "5twbxQ==",
+              "checksum_type": "crc32c"
+            },
+            {
+              "name": "streaming_config.json",
+              "url": "https://download.moonshine.ai/model/medium-streaming-en/quantized_26_07_30/streaming_config.json",
+              "size": 513,
+              "checksum": "+1bE9Q==",
+              "checksum_type": "crc32c"
+            },
+            {
+              "name": "tokenizer.bin",
+              "url": "https://download.moonshine.ai/model/medium-streaming-en/quantized_26_07_30/tokenizer.bin",
+              "size": 249974,
+              "checksum": "B7s10Q==",
+              "checksum_type": "crc32c"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "bundles": [
+    {
+      "name": "base",
+      "files": 2,
+      "totalBytes": 2990,
+      "appJsBytes": 2914,
+      "copiedAssetBytes": 0
+    },
+    {
+      "name": "browser",
+      "files": 2,
+      "totalBytes": 9101,
+      "appJsBytes": 9025,
+      "copiedAssetBytes": 0
+    },
+    {
+      "name": "browser-with-assets",
+      "files": 35,
+      "totalBytes": 53153983,
+      "appJsBytes": 9025,
+      "copiedAssetBytes": 53144882
+    }
+  ],
+  "providerDevelopmentClosures": {
+    "moonshine": {
+      "packages": [
+        {
+          "name": "@moonshine-ai/moonshine-wasm",
+          "version": "0.1.5",
+          "bytes": 13734259
+        }
+      ],
+      "missing": [],
+      "totalBytes": 13734259
+    },
+    "transformers": {
+      "packages": [
+        {
+          "name": "onnxruntime-node",
+          "version": "1.14.0",
+          "bytes": 96371468
+        },
+        {
+          "name": "onnxruntime-web",
+          "version": "1.14.0",
+          "bytes": 68172947
+        },
+        {
+          "name": "@xenova/transformers",
+          "version": "2.17.2",
+          "bytes": 46618273
+        },
+        {
+          "name": "sharp",
+          "version": "0.32.6",
+          "bytes": 23736291
+        },
+        {
+          "name": "bare-url",
+          "version": "2.5.7",
+          "bytes": 3711553
+        },
+        {
+          "name": "protobufjs",
+          "version": "6.11.6",
+          "bytes": 2871861
+        },
+        {
+          "name": "@types/node",
+          "version": "24.13.3",
+          "bytes": 2543416
+        },
+        {
+          "name": "bare-buffer",
+          "version": "3.7.2",
+          "bytes": 1385652
+        },
+        {
+          "name": "bare-fs",
+          "version": "4.8.4",
+          "bytes": 1326142
+        },
+        {
+          "name": "onnxruntime-common",
+          "version": "1.14.0",
+          "bytes": 702876
+        },
+        {
+          "name": "bare-path",
+          "version": "3.1.3",
+          "bytes": 517355
+        },
+        {
+          "name": "node-addon-api",
+          "version": "6.1.0",
+          "bytes": 393771
+        },
+        {
+          "name": "onnx-proto",
+          "version": "4.0.4",
+          "bytes": 294342
+        },
+        {
+          "name": "@huggingface/jinja",
+          "version": "0.2.2",
+          "bytes": 182313
+        },
+        {
+          "name": "long",
+          "version": "4.0.0",
+          "bytes": 176654
+        },
+        {
+          "name": "readable-stream",
+          "version": "3.6.2",
+          "bytes": 123971
+        },
+        {
+          "name": "semver",
+          "version": "7.8.6",
+          "bytes": 118657
+        },
+        {
+          "name": "undici-types",
+          "version": "7.18.2",
+          "bytes": 113515
+        },
+        {
+          "name": "buffer",
+          "version": "5.7.1",
+          "bytes": 82527
+        },
+        {
+          "name": "flatbuffers",
+          "version": "1.12.0",
+          "bytes": 79346
+        },
+        {
+          "name": "bl",
+          "version": "4.1.0",
+          "bytes": 64427
+        },
+        {
+          "name": "streamx",
+          "version": "2.28.1",
+          "bytes": 62764
+        },
+        {
+          "name": "bare-stream",
+          "version": "2.13.4",
+          "bytes": 60779
+        },
+        {
+          "name": "minimist",
+          "version": "1.2.8",
+          "bytes": 54477
+        },
+        {
+          "name": "platform",
+          "version": "1.3.6",
+          "bytes": 47052
+        },
+        {
+          "name": "b4a",
+          "version": "1.9.0",
+          "bytes": 46650
+        },
+        {
+          "name": "@protobufjs/utf8",
+          "version": "1.1.2",
+          "bytes": 42558
+        },
+        {
+          "name": "bare-events",
+          "version": "2.9.2",
+          "bytes": 36926
+        },
+        {
+          "name": "prebuild-install",
+          "version": "7.1.3",
+          "bytes": 34180
+        },
+        {
+          "name": "tar-stream",
+          "version": "3.2.2",
+          "bytes": 34003
+        },
+        {
+          "name": "tar-fs",
+          "version": "2.1.5",
+          "bytes": 32792
+        },
+        {
+          "name": "safe-buffer",
+          "version": "5.2.1",
+          "bytes": 32101
+        },
+        {
+          "name": "tar-stream",
+          "version": "2.2.0",
+          "bytes": 27671
+        },
+        {
+          "name": "color-convert",
+          "version": "2.0.1",
+          "bytes": 27189
+        },
+        {
+          "name": "@protobufjs/float",
+          "version": "1.0.2",
+          "bytes": 26968
+        },
+        {
+          "name": "detect-libc",
+          "version": "2.1.2",
+          "bytes": 26437
+        },
+        {
+          "name": "text-decoder",
+          "version": "1.2.7",
+          "bytes": 19130
+        },
+        {
+          "name": "tar-fs",
+          "version": "3.1.3",
+          "bytes": 19012
+        },
+        {
+          "name": "node-abi",
+          "version": "3.101.0",
+          "bytes": 18671
+        },
+        {
+          "name": "rc",
+          "version": "1.2.8",
+          "bytes": 17255
+        },
+        {
+          "name": "color",
+          "version": "4.2.3",
+          "bytes": 16806
+        },
+        {
+          "name": "tunnel-agent",
+          "version": "0.6.0",
+          "bytes": 16679
+        },
+        {
+          "name": "simple-get",
+          "version": "4.0.1",
+          "bytes": 14971
+        },
+        {
+          "name": "@protobufjs/fetch",
+          "version": "1.1.1",
+          "bytes": 14872
+        },
+        {
+          "name": "string_decoder",
+          "version": "1.3.0",
+          "bytes": 14427
+        },
+        {
+          "name": "@types/long",
+          "version": "4.0.2",
+          "bytes": 13261
+        },
+        {
+          "name": "napi-build-utils",
+          "version": "2.0.0",
+          "bytes": 12670
+        },
+        {
+          "name": "events-universal",
+          "version": "1.0.1",
+          "bytes": 12617
+        },
+        {
+          "name": "@protobufjs/eventemitter",
+          "version": "1.1.1",
+          "bytes": 10310
+        },
+        {
+          "name": "color-string",
+          "version": "1.9.1",
+          "bytes": 10115
+        },
+        {
+          "name": "@protobufjs/codegen",
+          "version": "2.0.5",
+          "bytes": 9749
+        },
+        {
+          "name": "base64-js",
+          "version": "1.5.1",
+          "bytes": 9624
+        },
+        {
+          "name": "ini",
+          "version": "1.3.8",
+          "bytes": 9304
+        },
+        {
+          "name": "@protobufjs/base64",
+          "version": "1.1.2",
+          "bytes": 9224
+        },
+        {
+          "name": "deep-extend",
+          "version": "0.6.0",
+          "bytes": 9190
+        },
+        {
+          "name": "@protobufjs/aspromise",
+          "version": "1.1.2",
+          "bytes": 9055
+        },
+        {
+          "name": "pump",
+          "version": "3.0.4",
+          "bytes": 8913
+        },
+        {
+          "name": "@protobufjs/path",
+          "version": "1.1.2",
+          "bytes": 7770
+        },
+        {
+          "name": "ieee754",
+          "version": "1.2.1",
+          "bytes": 6796
+        },
+        {
+          "name": "color-name",
+          "version": "1.1.4",
+          "bytes": 6693
+        },
+        {
+          "name": "end-of-stream",
+          "version": "1.4.5",
+          "bytes": 6295
+        },
+        {
+          "name": "@protobufjs/pool",
+          "version": "1.1.0",
+          "bytes": 6249
+        },
+        {
+          "name": "mimic-response",
+          "version": "3.1.0",
+          "bytes": 6003
+        },
+        {
+          "name": "chownr",
+          "version": "1.1.4",
+          "bytes": 5709
+        },
+        {
+          "name": "util-deprecate",
+          "version": "1.0.2",
+          "bytes": 5481
+        },
+        {
+          "name": "decompress-response",
+          "version": "6.0.0",
+          "bytes": 5472
+        },
+        {
+          "name": "expand-template",
+          "version": "2.0.3",
+          "bytes": 5410
+        },
+        {
+          "name": "@protobufjs/inquire",
+          "version": "1.1.2",
+          "bytes": 5271
+        },
+        {
+          "name": "fast-fifo",
+          "version": "1.3.2",
+          "bytes": 5072
+        },
+        {
+          "name": "strip-json-comments",
+          "version": "2.0.1",
+          "bytes": 5061
+        },
+        {
+          "name": "teex",
+          "version": "1.0.1",
+          "bytes": 4794
+        },
+        {
+          "name": "simple-concat",
+          "version": "1.0.1",
+          "bytes": 4624
+        },
+        {
+          "name": "github-from-package",
+          "version": "0.0.0",
+          "bytes": 4608
+        },
+        {
+          "name": "guid-typescript",
+          "version": "1.0.9",
+          "bytes": 4549
+        },
+        {
+          "name": "mkdirp-classic",
+          "version": "0.5.3",
+          "bytes": 4498
+        },
+        {
+          "name": "simple-swizzle",
+          "version": "0.2.4",
+          "bytes": 4091
+        },
+        {
+          "name": "once",
+          "version": "1.4.0",
+          "bytes": 4046
+        },
+        {
+          "name": "inherits",
+          "version": "2.0.4",
+          "bytes": 3958
+        },
+        {
+          "name": "is-arrayish",
+          "version": "0.3.4",
+          "bytes": 3150
+        },
+        {
+          "name": "wrappy",
+          "version": "1.0.2",
+          "bytes": 2961
+        },
+        {
+          "name": "fs-constants",
+          "version": "1.0.0",
+          "bytes": 2223
+        }
+      ],
+      "missing": [],
+      "totalBytes": 250576543
+    }
+  },
+  "optionalDependencyFixture": [
+    {
+      "omitOptional": false,
+      "installed": ["a", "b"]
+    },
+    {
+      "omitOptional": true,
+      "installed": []
+    }
+  ],
+  "assertions": [
+    "packed exports have no source condition",
+    "clean npm install has no required runtime dependencies",
+    "base engine runs in Node",
+    "browser model load fails clearly in Node",
+    "optional dependencies install by default and are omitted together"
+  ]
+}
