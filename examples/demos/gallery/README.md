@@ -12,9 +12,8 @@ pnpm build
 pnpm preview
 ```
 
-The copy includes built Katakit tarballs and local dependency overrides while the libraries
-are unpublished. Keep `vendor/` with it. The gallery also carries its composed demo sources under `sources/` and plain shared CSS under `styles/`.
-No original checkout is needed after copying. Follow the platform and hosting instructions below.
+Katakit `0.0.0` is not yet published on npm; standalone installation requires its publication.
+The gallery copy includes demo sources under `sources/` and shared CSS under `styles/`.
 
 This is the local TanStack Start host for the React demo gallery. It runs without the private
 website, account credentials, or a model-provider key. Install dependencies from the Katakit root:

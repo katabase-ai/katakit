@@ -23,7 +23,7 @@ unrelated work.
 - Recognition and model adapters expose general callbacks outside the plugin runtime.
   The application owns event schemas, input sources, credentials, admission, and storage.
 - Keep publishable libraries in `pkgs/`. Private build tools belong under
-  `internal/packages/` and CSS-only assets under `internal/site-ui/`. Copyable demos and
+  `internal/pkgs/` and CSS-only assets under `internal/site-ui/`. Copyable demos and
   starters in `examples/` must not depend on internal tools. The gallery's composition
   exception must be materialized by the copy workflow.
 

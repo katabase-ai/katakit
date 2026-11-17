@@ -20,7 +20,7 @@ const fixture = t => {
   };
   write(
     'pnpm-workspace.yaml',
-    "packages:\n  - 'pkgs/*'\n  - 'internal/packages/*'\n  - 'examples/demos/*'\n  - 'docs'\n\nlinkWorkspacePackages: true\n"
+    "packages:\n  - 'pkgs/*'\n  - 'internal/pkgs/*'\n  - 'examples/demos/*'\n  - 'docs'\n\nlinkWorkspacePackages: true\n"
   );
   write(
     'pkgs/core/package.json',
@@ -33,7 +33,7 @@ const fixture = t => {
   );
   write('pkgs/core/src/index.ts', 'export const value = 1;');
   write(
-    'internal/packages/docs-export/package.json',
+    'internal/pkgs/docs-export/package.json',
     JSON.stringify({ name: '@katakit/docs-export', private: true })
   );
   write('internal/site-ui/styles.css', "@import './components.css';");
@@ -73,11 +73,7 @@ const rejects = (t, mutate, expected) => {
 };
 
 test('public libraries, private tools, CSS assets, composed gallery, and independent examples pass', t => {
-  const { root, write, manifest } = fixture(t);
-  write('examples/starters/react-web/vendor/core.tgz', 'bundled library fixture');
-  manifest('examples/starters/react-web', value => {
-    value.dependencies['@katakit/core'] = 'file:vendor/core.tgz';
-  });
+  const { root } = fixture(t);
   assert.deepEqual(checkStructure(root), []);
 });
 test('private packages cannot live under pkgs', t =>
@@ -93,7 +89,7 @@ test('internal build tools must stay private', t =>
   rejects(
     t,
     ({ manifest }) =>
-      manifest('internal/packages/docs-export', value => {
+      manifest('internal/pkgs/docs-export', value => {
         delete value.private;
       }),
     /tool packages must declare private/
@@ -170,7 +166,7 @@ test('shared CSS cannot import files elsewhere in the repository', t =>
       ),
     /shared CSS imports must stay inside/
   ));
-test('other private tools cannot create manifests outside internal/packages', t =>
+test('other private tools cannot create manifests outside internal/pkgs', t =>
   rejects(
     t,
     ({ write }) => write('internal/loose-tool/package.json', '{"private":true}'),

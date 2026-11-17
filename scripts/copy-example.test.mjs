@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { lstatSync, mkdtempSync, readlinkSync, rmSync, symlinkSync } from 'node:fs';
+import {
+  existsSync,
+  lstatSync,
+  mkdtempSync,
+  readFileSync,
+  readlinkSync,
+  rmSync,
+  symlinkSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -8,8 +16,8 @@ import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const script = join(root, 'scripts/copy-example.mjs');
-const copy = target =>
-  spawnSync(process.execPath, [script, 'starters/react-web', target], { encoding: 'utf8' });
+const copy = (target, example = 'starters/react-web') =>
+  spawnSync(process.execPath, [script, example, target], { encoding: 'utf8' });
 
 test('rejects an existing dangling symlink instead of following or replacing it', () => {
   const temp = mkdtempSync(join(tmpdir(), 'katakit-copy-destination-'));
@@ -39,14 +47,30 @@ test('rejects a destination routed into the checkout through a symlinked parent'
   }
 });
 
-test('copies a starter to a new external directory', () => {
-  const temp = mkdtempSync(join(tmpdir(), 'katakit-copy-destination-'));
-  try {
-    const target = join(temp, 'nested', 'copy');
-    const result = copy(target);
-    assert.equal(result.status, 0, result.stderr);
-    assert.ok(lstatSync(join(target, 'package.json')).isFile());
-  } finally {
-    rmSync(temp, { recursive: true, force: true });
-  }
-});
+for (const example of ['starters/react-web', 'demos/transcription-react', 'demos/gallery']) {
+  test(`copies ${example} with registry dependencies and no bundled packages`, () => {
+    const temp = mkdtempSync(join(tmpdir(), 'katakit-copy-destination-'));
+    try {
+      const target = join(temp, 'nested', 'copy');
+      const result = copy(target, example);
+      assert.equal(result.status, 0, result.stderr);
+      assert.ok(lstatSync(join(target, 'package.json')).isFile());
+      assert.equal(
+        readFileSync(join(target, 'package.json'), 'utf8'),
+        readFileSync(join(root, 'examples', example, 'package.json'), 'utf8')
+      );
+      assert.equal(existsSync(join(target, 'vendor')), false);
+      assert.doesNotMatch(
+        readFileSync(join(target, 'pnpm-workspace.yaml'), 'utf8'),
+        /overrides:|file:/
+      );
+      if (example === 'demos/gallery') {
+        assert.ok(existsSync(join(target, 'sources/notes-react/src/NotesDemo.tsx')));
+        assert.ok(existsSync(join(target, 'styles/components.css')));
+        assert.match(readFileSync(join(target, 'shared/gallery.css'), 'utf8'), /\.\.\/styles\//);
+      }
+    } finally {
+      rmSync(temp, { recursive: true, force: true });
+    }
+  });
+}

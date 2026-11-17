@@ -7,10 +7,7 @@ copy workflow for those source inputs; follow its narrower instructions.
 - A user must be able to run `pnpm examples:copy demos/<name> <destination>` and
   install/build/run that copy without this checkout. No sibling imports, private packages,
   escaping symlinks, workspace-only versions, or source aliases inside a feature demo.
-- Published Katakit APIs and ordinary public npm dependencies are allowed. Before a
-  registry release, `examples:copy` bundles built Katakit archives and transitive
-  overrides. A `0.0.0` dependency resolved by workspace linking is not proof of
-  standalone installation.
+- Use public Katakit APIs and registry dependencies.
 - Keep demo-specific plugins local. Durable content derives from logged events; transient
   microphone, network, retry, and display state can remain local. Existing Bingo state
   subjects are migration debt, not a model for new plugins.

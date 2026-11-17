@@ -2,7 +2,7 @@
 
 Follow [library standards](../CONTRIBUTING.md#add-or-change-a-library) and each package's
 scoped instructions. All packages here are intended for publication under `@katakit/`;
-private tools belong in `internal/packages/`.
+private tools belong in `internal/pkgs/`.
 
 - Export supported APIs through `package.json` entry points and generated declarations.
   Keep the development `source` condition out of published exports. Private tools must
@@ -20,4 +20,4 @@ private tools belong in `internal/packages/`.
 - Test meaningful contracts: replay, ordering, failure/retry behavior, cancellation,
   ownership, and public typing. Use controlled inputs rather than timing sleeps.
 - Runtime source cannot import examples, docs, internal assets, or private tool APIs.
-  Check affected standalone copies and rebuild their archives when library source changes.
+  Check affected standalone copies against freshly packed libraries when source changes.

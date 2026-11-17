@@ -4,7 +4,9 @@ Record English speech in the browser with Moonshine Tiny. Finalized segments go 
 
 ## Copy and run
 
-Use Node.js 24+ and pnpm 11.9.0. Copy this entire directory, including `vendor/`, outside the repository, then run from inside the copy:
+Katakit `0.0.0` is not yet published on npm; standalone installation requires its publication.
+
+Use Node.js 24+ and pnpm 11.9.0. Copy this entire directory outside the repository, then run from inside the copy:
 
 ```sh
 pnpm install
@@ -21,4 +23,4 @@ Open Vite's localhost URL. Click **Start recording**, allow microphone access, s
 - `vite.config.ts` includes packaged workers, worklet, WASM and SDK assets. Replace the input or render path here without importing files from a sibling demo. Stop and dispose the input before switching models.
 - `test/katakit.test.mjs` checks finalized speech and flushing without a microphone. In a separate manual check on **macOS 15.6 / Chrome 157**, the user observed model-loading progress, a final Katakit turn from spoken audio, another turn after Stop/Start, turns disappearing on reload, and a usable permission-denied error when Chrome's mic permission was blocked. A cold-cache first download, provisional-text display, other browsers, and deployed HTTPS/COOP/COEP isolation have not yet been verified.
 
-Katakit packages are unpublished. `vendor/` carries built `@katakit/core`, `@katakit/transcript-ingestion`, and `@katakit/transcription` archives with licenses; `pnpm-workspace.yaml` resolves their transitive references inside a copied project. Rebuild all affected archives from the same source revision when their source changes. The model weights are **not** bundled, and npm dependencies are fetched during install. No microphone audio or transcript is sent to an application server by this starter; model downloads contact the provider. For the shared API, see the [Katakit reference](https://github.com/katabase-ai/katakit/tree/main/docs/pages/reference).
+Model weights download from the provider on first use. No microphone audio or transcript is sent to an application server by this starter. For the shared API, see the [Katakit reference](https://github.com/katabase-ai/katakit/tree/main/docs/pages/reference).

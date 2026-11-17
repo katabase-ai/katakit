@@ -1,6 +1,6 @@
 # Platform starters
 
-Read the [starter checklist](README.md) for copyability, vendor archives,
+Read the [starter checklist](README.md) for copyability, registry dependencies,
 platform verification, and the maturity of each starter.
 
 - Each starter is an independent pnpm project outside the root workspace. Run its own
@@ -10,9 +10,7 @@ platform verification, and the maturity of each starter.
 - Example-owned application content must derive from an event log. The MCP App's current
   writable notes subject is a migration gap, not the recommended plugin pattern.
 - Use local plain CSS and avoid consumer Tailwind setup or private component dependencies.
-- Until registry publication, include every required Katakit archive and transitive
-  override locally. Rebuild archives from an identified source revision; verify their
-  contents rather than assuming a same-version archive matches source.
+- Declare registry versions in the starter's dependency manifest.
 - Run `pnpm templates:check` and `pnpm templates:copy-check <directory-name>` from the
   repository root for changed starters. Preserve checks for ordering, cleanup, permissions,
   and platform failures. Run the documented manual target-platform check before calling
