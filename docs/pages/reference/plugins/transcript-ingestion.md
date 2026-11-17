@@ -17,7 +17,10 @@ Configure the plugin with `.configure({})` and register it with `makeKatakit`. T
 - `reset()`: begin a new session by clearing completed and current turns, provisional text, the pending timer, and seen segment IDs. It publishes a local reset event without finalizing the old turn.
 - `close()`: flush, cancel the timer, and complete the live event stream. The application must stop its audio or transcript source separately.
 
-The plugin does not require an event log. To forward selected events into an application-owned log, provide `forward.createEvent` and `forward.emitEvent` when constructing the plugin:
+## Event-log forwarding
+
+Transcript state is assembled locally. To forward selected events into an application-owned
+log, provide `forward.createEvent` and `forward.emitEvent` when constructing the plugin:
 
 ```ts
 const TranscriptIngestionPlugin = makeTranscriptIngestionPlugin({

@@ -1,56 +1,128 @@
-# katakit
+# Katakit
 
-Workspace packages expose their public APIs through package-root imports:
-`@katakit/core`, `@katakit/event-log`, and `@katakit/persistence`. React applications
-should use [React-RxJS bindings](docs/pages/getting-started/react.md) to render
-runtime observables. `@katakit/react` is reserved for future React-specific APIs.
+Katakit is an open-source TypeScript developer kit for building voice-to-visual UI: interfaces
+that take part in a conversation. Turn spoken words into something people can see, play with,
+and shape together.
 
-The standalone [`@katakit/transcription`](pkgs/transcription/README.md) package supplies Moonshine/Whisper
-recognition, a browser microphone helper, and WASM/worker asset setup without React or
-a plugin-system dependency.
+Compose typed plugins for live state, actions, and asynchronous work, independently of your UI
+framework. Build around typed event history, connect speech recognition and conversation turns,
+and add persistence through your own storage.
 
-## Development
+[Getting started](docs/pages/getting-started/README.md) · [Demos](demos/gallery/README.md) ·
+[Starters](docs/pages/starters/README.md) · [Documentation](docs/pages/reference/README.md)
 
-- `pnpm tsc` checks every package, including tests, using its own `tsconfig.json`.
-- `pnpm test:ci` runs workspace tests.
-- `pnpm build` builds each library's JavaScript and declarations and the docs site.
+We're sharing an early collection of patterns and examples from our work on **voice-to-visual
+interfaces**. The packages are currently version `0.0.0` and unpublished; the copyable starters
+include built Katakit packages so you can try them before a registry release.
 
-Package configs select the `source` export condition for typechecking. Event-log
-and persistence tests also select it, so editing core requires no intervening
-build. Vite consumers can select it through `resolve.conditions` and, for SSR,
-`ssr.resolve.conditions`. Default package imports use the built `dist/` entry.
+## Why Katakit?
 
-There is no root TypeScript config or workspace source-path alias.
+When people talk and AI participates visually, a conversation can become a shared outline,
+diagram, or plan. Building that interaction means connecting changing inputs, application
+behavior, and a responsive UI. Katakit gives you composable foundations for exploring it:
 
-Pull requests build standalone docs and gallery previews. Same-repository PRs
-upload them to Cloudflare Workers and get preview links in PR comments. See
-[preview setup and verification](.github/PREVIEWS.md) for the required account,
-token, and initial Worker deployments.
+- **Compose behavior.** Combine plugins for your application's state, actions, and asynchronous work.
+- **Connect your own inputs and UI.** Use speech, supplied text, or another source, and render the
+  result in the interface that fits your application.
+- **Keep history explicit.** Use validated events to drive application state, and add persistent
+  storage when you need it.
+
+Plugins expose RxJS **observables**, callable **methods**, and reactive **effects**. Applications
+own their UI, input sources, model connections, and storage. The same runtime can support a
+voice-driven interface, a chat interaction, or another responsive application.
+
+Read [Why Katakit?](docs/pages/why-katakit.md) for the motivation and the questions we're exploring.
+
+## A small example
+
+Record a typed event and observe it through the runtime's replayable history. This example uses
+supplied text so you can see the behavior without a microphone or model. It uses Valibot as its
+synchronous Standard Schema validator:
+
+```ts
+import { makeKatakit } from '@katakit/core';
+import { makeEventLogPlugin } from '@katakit/event-log';
+import * as v from 'valibot';
+
+const EventLog = makeEventLogPlugin({
+  validateEvent: v.strictObject({
+    type: v.literal('message'),
+    text: v.string(),
+  }),
+});
+const kit = makeKatakit({ plugins: [EventLog.configure({ initialEvents: [] })] }).start();
+const { events$ } = kit.getObservables(EventLog);
+const { emitEvent } = kit.getMethods(EventLog);
+
+const subscription = events$.subscribe(event => {
+  console.log(event.text);
+});
+
+emitEvent({ type: 'message', text: 'Let’s map the next steps.' });
+console.log(events$.getAll().length); // 1
+
+subscription.unsubscribe();
+```
+
+The subscription logs `Let’s map the next steps.`; the history contains one validated event.
+New subscribers receive recorded events before subsequent live events. Plugins can derive
+application state from this history; saving it across visits requires a storage connection.
+
+For live speech, connect the transcription utility's `onFinal`, `onProvisional`, and `onStop`
+callbacks to the ingestion methods. The [React web starter](templates/react-web/README.md)
+includes recognition, model assets, microphone controls, UI, and cleanup. The
+[conversation bingo demo](demos/bingo-react/README.md) adds a custom plugin that turns recognized
+phrases into changes on a game board.
+
+## Try Katakit
+
+- **Explore a demo:** run the [gallery](demos/gallery/README.md) to try local transcription,
+  conversation bingo, and structured notes. Transcription runs locally; generating structured
+  notes requires a host-supplied model connection. Each example links to its source and setup.
+- **Start an application:** copy the [React web starter](templates/react-web/README.md), including
+  its `vendor/` directory, then follow its install and run instructions. First use downloads a
+  speech model; no paid speech account is needed.
+
+The [starter catalog](docs/pages/starters/README.md) also covers Electron, Chrome extensions,
+experimental Obsidian desktop integration, and a work-in-progress MCP App. Each guide records
+platform setup, permissions, and current verification.
+
+## Packages and plugins
+
+| Package                                                              | Kind    | What it provides                                                                                               |
+| -------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------- |
+| [@katakit/core](pkgs/core/README.md)                                 | Runtime | Typed plugin composition, effects, and reactive primitives.                                                    |
+| [@katakit/transcript-ingestion](pkgs/transcript-ingestion/README.md) | Plugin  | Finalized text segments grouped into observable conversation turns.                                            |
+| [@katakit/event-log](pkgs/event-log/README.md)                       | Plugin  | Validated live events and replayable in-memory history.                                                        |
+| [@katakit/persistence](pkgs/persistence/README.md)                   | Plugin  | Batched event writes through your storage callback or browser local storage.                                   |
+| [@katakit/transcription](pkgs/transcription/README.md)               | Utility | Moonshine/Whisper recognition, browser microphone and PCM helpers, runtime assets, and an optional React hook. |
+
+The transcription utility works independently of the plugin runtime. Add persistent storage
+through your own adapter when you need events to survive a reload.
+React applications render runtime observables with [React-RxJS](docs/pages/getting-started/react.md).
 
 ## Documentation
 
-Katakit owns authored documentation in `docs/pages/` and API descriptions in
-public source declarations and JSDoc. `pnpm docs:export` combines both into a
-portable Markdown bundle; the Katabase website consumes it and owns HTML,
-search, styling, and deployment.
+- [Getting started](docs/pages/getting-started/README.md) — assemble your first runtime.
+- [Plugin model](docs/pages/concepts/plugins.md) — understand observables, methods, and effects.
+- [React integration](docs/pages/getting-started/react.md) — render runtime state and connect speech.
+- [Transcription](docs/pages/reference/transcription.md) — configure recognition and its resources.
+- [Reference](docs/pages/reference/README.md) — explore the reusable building blocks and API guidance.
 
-`pnpm -F @katakit/docs dev` previews the authored pages locally; it does not include generated
-API reference. See the [contributor instructions](docs/AGENTS.md) for editing and
-checks, and the [export contract](docs/EXPORT.md) for commands, package coverage,
-and the distinction between the local viewer and website publication.
+## Development and contributing
 
-## Demo gallery
+Use Node.js 24+ and pnpm 11.9.0. From the repository root:
 
-Run `pnpm -F @katakit/gallery dev` for the demo index and individual demo pages, or
-`pnpm -F @katakit/gallery build` to build the static site. See [demos/gallery/README.md](demos/gallery/README.md)
-for adding demos and the hosting requirements for microphone transcription.
-The [Chrome extension template](templates/chrome-extension/README.md) is a minimal
-audio-capable host. The [conversation bingo demo](demos/bingo-extension/README.md)
-shows it in use as a Chrome side-panel game.
-The [browser bingo example](demos/bingo-react/README.md) and the extension
-example each contain their own UI, styling, board state, and audio host. Each
-example README documents how to copy it outside the repository, install its
-dependencies, and run it independently.
+```sh
+pnpm install --frozen-lockfile
+pnpm tsc
+pnpm test:ci
+pnpm build
+```
+
+See [Contributing](CONTRIBUTING.md) for workspace conventions, the complete checks, documentation,
+and previews. Try an example, adapt it to something you care about, and share what you build or
+where the pieces get in your way through [GitHub issues](https://github.com/katabase-ai/katakit/issues).
 
 ## License
 
