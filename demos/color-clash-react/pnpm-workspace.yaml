@@ -1,0 +1,5 @@
+# Retain these install settings when copying the example outside this repository.
+allowBuilds:
+  esbuild: true
+minimumReleaseAgeExclude:
+  - '@types/node@24.13.3'

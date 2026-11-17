@@ -9,7 +9,7 @@ pnpm -F @katakit/gallery dev
 ```
 
 Open <http://127.0.0.1:4347>. The directory is `/`; React demos are at `/demos/transcription`,
-`/demos/bingo`, and `/demos/notes`. Notes transcription runs locally; generating notes requires
+`/demos/bingo`, `/demos/color-clash`, and `/demos/notes`. Notes transcription runs locally; generating notes requires
 a host-supplied model connection. Extension setup pages are outside this catalogue. Direct links and unknown-demo
 responses are handled by Start. Browser-only demo modules mount after hydration, not during SSR.
 
@@ -44,6 +44,8 @@ and typography and does not import the global site-ui reset.
 Pass the chosen entries, active entry, a host link renderer, and active content to `Gallery`.
 Pass `GallerySpeechControls` through its `input` slot; demo views receive no extra microphone or
 model selector. A host can provide its own model-select renderer to these shared controls.
+Color Clash starts capture through its Play action; hosts set `showCaptureControls={false}`
+on the sidebar controls for that view to retain model setup without another start button.
 Each host owns its URLs, title metadata, not-found/loading/error handling, and router registration.
 Adding an entry here makes it eligible; each consuming website still chooses what to include.
 Examples continue to own their code and never import private website components.

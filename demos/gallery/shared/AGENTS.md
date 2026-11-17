@@ -19,3 +19,6 @@ source checkout. They do not own application bootstraps, routing, or private ser
 - Hosts pass the shared input controls to Gallery’s input slot. Keep them outside demo views and
   navigation landmarks; only the demo body remounts. Desktop controls anchor to the sidebar bottom;
   mobile controls reserve their measured height and stay visible. `#gallery-shared-controls`
+- Timed games may start and stop shared capture through their Play action. Hosts set
+  `showCaptureControls={false}` for these views so the sidebar retains model setup without a second
+  start button. Their adapters still acquire and release an ordinary runtime lease.

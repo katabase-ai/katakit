@@ -114,7 +114,7 @@ export const ColorClash = ({
           </div>
         ) : (
           <div className="color-clash-message">
-            <h3>{state.phase === 'finished' ? 'Time’s up' : 'Color Clash'}</h3>
+            <h1>{state.phase === 'finished' ? 'Time’s up' : 'Color Clash'}</h1>
             {preparing ? (
               <>
                 <p role="status">

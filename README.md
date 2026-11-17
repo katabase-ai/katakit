@@ -52,6 +52,9 @@ example each contain their own UI, styling, board state, and audio host. Each
 example README documents how to copy it outside the repository, install its
 dependencies, and run it independently.
 
+The [Color Clash example](demos/color-clash-react/README.md) is a standalone React
+game driven only by local transcription. It also appears in the demo gallery.
+
 ## License
 
 Licensed under the Apache License, Version 2.0. See [LICENSE](LICENSE).

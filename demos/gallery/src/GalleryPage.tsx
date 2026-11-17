@@ -11,7 +11,7 @@ export const GalleryPage = ({ demo }: { demo?: (typeof galleryDemos)[number] }) 
     <Gallery
       demos={galleryDemos}
       activeDemo={demo}
-      input={<GallerySpeechControls />}
+      input={<GallerySpeechControls showCaptureControls={demo?.id !== 'color-clash'} />}
       renderLink={({ demo: entry, children, current }) =>
         entry ? (
           <Link

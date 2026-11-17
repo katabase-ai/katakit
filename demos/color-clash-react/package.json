@@ -1,0 +1,32 @@
+{
+  "name": "@katakit/demo-color-clash-react",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "tsc": "tsc --noEmit",
+    "test:ci": "vitest run"
+  },
+  "dependencies": {
+    "@katakit/transcription": "0.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.1.0",
+    "@types/node": "24.13.3",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "happy-dom": "^18.0.1",
+    "typescript": "^7.0.2",
+    "vite": "8.2.2",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@11.9.0"
+}
