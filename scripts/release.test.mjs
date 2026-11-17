@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { copyFileSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -11,7 +11,9 @@ import {
   registryResult,
   releaseNotes,
   validateArchive,
+  waitForVersion,
 } from './release.mjs';
+import { prepareRelease } from './prepare-release.mjs';
 import { withExamplePackages } from './example-test-packages.mjs';
 
 const manifest = (name, version, extra = {}) => ({ name: `@katakit/${name}`, version, ...extra });
@@ -61,6 +63,70 @@ test('CLI plans the exact Git snapshots even when HEAD and working files have mo
   assert.equal(plan.length, 1);
   assert.equal(plan[0].version, '0.1.0');
   assert.equal(plan[0].notes, 'Notes for 0.1.0.');
+});
+
+test('recovery uses current tooling but preserves the original release package and build snapshot', t => {
+  const directory = mkdtempSync(join(tmpdir(), 'katakit-release-recovery-'));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const git = (...args) => execFileSync('git', args, { cwd: directory, encoding: 'utf8' }).trim();
+  git('init', '-q');
+  git('config', 'core.autocrlf', 'false');
+  git('config', 'core.hooksPath', join(directory, 'no-hooks'));
+  mkdirSync(join(directory, 'scripts'));
+  mkdirSync(join(directory, 'pkgs/core'), { recursive: true });
+  const commit = (version, runner) => {
+    writeFileSync(
+      join(directory, 'pkgs/core/package.json'),
+      JSON.stringify(manifest('core', version))
+    );
+    writeFileSync(join(directory, 'pnpm-lock.yaml'), `snapshot: ${version}\n`);
+    writeFileSync(join(directory, 'scripts/build.mjs'), `// build ${version}\n`);
+    writeFileSync(join(directory, 'scripts/release.mjs'), runner);
+    git('add', '.');
+    git(
+      '-c',
+      'user.name=Release Test',
+      '-c',
+      'user.email=test@example.invalid',
+      'commit',
+      '-qm',
+      version
+    );
+    return git('rev-parse', 'HEAD');
+  };
+  const base = commit('0.0.0', '// old runner\n');
+  const release = commit('0.1.0', '// old runner\n');
+  const tooling = commit('0.2.0', '// corrected runner\n');
+
+  assert.throws(() => prepareRelease('main', release, directory), /full base and release/);
+  assert.throws(() => prepareRelease(tooling, release, directory));
+  assert.equal(git('rev-parse', 'HEAD'), tooling);
+  writeFileSync(join(directory, 'scripts/build.mjs'), '// user work\n');
+  assert.throws(() => prepareRelease(base, release, directory));
+  assert.equal(readFileSync(join(directory, 'scripts/build.mjs'), 'utf8'), '// user work\n');
+  git('restore', 'scripts/build.mjs');
+
+  assert.deepEqual(prepareRelease(base, release, directory), {
+    baseSha: base,
+    releaseSha: release,
+    toolingSha: tooling,
+  });
+  assert.equal(git('rev-parse', 'HEAD'), release);
+  assert.equal(
+    readFileSync(join(directory, 'scripts/release.mjs'), 'utf8'),
+    '// corrected runner\n'
+  );
+  assert.equal(git('diff', '--name-only'), 'scripts/release.mjs');
+  assert.equal(readFileSync(join(directory, 'pnpm-lock.yaml'), 'utf8'), 'snapshot: 0.1.0\n');
+  assert.equal(readFileSync(join(directory, 'scripts/build.mjs'), 'utf8'), '// build 0.1.0\n');
+  assert.equal(
+    JSON.parse(readFileSync(join(directory, 'pkgs/core/package.json'))).version,
+    '0.1.0'
+  );
+
+  // Recovery cannot select a release newer than its trusted tooling checkout.
+  assert.throws(() => prepareRelease(base, tooling, directory));
+  assert.equal(git('rev-parse', 'HEAD'), release);
 });
 
 test('selects only bumped public libraries, including a new package', () => {
@@ -273,6 +339,88 @@ const fixture = () => {
   };
   return { events, published, tags, releases, io, record };
 };
+
+const visibilityClock = lookup => {
+  let time = 0;
+  const delays = [];
+  const messages = [];
+  return {
+    delays,
+    messages,
+    io: {
+      lookup,
+      now: () => time,
+      sleep: async ms => {
+        delays.push(ms);
+        time += ms;
+      },
+      log: message => messages.push(message),
+    },
+  };
+};
+
+test('waits beyond the old thirty-second limit and verifies matching published contents', async () => {
+  const pkg = item('core');
+  const published = fixture().record(pkg);
+  let calls = 0;
+  const { io, delays, messages } = visibilityClock((name, version) => {
+    assert.equal(name, pkg.name);
+    assert.equal(version, pkg.version);
+    return ++calls === 25 ? published : null;
+  });
+  assert.equal(await waitForVersion(pkg, io), published);
+  assert.equal(
+    delays.reduce((sum, delay) => sum + delay, 0),
+    6 * 60 * 1000
+  );
+  assert.match(messages[0], /Waiting for @katakit\/core@0.1.0/);
+  assert.match(messages.at(-1), /Verified.*360s/);
+});
+
+test('visibility timeout is bounded and does not retry publishing', async () => {
+  let calls = 0;
+  const { io, delays } = visibilityClock(() => {
+    calls++;
+    return null;
+  });
+  await assert.rejects(
+    waitForVersion(item('core'), io, { timeoutMs: 40000, intervalMs: 15000 }),
+    /after 40s.*Publication may already have succeeded/
+  );
+  assert.equal(calls, 3);
+  assert.deepEqual(delays, [15000, 15000, 10000]);
+});
+
+test('visibility checks fail immediately on lookup errors or conflicting contents', async () => {
+  for (const lookup of [
+    () => {
+      throw new Error('authentication failed');
+    },
+    () => fixture().record({ ...item('core'), integrity: 'different' }),
+  ]) {
+    const { io, delays } = visibilityClock(lookup);
+    await assert.rejects(
+      waitForVersion(item('core'), io),
+      /authentication failed|different contents/
+    );
+    assert.deepEqual(delays, []);
+  }
+});
+
+test('resuming after a visibility timeout skips the package once its matching version is visible', async () => {
+  const { io, events, tags, published } = fixture();
+  const packages = [item('core'), item('event-log')];
+  const wait = io.waitForVersion;
+  io.waitForVersion = pkg =>
+    waitForVersion(pkg, visibilityClock(() => null).io, { timeoutMs: 100, intervalMs: 50 });
+  await assert.rejects(executeRelease(packages, 'original-merge', io), /not visible/);
+  assert.equal(published.size, 1);
+  assert.equal(tags.size, 0);
+  io.waitForVersion = wait;
+  await executeRelease(packages, 'original-merge', io);
+  assert.equal(events.filter(event => event === 'publish @katakit/core').length, 1);
+  assert.deepEqual([...tags.values()], ['original-merge', 'original-merge']);
+});
 
 test('publishes all packages before tagging the exact merge SHA and creating releases', async () => {
   const { events, tags, io } = fixture();

@@ -107,7 +107,45 @@ export const registryResult = result => {
   throw new Error(`npm registry lookup failed: ${result.stderr || JSON.stringify(value)}`);
 };
 const lookup = (name, version) =>
-  registryResult(command('npm', ['view', `${name}@${version}`, '--json', '--registry', registry]));
+  registryResult(
+    command('npm', [
+      'view',
+      `${name}@${version}`,
+      '--json',
+      '--registry',
+      registry,
+      '--fetch-retries=0',
+      '--fetch-timeout=15000',
+      '--prefer-online',
+    ])
+  );
+
+// Registry metadata can lag a successful upload by minutes, especially for new packages.
+export const waitForVersion = async (
+  item,
+  { lookup, now = Date.now, sleep = setTimeout, log = console.log },
+  { timeoutMs = 10 * 60 * 1000, intervalMs = 15 * 1000 } = {}
+) => {
+  const started = now();
+  const deadline = started + timeoutMs;
+  while (now() < deadline) {
+    const published = await lookup(item.name, item.version);
+    if (published) {
+      verifyPublished(item, published);
+      log(`Verified ${item.tag} on npm after ${Math.round((now() - started) / 1000)}s.`);
+      return published;
+    }
+    const remaining = deadline - now();
+    if (remaining <= 0) break;
+    log(
+      `Waiting for ${item.tag} npm metadata (${Math.round((now() - started) / 1000)}s elapsed; ${Math.ceil(remaining / 1000)}s remaining).`
+    );
+    await sleep(Math.min(intervalMs, remaining));
+  }
+  throw new Error(
+    `${item.tag} is not visible on npm after ${timeoutMs / 1000}s. Publication may already have succeeded; inspect npm visibility or pending stages before resuming this release.`
+  );
+};
 
 export const validateArchive = (item, manifest, files) => {
   if (manifest.name !== item.name || manifest.version !== item.version || manifest.private)
@@ -286,27 +324,22 @@ const main = async () => {
       checkTag,
       publish: item => {
         console.log(`Publishing ${item.tag}`);
-        run('pnpm', [
-          'publish',
-          item.archive,
-          '--no-git-checks',
-          '--ignore-scripts',
-          '--access',
-          'public',
-          '--tag',
-          'latest',
-          '--registry',
-          registry,
-        ]);
+        console.log(
+          run('pnpm', [
+            'publish',
+            item.archive,
+            '--no-git-checks',
+            '--ignore-scripts',
+            '--access',
+            'public',
+            '--tag',
+            'latest',
+            '--registry',
+            registry,
+          ])
+        );
       },
-      waitForVersion: async item => {
-        for (let attempt = 0; attempt < 6; attempt++) {
-          const published = lookup(item.name, item.version);
-          if (published) return published;
-          await setTimeout(5000);
-        }
-        throw new Error(`${item.tag} is not visible on npm yet; rerun this workflow`);
-      },
+      waitForVersion: item => waitForVersion(item, { lookup }),
       pushTags,
       release: item => githubRelease(item, temporary),
     });
