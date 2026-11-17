@@ -117,6 +117,40 @@ test('compares numeric version components and rejects downgrades, invalid versio
   );
 });
 
+test('temporary major-bump policy rejects major increases and initial 1.x releases', () => {
+  for (const [before, after] of [
+    ['0.9.0', '1.0.0'],
+    ['1.2.3', '2.0.0'],
+    [null, '1.0.0'],
+  ]) {
+    assert.throws(
+      () =>
+        planRelease(
+          before ? { 'pkgs/core': manifest('core', before) } : {},
+          { 'pkgs/core': manifest('core', after) },
+          () => assert.fail('Major bump must fail before reading release notes')
+        ),
+      /major version bumps are temporarily disabled/
+    );
+  }
+});
+
+test('minor and patch releases remain allowed within the current major', () => {
+  for (const [before, after] of [
+    ['0.1.0', '0.2.0'],
+    ['0.1.0', '0.1.1'],
+    ['1.2.3', '1.3.0'],
+    ['1.2.3', '1.2.4'],
+  ]) {
+    const plan = planRelease(
+      { 'pkgs/core': manifest('core', before) },
+      { 'pkgs/core': manifest('core', after) },
+      () => `## ${after}\n\nChange.`
+    );
+    assert.equal(plan[0].version, after);
+  }
+});
+
 test('extracts exactly the selected changelog section and requires nonempty unique notes', () => {
   assert.equal(releaseNotes(notes().replaceAll('\n', '\r\n'), '0.1.0'), 'First release.');
   for (const text of [

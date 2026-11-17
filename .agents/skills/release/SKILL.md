@@ -18,6 +18,13 @@ Paths below are relative to the repository root. Read `AGENTS.md`, `CONTRIBUTING
    proposed version, and the reason for that bump. Use independently versioned stable
    `x.y.z` versions and describe breaking changes explicitly, including breaking changes
    before 1.0. Do not infer that every package needs a release.
+
+   > Temporary policy: do not propose or apply major-version increases. New packages must
+   > start at `0.x.y`; existing packages may receive only minor or patch bumps. Breaking
+   > changes before 1.0 should use a minor bump with explicit migration notes. This is
+   > enforced by `allowMajorBumps` in `scripts/release.mjs`. To lift the restriction later,
+   > set that flag to `true`, update the temporary-policy test, and remove this note.
+
 3. Review cross-package compatibility. `workspace:^` peers become caret ranges based on
    the dependency's version when packed. Check whether dependents need their own bump
    and whether every required Katakit dependency is already on npm or included in this

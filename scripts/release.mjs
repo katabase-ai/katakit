@@ -9,6 +9,8 @@ import { setTimeout } from 'node:timers/promises';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const registry = 'https://registry.npmjs.org';
 const fields = ['dependencies', 'optionalDependencies', 'peerDependencies'];
+// Temporary release policy. Set true to lift it, then update the policy test and skill note.
+const allowMajorBumps = false;
 
 const command = (program, args, cwd = root) => {
   // npm/pnpm are .cmd shims on Windows; use their JS entry points where available.
@@ -63,9 +65,11 @@ export const planRelease = (before, after, changelog) => {
     if (previous && !previous.private && previous.version === manifest.version) continue;
     if (!/^@katakit\/[a-z0-9][a-z0-9-]*$/.test(manifest.name))
       throw new Error(`Invalid public package name at ${directory}`);
-    stableVersion(manifest.version);
+    const [major] = stableVersion(manifest.version);
     if (previous && !increases(previous.version, manifest.version))
       throw new Error(`${manifest.name}: version must increase from ${previous.version}`);
+    if (!allowMajorBumps && major > stableVersion(previous?.version ?? '0.0.0')[0])
+      throw new Error(`${manifest.name}: major version bumps are temporarily disabled`);
     if (manifest.version === '0.0.0')
       throw new Error(`${manifest.name}: choose an initial version`);
     plan.push({
