@@ -199,3 +199,15 @@ Pull requests build standalone docs and gallery previews. Same-repository PRs up
 to Cloudflare Workers and receive preview links in PR comments. Fork PRs build without
 uploading or commenting. See [preview setup and verification](.github/PREVIEWS.md) for the
 required account, token, initial deployments, and review steps.
+
+## Package releases
+
+Use the repository's [release skill](.agents/skills/release/SKILL.md) to present proposed
+changelogs and version bumps, then prepare a release PR after agreement. Merging version bumps
+publishes only the selected packages and creates package-specific tags and GitHub releases.
+See [release setup and recovery](.github/RELEASING.md).
+
+Once the versions are live on npm, the separate
+[example update skill](.agents/skills/update-examples/SKILL.md) updates demos and starters.
+Use `pnpm demos:copy-check --registry` and `pnpm templates:copy-check --registry` to verify
+standalone copies against npm; the default copy checks use locally packed libraries.
