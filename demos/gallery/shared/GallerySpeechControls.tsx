@@ -28,6 +28,15 @@ const InferenceSettings = ({ close }: { close: () => void }) => {
       ? { ...session.settings, source: 'key' as const }
       : session.settings
   );
+  // A storage event can remove a key while this dialog is open. Do not let an
+  // earlier draft silently restore it when the visitor next presses Save.
+  useEffect(() => {
+    setDraft(
+      !hostAvailable && session.settings.source === 'free'
+        ? { ...session.settings, source: 'key' }
+        : session.settings
+    );
+  }, [hostAvailable, session.settings]);
   const [error, setError] = useState('');
   const apply = (action: () => void) => {
     try {

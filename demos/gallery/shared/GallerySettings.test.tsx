@@ -175,3 +175,45 @@ test('missing-host and browser storage changes keep navigation and local content
   view.unmount();
   runtime.close();
 });
+
+test('another tab removing a key cannot be undone by saving a stale open settings dialog', async () => {
+  const runtime = createNotesDemo();
+  const view = render(<View runtime={runtime} connectModel={vi.fn()} />);
+  await screen.findByRole('button', { name: 'Free demo ▾' });
+  fireEvent.click(screen.getByRole('button', { name: 'Free demo ▾' }));
+  fireEvent.click(screen.getByRole('radio', { name: 'My API key' }));
+  fireEvent.change(screen.getByLabelText('API key'), { target: { value: 'old-key' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+  fireEvent.click(screen.getByRole('button', { name: 'My key ▾' }));
+  expect((screen.getByLabelText('API key') as HTMLInputElement).value).toBe('old-key');
+
+  act(() => {
+    window.localStorage.removeItem(inferenceStorageKey);
+    window.dispatchEvent(new StorageEvent('storage', { key: inferenceStorageKey }));
+  });
+  expect(screen.queryByLabelText('API key')).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+  expect(window.localStorage.getItem(inferenceStorageKey)).not.toContain('old-key');
+  view.unmount();
+  runtime.close();
+});
+
+test('a dialog left open cannot restore a key removed in another tab', async () => {
+  const runtime = createNotesDemo();
+  const view = render(<View runtime={runtime} />);
+  await screen.findByRole('button', { name: 'Add API key ▾' });
+  fireEvent.click(screen.getByRole('button', { name: 'Add API key ▾' }));
+  fireEvent.change(screen.getByLabelText('API key'), { target: { value: 'first-key' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+  fireEvent.click(screen.getByRole('button', { name: 'My key ▾' }));
+  expect((screen.getByLabelText('API key') as HTMLInputElement).value).toBe('first-key');
+  act(() => {
+    window.localStorage.removeItem(inferenceStorageKey);
+    window.dispatchEvent(new StorageEvent('storage', { key: inferenceStorageKey }));
+  });
+  expect((screen.getByLabelText('API key') as HTMLInputElement).value).toBe('');
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+  expect(window.localStorage.getItem(inferenceStorageKey)).toBeNull();
+  view.unmount();
+  runtime.close();
+});
