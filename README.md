@@ -1,20 +1,21 @@
 # Katakit
 
-<img src=".github/assets/seed.png" alt="A golden seed sprouting three green leaves" width="160" align="right" />
-
-This project is a seed.
-
-It contains a small sample of the experiments and prototypes we’ve been working on at [Katabase](https://katabase.com).
-
-There’s a lot more we’d love to share, and we’d appreciate your help shaping what comes next.
-
-- Request a [feature](https://github.com/katabase-ai/katakit/issues/new?template=feature_request.md), propose an [integration](https://github.com/katabase-ai/katakit/issues/new?template=integration_proposal.md), or report a [bug](https://github.com/katabase-ai/katakit/issues/new?template=bug_report.md)
-- Make a [contribution](CONTRIBUTING.md)
-- Get in touch with us [directly](mailto:katakit@katabase.com)
-
-We're excited to see what you build!
-
-\- The katabase team (Abe, Jude, Drew)
+> [!NOTE]
+> <img src=".github/assets/seed.png" alt="A golden seed sprouting three green leaves" width="160" align="right" />
+>
+> This project is a seed.
+>
+> It contains a small sample of the experiments and prototypes we’ve been working on at [Katabase](https://katabase.com).
+>
+> There’s a lot more we’d love to share, and we’d appreciate your help shaping what comes next.
+>
+> - Request a [feature](https://github.com/katabase-ai/katakit/issues/new?template=feature_request.md), propose an [integration](https://github.com/katabase-ai/katakit/issues/new?template=integration_proposal.md), or report a [bug](https://github.com/katabase-ai/katakit/issues/new?template=bug_report.md)
+> - Make a [contribution](CONTRIBUTING.md)
+> - Get in touch with us [directly](mailto:katakit@katabase.com)
+>
+> We're excited to see what you build!
+>
+> \- The katabase team (Abe, Jude, Drew)
 
 ---
 
