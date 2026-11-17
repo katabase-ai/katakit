@@ -2,11 +2,20 @@
 import { StrictMode } from 'react';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, expect, test, vi } from 'vitest';
-import { GallerySpeechProvider } from './GallerySpeechProvider';
+import { GallerySpeechProvider, useGallerySpeech } from './GallerySpeechProvider';
 import { GalleryDemo } from './GalleryDemo';
 import { GallerySpeechControls } from './GallerySpeechControls';
 
 afterEach(cleanup);
+
+const ModelProbe = () => {
+  const session = useGallerySpeech();
+  return (
+    <button onClick={() => void session?.owner.select('whisper-tiny')}>
+      {session?.snapshot.model}
+    </button>
+  );
+};
 
 test('Strict Mode and repeated navigation release every created demo while keeping model selection in the host', async () => {
   const created: { close: ReturnType<typeof vi.fn> }[] = [];
@@ -24,6 +33,7 @@ test('Strict Mode and repeated navigation release every created demo while keepi
     <StrictMode>
       <GallerySpeechProvider>
         <GallerySpeechControls />
+        <ModelProbe />
         <GalleryDemo
           key={key}
           create={create}
@@ -38,20 +48,16 @@ test('Strict Mode and repeated navigation release every created demo while keepi
   );
   const view = render(content('first'));
   await screen.findByText('Demo ready');
-  fireEvent.change(screen.getByLabelText('Transcription model'), {
-    target: { value: 'whisper-tiny' },
-  });
+  expect(screen.queryByRole('button', { name: 'Start listening' })).toBeNull();
+  expect(screen.queryByLabelText('Transcription model')).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: 'moonshine-small' }));
   await act(async () => {
     await Promise.resolve();
   });
-  expect((screen.getByLabelText('Transcription model') as HTMLSelectElement).value).toBe(
-    'whisper-tiny'
-  );
+  expect(screen.getByRole('button', { name: 'whisper-tiny' })).toBeDefined();
   view.rerender(content('second'));
   await screen.findByText('Demo ready');
-  expect((screen.getByLabelText('Transcription model') as HTMLSelectElement).value).toBe(
-    'whisper-tiny'
-  );
+  expect(screen.getByRole('button', { name: 'whisper-tiny' })).toBeDefined();
   view.unmount();
   await vi.waitFor(() => {
     for (const runtime of created) expect(runtime.close).toHaveBeenCalledOnce();

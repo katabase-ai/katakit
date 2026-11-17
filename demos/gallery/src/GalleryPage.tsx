@@ -10,6 +10,7 @@ export const GalleryPage = ({ demo }: { demo?: (typeof galleryDemos)[number] }) 
   return (
     <Gallery
       demos={galleryDemos}
+      privacyUrl="https://katabase.com/privacy"
       activeDemo={demo}
       input={<GallerySpeechControls />}
       renderLink={({ demo: entry, children, current }) =>

@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { createNotesDemo } from '../../notes-react/src/createNotesDemo';
 import { NotesDemo } from '../../notes-react/src/NotesDemo';
 import { NotesRequestError } from '../../notes-react/src/notesModel';
+import { GalleryCaptureControls } from './GalleryCaptureControls';
 import { GalleryDemo } from './GalleryDemo';
 import { GalleryModelError, useGalleryModel } from './galleryModel';
 import { useGallerySpeech } from './GallerySpeechProvider';
@@ -41,6 +42,15 @@ export const NotesGalleryDemo = () => {
       render={runtime => (
         <NotesDemo
           runtime={runtime}
+          connectionHelp={
+            <p>
+              No inference is configured. You can still transcribe locally.{' '}
+              <button type="button" onClick={model.configure}>
+                Add API key
+              </button>
+            </p>
+          }
+          controls={<GalleryCaptureControls />}
           listening={session?.snapshot.input.phase === 'running'}
           connect={connectGallery && connect}
           renderModelControls={model.renderControls}

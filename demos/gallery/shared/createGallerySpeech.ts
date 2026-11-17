@@ -171,7 +171,7 @@ export const createGallerySpeech = ({
     },
     load: () =>
       enqueue(async () => {
-        if (disposed || snapshot.blocked || !active || active.cancelled) return;
+        if (disposed || snapshot.blocked) return;
         update({ error: undefined });
         const current = getHelper();
         try {

@@ -1,24 +1,135 @@
-import { useCallback, useContext, type ReactNode, type RefCallback } from 'react';
-import { transcriptionModels, type TranscriptionModelId } from '@katakit/transcription/browser';
-import { AudioLevelMeter, Button, SelectField } from '@katakit/site-ui';
-import { GalleryModelContext } from './galleryModel';
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type RefCallback,
+} from 'react';
+import { Button } from '@katakit/site-ui';
+import type { TranscriptionModelId } from '@katakit/transcription/browser';
 import { useGallerySpeech } from './GallerySpeechProvider';
+import { useGalleryInference } from './GalleryInferenceProvider';
+import { GalleryModelContext } from './galleryModel';
 
-/** The private host supplies its existing Select without a private demo dependency. */
+/** Legacy host renderer type. Launch defaults no longer need an upfront model selector. */
 export type GalleryModelSelect = (props: {
   model: TranscriptionModelId;
   disabled: boolean;
   onChange: (model: TranscriptionModelId) => void;
 }) => ReactNode;
 
-/** Stay mounted outside the keyed demo view, including during lazy input handoffs. */
-export const GallerySpeechControls = ({
-  renderModelSelect,
-}: {
-  renderModelSelect?: GalleryModelSelect;
-}) => {
-  const { setControls } = useContext(GalleryModelContext);
-  // Fit the host header and reserve mobile space for variable-height hints and errors.
+const InferenceSettings = ({ close }: { close: () => void }) => {
+  const session = useGalleryInference()!;
+  const { hostAvailable } = useContext(GalleryModelContext);
+  const [draft, setDraft] = useState(() =>
+    !hostAvailable && session.settings.source === 'free'
+      ? { ...session.settings, source: 'key' as const }
+      : session.settings
+  );
+  const [error, setError] = useState('');
+  const apply = (action: () => void) => {
+    try {
+      action();
+      close();
+    } catch (error_) {
+      setError(error_ instanceof Error ? error_.message : 'Could not save settings.');
+    }
+  };
+  return (
+    <form
+      onSubmit={event => {
+        event.preventDefault();
+        apply(() => session.owner.save(draft));
+      }}
+    >
+      <h2>Inference</h2>
+      <p>Choose where transcript text goes when you start notes.</p>
+      <fieldset>
+        <legend>Source</legend>
+        <label>
+          <input
+            type="radio"
+            name="source"
+            checked={draft.source === 'free'}
+            disabled={!hostAvailable}
+            onChange={() => setDraft({ ...draft, source: 'free' })}
+          />{' '}
+          Free demo
+        </label>
+        {!hostAvailable && <p>This host has no free inference service. Use your own key below.</p>}
+        <label>
+          <input
+            type="radio"
+            name="source"
+            checked={draft.source === 'key'}
+            onChange={() => setDraft({ ...draft, source: 'key' })}
+          />{' '}
+          My API key
+        </label>
+      </fieldset>
+      {draft.source === 'key' && (
+        <>
+          <p>
+            Provider: <strong>OpenRouter</strong>
+          </p>
+          <label htmlFor="gallery-api-key">API key</label>
+          <input
+            autoComplete="off"
+            spellCheck={false}
+            id="gallery-api-key"
+            type="password"
+            value={draft.key}
+            onChange={event => setDraft({ ...draft, key: event.target.value })}
+          />
+          <p className="gallery-settings-note">
+            Saved in this browser’s local storage, including after closing the tab. Requests go
+            directly to your endpoint and use your provider credits.
+          </p>
+          <details>
+            <summary>Advanced</summary>
+            <label htmlFor="gallery-inference-model">Model ID</label>
+            <input
+              id="gallery-inference-model"
+              value={draft.model}
+              spellCheck={false}
+              onChange={event => setDraft({ ...draft, model: event.target.value })}
+            />
+            <label htmlFor="gallery-inference-endpoint">Chat-completions endpoint</label>
+            <input
+              id="gallery-inference-endpoint"
+              type="url"
+              value={draft.endpoint}
+              spellCheck={false}
+              onChange={event => setDraft({ ...draft, endpoint: event.target.value })}
+            />
+            <p>
+              Use an OpenAI-compatible endpoint with JSON schema output and browser access (CORS).
+              Your key and transcript go to this URL.
+            </p>
+          </details>
+        </>
+      )}
+      <p>Saving pauses notes. Choose Start notes in the demo to resume.</p>
+      {error && <p role="alert">{error}</p>}
+      <div className="gallery-settings-actions">
+        <Button type="submit">Save</Button>
+        {session.settings.key && (
+          <Button type="button" variant="ghost" onClick={() => apply(session.owner.remove)}>
+            Remove key
+          </Button>
+        )}
+        <Button type="button" variant="ghost" onClick={close}>
+          Cancel
+        </Button>
+      </div>
+    </form>
+  );
+};
+
+/** Compact shared setup; listening/testing and model admission stay in the active view. */
+export const GallerySpeechControls = (_props: { renderModelSelect?: GalleryModelSelect }) => {
   const measureInput: RefCallback<HTMLElement> = useCallback(node => {
     const gallery = node?.closest('.katakit-gallery');
     if (!node || !(gallery instanceof HTMLElement)) return;
@@ -46,129 +157,78 @@ export const GallerySpeechControls = ({
     };
   }, []);
   const session = useGallerySpeech();
-  if (!session)
-    return (
-      <section
-        ref={measureInput}
-        className="gallery-speech-controls"
-        aria-label="Microphone and model"
-      >
-        <p role="status">Preparing microphone controls…</p>
-      </section>
-    );
-  const { owner, snapshot } = session;
-  const recording = snapshot.input.phase === 'running';
-  const preparing = ['loading', 'starting'].includes(snapshot.input.phase);
-  const ready = snapshot.input.phase === 'ready';
-  const disabled = snapshot.blocked || snapshot.transitioning;
-  const select = (model: TranscriptionModelId) => {
-    void owner.select(model);
+  const inference = useGalleryInference();
+  const {
+    hostAvailable,
+    settingsOpen: open = false,
+    setSettingsOpen,
+  } = useContext(GalleryModelContext);
+  const dialog = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    if (open) dialog.current?.showModal();
+  }, [open]);
+  const close = () => {
+    dialog.current?.close();
+    setSettingsOpen?.(false);
   };
+  const snapshot = session?.snapshot;
+  const loading = snapshot?.input.phase === 'loading';
+  const ready =
+    snapshot && ['ready', 'running', 'starting', 'stopping'].includes(snapshot.input.phase);
   return (
-    <section
-      id="gallery-input"
-      ref={measureInput}
-      className="gallery-speech-controls"
-      aria-label="Microphone and model"
-      tabIndex={-1}
-    >
-      {renderModelSelect ? (
-        renderModelSelect({
-          model: snapshot.model,
-          disabled: disabled || recording,
-          onChange: select,
-        })
-      ) : (
-        <SelectField
-          id="gallery-model"
-          label="Transcription model"
-          value={snapshot.model}
-          disabled={disabled || recording}
-          onChange={event => select(event.target.value as TranscriptionModelId)}
-        >
-          {transcriptionModels.map(model => (
-            <option key={model.id} value={model.id}>
-              {model.label}
-            </option>
-          ))}
-        </SelectField>
-      )}
-      <div className="gallery-speech-actions">
-        <Button
-          disabled={
-            snapshot.blocked || (!preparing && (snapshot.transitioning || !snapshot.attached))
-          }
-          aria-describedby="gallery-input-status"
-          className={recording ? 'gallery-microphone is-listening' : 'gallery-microphone'}
-          onClick={() =>
-            void (preparing ? owner.cancel() : recording ? owner.stop() : owner.start())
-          }
-        >
-          <svg
-            viewBox="0 0 24 24"
-            width="16"
-            height="16"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            aria-hidden="true"
+    <section ref={measureInput} className="gallery-speech-controls" aria-label="Operation settings">
+      <div className="gallery-operation-row">
+        <span>Transcription</span>
+        {ready ? (
+          <span role="status">Ready · local</span>
+        ) : (
+          <button
+            type="button"
+            disabled={!session || snapshot?.blocked || (!loading && snapshot?.transitioning)}
+            onClick={() => void (loading ? session?.owner.cancel() : session?.owner.load())}
           >
-            {recording ? (
-              <rect x="6" y="6" width="12" height="12" rx="2" />
-            ) : (
-              <>
-                <rect x="9" y="2" width="6" height="12" rx="3" />
-                <path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8" />
-              </>
-            )}
-          </svg>
-          {preparing ? 'Cancel' : recording ? 'Stop listening' : 'Start listening'}
-        </Button>
-        {!preparing && !recording && !ready && (
-          <Button
-            variant="ghost"
-            className="gallery-load-model"
-            disabled={disabled || !snapshot.attached}
-            onClick={() => void owner.load()}
-          >
-            Load model
-          </Button>
+            {loading
+              ? `Cancel ${snapshot?.input.phase === 'loading' && snapshot.input.progress !== undefined ? `${Math.round(snapshot.input.progress * 100)}%` : 'download'}`
+              : 'Download model'}
+          </button>
         )}
       </div>
-      <p id="gallery-input-status" role="status" aria-live="polite">
-        {preparing
-          ? snapshot.input.phase === 'loading'
-            ? `Loading model${snapshot.input.progress === undefined ? '…' : `: ${Math.round(snapshot.input.progress * 100)}%`} · mic off`
-            : 'Waiting for microphone permission…'
-          : recording
-            ? 'Listening locally'
-            : snapshot.transitioning
-              ? 'Finishing input…'
-              : !snapshot.attached
-                ? ready
-                  ? 'Model ready · open a demo to listen.'
-                  : 'Open a demo to use the microphone.'
-                : ready
-                  ? 'Model ready · microphone off'
-                  : 'Model not loaded · microphone off'}
-      </p>
-      {recording && <AudioLevelMeter active level={snapshot.level} />}
-      {(snapshot.error || snapshot.input.error) && (
-        <p role="alert">
-          {snapshot.error ?? snapshot.input.error?.message}{' '}
-          {snapshot.blocked
-            ? 'Reload this page before trying again.'
-            : 'Try loading or starting again.'}
-        </p>
+      <div className="gallery-operation-row">
+        <span>Inference</span>
+        <button
+          type="button"
+          disabled={!inference}
+          aria-haspopup="dialog"
+          onClick={() => {
+            setSettingsOpen?.(true);
+          }}
+        >
+          {inference?.settings.source === 'key'
+            ? 'My key'
+            : hostAvailable
+              ? 'Free demo'
+              : 'Add API key'}{' '}
+          ▾
+        </button>
+      </div>
+      {(snapshot?.error || snapshot?.input.error) && (
+        <p role="alert">{snapshot.error ?? snapshot.input.error?.message}</p>
       )}
-      {snapshot.model === 'whisper-tiny' && (
-        <p className="gallery-model-hint">
-          Whisper returns text in ten-second batches and when you stop.
-        </p>
-      )}
-      <p className="gallery-processing-notice">Processed on your device.</p>
-      {/* A remoteModel demo portals its connection controls here; empty for the other demos. */}
-      <div className="gallery-model-controls" ref={setControls} />
+      <dialog
+        ref={dialog}
+        className="gallery-inference-dialog"
+        aria-label="Inference settings"
+        onCancel={event => {
+          event.preventDefault();
+          close();
+        }}
+        onClose={() => {
+          setSettingsOpen?.(false);
+        }}
+      >
+        {open && inference && <InferenceSettings close={close} />}
+      </dialog>
     </section>
   );
 };

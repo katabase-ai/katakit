@@ -1,5 +1,6 @@
 import { lazy } from 'react';
 import { galleryDemoDetails } from './galleryDemoDetails';
+import { GalleryCaptureControls } from './GalleryCaptureControls';
 import { GalleryDemo } from './GalleryDemo';
 import { TranscriptionIntroduction, TranscriptionSetupComplete } from './TranscriptionIntroduction';
 
@@ -19,6 +20,7 @@ export const transcriptionGalleryDemo = {
           render={runtime => (
             <TranscriptionDemo
               runtime={runtime}
+              controls={<GalleryCaptureControls />}
               introduction={<TranscriptionIntroduction />}
               afterFirstSpeech={<TranscriptionSetupComplete />}
             />
@@ -39,7 +41,9 @@ export const bingoGalleryDemo = {
       default: () => (
         <GalleryDemo
           create={createBrowserBingoDemo}
-          render={runtime => <BrowserBingoDemo runtime={runtime} />}
+          render={runtime => (
+            <BrowserBingoDemo runtime={runtime} controls={<GalleryCaptureControls />} />
+          )}
         />
       ),
     };

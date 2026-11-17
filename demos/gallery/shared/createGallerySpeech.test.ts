@@ -229,3 +229,16 @@ test.each(['dispose', 'cancel'] as const)(
     expect(owner.getSnapshot().error).toBeUndefined();
   }
 );
+
+test('downloads without a demo attachment or microphone start, then retains the model on attachment', async () => {
+  const { owner, sink, inputs, events } = fixture();
+  await owner.load();
+  expect(inputs).toHaveLength(1);
+  expect(events).toEqual(['load']);
+  expect(owner.getSnapshot().input.phase).toBe('ready');
+  expect(owner.getSnapshot().attached).toBe(false);
+  await owner.attach(() => sink('demo')).ready;
+  expect(inputs).toHaveLength(1);
+  expect(events).not.toContain('start');
+  await owner.dispose();
+});

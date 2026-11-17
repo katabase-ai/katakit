@@ -1,6 +1,10 @@
-import { useCallback, useMemo, useState, type ReactNode } from 'react';
+import { lazy, Suspense, useMemo, useState, type ReactNode } from 'react';
 import type { galleryDemoDetails } from './galleryDemoDetails';
 import { GalleryModelContext, type GalleryModelConnect } from './galleryModel';
+import { useGalleryInference } from './GalleryInferenceProvider';
+import { connectWithKey } from './galleryInference';
+
+const Welcome = lazy(async () => ({ default: (await import('./GalleryWelcome')).GalleryWelcome }));
 
 /**
  * Portable gallery presentation. Hosts own links, route metadata, and demo mounting;
@@ -14,6 +18,7 @@ export const Gallery = ({
   children,
   input,
   connectModel,
+  privacyUrl,
 }: {
   demos: readonly (typeof galleryDemoDetails)[number][];
   activeDemo?: (typeof galleryDemoDetails)[number];
@@ -25,21 +30,44 @@ export const Gallery = ({
   children?: ReactNode;
   input?: ReactNode;
   connectModel?: GalleryModelConnect;
+  /** Absolute host privacy URL, opened separately to preserve this conversation. */
+  privacyUrl?: string;
 }) => {
-  const [controls, setControls] = useState<HTMLElement>();
-  const attachControls = useCallback((node: HTMLElement | null) => {
-    setControls(node ?? undefined);
-  }, []);
+  const inference = useGalleryInference();
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const connect = useMemo<GalleryModelConnect | undefined>(() => {
+    if (!inference) return undefined;
+    const sourceSignal = inference.owner.getSignal();
+    if (inference.settings.source === 'key')
+      return connectWithKey(inference.settings, sourceSignal);
+    if (!connectModel) return undefined;
+    return async input => {
+      const signal = AbortSignal.any([input.signal, sourceSignal]);
+      signal.throwIfAborted();
+      const connection = await connectModel({ ...input, signal });
+      signal.throwIfAborted();
+      return {
+        ...connection,
+        requestCompletion: async request => {
+          const combined = AbortSignal.any([signal, request.signal]);
+          combined.throwIfAborted();
+          const result = await connection.requestCompletion({ ...request, signal: combined });
+          combined.throwIfAborted();
+          return result;
+        },
+      };
+    };
+  }, [connectModel, inference]);
   const model = useMemo(
-    () => ({ connect: connectModel, controls, setControls: attachControls }),
-    [connectModel, controls, attachControls]
+    () => ({ connect, hostAvailable: !!connectModel, settingsOpen, setSettingsOpen }),
+    [connect, connectModel, settingsOpen]
   );
   return (
     <GalleryModelContext value={model}>
       <div className="katakit-gallery">
         <aside className="gallery-sidebar">
           <nav className="gallery-nav" aria-label="React demos">
-            {renderLink({ children: 'All demos', current: !activeDemo })}
+            {renderLink({ children: 'Welcome', current: !activeDemo })}
             {demos.map(demo => (
               <span key={demo.id}>
                 {renderLink({ demo, children: demo.title, current: activeDemo?.id === demo.id })}
@@ -53,16 +81,9 @@ export const Gallery = ({
             children
           ) : (
             <>
-              <h1>React demos</h1>
-              <p className="gallery-intro">Explore Katakit in your browser.</p>
-              <ul className="gallery-demo-list">
-                {demos.map(demo => (
-                  <li key={demo.id}>
-                    {renderLink({ demo, children: demo.title, current: false })}
-                    <p>{demo.description}</p>
-                  </li>
-                ))}
-              </ul>
+              <Suspense fallback={<p role="status">Loading Welcome…</p>}>
+                <Welcome privacyUrl={privacyUrl} />
+              </Suspense>
               {children}
             </>
           )}

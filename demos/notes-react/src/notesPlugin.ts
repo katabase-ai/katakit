@@ -108,9 +108,16 @@ export const makeNotesPlugin = ({
       return {
         connect: (next: NotesConnection) => {
           if (closed) return;
+          controller?.abort();
           connection = next;
           options.request.next({ status: 'idle' });
           options.retry.next();
+        },
+        pause: () => {
+          if (closed) return;
+          controller?.abort();
+          connection = undefined;
+          options.request.next({ status: 'idle' });
         },
         retry: () => {
           if (closed || state$.get().failure?.policy.terminal) return;

@@ -1,7 +1,7 @@
 # Structured notes example
 
 `createNotesDemo.ts` owns one visit's runtime. `NotesDemo.tsx` renders it. `useNotesConnection.ts`
-owns automatic admission, explicit retry, and visit cancellation.
+owns explicit Start notes/Pause notes, admission, retry, and visit cancellation.
 `App.tsx` owns standalone capture through `useMicrophoneTranscriber`; the gallery supplies shared input.
 `notesEvents.ts` defines finalized turns, accepted outlines, and clears. `notesPlugin.ts` derives
 the outline, processed-turn cursor, and Markdown from that log. `applyNotesResult.ts` validates a
@@ -25,7 +25,9 @@ Retain all pending finalized turns across single-flight requests. Advance the cu
 validated output. Rewords replace existing note text; they never rewrite the transcript.
 Clear and unmount must invalidate late results. Clearing an outline does not restore exhausted
 allowance. New turns must not resume a paused failure or restart admission.
-Stop/start reuses admission and the connection. Failed admission requires an explicit retry.
+Starting capture never starts inference. Start notes admits a connection; stopping/restarting capture
+reuses it. Pause notes or a changed connect function aborts admission and remote work without
+clearing content. Only an explicit Start notes resumes. Failed admission requires an explicit retry.
 
 Verify standalone builds and runtime assets outside the workspace. Controlled tests
 do not establish model quality, microphone compatibility, or provider latency.

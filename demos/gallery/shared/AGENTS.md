@@ -5,7 +5,7 @@ source checkout. They do not own application bootstraps, routing, or private ser
 
 - `galleryDemoDetails.ts` owns React demo eligibility and metadata; `galleryDemos.tsx` adds lazy
   components. Keep extension information pages out of both. `#gallery-react-catalogue`
-- Keep metadata and `Gallery.tsx` free of recognizer/runtime imports. Accept host-rendered links
+- Keep metadata and `Gallery.tsx` free of eager recognizer/runtime imports. Welcome loads lazily. Accept host-rendered links
   and children instead of importing a host router. `#gallery-portable-presentation`
 - Scope gallery CSS beneath `.katakit-gallery`; import only site-ui component styles, inherit
   host typography/colors, and never import the global site-ui reset into portable modules. `#gallery-scoped-styles`
@@ -19,7 +19,12 @@ source checkout. They do not own application bootstraps, routing, or private ser
 - `galleryModel.tsx` owns the host model contract for `remoteModel` demos. `Gallery` takes one
   `connectModel`; a demo's gallery adapter reads it through `useGalleryModel` and converts host
   errors to its example's own error class. Keep it free of any one demo's types, and keep
-  admission, credentials, and service URLs in the host. `#gallery-model-connection`
-- Hosts pass the shared input controls to Gallery’s input slot. Keep them outside demo views and
-  navigation landmarks; only the demo body remounts. Desktop controls anchor to the sidebar bottom;
-  mobile controls reserve their measured height and stay visible. `#gallery-shared-controls`
+  host admission and private service URLs in the host. `galleryInference.ts` owns the optional
+  visitor-key transport and local-storage policy; never include keys or endpoint URLs in diagnostics. `#gallery-model-connection`
+- Hosts pass `GallerySpeechControls` to Gallery’s input slot. Only the compact download/status
+  and inference-source rows belong there, outside navigation landmarks. Desktop setup anchors to the
+  sidebar bottom; mobile setup reserves its measured height and stays visible. Put testing/listening
+  in Welcome or the demo using `GalleryCaptureControls`. Keep inference admission, verification,
+  allowance, and errors inside the demo. `GallerySpeechProvider` also mounts the root inference
+  settings provider so source choices survive navigation. Source changes invalidate remote work;
+  local capture and content continue, and only Start notes resumes inference. `#gallery-shared-controls`

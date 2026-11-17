@@ -4,21 +4,23 @@ import { TranscriptPreview } from './TranscriptPreview';
 import { useNotesConnection } from './useNotesConnection';
 import './style.css';
 
-/** Listening starts admission once per visit; failures require an explicit retry. */
+/** Listening is local; Start notes explicitly admits remote inference for this visit. */
 export const NotesDemo = ({
   runtime,
   listening,
   connect,
   controls,
+  connectionHelp,
   renderModelControls = controls => controls,
 }: Parameters<typeof useNotesConnection>[0] & {
   controls?: ReactNode;
-  /** A gallery host can place model controls beside its shared microphone controls. */
+  connectionHelp?: ReactNode;
+  /** A host can wrap model controls with verification and allowance information. */
   renderModelControls?: (controls: ReactNode) => ReactNode;
 }) => {
   const [state, setState] = useState(() => runtime.state$.get());
   const { notes, markdown } = state;
-  const { connecting, admissionError, connectModel } = useNotesConnection({
+  const { connecting, connected, admissionError, connectModel, pause } = useNotesConnection({
     runtime,
     listening,
     connect,
@@ -33,26 +35,36 @@ export const NotesDemo = ({
   const modelControls = (
     <section className="structured-notes-model-controls" aria-label="Notes connection">
       <h2>Notes model</h2>
+      {!connected || notes.status === 'paused' ? (
+        <button
+          type="button"
+          onClick={() =>
+            connected && notes.status === 'paused' && !notes.failure?.policy.terminal
+              ? runtime.notes.retry()
+              : void connectModel()
+          }
+          disabled={
+            !connect ||
+            connecting ||
+            !!admissionError?.policy.terminal ||
+            (!!notes.failure?.policy.terminal && !notes.failure.policy.restart)
+          }
+        >
+          {connecting ? 'Connecting…' : 'Start notes'}
+        </button>
+      ) : (
+        <button type="button" onClick={pause}>
+          Pause notes
+        </button>
+      )}
       <div role="status" aria-live="polite">
         {connecting && <p>Connecting notes…</p>}
         {failure && <p>{failure.message || 'Notes are delayed. Try again.'}</p>}
       </div>
-      {admissionError && !admissionError.policy.terminal && (
-        <button type="button" onClick={() => void connectModel()} disabled={connecting}>
-          Retry connection
-        </button>
-      )}
-      {notes.status === 'paused' && !notes.failure?.policy.terminal && (
-        <button type="button" onClick={runtime.notes.retry}>
-          Retry notes
-        </button>
-      )}
-      {notes.failure?.policy.restart && (
-        <button type="button" onClick={() => void connectModel()} disabled={connecting}>
-          Restart notes session
-        </button>
-      )}
-      {!connect && <p>This host has no model connection. You can still transcribe locally.</p>}
+      {!connect &&
+        (connectionHelp ?? (
+          <p>No model connection is configured. You can still transcribe locally.</p>
+        ))}
     </section>
   );
 
@@ -64,8 +76,9 @@ export const NotesDemo = ({
         you finish each thought.
       </p>
       <p className="structured-notes-hint">
-        Start listening to generate notes automatically. Audio stays on this device; notes send
-        transcript text to a model provider.
+        Listen locally, then choose Start notes to send transcript text to your selected model
+        provider. Audio stays on this device. Pausing notes keeps your transcript for when you
+        resume.
       </p>
       {controls}
       {renderModelControls(modelControls)}

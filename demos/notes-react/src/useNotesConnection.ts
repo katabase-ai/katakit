@@ -6,13 +6,9 @@ type AdmissionState =
   | { type: 'idle' | 'connecting' | 'connected'; error?: never }
   | { type: 'failed'; error: NotesRequestError };
 
-/**
- * Admit once when listening starts. Only an explicit retry leaves a failed admission.
- * Keep the connection through capture stop/drain, and abort it when the visit ends.
- */
+/** Capture and inference are independent. Only an explicit action starts remote work. */
 export const useNotesConnection = ({
   runtime,
-  listening,
   connect,
 }: {
   runtime: ReturnType<typeof createNotesDemo>;
@@ -23,33 +19,48 @@ export const useNotesConnection = ({
   const owner = useRef<{ lifetime: AbortController; admission: AdmissionState }>(undefined);
 
   useEffect(() => {
-    const lifetime = new AbortController();
-    owner.current = { lifetime, admission: { type: 'idle' } };
+    owner.current = { lifetime: new AbortController(), admission: { type: 'idle' } };
     setAdmission(owner.current.admission);
     return () => {
+      owner.current?.lifetime.abort();
       owner.current = undefined;
-      lifetime.abort();
-      // Capture drains after unmount; those final turns must not start another paid request.
-      runtime.notes.close();
+      runtime.notes.pause();
     };
+  }, [runtime, connect]);
+
+  // The capture owner closes the runtime after draining. Effect cleanup only pauses remote work,
+  // so Strict Mode can replay setup without permanently closing this live runtime.
+
+  const pause = useCallback(() => {
+    if (!owner.current) return;
+    owner.current.lifetime.abort();
+    owner.current = { lifetime: new AbortController(), admission: { type: 'idle' } };
+    runtime.notes.pause();
+    setAdmission(owner.current.admission);
   }, [runtime]);
 
   const connectModel = useCallback(async () => {
-    const current = owner.current;
-    if (!current || current.admission.type === 'connecting' || !connect) return;
+    if (!owner.current || owner.current.admission.type === 'connecting' || !connect) return;
+    owner.current.lifetime.abort();
+    runtime.notes.pause();
+    const current = {
+      lifetime: new AbortController(),
+      admission: { type: 'connecting' } as AdmissionState,
+    };
+    owner.current = current;
     const update = (next: AdmissionState) => {
       if (owner.current !== current) return;
-      // The ref also guards repeated clicks before React commits the next render.
       current.admission = next;
       setAdmission(next);
     };
     update({ type: 'connecting' });
     try {
       const connection = await connect({ signal: current.lifetime.signal });
-      if (owner.current !== current) return;
+      if (owner.current !== current || current.lifetime.signal.aborted) return;
       runtime.notes.connect(connection);
       update({ type: 'connected' });
     } catch (error) {
+      if (current.lifetime.signal.aborted) return;
       update({
         type: 'failed',
         error:
@@ -60,13 +71,11 @@ export const useNotesConnection = ({
     }
   }, [connect, runtime]);
 
-  useEffect(() => {
-    if (listening && owner.current?.admission.type === 'idle') void connectModel();
-  }, [listening, connectModel]);
-
   return {
     connecting: admission.type === 'connecting',
+    connected: admission.type === 'connected',
     admissionError: admission.error,
     connectModel,
+    pause,
   };
 };
