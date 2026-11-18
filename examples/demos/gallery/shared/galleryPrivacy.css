@@ -53,25 +53,9 @@
   display: none;
 }
 .katakit-gallery .gallery-privacy-popover {
-  position: relative;
-  padding: 14px 16px;
-  border: 1px solid var(--color-rule-2);
-  border-radius: 8px;
-  background: var(--color-key-face, var(--color-paper));
-  color: var(--color-ink);
-}
-.katakit-gallery .gallery-privacy-popover::before {
-  content: '';
-  position: absolute;
-  inset-block-start: -5px;
-  inset-inline-end: 2rem;
-  width: 8px;
-  height: 8px;
-  border-block-start: 1px solid var(--color-rule-2);
-  border-inline-start: 1px solid var(--color-rule-2);
-  background: var(--color-key-face, var(--color-paper));
-  transform: rotate(45deg);
-  pointer-events: none;
+  --gallery-panel-padding: 14px 16px;
+  --gallery-panel-radius: 8px;
+  --gallery-tooltip-anchor: calc(2rem + 4px);
 }
 .katakit-gallery .gallery-privacy-facts {
   display: grid;

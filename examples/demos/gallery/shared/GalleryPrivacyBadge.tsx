@@ -5,6 +5,7 @@ import {
   SquareArrowOutUpRight as SquareArrowUpRightExit,
 } from 'lucide-react';
 import type { GalleryDataHandling } from './galleryDemoDetails';
+import './galleryTooltip.css';
 import './galleryPrivacy.css';
 
 // Geometry from the supplied shield-cloud.svg, rendered with the gallery's Lucide sizing/theme.
@@ -154,7 +155,11 @@ export const GalleryPrivacyBadge = ({
           aria-label={`${label} data handling`}
           hidden={!open}
         >
-          <div className="gallery-privacy-popover">
+          <div
+            className="gallery-privacy-popover gallery-hover-panel"
+            data-side="bottom"
+            data-align="end"
+          >
             <ul className="gallery-privacy-facts">
               <li>
                 <Shield aria-hidden="true" />

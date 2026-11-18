@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, type ReactNode } from 'react';
+import { lazy, Suspense, useCallback, useMemo, type ReactNode } from 'react';
 import type { galleryDemoDetails } from './galleryDemoDetails';
 import { GalleryModelContext, type GalleryModelConnect } from './galleryModel';
 import { useGalleryInference } from './GalleryInferenceProvider';
@@ -10,6 +10,8 @@ import { GalleryDemoFrame } from './GalleryDemoFrame';
 import { galleryWelcomeDetails } from './galleryWelcomeDetails';
 import { useGalleryMode } from './GalleryModeProvider';
 import type { GalleryDeveloperPage, GalleryOperation } from './operationDetails';
+import { useGalleryUsage, type GalleryAllowance } from './GalleryUsageProvider';
+import type { GalleryAccount } from './GalleryAccountButton';
 
 const OperationSetup = lazy(async () => ({
   default: (await import('./GalleryOperations')).GalleryOperationSetup,
@@ -19,6 +21,9 @@ const OperationGrid = lazy(async () => ({
 }));
 
 const Welcome = lazy(async () => ({ default: (await import('./GalleryWelcome')).GalleryWelcome }));
+const PublicSettings = lazy(async () => ({
+  default: (await import('./GalleryPublicSettings')).GalleryPublicSettings,
+}));
 
 /**
  * Portable gallery presentation. Hosts own links, route metadata, and demo mounting;
@@ -37,6 +42,9 @@ export const Gallery = ({
   developerPage,
   renderDeveloperLink,
   onConfigureOperation,
+  settingsPage = false,
+  onOpenSettings,
+  account,
 }: {
   demos: readonly (typeof galleryDemoDetails)[number][];
   activeDemo?: (typeof galleryDemoDetails)[number];
@@ -59,9 +67,42 @@ export const Gallery = ({
     current: boolean;
   }) => ReactNode;
   onConfigureOperation?: (operation?: GalleryOperation) => void;
+  /** Account-focused settings page, available without developer access. */
+  settingsPage?: boolean;
+  /** Navigate to public Settings or developer Configure models for the current mode. */
+  onOpenSettings?: () => void;
+  /** The host supplies identity and real account destinations in either mode. */
+  account?: GalleryAccount;
 }) => {
   const inference = useGalleryInference();
   const { isDeveloperView } = useGalleryMode();
+  const usage = useGalleryUsage();
+  const sourceSignal = inference?.owner.getSignal();
+  const usesDeveloperKey = isDeveloperView && inference?.settings.source === 'key';
+  const recordAllowance = usage?.reportAllowance;
+  const reportAllowance = useCallback(
+    (value: GalleryAllowance) => {
+      if (!usesDeveloperKey && connectModel && sourceSignal)
+        recordAllowance?.(connectModel, sourceSignal, value);
+    },
+    [usesDeveloperKey, connectModel, sourceSignal, recordAllowance]
+  );
+  const currentReport =
+    !usesDeveloperKey &&
+    usage?.report &&
+    usage.report.source === connectModel &&
+    usage.report.signal === sourceSignal &&
+    !sourceSignal?.aborted
+      ? usage.report
+      : undefined;
+  const allowance = currentReport?.allowance;
+  const usageUnavailableReason = usesDeveloperKey
+    ? 'Your configured provider does not report a demo allowance.'
+    : !connectModel
+      ? 'Cloud processing isn’t available. On-device demos still work.'
+      : currentReport && !allowance
+        ? 'The service returned invalid allowance data.'
+        : 'The service has not reported an allowance yet.';
   const connect = useMemo<GalleryModelConnect | undefined>(() => {
     if (!inference) return undefined;
     const sourceSignal = inference.owner.getSignal();
@@ -91,52 +132,71 @@ export const Gallery = ({
       hostAvailable: !!connectModel,
       isDeveloperView,
       configure: isDeveloperView ? onConfigureOperation : undefined,
+      openSettings: onOpenSettings ?? (isDeveloperView ? onConfigureOperation : undefined),
+      allowance,
+      usageUnavailableReason,
+      reportAllowance,
+      account,
     }),
-    [connect, connectModel, isDeveloperView, onConfigureOperation]
+    [
+      connect,
+      connectModel,
+      isDeveloperView,
+      onConfigureOperation,
+      onOpenSettings,
+      allowance,
+      usageUnavailableReason,
+      reportAllowance,
+      account,
+    ]
   );
   return (
     <GalleryModelContext value={model}>
       <div className="katakit-gallery">
         <aside className="gallery-sidebar">
           <nav className="gallery-nav" aria-label="React demos">
-            {renderLink({ children: 'Welcome', current: !activeDemo && !developerPage })}
+            {renderLink({
+              children: 'Welcome',
+              current: !activeDemo && !developerPage && !settingsPage,
+            })}
             {demos.map(demo => (
               <span key={demo.id}>
                 {renderLink({
                   demo,
                   children: demo.title,
-                  current: !developerPage && activeDemo?.id === demo.id,
+                  current: !developerPage && !settingsPage && activeDemo?.id === demo.id,
                 })}
               </span>
             ))}
           </nav>
-          <GalleryFooter>
-            {isDeveloperView ? (
-              <nav className="gallery-developer-nav" aria-label="Developer tools">
+          <GalleryFooter>{input}</GalleryFooter>
+        </aside>
+        <div className="gallery-content">
+          {settingsPage ? (
+            <Suspense fallback={<p role="status">Loading Settings…</p>}>
+              <PublicSettings privacyUrl={privacyUrl} />
+            </Suspense>
+          ) : isDeveloperView && developerPage ? (
+            <>
+              <nav className="gallery-operation-tabs" aria-label="Operation views">
                 {(['setup', 'grid'] as const).map(page => (
                   <span key={page}>
                     {renderDeveloperLink?.({
                       page,
-                      children: page === 'setup' ? 'Operation Setup' : 'Operation Grid',
+                      children: page === 'setup' ? 'Configuration' : 'Grid',
                       current: developerPage === page,
                     })}
                   </span>
                 ))}
               </nav>
-            ) : (
-              input
-            )}
-          </GalleryFooter>
-        </aside>
-        <div className="gallery-content">
-          {isDeveloperView && developerPage ? (
-            <Suspense fallback={<p role="status">Loading operations…</p>}>
-              {developerPage === 'setup' ? (
-                <OperationSetup />
-              ) : (
-                <OperationGrid demos={demos} renderLink={renderLink} />
-              )}
-            </Suspense>
+              <Suspense fallback={<p role="status">Loading operations…</p>}>
+                {developerPage === 'setup' ? (
+                  <OperationSetup />
+                ) : (
+                  <OperationGrid demos={demos} renderLink={renderLink} />
+                )}
+              </Suspense>
+            </>
           ) : (
             <GalleryDemoHeader
               demo={activeDemo ?? galleryWelcomeDetails}

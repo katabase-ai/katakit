@@ -6,7 +6,7 @@ import { Gallery } from './Gallery';
 import { useGalleryDemoReady } from './GalleryDemoFrame';
 import { GallerySpeechProvider } from './GallerySpeechProvider';
 import { GallerySpeechControls } from './GallerySpeechControls';
-import { GalleryModeProvider, GalleryPreviewToggle } from './GalleryModeProvider';
+import { GalleryModeProvider, GalleryPreviewToggle, useGalleryMode } from './GalleryModeProvider';
 import type { GalleryDeveloperPage } from './operationDetails';
 import { galleryDemoDetails } from './galleryDemoDetails';
 import { GalleryModelError, useGalleryModel, type GalleryModelConnect } from './galleryModel';
@@ -77,19 +77,26 @@ const Content = ({
   connectModel?: GalleryModelConnect;
   initialPage?: GalleryDeveloperPage;
 }) => {
-  const [page, setPage] = useState(initialPage);
+  const [page, setPage] = useState<GalleryDeveloperPage | 'settings' | undefined>(initialPage);
+  const { isDeveloperView } = useGalleryMode();
   return (
     <>
       <GalleryPreviewToggle />
       <Gallery
         demos={galleryDemoDetails}
         activeDemo={galleryDemoDetails[2]}
-        developerPage={page}
+        developerPage={page === 'settings' ? undefined : page}
+        settingsPage={page === 'settings'}
+        onOpenSettings={() => setPage(isDeveloperView ? 'setup' : 'settings')}
         input={<GallerySpeechControls />}
         connectModel={connectModel}
         onConfigureOperation={() => setPage('setup')}
-        renderDeveloperLink={({ page: destination, children }) => (
-          <button type="button" onClick={() => setPage(destination)}>
+        renderDeveloperLink={({ page: destination, children, current }) => (
+          <button
+            type="button"
+            aria-current={current ? 'page' : undefined}
+            onClick={() => setPage(destination)}
+          >
             {children}
           </button>
         )}
@@ -156,9 +163,9 @@ test('public mode ignores saved developer keys and visitor flags, and uses only 
   const direct = vi.fn<typeof fetch>();
   vi.stubGlobal('fetch', direct);
   const view = render(<View runtime={runtime} connectModel={host} />);
-  await screen.findByText('Free demo');
+  await screen.findByText('Usage unavailable');
   expect(screen.queryByRole('switch')).toBeNull();
-  expect(screen.queryByRole('navigation', { name: 'Developer tools' })).toBeNull();
+  expect(screen.getByRole('button', { name: 'Settings' })).toBeDefined();
   expect(screen.queryByLabelText('API key')).toBeNull();
   expect(screen.queryByRole('button', { name: /Configure inference|Add API key/ })).toBeNull();
   act(() => turn(runtime, 'A public thought.'));
@@ -166,6 +173,9 @@ test('public mode ignores saved developer keys and visitor flags, and uses only 
   fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
   await screen.findByText('Public note');
   expect(host).toHaveBeenCalledOnce();
+  expect(
+    (screen.getByRole('progressbar', { name: 'Demo allowance used' }) as HTMLProgressElement).value
+  ).toBe(20);
   expect(direct).not.toHaveBeenCalled();
   expect(JSON.parse(request.mock.calls[0]![0].body).model).toBe('host/model');
   expect(window.localStorage.getItem(inferenceStorageKey)).toContain('test-developer-key');
@@ -242,7 +252,7 @@ test('public preview aborts BYOK, ignores late results, preserves content/settin
     true
   );
   expect(direct.mock.calls[0]![1]!.signal!.aborted).toBe(true);
-  expect(screen.queryByRole('navigation', { name: 'Developer tools' })).toBeNull();
+  expect(screen.getByRole('button', { name: 'Settings' })).toBeDefined();
   expect(runtime.state$.get().notes.turns).toHaveLength(1);
   await act(async () => {
     finish(Response.json(completion('Obsolete developer note')));
@@ -258,7 +268,7 @@ test('public preview aborts BYOK, ignores late results, preserves content/settin
   );
   expect(hostSignal.aborted).toBe(true);
   expect(runtime.state$.get().notes.notes[0]?.text).toBe('Managed note');
-  expect(screen.getByRole('navigation', { name: 'Developer tools' })).toBeDefined();
+  expect(screen.getByRole('button', { name: 'Settings' })).toBeDefined();
   expect(screen.getByRole('button', { name: 'Start notes' })).toBeDefined();
   expect(direct).toHaveBeenCalledOnce();
   expect(host).toHaveBeenCalledOnce();
@@ -281,7 +291,7 @@ test('a public preview without host inference never falls back to the saved deve
   expect((screen.getByRole('button', { name: 'Start notes' }) as HTMLButtonElement).disabled).toBe(
     true
   );
-  expect(screen.getByText('Not connected')).toBeDefined();
+  expect(screen.getByText('Usage unavailable')).toBeDefined();
   expect(screen.queryByRole('button', { name: 'Configure inference' })).toBeNull();
   act(() => turn(runtime, 'Still local.'));
   expect(direct).not.toHaveBeenCalled();
@@ -342,11 +352,86 @@ test('developer operation grid uses catalogue requirements, remains navigable an
   expect(screen.queryByText('Diarization')).toBeNull();
   expect(screen.queryByRole('button', { name: /Sign up/ })).toBeNull();
   fireEvent.click(
-    within(screen.getByRole('navigation', { name: 'Developer tools' })).getByRole('button', {
-      name: 'Operation Setup',
+    within(screen.getByRole('navigation', { name: 'Operation views' })).getByRole('button', {
+      name: 'Configuration',
     })
   );
   await screen.findByLabelText('Model ID');
+  view.unmount();
+  runtime.close();
+});
+
+test('reported usage stays live without restarting inference, survives navigation, and clears on mode change', async () => {
+  const runtime = createNotesDemo();
+  let report!: Parameters<GalleryModelConnect>[0]['onAllowance'];
+  const host = vi.fn<GalleryModelConnect>(async ({ onAllowance }) => {
+    report = onAllowance;
+    onAllowance({ remaining: 4, total: 5 });
+    return hostConnection(async () => completion());
+  });
+  const view = render(<View developerMode runtime={runtime} connectModel={host} />);
+  await screen.findByText('Usage unavailable');
+  act(() => turn(runtime, 'First thought.'));
+  fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
+  await screen.findByText('20%');
+  act(() => report({ remaining: 1, total: 5 }));
+  expect(screen.getByText('80%')).toBeDefined();
+  expect(host).toHaveBeenCalledOnce();
+  expect(screen.getByRole('button', { name: 'Pause notes' })).toBeDefined();
+  fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+  await screen.findByRole('heading', { name: 'Configure models' });
+  const tabs = within(screen.getByRole('navigation', { name: 'Operation views' }));
+  expect(tabs.getByRole('button', { name: 'Configuration' }).getAttribute('aria-current')).toBe(
+    'page'
+  );
+  fireEvent.click(tabs.getByRole('button', { name: 'Grid' }));
+  await screen.findByRole('table');
+  expect(tabs.getByRole('button', { name: 'Grid' }).getAttribute('aria-current')).toBe('page');
+  expect(screen.getByText('80%')).toBeDefined();
+  // The outgoing demo's callback cannot replace the retained host-session report.
+  act(() => report({ remaining: 0, total: 5 }));
+  expect(screen.getByText('80%')).toBeDefined();
+  fireEvent.click(screen.getByRole('switch', { name: 'Developer mode' }));
+  expect(screen.getByText('Usage unavailable')).toBeDefined();
+  expect(screen.queryByRole('progressbar', { name: 'Demo allowance used' })).toBeNull();
+  expect(screen.getByRole('button', { name: 'Settings' })).toBeDefined();
+  view.unmount();
+  runtime.close();
+});
+
+test('public Settings opens account content, shares allowance with the footer, and aborts the outgoing demo connection', async () => {
+  savedKey();
+  const runtime = createNotesDemo();
+  let visitSignal!: AbortSignal;
+  const host = vi.fn<GalleryModelConnect>(async ({ signal, onAllowance }) => {
+    visitSignal = signal;
+    onAllowance({ remaining: 1, total: 5 });
+    return hostConnection(async () => completion());
+  });
+  const view = render(<View runtime={runtime} connectModel={host} />);
+  await screen.findByText('Usage unavailable');
+  act(() => turn(runtime, 'A thought before Settings.'));
+  fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
+  await screen.findByText('80%');
+  fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+  await screen.findByRole('heading', { name: 'Settings' });
+  expect(visitSignal.aborted).toBe(true);
+  expect(screen.getByRole('button', { name: 'Create an account' })).toBeDefined();
+  expect(screen.queryByLabelText('API key')).toBeNull();
+  expect(screen.queryByRole('navigation', { name: 'Operation views' })).toBeNull();
+  expect(
+    screen
+      .getAllByRole('progressbar', { name: 'Demo allowance used' })
+      .map(element => (element as HTMLProgressElement).value)
+  ).toEqual([80, 80]);
+  fireEvent.click(
+    within(screen.getByRole('navigation', { name: 'React demos' })).getByRole('link', {
+      name: 'Structured notes',
+    })
+  );
+  expect(screen.getByRole('button', { name: 'Start notes' })).toBeDefined();
+  expect(host).toHaveBeenCalledOnce();
+  expect(screen.getByText('80%')).toBeDefined();
   view.unmount();
   runtime.close();
 });

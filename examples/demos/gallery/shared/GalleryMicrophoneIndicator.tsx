@@ -1,13 +1,16 @@
 import type { CSSProperties } from 'react';
 import { Mic, MicOff } from 'lucide-react';
+import './galleryMicrophone.css';
 
 /** Passive capture status. The speech owner supplies live levels; this view owns no audio. */
 export const GalleryMicrophoneIndicator = ({
   recording,
   level,
+  size = 'default',
 }: {
   recording: boolean;
   level: number;
+  size?: 'default' | 'small';
 }) => {
   const inputLevel = recording && Number.isFinite(level) ? Math.max(0, Math.min(1, level)) : 0;
   // Lift quieter speech visually without changing the transcriber's audio or level readings.
@@ -18,6 +21,7 @@ export const GalleryMicrophoneIndicator = ({
       role="img"
       aria-label={recording ? 'Microphone listening' : 'Microphone off'}
       data-recording={recording}
+      data-size={size}
       style={
         {
           '--gallery-microphone-level': inputLevel,

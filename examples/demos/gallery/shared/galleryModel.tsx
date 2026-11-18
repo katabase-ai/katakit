@@ -1,14 +1,7 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useId,
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react';
+import { createContext, useCallback, useContext, useRef, type ReactNode } from 'react';
 import type { GalleryOperation } from './operationDetails';
+import type { GalleryAllowance } from './GalleryUsageProvider';
+import type { GalleryAccount } from './GalleryAccountButton';
 
 /** Only failures a host marks retryable are retried automatically; the rest need a click. */
 export class GalleryModelError extends Error {
@@ -59,28 +52,30 @@ export const GalleryModelContext = createContext<{
   hostAvailable?: boolean;
   isDeveloperView?: boolean;
   configure?: (operation?: GalleryOperation) => void;
+  openSettings?: () => void;
+  allowance?: GalleryAllowance;
+  usageUnavailableReason?: string;
+  reportAllowance?: (allowance: GalleryAllowance) => void;
+  account?: GalleryAccount;
 }>({});
 
 /**
  * One demo visit's use of the host's model connection. Its controls, the host's browser
- * check, and usage meter render inside the demo view.
+ * check render inside the demo view; host allowance is shared with the footer.
  */
 export const useGalleryModel = () => {
-  const { connect, isDeveloperView, configure } = useContext(GalleryModelContext);
+  const { connect, isDeveloperView, configure, reportAllowance } = useContext(GalleryModelContext);
   const verification = useRef<HTMLDivElement>(null);
-  const [allowance, setAllowance] = useState<{ remaining: number; total: number }>();
-  const usageId = useId();
-  useEffect(() => setAllowance(undefined), [connect]);
   const connectVisit = useCallback(
     ({ signal }: { signal: AbortSignal }) =>
       connect!({
         signal,
         verification: verification.current!,
         onAllowance: value => {
-          if (!signal.aborted) setAllowance(value);
+          if (!signal.aborted) reportAllowance?.(value);
         },
       }),
-    [connect]
+    [connect, reportAllowance]
   );
   return {
     connect: connect && connectVisit,
@@ -89,22 +84,6 @@ export const useGalleryModel = () => {
       <>
         {controls}
         <div ref={verification} aria-label="Browser verification" />
-        {allowance && (
-          <div className="gallery-model-allowance">
-            <div className="gallery-model-allowance-label">
-              <span id={usageId}>Usage</span>
-              <span>
-                {allowance.remaining} / {allowance.total} requests left
-              </span>
-            </div>
-            <progress
-              aria-labelledby={usageId}
-              value={allowance.remaining}
-              max={allowance.total}
-              aria-valuetext={`${allowance.remaining} of ${allowance.total} requests left`}
-            />
-          </div>
-        )}
       </>
     ),
   };

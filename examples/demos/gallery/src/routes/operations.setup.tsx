@@ -5,6 +5,6 @@ export const Route = createFileRoute('/operations/setup')({
   beforeLoad: () => {
     if (!galleryDeveloperBuild) throw redirect({ to: '/' });
   },
-  head: () => ({ meta: [{ title: 'Operation Setup · Katakit' }] }),
+  head: () => ({ meta: [{ title: 'Configure models · Katakit' }] }),
   component: () => <GalleryPage developerPage="setup" />,
 });
