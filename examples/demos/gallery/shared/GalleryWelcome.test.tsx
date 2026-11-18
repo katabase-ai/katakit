@@ -282,14 +282,14 @@ test('Welcome places the agreed copy under its headings and confines markers to 
   expect(microphoneHeading.parentElement?.nextElementSibling?.textContent).toContain(
     'Your audio data always stays on your device.'
   );
-  const cloudHeading = screen.getByRole('heading', { name: 'Cloud-based models' });
+  const cloudHeading = screen.getByRole('heading', { name: 'How cloud servers work' });
   expect(cloudHeading.nextElementSibling?.textContent).toContain(
     'reason about the conversation as it unfolds'
   );
   const legend = screen.getByLabelText('Demo data handling');
-  expect(within(legend).getByRole('img', { name: 'On-device' })).toBeDefined();
-  expect(within(legend).getByRole('img', { name: 'Cloud processing' })).toBeDefined();
-  expect(screen.getAllByRole('img', { name: /On-device|Cloud processing/ })).toHaveLength(2);
+  expect(within(legend).getByText('On-device')).toBeDefined();
+  expect(within(legend).getByText('Cloud-assisted')).toBeDefined();
+  expect(screen.getAllByText(/^(On-device|Cloud-assisted)$/)).toHaveLength(2);
   expect(screen.queryByText(/Say a few words/)).toBeNull();
 });
 

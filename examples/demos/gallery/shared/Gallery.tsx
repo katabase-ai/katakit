@@ -4,6 +4,7 @@ import { GalleryModelContext, type GalleryModelConnect } from './galleryModel';
 import { useGalleryInference } from './GalleryInferenceProvider';
 import { connectWithKey } from './galleryInference';
 import { GalleryFooter } from './GalleryFooter';
+import { GalleryPrivacyBadge } from './GalleryPrivacyBadge';
 import { useGalleryMode } from './GalleryModeProvider';
 import type { GalleryDeveloperPage, GalleryOperation } from './operationDetails';
 
@@ -29,6 +30,7 @@ export const Gallery = ({
   input,
   connectModel,
   privacyUrl,
+  cloudPrivacyDescription,
   developerPage,
   renderDeveloperLink,
   onConfigureOperation,
@@ -45,6 +47,8 @@ export const Gallery = ({
   connectModel?: GalleryModelConnect;
   /** Absolute host privacy URL, opened separately to preserve this conversation. */
   privacyUrl?: string;
+  /** Verified managed-service privacy wording. Never used for developer key connections. */
+  cloudPrivacyDescription?: string;
   developerPage?: GalleryDeveloperPage;
   renderDeveloperLink?: (link: {
     page: GalleryDeveloperPage;
@@ -131,7 +135,20 @@ export const Gallery = ({
               )}
             </Suspense>
           ) : activeDemo ? (
-            children
+            <>
+              <GalleryPrivacyBadge
+                key={activeDemo.id}
+                dataHandling={activeDemo.dataHandling}
+                privacyUrl={privacyUrl}
+                developerEndpoint={isDeveloperView && inference?.settings.source === 'key'}
+                cloudPrivacyDescription={
+                  connectModel && (!isDeveloperView || inference?.settings.source === 'free')
+                    ? cloudPrivacyDescription
+                    : undefined
+                }
+              />
+              {children}
+            </>
           ) : (
             <>
               <Suspense fallback={<p role="status">Loading Welcome…</p>}>

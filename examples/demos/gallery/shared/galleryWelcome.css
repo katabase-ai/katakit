@@ -151,10 +151,10 @@
 .katakit-gallery .gallery-welcome-download-progress::-moz-progress-bar {
   background: var(--color-accent);
 }
-.katakit-gallery .gallery-welcome-cloud {
+.katakit-gallery .gallery-welcome-section {
   margin-top: 3.5rem;
 }
-.katakit-gallery .gallery-welcome-cloud h2 {
+.katakit-gallery .gallery-welcome-section h2 {
   font-size: var(--text-xl);
   margin-bottom: 1rem;
 }
@@ -164,15 +164,6 @@
 }
 .katakit-gallery .gallery-welcome-marker-key li + li {
   margin-top: 0.75rem;
-}
-.katakit-gallery .gallery-welcome-marker {
-  display: inline-flex;
-  vertical-align: -0.2em;
-  color: var(--color-ink-2);
-}
-.katakit-gallery .gallery-welcome-marker svg {
-  width: 18px;
-  height: 18px;
 }
 .katakit-gallery .gallery-welcome-privacy {
   margin-top: 1.5rem;

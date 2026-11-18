@@ -325,19 +325,24 @@ test('developer operation grid uses catalogue requirements, remains navigable an
   const runtime = createNotesDemo();
   const view = render(<View developerMode initialPage="grid" runtime={runtime} />);
   const table = await screen.findByRole('table');
+  expect(within(table).queryByRole('button')).toBeNull();
   expect(within(table).getAllByRole('link')).toHaveLength(galleryDemoDetails.length);
   expect(
     within(table).getAllByRole('img', { name: 'Transcription: Required · configured' })
   ).toHaveLength(4);
   const game = within(table).getByRole('row', { name: /Color Clash/ });
   expect(within(game).getByRole('link', { name: 'Color Clash' })).toBeDefined();
-  expect(within(game).getByRole('img', { name: 'Inference: Not used' })).toBeDefined();
+  expect(within(game).getByRole('img', { name: 'Text generation: Not used' })).toBeDefined();
   expect(
-    within(table).getByRole('img', { name: 'Inference: Required · needs a connection' })
+    within(table).getByRole('img', { name: 'Text generation: Required · needs a connection' })
   ).toBeDefined();
   expect(screen.queryByText('Diarization')).toBeNull();
   expect(screen.queryByRole('button', { name: /Sign up/ })).toBeNull();
-  fireEvent.click(within(table).getByRole('button', { name: 'Inference' }));
+  fireEvent.click(
+    within(screen.getByRole('navigation', { name: 'Developer tools' })).getByRole('button', {
+      name: 'Operation Setup',
+    })
+  );
   await screen.findByLabelText('Model ID');
   view.unmount();
   runtime.close();

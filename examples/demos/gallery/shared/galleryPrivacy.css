@@ -1,0 +1,130 @@
+.katakit-gallery .gallery-privacy-row {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1.25rem;
+}
+.katakit-gallery .gallery-privacy-control {
+  display: inline-flex;
+  max-width: 100%;
+}
+.katakit-gallery .gallery-privacy-badge,
+.katakit-gallery .gallery-privacy-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  padding: 4px 8px;
+  border: 1px solid var(--color-rule);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--color-muted);
+  font: 400 0.6875rem/1.4 var(--font-body, system-ui, sans-serif);
+  text-align: left;
+  cursor: pointer;
+}
+.katakit-gallery .gallery-privacy-pill {
+  vertical-align: middle;
+  white-space: nowrap;
+  cursor: default;
+}
+.katakit-gallery .gallery-privacy-badge:hover,
+.katakit-gallery .gallery-privacy-badge[aria-expanded='true'] {
+  background: var(--color-paper-2);
+  color: var(--color-ink-2);
+}
+.katakit-gallery .gallery-privacy-badge svg,
+.katakit-gallery .gallery-privacy-pill svg {
+  width: 15px;
+  height: 15px;
+  flex-shrink: 0;
+  stroke-width: 1.6;
+}
+.katakit-gallery .gallery-privacy-panel {
+  position: absolute;
+  z-index: 5;
+  inset-block-start: 100%;
+  inset-inline-end: 0;
+  width: max-content;
+  max-width: 100%;
+  padding-top: 8px;
+}
+.katakit-gallery .gallery-privacy-panel[hidden] {
+  display: none;
+}
+.katakit-gallery .gallery-privacy-popover {
+  position: relative;
+  padding: 14px 16px;
+  border: 1px solid var(--color-rule-2);
+  border-radius: 8px;
+  background: var(--color-key-face, var(--color-paper));
+  color: var(--color-ink);
+}
+.katakit-gallery .gallery-privacy-popover::before {
+  content: '';
+  position: absolute;
+  inset-block-start: -5px;
+  inset-inline-end: 2rem;
+  width: 8px;
+  height: 8px;
+  border-block-start: 1px solid var(--color-rule-2);
+  border-inline-start: 1px solid var(--color-rule-2);
+  background: var(--color-key-face, var(--color-paper));
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+.katakit-gallery .gallery-privacy-facts {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.katakit-gallery .gallery-privacy-facts li {
+  display: grid;
+  grid-template-columns: 12px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+  color: var(--color-ink-2);
+  font: 400 0.75rem/1.45 var(--font-body, system-ui, sans-serif);
+}
+.katakit-gallery .gallery-privacy-facts li > span {
+  max-inline-size: 30ch;
+  overflow-wrap: anywhere;
+}
+.katakit-gallery .gallery-privacy-facts svg {
+  width: 12px;
+  height: 12px;
+  margin-top: 3px;
+  color: var(--color-muted);
+  stroke-width: 1.6;
+}
+.katakit-gallery .gallery-privacy-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 14px;
+}
+.katakit-gallery .gallery-privacy-footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--color-link, var(--color-accent));
+  font: 400 0.6875rem/1.5 var(--font-body, system-ui, sans-serif);
+  text-decoration: none;
+}
+.katakit-gallery .gallery-privacy-link-label {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.katakit-gallery .gallery-privacy-footer svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  stroke-width: 1.6;
+}
+@media (pointer: coarse) {
+  .katakit-gallery .gallery-privacy-badge,
+  .katakit-gallery .gallery-privacy-footer a {
+    min-height: 44px;
+  }
+}

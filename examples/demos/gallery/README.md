@@ -62,6 +62,21 @@ expected content types. Models download on Download model or an explicit microph
 
 `shared/galleryDemoDetails.ts` is the eligible React catalogue, including stable IDs, names,
 descriptions, source paths, and required capabilities. `shared/galleryDemos.tsx` adds lazy component loaders.
+The catalogue is a manually maintained, typed build input. Every entry also declares
+`dataHandling: { audio: 'device', transcribedText: 'device' | 'cloud' }`; update it when the
+demo's data flow changes. `Gallery` uses those facts for its upper-right On-device or
+Cloud-assisted badge and two-row privacy popover. These describe the demo's behavior, not
+connection readiness or current network activity. No source scanning or runtime probing is used.
+
+The popover uses Lucide shields and opens on hover, keyboard focus, or a tap. Escape or an
+outside interaction dismisses it; keyboard users can reach the privacy link without closing
+the panel. Its right-aligned policy link uses the host's `privacyUrl` and opens separately.
+Hosts may supply `cloudPrivacyDescription` for a verified managed-service promise, for example
+“Transcribed text is processed on secure servers.” The default only describes cloud processing;
+the reference host has no managed service and makes no security claim. Developer key connections
+always use neutral configured-service wording, ignoring any host promise. The gallery does not
+verify endpoint security, retention, or model-provider policies.
+
 A host can select metadata and render `shared/Gallery.tsx` without importing recognizers or this
 app's bootstrap. Import `shared/gallery.css` for the scoped presentation. It owns the gallery’s
 inner type scale, spacing, control styles, and demo layout resets while using the host’s font and

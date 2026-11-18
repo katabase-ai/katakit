@@ -273,15 +273,12 @@ export const GalleryOperationGrid = ({
   renderLink,
 }: Pick<Parameters<typeof Gallery>[0], 'demos' | 'renderLink'>) => {
   const { isDeveloperView } = useGalleryMode();
-  const { connect, configure } = useContext(GalleryModelContext);
+  const { connect } = useContext(GalleryModelContext);
   if (!isDeveloperView) return null;
   return (
     <section className="gallery-developer-page" aria-label="Operation Grid">
       <h1>Operation Grid</h1>
-      <p>
-        See which operations each demo needs. Select an operation to configure it, or a demo to open
-        it.
-      </p>
+      <p>See which operations each demo needs. Select a demo to open it.</p>
       <p>
         Configured means a model or managed connection is selected. Downloads, microphone
         permission, and provider availability are checked when you start.
@@ -291,18 +288,10 @@ export const GalleryOperationGrid = ({
           <caption className="gallery-visually-hidden">Required operations for each demo</caption>
           <thead>
             <tr>
-              <th rowSpan={2} scope="col">
-                Demo
-              </th>
-              <th scope="colgroup">Audio</th>
-              <th scope="colgroup">Language</th>
-            </tr>
-            <tr>
+              <td />
               {galleryOperations.map(operation => (
                 <th key={operation.id} scope="col">
-                  <button type="button" onClick={() => configure?.(operation.id)}>
-                    {operation.title}
-                  </button>
+                  {operation.title}
                 </th>
               ))}
             </tr>
@@ -323,13 +312,7 @@ export const GalleryOperationGrid = ({
                       : 'Required · needs a connection';
                   return (
                     <td key={operation.id}>
-                      <span
-                        className={
-                          required && !configured ? 'gallery-operation-missing' : undefined
-                        }
-                        role="img"
-                        aria-label={`${operation.title}: ${label}`}
-                      >
+                      <span role="img" aria-label={`${operation.title}: ${label}`}>
                         {!required ? '—' : configured ? '●' : '○'}
                       </span>
                     </td>
@@ -340,9 +323,17 @@ export const GalleryOperationGrid = ({
           </tbody>
         </table>
       </div>
-      <p className="gallery-grid-legend">
-        ● Required · configured　 ○ Required · needs a connection　 — Not used
-      </p>
+      <ul className="gallery-grid-legend" aria-label="Operation status legend">
+        <li>
+          <span aria-hidden="true">●</span> Required · configured
+        </li>
+        <li>
+          <span aria-hidden="true">○</span> Required · needs a connection
+        </li>
+        <li>
+          <span aria-hidden="true">—</span> Not used
+        </li>
+      </ul>
     </section>
   );
 };
