@@ -110,6 +110,35 @@ Each host owns its URLs, title metadata, not-found/loading/error handling, and r
 Adding an entry here makes it eligible; each consuming website still chooses what to include.
 Examples continue to own their code and never import private website components.
 
+## Stable demo transitions
+
+Wrap the active demo content in `shared/GalleryDemoFrame.tsx`, inside Gallery's content slot.
+Keep the frame mounted as its `demo` prop changes. It owns the lazy-component Suspense boundary
+and one loading view for both code loading and runtime attachment. The local Start host uses:
+
+```tsx
+<GalleryDemoFrame demo={demo}>
+  <ClientOnly fallback={null}>
+    <Component />
+  </ClientOnly>
+</GalleryDemoFrame>
+```
+
+`ClientOnly` is this host's hydration guard; browser-only hosts can render the component directly.
+Avoid another loading heading or Suspense fallback inside the frame. Keep host error boundaries
+outside it. Standard demo entries use `GalleryDemo`, which reports readiness after its runtime
+lease settles; custom adapters using a different lease must call `useGalleryDemoReady(settled)`.
+Runtime initialization failures become visible errors rather than permanent loading states.
+
+The frame measures settled content, including later size changes, and temporarily reserves that
+height while switching demos. Its loading heading matches the destination demo's heading scale,
+including Bingo's mobile size. Incoming content stays hidden until its lease settles, so partial
+headers and controls do not replace the loading view. Once ready, the reservation is removed and
+the content takes its natural responsive height. Resize observers disconnect on transition/unmount.
+Only the outgoing dimensions are retained: the old component unmounts and its runtime still stops,
+drains, and closes before the incoming runtime is created. This does not preload speech models,
+start capture/inference, retain inactive demos, or change individual games.
+
 ## Shared input and separate demo runtimes
 
 Mount `GallerySpeechProvider` once above the route outlet. It owns one `@katakit/transcription`

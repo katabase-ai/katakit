@@ -1,9 +1,10 @@
-import { Suspense, useCallback } from 'react';
+import { useCallback } from 'react';
 import { ClientOnly, Link, Navigate, useNavigate } from '@tanstack/react-router';
 import { Gallery } from '../shared/Gallery';
 import { GallerySpeechControls } from '../shared/GallerySpeechControls';
 import { galleryDemos } from '../shared/galleryDemos';
 import { useGalleryMode } from '../shared/GalleryModeProvider';
+import { GalleryDemoFrame } from '../shared/GalleryDemoFrame';
 import type { GalleryDeveloperPage, GalleryOperation } from '../shared/operationDetails';
 
 /** Browser demos are mounted only after hydration, never by the SSR Worker. */
@@ -57,27 +58,12 @@ export const GalleryPage = ({
         )
       }
     >
-      {Component && (
-        <ClientOnly
-          fallback={
-            <div>
-              <h1>{demo?.title}</h1>
-              <p role="status">Loading demo…</p>
-            </div>
-          }
-        >
-          <Suspense
-            key={demo?.id}
-            fallback={
-              <div>
-                <h1>{demo?.title}</h1>
-                <p role="status">Loading demo…</p>
-              </div>
-            }
-          >
+      {Component && demo && (
+        <GalleryDemoFrame demo={demo}>
+          <ClientOnly fallback={null}>
             <Component />
-          </Suspense>
-        </ClientOnly>
+          </ClientOnly>
+        </GalleryDemoFrame>
       )}
     </Gallery>
   );

@@ -1,0 +1,19 @@
+.katakit-gallery .gallery-demo-frame[aria-busy='true'] {
+  min-height: 24rem;
+}
+.katakit-gallery .gallery-demo-stage {
+  display: flow-root;
+}
+.katakit-gallery .gallery-demo-stage[hidden] {
+  display: none;
+}
+/* Match the demo-owned headings before their lazy stylesheets have loaded. */
+.katakit-gallery .gallery-demo-loading[data-demo='transcription'] h1,
+.katakit-gallery .gallery-demo-loading[data-demo='bingo'] h1 {
+  font-size: var(--text-3xl);
+}
+@media (max-width: 540px) {
+  .katakit-gallery .gallery-demo-loading[data-demo='bingo'] h1 {
+    font-size: var(--text-xl);
+  }
+}

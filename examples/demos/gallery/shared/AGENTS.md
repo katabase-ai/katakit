@@ -7,6 +7,11 @@ source checkout. They do not own application bootstraps, routing, or private ser
   components. Keep extension information pages out of both. `#gallery-react-catalogue`
 - Keep metadata and `Gallery.tsx` free of eager recognizer/runtime imports. Welcome loads lazily. Accept host-rendered links
   and children instead of importing a host router. `#gallery-portable-presentation`
+- Hosts wrap active demo content in a persistent `GalleryDemoFrame`; it owns one loading view across
+  lazy imports/hydration and runtime handoff. `GalleryDemo` reports a settled lease before reveal.
+  Reserve only the outgoing dimensions while loading, release the height when ready, and disconnect
+  size observers on transition/unmount. Keep stop/drain/close ordering and game code unchanged.
+  `#gallery-demo-transitions`
 - Scope portable gallery CSS beneath `.katakit-gallery`; import only `internal/site-ui/components.css`.
   Own inner typography, spacing, and control rules here so host marketing CSS and demo-local button
   defaults cannot change the composition. The host supplies font/palette tokens. The local host opts
