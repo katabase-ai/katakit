@@ -41,14 +41,14 @@ test('listening buffers locally; explicit start sends, source change aborts, pre
     completion('Accepted note')
   );
   const second = vi.fn(async () => connection(secondRequest));
-  const view = render(<NotesDemo runtime={runtime} listening connect={first} />);
+  const view = render(<NotesDemo runtime={runtime} connect={first} />);
   act(() => turn(runtime, 'Plan the launch.'));
   await act(async () => {});
   expect(first).not.toHaveBeenCalled();
   expect(firstRequest).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
   await vi.waitFor(() => expect(firstRequest).toHaveBeenCalledOnce());
-  view.rerender(<NotesDemo runtime={runtime} listening connect={second} />);
+  view.rerender(<NotesDemo runtime={runtime} connect={second} />);
   expect(signal.aborted).toBe(true);
   expect(runtime.state$.get().notes.turns).toHaveLength(1);
   act(() => turn(runtime, 'Keep capture running.'));
@@ -82,7 +82,7 @@ test('unmount aborts pending admission and ignores its late connection', async (
       finish = resolve;
     });
   });
-  const view = render(<NotesDemo runtime={runtime} listening connect={connect} />);
+  const view = render(<NotesDemo runtime={runtime} connect={connect} />);
   act(() => turn(runtime, 'Before unmount.'));
   fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
   view.unmount();
@@ -100,7 +100,7 @@ test('exhaustion leaves capture usable and clear/new turns cannot restart or res
     throw new NotesRequestError('Free demo allowance used.', { terminal: true });
   });
   const connect = vi.fn(async () => connection(request));
-  const view = render(<NotesDemo runtime={runtime} listening connect={connect} />);
+  const view = render(<NotesDemo runtime={runtime} connect={connect} />);
   act(() => turn(runtime, 'First thought.'));
   fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
   await screen.findByText('Free demo allowance used.');
@@ -123,7 +123,7 @@ test('Strict Mode can replay effects and failed verification still requires an e
   connect.mockRejectedValueOnce(new NotesRequestError('Verification failed. Try again.'));
   const view = render(
     <StrictMode>
-      <NotesDemo runtime={runtime} listening connect={connect} />
+      <NotesDemo runtime={runtime} connect={connect} />
     </StrictMode>
   );
   act(() => turn(runtime, 'Retained across verification.'));
@@ -146,7 +146,7 @@ test('restart policy admits a new connection rather than retrying the failed ses
   });
   const fresh = vi.fn(async () => completion('Recovered note'));
   const connect = vi.fn(async () => connection(fresh)).mockResolvedValueOnce(connection(stale));
-  const view = render(<NotesDemo runtime={runtime} listening connect={connect} />);
+  const view = render(<NotesDemo runtime={runtime} connect={connect} />);
   act(() => turn(runtime, 'Keep this thought.'));
   fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
   await screen.findByText('Session expired.');

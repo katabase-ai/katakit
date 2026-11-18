@@ -12,7 +12,6 @@ export const useNotesConnection = ({
   connect,
 }: {
   runtime: ReturnType<typeof createNotesDemo>;
-  listening: boolean;
   connect?: (input: { signal: AbortSignal }) => Promise<NotesConnection>;
 }) => {
   const [admission, setAdmission] = useState<AdmissionState>({ type: 'idle' });

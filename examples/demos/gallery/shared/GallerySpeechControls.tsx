@@ -1,17 +1,9 @@
-import { useContext, type ReactNode } from 'react';
-import type { TranscriptionModelId } from '@katakit/transcription/browser';
+import { useContext } from 'react';
 import { useGallerySpeech } from './GallerySpeechProvider';
 import { GalleryModelContext } from './galleryModel';
 
-/** Kept as a host adapter type; model selection now lives in developer Operation Setup. */
-export type GalleryModelSelect = (props: {
-  model: TranscriptionModelId;
-  disabled: boolean;
-  onChange: (model: TranscriptionModelId) => void;
-}) => ReactNode;
-
 /** Public visitors can download speech and see managed inference status, never configure BYOK. */
-export const GallerySpeechControls = (_props: { renderModelSelect?: GalleryModelSelect }) => {
+export const GallerySpeechControls = () => {
   const session = useGallerySpeech();
   const { hostAvailable } = useContext(GalleryModelContext);
   const snapshot = session?.snapshot;
