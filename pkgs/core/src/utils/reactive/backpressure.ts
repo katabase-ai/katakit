@@ -11,9 +11,9 @@ import { eachValueFrom, latestValueFrom } from 'rxjs-for-await';
  * - `'queue'` -- one handler in flight; every value is buffered and handled in
  *   FIFO order, nothing conflated. For distinct user requests that must all run
  *   (topic/slide recap request effects).
- * - `'concurrent'` -- no gate; every value spawns a handler immediately.
+ * - `'none'` -- start a handler for every value without waiting for earlier handlers.
  */
-export type BackpressureStrategy = 'latest' | 'concurrent' | 'queue';
+export type BackpressureStrategy = 'latest' | 'none' | 'queue';
 
 const backpressureLatest = async <T>(
   observable: Observable<T>,
@@ -35,12 +35,12 @@ const backpressureQueue = async <T>(
   }
 };
 
-const backpressureConcurrent = async <T>(
+const backpressureNone = async <T>(
   observable: Observable<T>,
   handler: (value: T) => Promise<void>
 ) => {
   for await (const value of eachValueFrom(observable)) {
-    // no await means handlers will run in parallel
+    // Don't wait for this handler before consuming the next value.
     handler(value);
   }
 };
@@ -61,6 +61,6 @@ export const subscribeWithBackpressure = <T>(
   ({
     latest: () => backpressureLatest(observable, handlerWithErrorHandling),
     queue: () => backpressureQueue(observable, handlerWithErrorHandling),
-    concurrent: () => backpressureConcurrent(observable, handlerWithErrorHandling),
+    none: () => backpressureNone(observable, handlerWithErrorHandling),
   })[strategy]();
 };
