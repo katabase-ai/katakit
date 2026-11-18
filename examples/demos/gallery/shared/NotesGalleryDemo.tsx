@@ -5,6 +5,7 @@ import { NotesRequestError } from '../../notes-react/src/notesModel';
 import { GalleryCaptureControls } from './GalleryCaptureControls';
 import { GalleryDemo } from './GalleryDemo';
 import { GalleryModelError, useGalleryModel } from './galleryModel';
+import { useGalleryDemoHeader } from './GalleryDemoHeader';
 
 // The copyable example recognizes only its own error class, so host failures are rethrown as it.
 const toNotesError = (error: unknown) =>
@@ -13,6 +14,7 @@ const toNotesError = (error: unknown) =>
 /** The gallery's host supplies model admission; shared speech attaches only to this visit's runtime. */
 export const NotesGalleryDemo = () => {
   const model = useGalleryModel();
+  const hasHeader = useGalleryDemoHeader();
   const connectGallery = model.connect;
   const connect = useCallback(
     async (input: { signal: AbortSignal }) => {
@@ -39,6 +41,7 @@ export const NotesGalleryDemo = () => {
       create={createNotesDemo}
       render={runtime => (
         <NotesDemo
+          showIntroduction={!hasHeader}
           runtime={runtime}
           connectionHelp={
             model.configure ? (

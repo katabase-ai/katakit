@@ -2,10 +2,12 @@ import { ColorClash } from './color-clash/ColorClash';
 import { createColorClash } from './color-clash/createColorClash';
 import { GalleryDemo } from './GalleryDemo';
 import { useGallerySpeech } from './GallerySpeechProvider';
+import { useGalleryDemoHeader } from './GalleryDemoHeader';
 
 /** The gallery owns capture; the existing game owns its round and stops capture when it finishes. */
 export const ColorClashGalleryDemo = () => {
   const session = useGallerySpeech();
+  const hasHeader = useGalleryDemoHeader();
   if (!session) return <p role="status">Preparing Color Clash…</p>;
   const { snapshot, owner } = session;
   // Preserve typed microphone errors so the game can show its permission-recovery instructions.
@@ -16,8 +18,14 @@ export const ColorClashGalleryDemo = () => {
       : snapshot.error;
   return (
     <>
-      <h1>Color Clash</h1>
-      <p className="gallery-intro">Say the ink color, not the word. Speech stays on your device.</p>
+      {!hasHeader && (
+        <>
+          <h1>Color Clash</h1>
+          <p className="gallery-intro">
+            Say the ink color, not the word. Speech stays on your device.
+          </p>
+        </>
+      )}
       <GalleryDemo
         create={createColorClash}
         render={runtime => (

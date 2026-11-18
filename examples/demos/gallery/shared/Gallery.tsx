@@ -5,6 +5,7 @@ import { useGalleryInference } from './GalleryInferenceProvider';
 import { connectWithKey } from './galleryInference';
 import { GalleryFooter } from './GalleryFooter';
 import { GalleryPrivacyBadge } from './GalleryPrivacyBadge';
+import { GalleryDemoHeader } from './GalleryDemoHeader';
 import { useGalleryMode } from './GalleryModeProvider';
 import type { GalleryDeveloperPage, GalleryOperation } from './operationDetails';
 
@@ -135,20 +136,24 @@ export const Gallery = ({
               )}
             </Suspense>
           ) : activeDemo ? (
-            <>
-              <GalleryPrivacyBadge
-                key={activeDemo.id}
-                dataHandling={activeDemo.dataHandling}
-                privacyUrl={privacyUrl}
-                developerEndpoint={isDeveloperView && inference?.settings.source === 'key'}
-                cloudPrivacyDescription={
-                  connectModel && (!isDeveloperView || inference?.settings.source === 'free')
-                    ? cloudPrivacyDescription
-                    : undefined
-                }
-              />
+            <GalleryDemoHeader
+              demo={activeDemo}
+              badge={
+                <GalleryPrivacyBadge
+                  key={activeDemo.id}
+                  dataHandling={activeDemo.dataHandling}
+                  privacyUrl={privacyUrl}
+                  developerEndpoint={isDeveloperView && inference?.settings.source === 'key'}
+                  cloudPrivacyDescription={
+                    connectModel && (!isDeveloperView || inference?.settings.source === 'free')
+                      ? cloudPrivacyDescription
+                      : undefined
+                  }
+                />
+              }
+            >
               {children}
-            </>
+            </GalleryDemoHeader>
           ) : (
             <>
               <Suspense fallback={<p role="status">Loading Welcome…</p>}>

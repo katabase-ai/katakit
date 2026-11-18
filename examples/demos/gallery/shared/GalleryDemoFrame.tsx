@@ -3,11 +3,13 @@ import {
   Suspense,
   useCallback,
   useContext,
+  useEffect,
   useLayoutEffect,
   useRef,
   useState,
   type ReactNode,
 } from 'react';
+import { GalleryDemoHeader, useGalleryDemoHeader } from './GalleryDemoHeader';
 
 const Ready = createContext<(() => void) | undefined>(undefined);
 
@@ -24,7 +26,35 @@ export const useGalleryDemoReady = (settled: boolean) => {
  * Keep one loading view through lazy imports, hydration, and the speech lease handoff.
  * Only the outgoing height is retained; its component and runtime are released normally.
  */
-export const GalleryDemoFrame = ({
+export const GalleryDemoFrame = (props: {
+  demo: { id: string; title: string; description?: string };
+  children: ReactNode;
+}) => {
+  const hasHeader = useGalleryDemoHeader();
+  const body = <GalleryDemoBody {...props} />;
+  return hasHeader ? body : <GalleryDemoHeader demo={props.demo}>{body}</GalleryDemoHeader>;
+};
+
+/** Delay only the feedback, never the content; each pending visit owns and clears its timer. */
+const GalleryDemoActivity = () => {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setVisible(true), 250);
+    return () => window.clearTimeout(timer);
+  }, []);
+  return (
+    <div className="gallery-demo-activity-slot">
+      {visible && (
+        <p className="gallery-demo-activity" role="status">
+          <span className="gallery-demo-spinner" aria-hidden="true" />
+          Opening…
+        </p>
+      )}
+    </div>
+  );
+};
+
+const GalleryDemoBody = ({
   demo,
   children,
 }: {
@@ -58,18 +88,19 @@ export const GalleryDemoFrame = ({
     <Ready value={ready}>
       <div
         className="gallery-demo-frame"
-        aria-busy={pending}
+        data-loading={pending}
         style={
           pending && previousHeight.current ? { minHeight: previousHeight.current } : undefined
         }
       >
-        {pending && (
-          <div className="gallery-demo-loading" data-demo={demo.id}>
-            <h1>{demo.title}</h1>
-            <p role="status">Loading demo…</p>
-          </div>
-        )}
-        <div ref={content} className="gallery-demo-stage" hidden={pending} key={demo.id}>
+        {pending && <GalleryDemoActivity key={`activity-${demo.id}`} />}
+        <div
+          ref={content}
+          className="gallery-demo-stage"
+          aria-busy={pending}
+          hidden={pending}
+          key={demo.id}
+        >
           <Suspense fallback={null}>{children}</Suspense>
         </div>
       </div>

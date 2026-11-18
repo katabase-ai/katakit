@@ -7,9 +7,12 @@ import './style.css';
 export const BrowserBingoDemo = ({
   runtime,
   controls,
+  showIntroduction = true,
 }: {
   runtime: ReturnType<typeof createBrowserBingoDemo>;
   controls?: ReactNode;
+  /** Embedded hosts can supply their own page header. */
+  showIntroduction?: boolean;
 }) => {
   const [snapshot, setSnapshot] = useState(() => runtime.state$.getValue());
   const [packId, setPackId] = useState<BingoPackId>('meeting');
@@ -26,13 +29,19 @@ export const BrowserBingoDemo = ({
     setPackId(next);
   };
   return (
-    <section className="browser-bingo" aria-labelledby="bingo-title">
-      <header className="bingo-intro">
-        <div>
-          <h1 id="bingo-title">Conversation bingo</h1>
-          <p>Say it in the conversation. See it on the card.</p>
-        </div>
-      </header>
+    <section
+      className="browser-bingo"
+      aria-labelledby={showIntroduction ? 'bingo-title' : undefined}
+      aria-label={showIntroduction ? undefined : 'Conversation bingo'}
+    >
+      {showIntroduction && (
+        <header className="bingo-intro">
+          <div>
+            <h1 id="bingo-title">Conversation bingo</h1>
+            <p>Say it in the conversation. See it on the card.</p>
+          </div>
+        </header>
+      )}
       <div className="bingo-layout">
         <section className="bingo-game" aria-label="Bingo card">
           <div className="bingo-score">

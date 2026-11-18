@@ -112,9 +112,17 @@ Examples continue to own their code and never import private website components.
 
 ## Stable demo transitions
 
+Gallery renders the real demo title, description, and privacy badge from metadata before loading
+the demo. `GalleryDemoHeader` keeps this header in place through loading and readiness: 36px titles
+on desktop, 28px on mobile, 12px between title and description, and 32px before the demo body.
+The badge sits beside the title on desktop and below the description on mobile. Content starts
+32px below the gallery edge on desktop and 24px on mobile. Standard adapters suppress their embedded
+introductions when this header is present; standalone views retain their original introductions.
+
 Wrap the active demo content in `shared/GalleryDemoFrame.tsx`, inside Gallery's content slot.
 Keep the frame mounted as its `demo` prop changes. It owns the lazy-component Suspense boundary
-and one loading view for both code loading and runtime attachment. The local Start host uses:
+and one loading treatment for both code loading and runtime attachment. A frame used outside
+Gallery supplies the same real header itself. The local Start host uses:
 
 ```tsx
 <GalleryDemoFrame demo={demo}>
@@ -130,11 +138,15 @@ outside it. Standard demo entries use `GalleryDemo`, which reports readiness aft
 lease settles; custom adapters using a different lease must call `useGalleryDemoReady(settled)`.
 Runtime initialization failures become visible errors rather than permanent loading states.
 
-The frame measures settled content, including later size changes, and temporarily reserves that
-height while switching demos. Its loading heading matches the destination demo's heading scale,
-including Bingo's mobile size. Incoming content stays hidden until its lease settles, so partial
-headers and controls do not replace the loading view. Once ready, the reservation is removed and
-the content takes its natural responsive height. Resize observers disconnect on transition/unmount.
+The frame measures the settled demo body, including later size changes, and temporarily reserves
+that height while switching demos. The reserved space is quiet for the first 250ms. Longer waits
+show a 16px activity ring and muted “Opening…” text at the top-left of the body. Content is revealed
+as soon as its lease settles; it is never delayed to finish an animation. Timers are cleared on
+readiness, navigation, and unmount. The ring becomes static for reduced-motion preferences, and the
+status message is separate from the busy/hidden incoming content so assistive technology can announce it.
+
+Incoming content stays hidden until its lease settles. Once ready, the reservation is removed and
+the body takes its natural responsive height. Resize observers disconnect on transition/unmount.
 Only the outgoing dimensions are retained: the old component unmounts and its runtime still stops,
 drains, and closes before the incoming runtime is created. This does not preload speech models,
 start capture/inference, retain inactive demos, or change individual games.

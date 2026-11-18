@@ -10,8 +10,14 @@ source checkout. They do not own application bootstraps, routing, or private ser
 - Hosts wrap active demo content in a persistent `GalleryDemoFrame`; it owns one loading view across
   lazy imports/hydration and runtime handoff. `GalleryDemo` reports a settled lease before reveal.
   Reserve only the outgoing dimensions while loading, release the height when ready, and disconnect
-  size observers on transition/unmount. Keep stop/drain/close ordering and game code unchanged.
+  size observers on transition/unmount. Keep stop/drain/close ordering and gameplay behavior unchanged.
   `#gallery-demo-transitions`
+- `GalleryDemoHeader` renders metadata titles/descriptions and the privacy badge independently of
+  lazy code and runtime readiness. Adapters suppress embedded introductions only when that header
+  is present. Keep the 36px/28px title scale and shared spacing in gallery CSS. The body reserves space
+  immediately and shows activity only after 250ms; clear the timer on completion/navigation/unmount,
+  respect reduced motion, and keep status announcements outside the busy incoming content.
+  `#gallery-demo-header`
 - Scope portable gallery CSS beneath `.katakit-gallery`; import only `internal/site-ui/components.css`.
   Own inner typography, spacing, and control rules here so host marketing CSS and demo-local button
   defaults cannot change the composition. The host supplies font/palette tokens. The local host opts

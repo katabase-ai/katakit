@@ -151,7 +151,7 @@
 }
 .katakit-gallery .gallery-content {
   min-width: 0;
-  padding: 2.5rem var(--gallery-gutter) 4rem;
+  padding: 32px var(--gallery-gutter) 4rem;
 }
 .katakit-gallery .gallery-intro {
   color: var(--color-muted);
@@ -582,6 +582,7 @@
     flex: 0 0 auto;
   }
   .katakit-gallery .gallery-content {
+    padding-top: 24px;
     padding-bottom: calc(var(--gallery-input-height, 160px) + 2rem);
   }
   .katakit-gallery .gallery-speech-controls {

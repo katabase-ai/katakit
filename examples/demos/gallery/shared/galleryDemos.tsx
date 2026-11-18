@@ -8,6 +8,7 @@ import {
 import { GalleryCaptureControls } from './GalleryCaptureControls';
 import { GalleryDemo } from './GalleryDemo';
 import { TranscriptionIntroduction, TranscriptionSetupComplete } from './TranscriptionIntroduction';
+import { useGalleryDemoHeader } from './GalleryDemoHeader';
 
 // Named entries let another host import only its selected demos. Lazy construction is inert,
 // so unused eligible entries can be removed without retaining their module loaders.
@@ -19,19 +20,23 @@ export const transcriptionGalleryDemo = {
       import('../../transcription-react/src/createTranscriptionDemo'),
     ]);
     return {
-      default: () => (
-        <GalleryDemo
-          create={createTranscriptionDemo}
-          render={runtime => (
-            <TranscriptionDemo
-              runtime={runtime}
-              controls={<GalleryCaptureControls />}
-              introduction={<TranscriptionIntroduction />}
-              afterFirstSpeech={<TranscriptionSetupComplete />}
-            />
-          )}
-        />
-      ),
+      default: () => {
+        const hasHeader = useGalleryDemoHeader();
+        return (
+          <GalleryDemo
+            create={createTranscriptionDemo}
+            render={runtime => (
+              <TranscriptionDemo
+                runtime={runtime}
+                controls={<GalleryCaptureControls />}
+                introduction={<TranscriptionIntroduction />}
+                afterFirstSpeech={<TranscriptionSetupComplete />}
+                showIntroduction={!hasHeader}
+              />
+            )}
+          />
+        );
+      },
     };
   }),
 };
@@ -43,14 +48,21 @@ export const bingoGalleryDemo = {
       import('../../bingo-react/src/createBrowserBingoDemo'),
     ]);
     return {
-      default: () => (
-        <GalleryDemo
-          create={createBrowserBingoDemo}
-          render={runtime => (
-            <BrowserBingoDemo runtime={runtime} controls={<GalleryCaptureControls />} />
-          )}
-        />
-      ),
+      default: () => {
+        const hasHeader = useGalleryDemoHeader();
+        return (
+          <GalleryDemo
+            create={createBrowserBingoDemo}
+            render={runtime => (
+              <BrowserBingoDemo
+                runtime={runtime}
+                controls={<GalleryCaptureControls />}
+                showIntroduction={!hasHeader}
+              />
+            )}
+          />
+        );
+      },
     };
   }),
 };
