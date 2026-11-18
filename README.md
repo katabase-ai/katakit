@@ -27,8 +27,8 @@ Compose typed plugins for live state, actions, and asynchronous work, independen
 framework. Build around typed event history, connect speech recognition and conversation turns,
 and add persistence through your own storage.
 
-[Quickstart](docs/pages/getting-started/README.md) · [Demos](examples/demos/gallery/README.md) ·
-[Starters](docs/pages/starters/README.md) · [Documentation](docs/pages/reference/README.md)
+[Quickstart](https://katabase.com/docs) · [Demos](https://katabase.com/gallery) ·
+[Starters](https://katabase.com/docs/starters) · [Documentation](https://katabase.com/docs/reference)
 
 We're sharing an early collection of patterns and examples from our work on **voice-to-visual
 interfaces**. The initial `0.1.0` packages are available on npm; the copyable demos and starters
@@ -50,7 +50,7 @@ Plugins expose RxJS **observables**, callable **methods**, and reactive **effect
 own their UI, input sources, model connections, and storage. The same runtime can support a
 voice-driven interface, a chat interaction, or another responsive application.
 
-Read [Why Katakit?](docs/pages/why-katakit.md) for the motivation and the questions we're exploring.
+Read [Why Katakit?](https://katabase.com/docs/why-katakit) for the motivation and the questions we're exploring.
 
 ## A small example
 
@@ -88,45 +88,45 @@ New subscribers receive recorded events before subsequent live events. Plugins c
 application state from this history; saving it across visits requires a storage connection.
 
 For live speech, connect the transcription utility's `onFinal`, `onProvisional`, and `onStop`
-callbacks to the ingestion methods. The [React web starter](examples/starters/react-web/README.md)
+callbacks to the ingestion methods. The [React web starter](https://katabase.com/docs/starters/react-web)
 includes recognition, model assets, microphone controls, UI, and cleanup. The
-[conversation bingo demo](examples/demos/bingo-react/README.md) adds a custom plugin that turns recognized
+[conversation bingo demo](https://katabase.com/gallery/bingo) adds a custom plugin that turns recognized
 phrases into changes on a game board.
 
 ## Try Katakit
 
-- **Explore a demo:** run the [gallery](examples/demos/gallery/README.md) to try local transcription,
+- **Explore a demo:** open the [gallery](https://katabase.com/gallery) to try local transcription,
   conversation bingo, and structured notes. Transcription runs locally; generating structured
   notes requires a host-supplied model connection. Each example links to its source and setup.
 - **Start an application:** copy the [React web starter](examples/starters/react-web/README.md),
   then follow its install and run instructions. First use downloads a speech model; no paid
   speech account is needed.
 
-The [starter catalog](docs/pages/starters/README.md) also covers Electron, Chrome extensions,
+The [starter catalog](https://katabase.com/docs/starters) also covers Electron, Chrome extensions,
 experimental Obsidian desktop integration, and a work-in-progress MCP App. Each guide records
 platform setup, permissions, and current verification.
 
 ## Packages and plugins
 
-| Package                                                              | Kind    | What it provides                                                                                               |
-| -------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------- |
-| [@katakit/core](pkgs/core/README.md)                                 | Runtime | Typed plugin composition, effects, and reactive primitives.                                                    |
-| [@katakit/transcript-ingestion](pkgs/transcript-ingestion/README.md) | Plugin  | Finalized text segments grouped into observable conversation turns.                                            |
-| [@katakit/event-log](pkgs/event-log/README.md)                       | Plugin  | Validated live events and replayable in-memory history.                                                        |
-| [@katakit/persistence](pkgs/persistence/README.md)                   | Plugin  | Batched event writes through your storage callback or browser local storage.                                   |
-| [@katakit/transcription](pkgs/transcription/README.md)               | Utility | Moonshine/Whisper recognition, browser microphone and PCM helpers, runtime assets, and an optional React hook. |
+| Package                                                                                           | Kind    | What it provides                                                                                               |
+| ------------------------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------- |
+| [@katakit/core](https://katabase.com/docs/reference/core)                                         | Runtime | Typed plugin composition, effects, and reactive primitives.                                                    |
+| [@katakit/transcript-ingestion](https://katabase.com/docs/reference/plugins/transcript-ingestion) | Plugin  | Finalized text segments grouped into observable conversation turns.                                            |
+| [@katakit/event-log](https://katabase.com/docs/reference/plugins/event-log)                       | Plugin  | Validated live events and replayable in-memory history.                                                        |
+| [@katakit/persistence](https://katabase.com/docs/reference/plugins/persistence)                   | Plugin  | Batched event writes through your storage callback or browser local storage.                                   |
+| [@katakit/transcription](https://katabase.com/docs/reference/transcription)                       | Utility | Moonshine/Whisper recognition, browser microphone and PCM helpers, runtime assets, and an optional React hook. |
 
 The transcription utility works independently of the plugin runtime. Add persistent storage
 through your own adapter when you need events to survive a reload.
-React applications render runtime observables with [React-RxJS](docs/pages/reference/react.md#react-rxjs-bindings).
+React applications render runtime observables with [React-RxJS](https://katabase.com/docs/reference/react#react-rxjs-bindings).
 
 ## Documentation
 
-- [Quickstart](docs/pages/getting-started/README.md) — build from a starter with your coding agent.
-- [Tutorial](docs/pages/concepts/README.md) — build an event-driven message list, add a plugin, and save its history.
-- [@katakit/react](docs/pages/reference/react.md) — developer workbench availability, React-RxJS bindings, and microphone ownership.
-- [Transcription](docs/pages/reference/transcription.md) — configure recognition and its resources.
-- [Reference](docs/pages/reference/README.md) — explore the reusable building blocks and API guidance.
+- [Quickstart](https://katabase.com/docs) — build from a starter with your coding agent.
+- [Tutorial](https://katabase.com/docs/concepts) — build an event-driven message list, add a plugin, and save its history.
+- [@katakit/react](https://katabase.com/docs/reference/react) — developer workbench availability, React-RxJS bindings, and microphone ownership.
+- [Transcription](https://katabase.com/docs/reference/transcription) — configure recognition and its resources.
+- [Reference](https://katabase.com/docs/reference) — explore the reusable building blocks and API guidance.
 
 ## Development and contributing
 
