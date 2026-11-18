@@ -66,9 +66,7 @@
   grid-template-columns: 44px 10.5rem minmax(0, 1fr);
   align-items: center;
   gap: 1rem;
-  min-height: 7rem;
-}
-.katakit-gallery .gallery-welcome-capture {
+  min-height: 4rem;
   max-width: none;
 }
 .katakit-gallery .gallery-welcome-capture-actions > .site-button {
@@ -92,7 +90,6 @@
 .katakit-gallery .gallery-microphone-indicator {
   display: grid;
   place-items: center;
-  flex: 0 0 44px;
   width: 44px;
   height: 44px;
   border-radius: 50%;

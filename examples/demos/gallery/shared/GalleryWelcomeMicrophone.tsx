@@ -157,53 +157,45 @@ export const GalleryWelcomeMicrophone = () => {
         always stays on your device.
       </p>
       {snapshot?.blocked ? (
-        <>
-          <div className="gallery-welcome-capture-actions">
-            <GalleryMicrophoneIndicator recording={false} level={0} />
-            <button type="button" className="site-button" onClick={() => window.location.reload()}>
-              Reload page
-            </button>
-            <div className="gallery-welcome-capture-feedback">
-              {snapshot.modelDownloaded && (
-                <p role="status">Transcription model successfully downloaded</p>
-              )}
-              <MicrophoneRecovery />
-            </div>
-          </div>
-        </>
-      ) : (
-        <>
-          <GalleryCaptureControls
-            presentation="welcome"
-            label={
-              failed
-                ? permissionDenied
-                  ? 'Try microphone again'
-                  : 'Try again'
-                : successful
-                  ? 'Test again'
-                  : 'Set up microphone'
-            }
-            errorHelp={failed ? <MicrophoneRecovery /> : undefined}
-          >
-            {snapshot?.modelDownloaded && !loading && (
+        <div className="gallery-capture-controls gallery-welcome-capture-actions">
+          <GalleryMicrophoneIndicator recording={false} level={0} />
+          <button type="button" className="site-button" onClick={() => window.location.reload()}>
+            Reload page
+          </button>
+          <div className="gallery-welcome-capture-feedback">
+            {snapshot.modelDownloaded && (
               <p role="status">Transcription model successfully downloaded</p>
             )}
-            {detail && (
-              <p className="gallery-welcome-setup-detail" role="status">
-                {detail}
-              </p>
-            )}
-            {loading && (
-              <progress
-                className="gallery-welcome-download-progress"
-                aria-label="Speech model download"
-                max={1}
-                value={progress === undefined ? undefined : Math.max(0, Math.min(1, progress))}
-              />
-            )}
-          </GalleryCaptureControls>
-        </>
+            <MicrophoneRecovery />
+          </div>
+        </div>
+      ) : (
+        <GalleryCaptureControls
+          presentation="welcome"
+          label={
+            failed
+              ? permissionDenied
+                ? 'Try microphone again'
+                : 'Try again'
+              : successful
+                ? 'Test again'
+                : 'Set up microphone'
+          }
+          errorHelp={failed ? <MicrophoneRecovery /> : undefined}
+        >
+          {snapshot?.modelDownloaded && !loading && (
+            <p role="status">Transcription model successfully downloaded</p>
+          )}
+          {detail && <p role="status">{detail}</p>}
+          {loading && (
+            <progress
+              className="gallery-welcome-download-progress"
+              aria-label="Speech model download"
+              max={1}
+              value={progress === undefined ? undefined : Math.max(0, Math.min(1, progress))}
+            />
+          )}
+        </GalleryCaptureControls>
       )}
       <div
         className="gallery-test-transcript"

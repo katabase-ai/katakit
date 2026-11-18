@@ -10,7 +10,7 @@ export const GalleryCaptureControls = ({
   presentation = 'default',
 }: {
   label?: string;
-  /** Replaces default errors; Welcome presents this guidance beneath its action. */
+  /** Replaces default errors; Welcome presents this guidance beside its action. */
   errorHelp?: ReactNode;
   children?: ReactNode;
   /** Welcome uses a passive mic glyph and keeps capture status accessible without a meter. */
@@ -58,20 +58,16 @@ export const GalleryCaptureControls = ({
     </button>
   );
   return (
-    <div className={`gallery-capture-controls${welcome ? ' gallery-welcome-capture' : ''}`}>
+    <div className={`gallery-capture-controls${welcome ? ' gallery-welcome-capture-actions' : ''}`}>
       {!welcome && children}
       {!welcome && errorHelp}
-      {welcome ? (
-        <div className="gallery-welcome-capture-actions">
-          <GalleryMicrophoneIndicator recording={recording} level={snapshot.level} />
-          {button}
-          <div className="gallery-welcome-capture-feedback">
-            {children}
-            {errorHelp}
-          </div>
+      {welcome && <GalleryMicrophoneIndicator recording={recording} level={snapshot.level} />}
+      {button}
+      {welcome && (
+        <div className="gallery-welcome-capture-feedback">
+          {children}
+          {errorHelp}
         </div>
-      ) : (
-        button
       )}
       {statusLine}
       {recording && !welcome && (
