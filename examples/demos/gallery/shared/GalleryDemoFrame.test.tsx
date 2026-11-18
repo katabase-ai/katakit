@@ -6,6 +6,8 @@ import { createMicrophoneTranscriber } from '@katakit/transcription/browser';
 import { GalleryDemo } from './GalleryDemo';
 import { GalleryDemoFrame, useGalleryDemoReady } from './GalleryDemoFrame';
 import { GallerySpeechProvider, useGallerySpeech } from './GallerySpeechProvider';
+import { Gallery } from './Gallery';
+import { galleryDemos } from './galleryDemos';
 
 vi.mock('@katakit/transcription/browser', async importOriginal => ({
   ...(await importOriginal<typeof import('@katakit/transcription/browser')>()),
@@ -178,6 +180,35 @@ test('returning to a previously ready demo still waits for its new lease', async
   await act(async () => f.drain.resolve());
   await vi.waitFor(() => expect(f.frame().getAttribute('data-loading')).toBe('false'));
   expect(f.events.indexOf('close:a')).toBeLessThan(f.events.lastIndexOf('create:a'));
+  view.unmount();
+});
+
+test('the same frame reserves outgoing height when navigating between a demo and Welcome', async () => {
+  const f = fixture();
+  const demo = galleryDemos[0];
+  const module = deferred<{ default: ComponentType }>();
+  const Lazy = lazy(() => module.promise);
+  const page = (active: boolean, Component: ComponentType = f.A) => (
+    <GallerySpeechProvider>
+      <Gallery
+        demos={galleryDemos}
+        activeDemo={active ? demo : undefined}
+        renderLink={({ children }) => <a href="#demo">{children}</a>}
+      >
+        {active && <Component />}
+      </Gallery>
+    </GallerySpeechProvider>
+  );
+  const view = render(page(true));
+  await vi.waitFor(() => expect(f.frame().getAttribute('data-loading')).toBe('false'));
+  const frame = f.frame();
+  view.rerender(page(false));
+  expect(f.frame()).toBe(frame);
+  await vi.waitFor(() => expect(f.frame().getAttribute('data-loading')).toBe('false'));
+  view.rerender(page(true, Lazy));
+  expect(f.frame()).toBe(frame);
+  expect(f.frame().style.minHeight).toBe('640px');
+  expect(f.frame().getAttribute('data-loading')).toBe('true');
   view.unmount();
 });
 

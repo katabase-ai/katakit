@@ -4,7 +4,6 @@ import { Gallery } from '../shared/Gallery';
 import { GallerySpeechControls } from '../shared/GallerySpeechControls';
 import { galleryDemos } from '../shared/galleryDemos';
 import { useGalleryMode } from '../shared/GalleryModeProvider';
-import { GalleryDemoFrame } from '../shared/GalleryDemoFrame';
 import type { GalleryDeveloperPage, GalleryOperation } from '../shared/operationDetails';
 
 /** Browser demos are mounted only after hydration, never by the SSR Worker. */
@@ -58,12 +57,10 @@ export const GalleryPage = ({
         )
       }
     >
-      {Component && demo && (
-        <GalleryDemoFrame demo={demo}>
-          <ClientOnly fallback={null}>
-            <Component />
-          </ClientOnly>
-        </GalleryDemoFrame>
+      {Component && (
+        <ClientOnly fallback={null}>
+          <Component />
+        </ClientOnly>
       )}
     </Gallery>
   );

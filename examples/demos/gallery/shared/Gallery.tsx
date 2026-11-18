@@ -137,31 +137,29 @@ export const Gallery = ({
                 <OperationGrid demos={demos} renderLink={renderLink} />
               )}
             </Suspense>
-          ) : activeDemo ? (
+          ) : (
             <GalleryDemoHeader
-              demo={activeDemo}
+              demo={activeDemo ?? galleryWelcomeDetails}
               badge={
-                <GalleryPrivacyBadge
-                  key={activeDemo.id}
-                  dataHandling={activeDemo.dataHandling}
-                  privacyUrl={privacyUrl}
-                  developerEndpoint={isDeveloperView && inference?.settings.source === 'key'}
-                  cloudPrivacyDescription={
-                    connectModel && (!isDeveloperView || inference?.settings.source === 'free')
-                      ? cloudPrivacyDescription
-                      : undefined
-                  }
-                />
+                activeDemo && (
+                  <GalleryPrivacyBadge
+                    key={activeDemo.id}
+                    dataHandling={activeDemo.dataHandling}
+                    privacyUrl={privacyUrl}
+                    developerEndpoint={isDeveloperView && inference?.settings.source === 'key'}
+                    cloudPrivacyDescription={
+                      connectModel && (!isDeveloperView || inference?.settings.source === 'free')
+                        ? cloudPrivacyDescription
+                        : undefined
+                    }
+                  />
+                )
               }
             >
-              {children}
-            </GalleryDemoHeader>
-          ) : (
-            <GalleryDemoHeader demo={galleryWelcomeDetails}>
-              <GalleryDemoFrame demo={galleryWelcomeDetails}>
-                <Welcome privacyUrl={privacyUrl} />
+              <GalleryDemoFrame demo={activeDemo ?? galleryWelcomeDetails}>
+                {activeDemo ? children : <Welcome privacyUrl={privacyUrl} />}
               </GalleryDemoFrame>
-              {children}
+              {!activeDemo && children}
             </GalleryDemoHeader>
           )}
         </div>

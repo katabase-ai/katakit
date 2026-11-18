@@ -123,21 +123,21 @@ Welcome uses the same immediate header and delayed loading frame. Its title and 
 are available before the lazy page code. Page readiness follows code/hydration; microphone setup,
 permission prompts, and speech-model downloads keep their own feedback inside the visible page.
 
-Wrap the active demo content in `shared/GalleryDemoFrame.tsx`, inside Gallery's content slot.
-Keep the frame mounted as its `demo` prop changes. It owns the lazy-component Suspense boundary
-and one loading treatment for both code loading and runtime attachment. A frame used outside
-Gallery supplies the same real header itself. The local Start host uses:
+`Gallery` keeps one `shared/GalleryDemoFrame.tsx` mounted across Welcome and demo navigation.
+It owns the lazy-component Suspense boundary and one loading treatment for code loading and
+runtime attachment. A frame used outside Gallery supplies the real header itself. The local
+Start host supplies only the active component to Gallery:
 
 ```tsx
-<GalleryDemoFrame demo={demo}>
+<Gallery activeDemo={demo} /* ...host links and settings */>
   <ClientOnly fallback={null}>
     <Component />
   </ClientOnly>
-</GalleryDemoFrame>
+</Gallery>
 ```
 
 `ClientOnly` is this host's hydration guard; browser-only hosts can render the component directly.
-Avoid another loading heading or Suspense fallback inside the frame. Keep host error boundaries
+Avoid another loading heading or Suspense fallback inside Gallery. Keep host error boundaries
 outside it. Standard demo entries use `GalleryDemo`, which reports readiness after its runtime
 lease settles; custom adapters using a different lease must call `useGalleryDemoReady(settled)`.
 Runtime initialization failures become visible errors rather than permanent loading states.
