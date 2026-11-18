@@ -95,6 +95,30 @@ test('a host error takes priority over an earlier microphone permission error', 
   runtime.close();
 });
 
+test('a blocked owner offers reload even if the input still reports model loading', () => {
+  const runtime = createColorClash();
+  const play = vi.fn(async () => false);
+  const cancel = vi.fn();
+  render(
+    <ColorClash
+      runtime={runtime}
+      input={{ phase: 'loading', progress: 0.25 }}
+      error="Capture cleanup failed"
+      blocked
+      disabled
+      onPlay={play}
+      onStop={() => undefined}
+      onCancel={cancel}
+    />
+  );
+  expect(screen.getByRole('alert').textContent).toContain('Capture cleanup failed');
+  expect(screen.getByRole('button', { name: 'Reload page' })).toBeTruthy();
+  expect(screen.queryByRole('button', { name: 'Cancel download' })).toBeNull();
+  expect(play).not.toHaveBeenCalled();
+  expect(cancel).not.toHaveBeenCalled();
+  runtime.close();
+});
+
 test('a replay keeps newly acquired capture instead of stopping it as part of the previous round', async () => {
   vi.useFakeTimers();
   vi.setSystemTime(0);
