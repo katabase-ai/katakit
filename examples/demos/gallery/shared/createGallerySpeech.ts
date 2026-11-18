@@ -22,6 +22,10 @@ type Snapshot = {
   transitioning: boolean;
   attached: boolean;
   blocked: boolean;
+  /** Successful microphone start for the current model, retained only for this host session. */
+  microphoneVerified: boolean;
+  /** One explicit microphone start, including its download and permission handoff. */
+  starting: boolean;
   error?: string;
 };
 
@@ -39,6 +43,8 @@ export const createGallerySpeech = ({
     transitioning: false,
     attached: false,
     blocked: false,
+    microphoneVerified: false,
+    starting: false,
   };
   let listeners: (() => void)[] = [];
   const update = (patch: Partial<Snapshot>) => {
@@ -50,7 +56,6 @@ export const createGallerySpeech = ({
   let active: { sink: GalleryInputSink; cancelled: boolean } | undefined;
   let capture: { sink: GalleryInputSink; sourceId: string } | undefined;
   let disposed = false;
-  let pendingStart = false;
   let wantsRecording = false;
   let pendingDisposal: Promise<void> | undefined;
   const message = (error: unknown) => (error instanceof Error ? error.message : String(error));
@@ -62,7 +67,7 @@ export const createGallerySpeech = ({
       try {
         return await action();
       } catch (error) {
-        update({ error: message(error) });
+        update({ error: message(error), microphoneVerified: false });
         return undefined;
       } finally {
         update({ transitioning: false });
@@ -78,7 +83,12 @@ export const createGallerySpeech = ({
     const current = createTranscriber({
       model: snapshot.model,
       onState: input => {
-        if (helper === current) update({ input });
+        if (helper === current)
+          update({
+            input,
+            microphoneVerified:
+              input.phase === 'running' || (input.phase !== 'error' && snapshot.microphoneVerified),
+          });
       },
       onLevel: level => {
         if (helper === current) update({ level });
@@ -110,7 +120,7 @@ export const createGallerySpeech = ({
         update({ error: message(error), blocked: true });
       }
     })();
-    update({ input: { phase: 'idle' }, level: 0 });
+    update({ input: { phase: 'idle' }, level: 0, microphoneVerified: false });
   };
   const finish = async () => {
     await pendingDisposal;
@@ -161,7 +171,7 @@ export const createGallerySpeech = ({
             active.cancelled = true;
             update({ attached: false });
             wantsRecording = false;
-            if (pendingStart) cancelLoading();
+            if (snapshot.starting) cancelLoading();
           }
           return enqueue(async () => {
             if (lease.sink && active?.sink === lease.sink) await leave();
@@ -197,19 +207,19 @@ export const createGallerySpeech = ({
         update({ error: undefined });
         const current = getHelper();
         capture = { sink: requested.sink, sourceId: crypto.randomUUID() };
-        pendingStart = true;
+        update({ starting: true });
         try {
           await current.start({ sourceId: capture.sourceId });
         } catch (error) {
           if (helper === current) throw error;
         } finally {
-          pendingStart = false;
+          update({ starting: false });
         }
       });
     },
     stop: () => {
       wantsRecording = false;
-      if (pendingStart) cancelLoading();
+      if (snapshot.starting) cancelLoading();
       return enqueue(finish);
     },
     // Explicit cancellation also covers preload; ordinary navigation may retain a preload.
@@ -235,7 +245,13 @@ export const createGallerySpeech = ({
           throw error;
         }
         helper = undefined;
-        update({ model, input: { phase: 'idle' }, level: 0, error: undefined });
+        update({
+          model,
+          input: { phase: 'idle' },
+          level: 0,
+          error: undefined,
+          microphoneVerified: false,
+        });
       }),
     dispose: () => {
       disposed = true;
@@ -247,7 +263,7 @@ export const createGallerySpeech = ({
         } finally {
           await helper?.dispose();
           helper = undefined;
-          update({ input: { phase: 'disposed' }, level: 0 });
+          update({ input: { phase: 'disposed' }, level: 0, microphoneVerified: false });
         }
       });
     },

@@ -1,55 +1,48 @@
-import { useEffect, useState } from 'react';
-import { createTranscriptionDemo } from '../../transcription-react/src/createTranscriptionDemo';
-import { GalleryDemo } from './GalleryDemo';
-import { GalleryCaptureControls } from './GalleryCaptureControls';
-
-const MicrophoneTest = ({ runtime }: { runtime: ReturnType<typeof createTranscriptionDemo> }) => {
-  const [snapshot, setSnapshot] = useState(() => runtime.state$.getValue());
-  useEffect(() => {
-    const subscription = runtime.state$.subscribe(setSnapshot);
-    return () => subscription.unsubscribe();
-  }, [runtime]);
-  const text = [
-    ...snapshot.completedTurns.map(turn => turn.text),
-    snapshot.currentTurn?.text,
-    snapshot.provisional,
-  ]
-    .filter(Boolean)
-    .join(' ');
-  return (
-    <section className="gallery-microphone-test" aria-labelledby="gallery-test-title">
-      <h2 id="gallery-test-title">Try your microphone</h2>
-      <p>
-        Say a few words and watch them appear. The first test downloads a model before asking for
-        microphone access.
-      </p>
-      <GalleryCaptureControls label="Test transcription" />
-      <p className="gallery-test-transcript" aria-label="Test transcript" aria-live="polite">
-        {text || 'Your words will appear here.'}
-      </p>
-      {text && <p role="status">Your microphone and transcription are working.</p>}
-    </section>
-  );
-};
+import { Cloud, Laptop } from 'lucide-react';
+import { GalleryWelcomeMicrophone } from './GalleryWelcomeMicrophone';
+import './galleryWelcome.css';
 
 export const GalleryWelcome = ({ privacyUrl }: { privacyUrl?: string }) => (
   <div className="gallery-welcome">
-    <h1>Welcome</h1>
+    <h1>Welcome!</h1>
     <p className="gallery-intro">
-      Small apps that turn conversation into something useful. Choose a demo, or try your microphone
-      here first. Your browser loads a speech model once and keeps it ready as you explore.
+      Each demo in this gallery does something different. Try them to get a feel for KataKit’s
+      capabilities, and ideas for how voice-to-visual interfaces can work.
     </p>
-    <GalleryDemo
-      create={createTranscriptionDemo}
-      render={runtime => <MicrophoneTest runtime={runtime} />}
-    />
-    <p className="gallery-privacy">
-      Audio stays on your device. You choose when to share transcript text.{' '}
-      {privacyUrl && (
+    <GalleryWelcomeMicrophone />
+    <section className="gallery-welcome-cloud" aria-labelledby="gallery-cloud-title">
+      <h2 id="gallery-cloud-title">Cloud-based models</h2>
+      <p>
+        Some demos use cloud-based models. Their role can be as simple as converting text from one
+        format to another. In more interesting cases, they reason about the conversation as it
+        unfolds, using the transcript as context to connect ideas, explore possibilities, and help
+        you think through what comes next.
+      </p>
+    </section>
+    <ul className="gallery-welcome-marker-key" aria-label="Demo data handling">
+      <li>
+        Demos marked with{' '}
+        <span className="gallery-welcome-marker" role="img" aria-label="On-device">
+          <Laptop aria-hidden="true" />
+        </span>{' '}
+        keep all your data on your device.
+      </li>
+      <li>
+        Demos marked with{' '}
+        <span className="gallery-welcome-marker" role="img" aria-label="Cloud processing">
+          <Cloud aria-hidden="true" />
+        </span>{' '}
+        use cloud-based models to process transcript text. Your audio still stays on your device.
+      </li>
+    </ul>
+    {privacyUrl && (
+      <p className="gallery-welcome-privacy">
+        See{' '}
         <a href={privacyUrl} target="_blank" rel="noopener noreferrer">
-          Privacy
-        </a>
-      )}
-    </p>
+          {privacyUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')}
+        </a>{' '}
+        for more information.
+      </p>
+    )}
   </div>
 );

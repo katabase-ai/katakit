@@ -384,8 +384,23 @@
 .katakit-gallery .gallery-microphone-test h2 {
   font-size: var(--text-xl);
 }
+.katakit-gallery .gallery-microphone-help {
+  margin-bottom: 1.25rem;
+}
+.katakit-gallery .gallery-microphone-help summary {
+  cursor: pointer;
+}
+.katakit-gallery .gallery-microphone-help ol {
+  padding-left: 1.5rem;
+}
+.katakit-gallery .gallery-microphone-help li + li {
+  margin-top: 0.5rem;
+}
 .katakit-gallery .gallery-welcome {
-  max-width: 52rem;
+  max-width: 65ch;
+}
+.katakit-gallery .gallery-welcome h1 {
+  font-size: var(--text-3xl);
 }
 .katakit-gallery .gallery-test-transcript {
   padding: 1rem;

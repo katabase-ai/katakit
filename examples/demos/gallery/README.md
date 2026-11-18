@@ -100,8 +100,12 @@ Mount `GallerySpeechProvider` once above the route outlet. It owns one `@katakit
 microphone transcriber and the inference-settings provider. Public status rows sit at the bottom
 of the shared sidebar, outside demo navigation, and become a measured bottom strip on phones.
 Developer mode uses that space for Operation Setup and Operation Grid links instead.
-Download model leaves the microphone off, including without a demo attachment. Welcome’s Test
-transcription can download first and then request microphone permission. Start/Stop listening
+Download model leaves the microphone off, including without a demo attachment. Welcome’s Set up
+microphone downloads the speech model if needed, then requests microphone permission. Its readiness
+icon distinguishes Not set up, Setting up, Ready, and Needs attention, with text on hover or focus.
+The passive microphone glyph reflects capture and live audio levels; the adjacent button owns setup,
+cancellation, testing, and stopping. Stopping capture retains readiness for this host session.
+Start/Stop listening
 belongs inside each demo. Models load only after a visitor action. Standalone controls remain
 independent. Navigation retains the loaded model but stops capture.
 Each view acquires a runtime lease. Release keeps the outgoing sink attached through stop/drain and
