@@ -31,3 +31,14 @@ Later evidence with controlled services will be identified separately. Controlle
 - Notes is shown with the same completed input and accepted outline on both sides. Paused and cleared states are separate captures. The outline clears while capture continues; earlier input remains local and may be sent as context by subsequent requests.
 - Other pairs show the default initial view with the model retained from the prior visit.
 - Timed cancellation, late-result rejection, fresh visits, and retained matching evidence are covered by tests. Screenshots show messaging and resulting state.
+
+## PR 4: keyboard focus and state feedback
+
+- Baseline: PR #86 (`4f6957a` presentation, carried unchanged into `2b54ea3`); proposed: `2cef040`.
+- Actual public gallery, dark theme, 1280 × 720 desktop / 390 × 844 mobile, full-page captures. Full-page mobile captures may show the fixed footer at the initial viewport boundary; the page itself scrolls normally. Notes has no horizontal overflow at 390px.
+- `04-navigation-{before,after}.jpg`: keyboard Enter on the Structured notes navigation link. Before focus remains on the navigation link; after it lands on H1. The controlled host connection is available in both captures.
+- `04-cancel-focus-{before,after}.jpg`: keyboard Play → Cancel download. Before focus falls to BODY; after it remains on the Play button. Same controlled download fixture.
+- `03-notes-paused-after.jpg` is the parent baseline for `04-notes-paused-after.jpg`; both use the same synthetic transcript/outline. The proposed view explicitly reports Notes paused.
+- `04-round-result-after.jpg`: real 20-second game round with controlled speech input, score 0, capture stopped at the end, result status visible. Automated tests additionally cover interruption.
+- `04-public-notes-after.jpg` and `04-public-notes-mobile-after.jpg` use the ordinary production host with **no review adapters**: Start notes remains disabled with an accessible explanation, and keyboard navigation focuses the title.
+- Native details help was opened with Enter; privacy opens from keyboard focus and dismisses with Escape. No microphone permission was granted and no paid/provider request was made. Screen-reader and physical-microphone verification remain outside this evidence.
