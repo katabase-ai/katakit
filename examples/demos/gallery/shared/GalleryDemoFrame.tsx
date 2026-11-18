@@ -31,11 +31,16 @@ export const GalleryDemoFrame = ({
   demo: { id: string; title: string };
   children: ReactNode;
 }) => {
-  const [readyId, setReadyId] = useState<string>();
+  const [state, setState] = useState({ id: demo.id, ready: false });
+  // A destination visited again must acquire a new lease, even if an earlier visit was ready.
+  if (state.id !== demo.id) setState({ id: demo.id, ready: false });
   const content = useRef<HTMLDivElement>(null);
   const previousHeight = useRef<number | undefined>(undefined);
-  const pending = readyId !== demo.id;
-  const ready = useCallback(() => setReadyId(demo.id), [demo.id]);
+  const pending = state.id !== demo.id || !state.ready;
+  const ready = useCallback(
+    () => setState(current => (current.id === demo.id ? { ...current, ready: true } : current)),
+    [demo.id]
+  );
 
   useLayoutEffect(() => {
     if (pending || !content.current) return;

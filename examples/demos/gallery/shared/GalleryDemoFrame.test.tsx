@@ -161,6 +161,24 @@ test('tracks natural size changes, ignores an abandoned lazy destination, and re
   for (const observer of f.observers) expect(observer.disconnect).toHaveBeenCalledOnce();
 });
 
+test('returning to a previously ready demo still waits for its new lease', async () => {
+  const f = fixture();
+  const view = render(f.content('first', 'First demo', f.A));
+  await vi.waitFor(() => expect(f.frame().getAttribute('aria-busy')).toBe('false'));
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Capture' })));
+  view.rerender(f.content('second', 'Second demo', f.B));
+  await vi.waitFor(() => expect(f.events).toContain('stop'));
+  view.rerender(f.content('first', 'First demo', f.A));
+  expect(f.frame().getAttribute('aria-busy')).toBe('true');
+  expect(screen.getByRole('status').textContent).toBe('Loading demo…');
+  expect(screen.getAllByRole('heading')).toHaveLength(1);
+  expect(f.frame().style.minHeight).toBe('640px');
+  await act(async () => f.drain.resolve());
+  await vi.waitFor(() => expect(f.frame().getAttribute('aria-busy')).toBe('false'));
+  expect(f.events.indexOf('close:a')).toBeLessThan(f.events.lastIndexOf('create:a'));
+  view.unmount();
+});
+
 test('a failed runtime lease reveals the actionable failure rather than leaving a permanent loading frame', async () => {
   const f = fixture();
   const create = () => {
