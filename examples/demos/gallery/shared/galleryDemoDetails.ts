@@ -39,7 +39,8 @@ export const notesDemoDetails = {
   id: 'notes',
   sourcePath: 'examples/demos/notes-react',
   title: 'Structured notes',
-  description: 'Turn spoken plans into an outline. Choose Start listening, then Start notes.',
+  description:
+    'Choose Start listening to transcribe a plan. If a model is available, Start notes builds an outline.',
   capabilities: ['microphone', 'localTranscription', 'remoteModel'],
   dataHandling: { audio: 'device', transcribedText: 'cloud' },
 } as const satisfies GalleryDemoMetadata;
