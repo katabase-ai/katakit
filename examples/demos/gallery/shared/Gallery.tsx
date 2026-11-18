@@ -66,7 +66,7 @@ export const Gallery = ({
   onConfigureOperation?: (operation?: GalleryOperation) => void;
   /** Account-focused settings page, available without developer access. */
   settingsPage?: boolean;
-  /** Navigate to public Settings or developer Operation Setup for the current mode. */
+  /** Navigate to public Settings or developer Configure models for the current mode. */
   onOpenSettings?: () => void;
   /** The host supplies identity and real account destinations in either mode. */
   account?: GalleryAccount;

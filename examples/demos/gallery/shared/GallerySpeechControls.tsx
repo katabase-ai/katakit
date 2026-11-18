@@ -10,7 +10,7 @@ import { GalleryUsageMeter, galleryUsagePercent } from './GalleryUsageMeter';
 import { GalleryTooltipButton } from './GalleryTooltip';
 import './galleryFooterControls.css';
 
-/** Kept as a host adapter type; model selection now lives in developer Operation Setup. */
+/** Kept as a host adapter type; model selection now lives in developer Configure models. */
 export type GalleryModelSelect = (props: {
   model: TranscriptionModelId;
   disabled: boolean;
@@ -50,7 +50,7 @@ export const GallerySpeechControls = (_props: { renderModelSelect?: GalleryModel
           <GalleryTooltipButton
             className="gallery-footer-icon gallery-settings-button"
             aria-label="Settings"
-            description={isDeveloperView ? 'Configure operations' : 'Account and demo allowance'}
+            description={isDeveloperView ? 'Configure models' : 'Account and demo allowance'}
             onClick={openSettings}
           >
             <Settings aria-hidden="true" />

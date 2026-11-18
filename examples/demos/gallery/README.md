@@ -116,12 +116,12 @@ Mount `GallerySpeechProvider` once above the route outlet. It owns one `@katakit
 microphone transcriber and the inference-settings provider. The same footer sits at the bottom
 of the shared sidebar in both modes, outside demo navigation, and becomes a measured bottom strip on phones.
 Both modes include a round Settings button. Public Settings (`/settings`) focuses on signup/account
-access, demo allowance, and privacy. Developer Settings opens Operation Setup; Configuration/Grid route
+access, demo allowance, and privacy. Developer Settings opens Configure models; Configuration/Grid route
 tabs above those pages switch between the two developer views.
 The footer shares Welcome’s setup readiness and passive microphone indicators, using a
 smaller microphone circle. Both views follow the same speech owner across demos, including live
 audio levels. A downloaded model alone does not mark microphone setup Ready. Download, cancel,
-and recording actions stay in Welcome, the demo, or developer Operation Setup.
+and recording actions stay in Welcome, the demo, or developer Configure models.
 Download model leaves the microphone off, including without a demo attachment. Welcome’s Set up
 microphone downloads the speech model if needed, then requests microphone permission. Its readiness
 icon distinguishes Not set up, Setting up, Ready, and Needs attention, with text on hover or focus.
@@ -198,7 +198,7 @@ Three uses of “preview” have different meanings: the header's **Preview** to
 gallery experience; `pnpm preview` serves an existing build locally; a hosted PR preview deploys a
 build for review. Neither local serving nor the deployment URL itself selects the gallery mode.
 
-The shared gallery defaults to public mode. BYOK, Operation Setup/Grid, and developer recovery
+The shared gallery defaults to public mode. BYOK, Configure models/Grid, and developer recovery
 controls exist only inside a host’s explicit `GalleryModeProvider developerMode={true}` opt-in.
 Mount that provider inside `GallerySpeechProvider`, above the header and route outlet. Hosts own
 their developer links/routes and pass `developerPage`, `renderDeveloperLink`, and
@@ -229,12 +229,12 @@ ordinary page-local drafts.
 
 Preview uses the current host’s real managed inference contract. It does not create a proxy,
 account, or free allowance: a local host without that service shows the public missing-service
-state rather than quietly using a developer key. Navigation into Operation Setup is ordinary route
+state rather than quietly using a developer key. Navigation into Configure models is ordinary route
 navigation, so it stops/drains the outgoing demo. The loaded speech model and saved settings remain.
 
 ## Developer operation setup
 
-Operation Setup groups supported work under Audio and Language. Transcription uses the delivered
+Configure models groups supported work under Audio and Language. Transcription uses the delivered
 local model catalogue with a download-only action. Inference offers the host’s Free demo or a personal
 OpenRouter key. The API key and model ID are visible together; only the full endpoint override is
 under collapsed Advanced. Defaults are `z-ai/glm-5.3` and

@@ -376,7 +376,7 @@ test('reported usage stays live without restarting inference, survives navigatio
   expect(host).toHaveBeenCalledOnce();
   expect(screen.getByRole('button', { name: 'Pause notes' })).toBeDefined();
   fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
-  await screen.findByRole('heading', { name: 'Operation Setup' });
+  await screen.findByRole('heading', { name: 'Configure models' });
   const tabs = within(screen.getByRole('navigation', { name: 'Operation views' }));
   expect(tabs.getByRole('button', { name: 'Configuration' }).getAttribute('aria-current')).toBe(
     'page'

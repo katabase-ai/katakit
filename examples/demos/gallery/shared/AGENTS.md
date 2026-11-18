@@ -36,7 +36,7 @@ source checkout. They do not own application bootstraps, routing, or private ser
   renders in a public build. Mode transitions invalidate inference immediately, preserve saved
   developer settings/local content, and require explicit Start notes to resume. `#gallery-public-preview`
 - Both modes use `GallerySpeechControls` for shared readiness, passive microphone, account, and usage
-  controls. Settings opens the account/allowance page in public mode and Operation Setup with
+  controls. Settings opens the account/allowance page in public mode and Configure models with
   Configuration/Grid route tabs in developer mode. Host navigation comes through `onOpenSettings`;
   developer-only inference recovery still uses `onConfigureOperation`.
   `GalleryFooter` measures the footer for mobile spacing; keep these controls outside demo navigation. `#gallery-shared-controls`
@@ -44,7 +44,7 @@ source checkout. They do not own application bootstraps, routing, or private ser
   Keep hover/focus/tap/dismissal behavior there. `galleryTooltip.css` owns shared panel/caret styling
   for those tooltips and interactive privacy/account popovers; use side/alignment options and local
   sizing variables instead of copying that CSS. Popovers retain their own interaction/focus rules. `#gallery-hover-panels`
-- Developer pages use the current catalogue/capability metadata. Operation Setup configures local
+- Developer pages use the current catalogue/capability metadata. Configure models configures local
   transcription and inference; key and model are visible together, endpoint overrides under Advanced.
   Configured indicates a selection, not a successful model/provider check. Do not add simulated signup
   actions, unsupported operations, or disabled demo navigation. `#gallery-operation-pages`

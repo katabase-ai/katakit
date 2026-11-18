@@ -25,7 +25,7 @@ export const GalleryOperationSetup = () => {
     setDraft(initial());
   }, [inference?.settings, hostAvailable]);
   if (!isDeveloperView) return null;
-  if (!inference || !speech || !draft) return <p role="status">Preparing operation settings…</p>;
+  if (!inference || !speech || !draft) return <p role="status">Preparing model settings…</p>;
   const apply = (action: () => void, message: string) => {
     try {
       action();
@@ -44,34 +44,12 @@ export const GalleryOperationSetup = () => {
     snapshot.transitioning ||
     ['loading', 'running', 'starting', 'stopping'].includes(snapshot.input.phase);
   return (
-    <section className="gallery-developer-page" aria-label="Operation Setup">
-      <h1>Operation Setup</h1>
+    <section className="gallery-developer-page" aria-label="Configure models">
+      <h1>Configure models</h1>
       <p>
         An operation is a kind of work a demo needs. Choose how each operation runs; saved
         selections apply across demos.
       </p>
-      <aside className="gallery-managed-card">
-        <h2>Managed inference, without an API key.</h2>
-        <p>
-          {hostAvailable
-            ? 'Free demo uses the service supplied by this host. No provider or model choices are needed.'
-            : 'This host has no managed inference service. Local transcription works independently; developer mode can use your OpenRouter key.'}
-        </p>
-        {hostAvailable && (
-          <button
-            type="button"
-            className="site-button"
-            onClick={() =>
-              apply(
-                () => inference.owner.save({ ...inference.settings, source: 'free' }),
-                'Free demo selected. Start notes in a demo when ready.'
-              )
-            }
-          >
-            Use free demo
-          </button>
-        )}
-      </aside>
       <section
         id="transcription"
         className="gallery-operation-section"
