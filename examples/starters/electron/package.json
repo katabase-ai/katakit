@@ -11,9 +11,9 @@
     "check": "pnpm test && pnpm build"
   },
   "dependencies": {
-    "@katakit/core": "0.0.0",
-    "@katakit/transcript-ingestion": "0.0.0",
-    "@katakit/transcription": "0.0.0"
+    "@katakit/core": "0.1.0",
+    "@katakit/transcript-ingestion": "0.1.0",
+    "@katakit/transcription": "0.1.0"
   },
   "devDependencies": {
     "electron": "35.7.5",

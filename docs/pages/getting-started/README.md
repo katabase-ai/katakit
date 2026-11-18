@@ -2,7 +2,7 @@
 
 Give your coding agent an idea and a Katakit starter. The [React web starter](../starters/react-web.md) is a good first choice: it turns microphone speech into visible conversation turns, with recognition running locally in the browser.
 
-**Early access:** the [source repository](https://github.com/katabase-ai/katakit) currently requires GitHub access. The starters depend on Katakit `0.0.0`, which is not yet published on npm. An agent can prepare a copy, but standalone installation waits for those packages to be published. Use Node.js 24+ and pnpm 11.9.0.
+**Early access:** the [source repository](https://github.com/katabase-ai/katakit) currently requires GitHub access. The starters install published Katakit `0.1.0` packages from npm. Use Node.js 24+ and pnpm 11.9.0.
 
 ## Give this to your coding agent
 

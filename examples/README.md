@@ -4,7 +4,7 @@
 provide a small application for a particular platform. Each example owns its setup instructions.
 Demos participate in the root workspace; starters are independent pnpm projects.
 
-Katakit `0.0.0` is not yet published on npm; standalone installation requires its publication.
+Standalone examples install Katakit packages from npm.
 
 To prepare a standalone copy from a checkout:
 

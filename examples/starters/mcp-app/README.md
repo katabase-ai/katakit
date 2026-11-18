@@ -4,8 +4,6 @@
 
 ## Try the copied directory
 
-Katakit `0.0.0` is not yet published on npm; standalone installation requires its publication.
-
 Copy **this entire directory** outside the Katakit repository. From inside the copy, with Node.js 24+ and pnpm 11:
 
 ```sh

@@ -4,8 +4,6 @@ Record a short microphone clip in an Obsidian view, transcribe it locally with W
 
 ## Build and install in a test vault
 
-Katakit `0.0.0` is not yet published on npm; standalone installation requires its publication.
-
 Copy the entire `examples/starters/obsidian/` directory. With Node.js 24+ and pnpm 11.9.0, run `pnpm install`, `pnpm build`, and `pnpm test` inside that copy. Create a **new, empty test vault**, not a personal vault or one containing another Katakit plugin. In `.obsidian/plugins/katakit-text-starter/`, copy the build's `dist/main.js` and `dist/manifest.json`. In Obsidian Desktop, enable community plugins and **Katakit Text Starter**, then run **Open Katakit transcription starter** in the command palette. Click **Record**, speak briefly, then **Stop** and wait for the turn. The plugin ID and directory must match. Restart Obsidian if a new plugin does not appear. Mobile is unsupported.
 
 `src/speech.ts` captures a short MediaRecorder clip, decodes and resamples to 16 kHz, and uses single-thread Whisper inference. Obsidian's renderer is not cross-origin isolated; `build.mjs` forces Transformers.js to choose its browser ONNX backend despite Obsidian's Node-like `process`. The build fails if that backend selection code changes. `src/session.ts` assembles Katakit and flushes recognized text into a turn; `src/main.ts` owns the Obsidian view, status and cleanup. npm dependency installation and first model download contact external registries/providers; the plugin does not upload recorded audio.

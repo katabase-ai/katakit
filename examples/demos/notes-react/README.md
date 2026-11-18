@@ -12,8 +12,6 @@ pnpm build
 pnpm dev
 ```
 
-Katakit `0.0.0` is not yet published on npm; standalone installation requires its publication.
-
 This React example turns on-device speech recognition into a two-level outline rendered as Markdown.
 Starting the microphone connects the model automatically. Finalized turns trigger requests. Later speech can correct a
 misheard name in an existing note. The transcript keeps the original recognition text.
