@@ -51,21 +51,24 @@ export const GalleryCaptureControls = ({
     <button
       type="button"
       className="site-button site-button--slate"
-      disabled={!snapshot.blocked && !preparing && (snapshot.transitioning || !snapshot.attached)}
+      disabled={
+        !snapshot.blocked &&
+        (stopping || (!preparing && (snapshot.transitioning || !snapshot.attached)))
+      }
       aria-describedby={statusId}
       onClick={() => {
         if (snapshot.blocked) window.location.reload();
         else void (preparing ? owner.cancel() : recording ? owner.stop() : owner.start());
       }}
     >
-      {preparing
-        ? snapshot.input.phase === 'loading'
-          ? 'Cancel download'
-          : 'Cancel setup'
-        : recording
-          ? 'Stop listening'
-          : snapshot.blocked
-            ? 'Reload page'
+      {snapshot.blocked
+        ? 'Reload page'
+        : preparing
+          ? snapshot.input.phase === 'loading'
+            ? 'Cancel download'
+            : 'Cancel setup'
+          : recording
+            ? 'Stop listening'
             : stopping
               ? 'Stopping…'
               : failed

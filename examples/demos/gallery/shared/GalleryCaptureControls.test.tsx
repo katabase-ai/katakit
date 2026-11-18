@@ -143,3 +143,15 @@ test('a failed cancellation offers an enabled reload instead of a disabled retry
   expect(screen.getByRole('alert').textContent).toContain('Reload this page');
   expect(screen.queryByText('How to enable your microphone')).toBeNull();
 });
+
+test('a stopping input cannot be restarted while its stop has not settled', async () => {
+  const f = fixture('denied');
+  f.recover();
+  mountDemo(galleryDemos[0]!);
+  await click('Start listening');
+  await act(async () => f.inputs[0]!.callbacks.onState?.({ phase: 'stopping' }));
+  const button = screen.getByRole('button', { name: 'Stopping…' }) as HTMLButtonElement;
+  expect(button.disabled).toBe(true);
+  fireEvent.click(button);
+  expect(f.microphone).toHaveBeenCalledOnce();
+});
