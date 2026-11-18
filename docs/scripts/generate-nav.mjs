@@ -6,6 +6,13 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const pages = join(root, 'pages');
 const output = join(root, 'src', 'nav.json');
 const sectionOrder = ['why-katakit.md', 'getting-started', 'concepts', 'starters', 'reference'];
+const conceptOrder = [
+  'runtime.md',
+  'event-history.md',
+  'plugins.md',
+  'persistence.md',
+  'templates.md',
+];
 
 const titleOf = path => {
   const title = readFileSync(path, 'utf8').match(/^# (.+)$/m)?.[1];
@@ -16,7 +23,7 @@ const titleOf = path => {
 // Each directory is a section; its README is the landing page, not a duplicate child.
 export const buildNav = (directory = pages) => {
   const isRoot = directory === pages;
-  return readdirSync(directory, { withFileTypes: true })
+  const items = readdirSync(directory, { withFileTypes: true })
     .filter(
       entry =>
         entry.isDirectory() ||
@@ -28,6 +35,9 @@ export const buildNav = (directory = pages) => {
         const right = sectionOrder.indexOf(b.name);
         if (left !== right) return (left < 0 ? Infinity : left) - (right < 0 ? Infinity : right);
       }
+      // The tutorial's learning sequence is independent of its existing URL names.
+      if (directory === join(pages, 'concepts'))
+        return conceptOrder.indexOf(a.name) - conceptOrder.indexOf(b.name);
       return (
         Number(a.isDirectory()) - Number(b.isDirectory()) || a.name.localeCompare(b.name, 'en')
       );
@@ -48,6 +58,13 @@ export const buildNav = (directory = pages) => {
       };
     })
     .filter(item => item.slug || item.children.length);
+
+  // Package pages are peers in Reference; existing plugin URLs remain valid.
+  if (directory === join(pages, 'reference'))
+    return items
+      .flatMap(item => (item.slug === 'reference/plugins' ? item.children : [item]))
+      .toSorted((a, b) => a.label.localeCompare(b.label, 'en'));
+  return items;
 };
 
 export const generateNav = ({ check = false } = {}) => {

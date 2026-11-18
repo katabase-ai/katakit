@@ -61,11 +61,14 @@ const NavLabel = ({ item }: { item: NavItem }) =>
     <span className="nav-group">{item.label}</span>
   );
 
+// A navigation parent can contain pages whose URL belongs to another directory.
+const containsPath = (item: NavItem, pathname: string): boolean =>
+  pathname === `/${item.slug}` ||
+  (item.children ?? []).some(child => containsPath(child, pathname));
+
 const NavBranch = ({ item, idPrefix }: { item: NavItem; idPrefix: string }) => {
   const pathname = useLocation({ select: location => location.pathname });
-  const inSection = Boolean(
-    item.slug && (pathname === `/${item.slug}` || pathname.startsWith(`/${item.slug}/`))
-  );
+  const inSection = containsPath(item, pathname);
   const [expanded, setExpanded] = useState(inSection);
   useEffect(() => {
     if (inSection) setExpanded(true);
@@ -259,7 +262,15 @@ const indexRoute = createRoute({
     throw redirect({ to: '/$', params: { _splat: firstPage(tree) } });
   },
 });
-const pageRoute = createRoute({ getParentRoute: () => rootRoute, path: '$', component: Page });
+const pageRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '$',
+  beforeLoad: ({ params, location }) => {
+    if (params._splat === 'getting-started/react')
+      throw redirect({ href: `/reference/react${location.hash ? `#${location.hash}` : ''}` });
+  },
+  component: Page,
+});
 const routeTree = rootRoute.addChildren([indexRoute, pageRoute]);
 const router = createRouter({ routeTree });
 declare module '@tanstack/react-router' {

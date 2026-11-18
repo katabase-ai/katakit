@@ -1,6 +1,16 @@
 name: Release npm packages
 
 on:
+  workflow_dispatch:
+    inputs:
+      base_sha:
+        description: Original release push's full before SHA
+        required: true
+        type: string
+      release_sha:
+        description: Original release push's full resulting SHA
+        required: true
+        type: string
   push:
     branches: [main]
     paths:
@@ -17,12 +27,18 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    # Six initial packages can each take up to ten minutes to propagate.
+    timeout-minutes: 90
+    env:
+      BASE_SHA: ${{ inputs.base_sha || github.event.before }}
+      RELEASE_SHA: ${{ inputs.release_sha || github.sha }}
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
           fetch-depth: 0
+      - name: Prepare original release snapshot with this workflow's tooling
+        run: node scripts/prepare-release.mjs "$BASE_SHA" "$RELEASE_SHA"
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -31,9 +47,6 @@ jobs:
           registry-url: https://registry.npmjs.org
       - name: Identify bumped packages at this merge
         id: plan
-        env:
-          BASE_SHA: ${{ github.event.before }}
-          RELEASE_SHA: ${{ github.sha }}
         run: node scripts/release.mjs plan "$BASE_SHA" "$RELEASE_SHA"
       - name: Install dependencies
         if: steps.plan.outputs.count != '0'
@@ -47,8 +60,6 @@ jobs:
       - name: Lint release tarballs, publish, tag the merge, and create GitHub releases
         if: steps.plan.outputs.count != '0'
         env:
-          BASE_SHA: ${{ github.event.before }}
-          RELEASE_SHA: ${{ github.sha }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           GH_TOKEN: ${{ github.token }}
         run: pnpm release:publish "$BASE_SHA" "$RELEASE_SHA"

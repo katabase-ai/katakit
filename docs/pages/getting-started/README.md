@@ -1,39 +1,52 @@
-# Getting started
+# Quickstart
 
-Katakit composes framework-independent plugins into a runtime. The event-log plugin provides an ordered, replayable stream of events; persistence is optional.
+Give your coding agent an idea and a Katakit starter. The [React web starter](../starters/react-web.md) is a good first choice: it turns microphone speech into visible conversation turns, with recognition running locally in the browser.
 
-To start with a complete application, choose a [starter](../starters/README.md). The React web
-starter connects local microphone recognition to conversation turns and includes built Katakit
-packages for use before a registry release. To explore the runtime itself, follow the event-log
-example below.
+**Early access:** the [source repository](https://github.com/katabase-ai/katakit) currently requires GitHub access. The starters install published Katakit `0.1.0` packages from npm. Use Node.js 24+ and pnpm 11.9.0.
 
-The packages in this repository are currently version `0.0.0`. For development in this workspace, run `pnpm install` at the repository root. When the packages are available to your application, it needs `@katakit/core`, `@katakit/event-log`, and a synchronous [Standard Schema](https://standardschema.dev/schema) validator. This example uses Valibot; any Standard Schema v1 implementation that validates synchronously can be used. See [validation requirements](../reference/plugins/event-log.md#validation-requirements) for limitations.
+## Give this to your coding agent
 
-## Start a runtime
+Replace the bracketed fields, then copy this prompt into an agent that can read files and run commands on your computer. If you already have an application, describe it in the first line.
 
-```ts
-import { makeKatakit } from '@katakit/core';
-import { makeEventLogPlugin } from '@katakit/event-log';
-import * as v from 'valibot';
+```text
+Help me build [my app idea] with Katakit for [platform, or help me choose].
+My project directory is [absolute path to a new or existing project].
 
-const EventLogPlugin = makeEventLogPlugin({
-  validateEvent: v.strictObject({
-    type: v.literal('message'),
-    text: v.string(),
-  }),
-});
+1. Confirm the platform and whether this is a new or existing application.
+   Recommend the React web starter for a first browser app.
+2. Use an available Katakit checkout, or clone
+   https://github.com/katabase-ai/katakit with my GitHub access.
+   Read its AGENTS.md, CONTRIBUTING.md, and examples/README.md.
+   If access is unavailable, explain what access I need.
+3. Read docs/pages/starters/README.md, the selected platform guide, and
+   examples/starters/<platform>/README.md. Follow that README's current
+   prerequisites and commands. Check whether its Katakit dependencies
+   are published. If access or dependencies are unavailable, pause
+   setup and explain what is needed to continue.
+4. For a new app, copy the complete starter into the new directory.
+   For an existing app, inspect it first and propose the smallest
+   integration that preserves its current behavior and my local edits.
+5. Install, build, and test from the application's own directory.
+   Start its development server and give me the local URL.
+6. Follow the starter's manual platform checks. For React, help me allow
+   microphone access, speak, confirm a visible conversation turn, and
+   stop recording. Explain the first-use model download and data flow.
+7. Make one small change toward my idea. Use Katakit's public package
+   entry points and consult docs/pages/reference/ for their contracts.
+   Re-run the relevant checks.
 
-const eventLog = EventLogPlugin.configure({ initialEvents: [] });
-const katakit = makeKatakit({ plugins: [eventLog] }).start();
-
-const { events$ } = katakit.getObservables(EventLogPlugin);
-const subscription = events$.subscribe(event => console.log(event));
-katakit.getMethods(EventLogPlugin).emitEvent({ type: 'message', text: 'Hello' });
-
-console.log(events$.getAll()); // [{ type: 'message', text: 'Hello' }]
-subscription.unsubscribe();
+Report the files changed, commands and results, local URL, and any
+microphone or platform checks that still need me to perform them.
 ```
 
-`makeKatakit` accepts **configured** plugins. `start()` starts methods and effects once; it returns the running runtime, which exposes `getMethods`. The original runtime also has `getObservables` for observable-only reads without starting methods or effects.
+The [starter guides](../starters/README.md) also cover Electron, Chrome extensions, Obsidian, and the WIP MCP App. Each starter's README owns its exact setup commands and platform requirements.
 
-For a React application, continue with [React integration](react.md). To install and change a runnable application rather than just read a code snippet, choose a [starter](../starters/README.md). You can also read [how runtimes work](../concepts/runtime.md), [how plugins fit together](../concepts/plugins.md), or the [reference](../reference/README.md).
+## Try the result
+
+Once installation succeeds, open the React starter's local URL and choose **Start recording**. Allow microphone access and give the first model download time to finish. Speak a sentence, then choose **Stop recording**. You should see a conversation turn containing your words.
+
+The starter keeps audio processing and transcript text on your computer. Model downloads contact the model provider and require internet access. Conversation turns stay in memory and disappear on reload. A passing build or automated test does not establish that your microphone works; try that path yourself.
+
+## Keep building
+
+Follow the [Tutorial](../concepts/README.md) to build a message list from events and learn how plugins fit together. Use [Reference](../reference/README.md) for package contracts, or [React-RxJS bindings](../reference/react.md#react-rxjs-bindings) to connect runtime observables to a React view.

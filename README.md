@@ -27,12 +27,12 @@ Compose typed plugins for live state, actions, and asynchronous work, independen
 framework. Build around typed event history, connect speech recognition and conversation turns,
 and add persistence through your own storage.
 
-[Getting started](docs/pages/getting-started/README.md) · [Demos](examples/demos/gallery/README.md) ·
+[Quickstart](docs/pages/getting-started/README.md) · [Demos](examples/demos/gallery/README.md) ·
 [Starters](docs/pages/starters/README.md) · [Documentation](docs/pages/reference/README.md)
 
 We're sharing an early collection of patterns and examples from our work on **voice-to-visual
-interfaces**. The packages are currently version `0.0.0` and unpublished; the copyable starters
-include built Katakit packages so you can try them before a registry release.
+interfaces**. The initial `0.1.0` packages are available on npm; the copyable demos and starters
+install those packages directly.
 
 ## Why Katakit?
 
@@ -118,13 +118,13 @@ platform setup, permissions, and current verification.
 
 The transcription utility works independently of the plugin runtime. Add persistent storage
 through your own adapter when you need events to survive a reload.
-React applications render runtime observables with [React-RxJS](docs/pages/getting-started/react.md).
+React applications render runtime observables with [React-RxJS](docs/pages/reference/react.md#react-rxjs-bindings).
 
 ## Documentation
 
-- [Getting started](docs/pages/getting-started/README.md) — assemble your first runtime.
-- [Plugin model](docs/pages/concepts/plugins.md) — understand observables, methods, and effects.
-- [React integration](docs/pages/getting-started/react.md) — render runtime state and connect speech.
+- [Quickstart](docs/pages/getting-started/README.md) — build from a starter with your coding agent.
+- [Tutorial](docs/pages/concepts/README.md) — build an event-driven message list, add a plugin, and save its history.
+- [@katakit/react](docs/pages/reference/react.md) — developer workbench availability, React-RxJS bindings, and microphone ownership.
 - [Transcription](docs/pages/reference/transcription.md) — configure recognition and its resources.
 - [Reference](docs/pages/reference/README.md) — explore the reusable building blocks and API guidance.
 

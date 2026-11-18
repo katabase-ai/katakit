@@ -4,8 +4,6 @@ Record English speech with Moonshine Tiny in an Electron window. The recognizer 
 
 ## Copy and run
 
-Katakit `0.0.0` is not yet published on npm; standalone installation requires its publication.
-
 Copy this entire directory. With Node.js 24+ and pnpm 11.9.0, run `pnpm install`, `pnpm check`, then `pnpm start` **inside the copy**. Click **Record microphone**, allow OS/Electron microphone access, speak, and click **Stop recording**. A separate development server is not needed. The status shows loading, recognition, and permission errors. Reopen the window to check that turns are not persisted. `pnpm check` runs a deterministic finalized-segment test and builds the app; it does not exercise the microphone.
 
 `electron/main.cjs` serves built files on a secure `katakit://app` origin with COOP/COEP headers required by Moonshine's WASM workers. It authorizes media permission only for the local app origin and keeps Node integration off and the renderer sandboxed. `vite.config.ts` copies the transcriber's worklet, workers and WASM/SDK assets to `dist/transcription-assets/`. `src/main.ts` connects `createMicrophoneTranscriber` to Katakit methods exposed by `src/kit.ts` and releases the input on page hide. Replace the input and plugin wiring there, not the secure-origin boundary.
