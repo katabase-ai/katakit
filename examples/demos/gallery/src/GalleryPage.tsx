@@ -1,4 +1,4 @@
-import { Suspense, useCallback } from 'react';
+import { useCallback } from 'react';
 import { ClientOnly, Link, Navigate, useNavigate } from '@tanstack/react-router';
 import { Gallery } from '../shared/Gallery';
 import { GallerySpeechControls } from '../shared/GallerySpeechControls';
@@ -64,25 +64,8 @@ export const GalleryPage = ({
       }
     >
       {Component && (
-        <ClientOnly
-          fallback={
-            <div>
-              <h1>{demo?.title}</h1>
-              <p role="status">Loading demo…</p>
-            </div>
-          }
-        >
-          <Suspense
-            key={demo?.id}
-            fallback={
-              <div>
-                <h1>{demo?.title}</h1>
-                <p role="status">Loading demo…</p>
-              </div>
-            }
-          >
-            <Component />
-          </Suspense>
+        <ClientOnly fallback={null}>
+          <Component />
         </ClientOnly>
       )}
     </Gallery>

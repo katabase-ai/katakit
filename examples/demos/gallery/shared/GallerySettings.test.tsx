@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, expect, test, vi } from 'vitest';
 import { Gallery } from './Gallery';
+import { useGalleryDemoReady } from './GalleryDemoFrame';
 import { GallerySpeechProvider } from './GallerySpeechProvider';
 import { GallerySpeechControls } from './GallerySpeechControls';
 import { GalleryModeProvider, GalleryPreviewToggle, useGalleryMode } from './GalleryModeProvider';
@@ -28,6 +29,7 @@ const savedKey = () =>
     JSON.stringify({ ...defaultInference, source: 'key', key: 'test-developer-key' })
   );
 const Notes = ({ runtime }: { runtime: ReturnType<typeof createNotesDemo> }) => {
+  useGalleryDemoReady(true);
   const model = useGalleryModel();
   const connect = useCallback(
     async ({ signal }: { signal: AbortSignal }): Promise<NotesConnection> => {
@@ -49,6 +51,7 @@ const Notes = ({ runtime }: { runtime: ReturnType<typeof createNotesDemo> }) => 
   );
   return (
     <NotesDemo
+      showIntroduction={false}
       runtime={runtime}
       connect={model.connect && connect}
       renderModelControls={model.renderControls}

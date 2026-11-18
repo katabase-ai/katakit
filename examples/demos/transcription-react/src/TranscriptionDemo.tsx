@@ -14,11 +14,14 @@ export const TranscriptionDemo = ({
   controls,
   introduction,
   afterFirstSpeech,
+  showIntroduction = true,
 }: {
   runtime: ReturnType<typeof createTranscriptionDemo>;
   controls?: ReactNode;
   introduction?: ReactNode;
   afterFirstSpeech?: ReactNode;
+  /** Embedded hosts can supply their own page header. Standalone introductions remain the default. */
+  showIntroduction?: boolean;
 }) => {
   const [snapshot, setSnapshot] = useState(() => runtime.state$.getValue());
   useEffect(() => {
@@ -28,15 +31,21 @@ export const TranscriptionDemo = ({
   const { completedTurns, currentTurn, provisional } = snapshot;
   const turns = currentTurn ? [...completedTurns, currentTurn] : completedTurns;
   return (
-    <section className="workspace transcription-demo" aria-labelledby="title">
-      <div className="intro">
-        {introduction ?? (
-          <>
-            <h1 id="title">Conversation, in text.</h1>
-            <p>Record in your browser. Read each conversation turn as it finishes.</p>
-          </>
-        )}
-      </div>
+    <section
+      className="workspace transcription-demo"
+      aria-labelledby={showIntroduction ? 'title' : undefined}
+      aria-label={showIntroduction ? undefined : 'Local transcription'}
+    >
+      {showIntroduction && (
+        <div className="intro">
+          {introduction ?? (
+            <>
+              <h1 id="title">Conversation, in text.</h1>
+              <p>Record in your browser. Read each conversation turn as it finishes.</p>
+            </>
+          )}
+        </div>
+      )}
 
       {controls}
 

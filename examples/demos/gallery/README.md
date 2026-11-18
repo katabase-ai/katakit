@@ -109,6 +109,51 @@ Each host owns its URLs, title metadata, not-found/loading/error handling, and r
 Adding an entry here makes it eligible; each consuming website still chooses what to include.
 Examples continue to own their code and never import private website components.
 
+## Stable demo transitions
+
+Gallery renders the real demo title, description, and privacy badge from metadata before loading
+the demo. `GalleryDemoHeader` keeps this header in place through loading and readiness: 36px titles
+on desktop, 28px on mobile, 12px between title and description, and 32px before the demo body.
+The badge sits beside the title on desktop and below the description on mobile. Content starts
+32px below the gallery edge on desktop and 24px on mobile. Standard adapters suppress their embedded
+introductions when this header is present; standalone views retain their original introductions.
+
+Welcome uses the same immediate header and delayed loading frame. Its title and introduction
+are available before the lazy page code. Page readiness follows code/hydration; microphone setup,
+permission prompts, and speech-model downloads keep their own feedback inside the visible page.
+
+`Gallery` keeps one `shared/GalleryDemoFrame.tsx` mounted across Welcome and demo navigation.
+It owns the lazy-component Suspense boundary and one loading treatment for code loading and
+runtime attachment. A frame used outside Gallery supplies the real header itself. The local
+Start host supplies only the active component to Gallery:
+
+```tsx
+<Gallery activeDemo={demo} /* ...host links and settings */>
+  <ClientOnly fallback={null}>
+    <Component />
+  </ClientOnly>
+</Gallery>
+```
+
+`ClientOnly` is this host's hydration guard; browser-only hosts can render the component directly.
+Avoid another loading heading or Suspense fallback inside Gallery. Keep host error boundaries
+outside it. Standard demo entries use `GalleryDemo`, which reports readiness after its runtime
+lease settles; custom adapters using a different lease must call `useGalleryDemoReady(settled)`.
+Runtime initialization failures become visible errors rather than permanent loading states.
+
+The frame measures the settled demo body, including later size changes, and temporarily reserves
+that height while switching demos. The reserved space is quiet for the first 250ms. Longer waits
+show a 16px activity ring and muted “Opening…” text at the top-left of the body. Content is revealed
+as soon as its lease settles; it is never delayed to finish an animation. Timers are cleared on
+readiness, navigation, and unmount. The ring becomes static for reduced-motion preferences, and the
+status message is separate from the busy/hidden incoming content so assistive technology can announce it.
+
+Incoming content stays hidden until its lease settles. Once ready, the reservation is removed and
+the body takes its natural responsive height. Resize observers disconnect on transition/unmount.
+Only the outgoing dimensions are retained: the old component unmounts and its runtime still stops,
+drains, and closes before the incoming runtime is created. This does not preload speech models,
+start capture/inference, retain inactive demos, or change individual games.
+
 ## Shared input and separate demo runtimes
 
 Mount `GallerySpeechProvider` once above the route outlet. It owns one `@katakit/transcription`

@@ -11,11 +11,14 @@ export const NotesDemo = ({
   controls,
   connectionHelp,
   renderModelControls = controls => controls,
+  showIntroduction = true,
 }: Parameters<typeof useNotesConnection>[0] & {
   controls?: ReactNode;
   connectionHelp?: ReactNode;
   /** A host can wrap model controls with verification and allowance information. */
   renderModelControls?: (controls: ReactNode) => ReactNode;
+  /** Embedded hosts can supply their own page header. */
+  showIntroduction?: boolean;
 }) => {
   const [state, setState] = useState(() => runtime.state$.get());
   const { notes, markdown } = state;
@@ -71,11 +74,15 @@ export const NotesDemo = ({
 
   return (
     <section className="structured-notes" aria-label="Structured notes">
-      <h1>Structured notes</h1>
-      <p className="structured-notes-intro">
-        Talk through a plan: what needs to happen, when, and what comes next. Notes take shape as
-        you finish each thought.
-      </p>
+      {showIntroduction && (
+        <>
+          <h1>Structured notes</h1>
+          <p className="structured-notes-intro">
+            Talk through a plan: what needs to happen, when, and what comes next. Notes take shape
+            as you finish each thought.
+          </p>
+        </>
+      )}
       <p className="structured-notes-hint">
         Listen locally, then choose Start notes to send transcript text to your selected model
         provider. Audio stays on this device. Pausing notes keeps your transcript for when you

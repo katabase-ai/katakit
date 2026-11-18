@@ -5,6 +5,9 @@ import { useGalleryInference } from './GalleryInferenceProvider';
 import { connectWithKey } from './galleryInference';
 import { GalleryFooter } from './GalleryFooter';
 import { GalleryPrivacyBadge } from './GalleryPrivacyBadge';
+import { GalleryDemoHeader } from './GalleryDemoHeader';
+import { GalleryDemoFrame } from './GalleryDemoFrame';
+import { galleryWelcomeDetails } from './galleryWelcomeDetails';
 import { useGalleryMode } from './GalleryModeProvider';
 import type { GalleryDeveloperPage, GalleryOperation } from './operationDetails';
 import { useGalleryUsage, type GalleryAllowance } from './GalleryUsageProvider';
@@ -194,28 +197,30 @@ export const Gallery = ({
                 )}
               </Suspense>
             </>
-          ) : activeDemo ? (
-            <>
-              <GalleryPrivacyBadge
-                key={activeDemo.id}
-                dataHandling={activeDemo.dataHandling}
-                privacyUrl={privacyUrl}
-                developerEndpoint={isDeveloperView && inference?.settings.source === 'key'}
-                cloudPrivacyDescription={
-                  connectModel && (!isDeveloperView || inference?.settings.source === 'free')
-                    ? cloudPrivacyDescription
-                    : undefined
-                }
-              />
-              {children}
-            </>
           ) : (
-            <>
-              <Suspense fallback={<p role="status">Loading Welcome…</p>}>
-                <Welcome privacyUrl={privacyUrl} />
-              </Suspense>
-              {children}
-            </>
+            <GalleryDemoHeader
+              demo={activeDemo ?? galleryWelcomeDetails}
+              badge={
+                activeDemo && (
+                  <GalleryPrivacyBadge
+                    key={activeDemo.id}
+                    dataHandling={activeDemo.dataHandling}
+                    privacyUrl={privacyUrl}
+                    developerEndpoint={isDeveloperView && inference?.settings.source === 'key'}
+                    cloudPrivacyDescription={
+                      connectModel && (!isDeveloperView || inference?.settings.source === 'free')
+                        ? cloudPrivacyDescription
+                        : undefined
+                    }
+                  />
+                )
+              }
+            >
+              <GalleryDemoFrame demo={activeDemo ?? galleryWelcomeDetails}>
+                {activeDemo ? children : <Welcome privacyUrl={privacyUrl} />}
+              </GalleryDemoFrame>
+              {!activeDemo && children}
+            </GalleryDemoHeader>
           )}
         </div>
       </div>

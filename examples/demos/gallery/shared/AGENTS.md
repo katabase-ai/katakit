@@ -7,6 +7,20 @@ source checkout. They do not own application bootstraps, routing, or private ser
   components. Keep extension information pages out of both. `#gallery-react-catalogue`
 - Keep metadata and `Gallery.tsx` free of eager recognizer/runtime imports. Welcome loads lazily. Accept host-rendered links
   and children instead of importing a host router. `#gallery-portable-presentation`
+- `Gallery` wraps Welcome and active demo content in one persistent `GalleryDemoFrame`; it owns one loading view across
+  lazy imports/hydration and runtime handoff. `GalleryDemo` reports a settled lease before reveal.
+  Reserve only the outgoing dimensions while loading, release the height when ready, and disconnect
+  size observers on transition/unmount. Keep stop/drain/close ordering and gameplay behavior unchanged.
+  `#gallery-demo-transitions`
+- `GalleryDemoHeader` renders metadata titles/descriptions and the privacy badge independently of
+  lazy code and runtime readiness. Adapters suppress embedded introductions only when that header
+  is present. Keep the 36px/28px title scale and shared spacing in gallery CSS. The body reserves space
+  immediately and shows activity only after 250ms; clear the timer on completion/navigation/unmount,
+  respect reduced motion, and keep status announcements outside the busy incoming content.
+  `#gallery-demo-header`
+- Welcome uses the same header and delayed frame; its page readiness follows code/hydration.
+  Keep microphone setup, permission, and download feedback in the visible page, independent of
+  navigation loading. Keep its immediate copy free of eager microphone imports. `#gallery-welcome-loading`
 - Scope portable gallery CSS beneath `.katakit-gallery`; the shared tooltip's own `.gallery-tooltip`
   root also scopes its header presentation outside that grid. Import only `internal/site-ui/components.css`.
   Own inner typography, spacing, and control rules here so host marketing CSS and demo-local button
