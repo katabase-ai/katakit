@@ -13,6 +13,7 @@ import type { GalleryDeveloperPage, GalleryOperation } from './operationDetails'
 import { useGalleryUsage, type GalleryAllowance } from './GalleryUsageProvider';
 import type { GalleryAccount } from './GalleryAccountButton';
 import { useGalleryEvents } from './galleryEvents';
+import { GalleryRunLocally } from './GalleryRunLocally';
 
 const OperationSetup = lazy(async () => ({
   default: (await import('./GalleryOperations')).GalleryOperationSetup,
@@ -46,6 +47,7 @@ export const Gallery = ({
   settingsPage = false,
   onOpenSettings,
   account,
+  sourceRevision,
 }: {
   demos: readonly (typeof galleryDemoDetails)[number][];
   activeDemo?: (typeof galleryDemoDetails)[number];
@@ -74,6 +76,11 @@ export const Gallery = ({
   onOpenSettings?: () => void;
   /** The host supplies identity and real account destinations in either mode. */
   account?: GalleryAccount;
+  /**
+   * The Katakit commit this host's demos come from. Run locally copies that revision so a copy
+   * matches the demo the visitor used; without one it copies the default branch.
+   */
+  sourceRevision?: string;
 }) => {
   const inference = useGalleryInference();
   const { isDeveloperView } = useGalleryMode();
@@ -221,6 +228,9 @@ export const Gallery = ({
                     }
                   />
                 )
+              }
+              actions={
+                activeDemo && <GalleryRunLocally demo={activeDemo} revision={sourceRevision} />
               }
             >
               <GalleryDemoFrame demo={activeDemo ?? galleryWelcomeDetails}>

@@ -9,10 +9,13 @@ export const useGalleryDemoHeader = () => useContext(Header);
 export const GalleryDemoHeader = ({
   demo,
   badge,
+  actions,
   children,
 }: {
   demo: { title: string; description?: string };
   badge?: ReactNode;
+  /** Controls about the demo itself, such as Run locally, below its description. */
+  actions?: ReactNode;
   children: ReactNode;
 }) => (
   <Header value={true}>
@@ -20,6 +23,7 @@ export const GalleryDemoHeader = ({
       <h1>{demo.title}</h1>
       {demo.description && <p>{demo.description}</p>}
       {badge && <div className="gallery-demo-header-badge">{badge}</div>}
+      {actions && <div className="gallery-demo-header-actions">{actions}</div>}
     </header>
     {children}
   </Header>

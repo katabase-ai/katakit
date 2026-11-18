@@ -78,6 +78,14 @@ the reference host has no managed service and makes no security claim. Developer
 always use neutral configured-service wording, ignoring any host promise. The gallery does not
 verify endpoint security, retention, or model-provider policies.
 
+Entries with their own example directory also declare `copyDirectory`. `Gallery` gives those demos
+a **Run locally** control below the description: an `npx degit` command that copies the example
+directory and starts it, and a prompt that asks a coding agent to do the same. Demos with the
+`remoteModel` capability label it **Run locally with your own API key**. Pass `sourceRevision`
+with the Katakit commit the host's demos come from, so a copy matches the demo the visitor used;
+without it the command copies the default branch. Copying reports `runLocallyCopied` with which
+text was copied. Color Clash lives inside the gallery and has no control.
+
 A host can select metadata and render `shared/Gallery.tsx` without importing recognizers or this
 app's bootstrap. Import `shared/gallery.css` for the scoped presentation. It owns the gallery’s
 inner type scale, spacing, control styles, and demo layout resets while using the host’s font and

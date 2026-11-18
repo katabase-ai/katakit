@@ -5,6 +5,11 @@ source checkout. They do not own application bootstraps, routing, or private ser
 
 - `galleryDemoDetails.ts` owns React demo eligibility and metadata; `galleryDemos.tsx` adds lazy
   components. Keep extension information pages out of both. `#gallery-react-catalogue`
+- `GalleryRunLocally` copies a demo with `npx degit` from its `sourcePath` at the host's
+  `sourceRevision`. Give an entry `copyDirectory` only when that path is a standalone example a
+  plain `pnpm install` and `pnpm dev` can run; check a real `degit` copy before adding one.
+  The prompt must not ask an agent to handle an API key without asking the person first.
+  `#gallery-run-locally`
 - Keep metadata and `Gallery.tsx` free of eager recognizer/runtime imports. Welcome loads lazily. Accept host-rendered links
   and children instead of importing a host router. `#gallery-portable-presentation`
 - `Gallery` wraps Welcome and active demo content in one persistent `GalleryDemoFrame`; it owns one loading view across

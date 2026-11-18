@@ -33,7 +33,9 @@ export type GalleryEventDetail =
   /** A demo action its gallery adapter owns, such as starting a Color Clash round. */
   | { type: 'demoControlUsed'; control: 'play' | 'cancel' | 'startNotes' }
   /** A click on a control inside the demo's own content, outside the capture controls. */
-  | { type: 'demoInteracted'; element: 'button' | 'select' | 'input' | 'link' };
+  | { type: 'demoInteracted'; element: 'button' | 'select' | 'input' | 'link' }
+  /** A copy from Run locally: which text was copied, never the text itself. */
+  | { type: 'runLocallyCopied'; content: 'command' | 'prompt' };
 
 /** `demoId` is absent on Welcome and other pages that are not a demo. */
 export type GalleryEvent = GalleryEventDetail & { demoId?: string };

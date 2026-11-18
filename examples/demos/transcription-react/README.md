@@ -1,6 +1,19 @@
 # React transcription example
 
-## Prepare an independent copy
+## Run it locally
+
+Copy this demo from GitHub and start it. You need Node.js 24 or newer and pnpm:
+
+```sh
+npx degit katabase-ai/katakit/examples/demos/transcription-react local-transcription
+cd local-transcription
+pnpm install
+pnpm dev
+```
+
+The gallery's **Run locally** control shows the same command and a prompt for a coding agent.
+
+## Prepare an independent copy from a checkout
 
 From an installed Katakit checkout, run:
 

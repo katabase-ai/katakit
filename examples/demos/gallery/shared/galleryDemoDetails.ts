@@ -11,6 +11,8 @@ type GalleryDemoMetadata = {
   readonly description: string;
   readonly capabilities: readonly ('microphone' | 'localTranscription' | 'remoteModel')[];
   readonly dataHandling: GalleryDataHandling;
+  /** Directory name for a local copy; only demos with their own example directory have one. */
+  readonly copyDirectory?: string;
 };
 
 /**
@@ -20,6 +22,7 @@ type GalleryDemoMetadata = {
 export const transcriptionDemoDetails = {
   id: 'transcription',
   sourcePath: 'examples/demos/transcription-react',
+  copyDirectory: 'local-transcription',
   title: 'Local transcription',
   description: 'Your browser turns microphone audio into text on this device.',
   capabilities: ['microphone', 'localTranscription'],
@@ -28,6 +31,7 @@ export const transcriptionDemoDetails = {
 export const bingoDemoDetails = {
   id: 'bingo',
   sourcePath: 'examples/demos/bingo-react',
+  copyDirectory: 'conversation-bingo',
   title: 'Conversation bingo',
   description: 'Say it in the conversation. See it on the card.',
   capabilities: ['microphone', 'localTranscription'],
@@ -36,6 +40,7 @@ export const bingoDemoDetails = {
 export const notesDemoDetails = {
   id: 'notes',
   sourcePath: 'examples/demos/notes-react',
+  copyDirectory: 'structured-notes',
   title: 'Structured notes',
   description: 'Talk through a plan. Notes take shape as you finish each thought.',
   capabilities: ['microphone', 'localTranscription', 'remoteModel'],
