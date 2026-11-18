@@ -21,7 +21,8 @@ export const transcriptionDemoDetails = {
   id: 'transcription',
   sourcePath: 'examples/demos/transcription-react',
   title: 'Local transcription',
-  description: 'Your browser turns microphone audio into text on this device.',
+  description:
+    'Turn speech into text on your device. Choose Start listening, then speak naturally.',
   capabilities: ['microphone', 'localTranscription'],
   dataHandling: { audio: 'device', transcribedText: 'device' },
 } as const satisfies GalleryDemoMetadata;
@@ -29,7 +30,8 @@ export const bingoDemoDetails = {
   id: 'bingo',
   sourcePath: 'examples/demos/bingo-react',
   title: 'Conversation bingo',
-  description: 'Say it in the conversation. See it on the card.',
+  description:
+    'Choose a word list, then Start listening. Matching phrases mark the card; five in a row wins.',
   capabilities: ['microphone', 'localTranscription'],
   dataHandling: { audio: 'device', transcribedText: 'device' },
 } as const satisfies GalleryDemoMetadata;
@@ -37,7 +39,7 @@ export const notesDemoDetails = {
   id: 'notes',
   sourcePath: 'examples/demos/notes-react',
   title: 'Structured notes',
-  description: 'Talk through a plan. Notes take shape as you finish each thought.',
+  description: 'Turn spoken plans into an outline. Choose Start listening, then Start notes.',
   capabilities: ['microphone', 'localTranscription', 'remoteModel'],
   dataHandling: { audio: 'device', transcribedText: 'cloud' },
 } as const satisfies GalleryDemoMetadata;
@@ -45,7 +47,8 @@ export const colorClashDemoDetails = {
   id: 'color-clash',
   sourcePath: 'examples/demos/gallery/shared/color-clash',
   title: 'Color Clash',
-  description: 'Say the ink color, not the word. Speech stays on your device.',
+  description:
+    'Choose Play, then say the ink color, not the word. Score as many matches as you can in 20 seconds.',
   capabilities: ['microphone', 'localTranscription'],
   dataHandling: { audio: 'device', transcribedText: 'device' },
 } as const satisfies GalleryDemoMetadata;

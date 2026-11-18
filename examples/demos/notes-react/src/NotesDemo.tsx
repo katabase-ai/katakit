@@ -84,9 +84,9 @@ export const NotesDemo = ({
         </>
       )}
       <p className="structured-notes-hint">
-        Listen locally, then choose Start notes to send transcript text to your selected model
-        provider. Audio stays on this device. Pausing notes keeps your transcript for when you
-        resume.
+        Start listening to transcribe on your device. Choose Start notes to send transcribed text to
+        the connected model. Audio stays on your device. Pausing notes keeps your transcript for
+        when you resume.
       </p>
       {controls}
       {renderModelControls(modelControls)}

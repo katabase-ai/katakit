@@ -103,6 +103,7 @@ export const BrowserBingoDemo = ({
             </Button>
           </div>
           {controls}
+          <p>Select a square to mark it or correct a match.</p>
           <div className="bingo-transcript">
             <h2>Last heard</h2>
             <p aria-live="polite">{lastHeard || 'Your conversation will appear here.'}</p>

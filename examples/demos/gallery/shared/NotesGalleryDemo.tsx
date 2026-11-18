@@ -46,17 +46,17 @@ export const NotesGalleryDemo = () => {
           connectionHelp={
             model.configure ? (
               <p>
-                No inference is configured. You can still transcribe locally.{' '}
+                Connect a model to generate notes. You can still transcribe on your device.{' '}
                 <button
                   type="button"
                   className="site-button"
                   onClick={() => model.configure?.('inference')}
                 >
-                  Configure inference
+                  Configure models
                 </button>
               </p>
             ) : (
-              <p>Free inference is not available here. You can still transcribe locally.</p>
+              <p>Notes are unavailable here. You can still transcribe on your device.</p>
             )
           }
           controls={<GalleryCaptureControls />}
