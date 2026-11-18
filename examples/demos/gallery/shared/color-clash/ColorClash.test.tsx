@@ -202,3 +202,62 @@ test('prevents replay and requests stop only once while the host is tearing down
   expect(stopped).toHaveBeenCalledTimes(1);
   runtime.close();
 });
+
+test('the same focused action survives setup and cancellation instead of dropping focus to the page', async () => {
+  const runtime = createColorClash();
+  let finish!: (value: boolean) => void;
+  const Host = () => {
+    const [input, setInput] = useState<TranscriptionState>({ phase: 'idle' });
+    return (
+      <ColorClash
+        runtime={runtime}
+        input={input}
+        disabled={false}
+        onPlay={() => {
+          setInput({ phase: 'loading', progress: 0.25 });
+          return new Promise(resolve => {
+            finish = resolve;
+          });
+        }}
+        onCancel={() => {
+          setInput({ phase: 'idle' });
+          finish(false);
+        }}
+        onStop={() => {}}
+      />
+    );
+  };
+  const view = render(<Host />);
+  const button = screen.getByRole('button', { name: 'Play' });
+  button.focus();
+  await act(async () => fireEvent.click(button));
+  expect(screen.getByRole('button', { name: 'Cancel download' })).toBe(button);
+  expect(document.activeElement).toBe(button);
+  await act(async () => fireEvent.click(button));
+  expect(screen.getByRole('button', { name: 'Play' })).toBe(button);
+  expect(document.activeElement).toBe(button);
+  expect(runtime.getSnapshot().remainingMs).toBe(20000);
+  view.unmount();
+  runtime.close();
+});
+
+test('an interrupted round announces its score without claiming the clock expired', () => {
+  const runtime = createColorClash();
+  runtime.begin();
+  const view = render(
+    <ColorClash
+      runtime={runtime}
+      input={{ phase: 'running' }}
+      disabled={false}
+      onPlay={async () => true}
+      onStop={() => {}}
+      onCancel={() => {}}
+    />
+  );
+  act(() => runtime.finish());
+  expect(screen.getByRole('heading', { name: 'Round ended' })).toBeDefined();
+  expect(screen.queryByRole('heading', { name: 'Time’s up' })).toBeNull();
+  expect(screen.getByRole('status').textContent).toBe('Round ended. Your score is 0.');
+  view.unmount();
+  runtime.close();
+});

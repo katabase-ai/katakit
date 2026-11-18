@@ -22,11 +22,15 @@ export const NotesDemo = ({
 }) => {
   const [state, setState] = useState(() => runtime.state$.get());
   const clearHelpId = useId();
+  const statusId = useId();
+  const connectionHelpId = useId();
   const { notes, markdown } = state;
-  const { connecting, connected, admissionError, connectModel, pause } = useNotesConnection({
-    runtime,
-    connect,
-  });
+  const { connecting, connected, paused, admissionError, connectModel, pause } = useNotesConnection(
+    {
+      runtime,
+      connect,
+    }
+  );
 
   useEffect(() => {
     const subscription = runtime.state$.subscribe(setState);
@@ -34,12 +38,26 @@ export const NotesDemo = ({
   }, [runtime]);
 
   const failure = admissionError ?? notes.failure;
+  const status = connecting
+    ? 'Connecting notes…'
+    : failure
+      ? failure.message || 'Notes are delayed. Try again.'
+      : paused
+        ? 'Notes paused. Choose Start notes to resume.'
+        : connected
+          ? notes.status === 'requesting'
+            ? 'Updating notes…'
+            : 'Notes are on. Waiting for your next completed thought.'
+          : connect
+            ? 'Notes are off. Choose Start notes to begin.'
+            : undefined;
   const modelControls = (
     <section className="structured-notes-model-controls" aria-label="Notes connection">
       <h2>Notes model</h2>
       {!connected || notes.status === 'paused' ? (
         <button
           type="button"
+          aria-describedby={connect ? statusId : connectionHelpId}
           onClick={() =>
             connected &&
             notes.status === 'paused' &&
@@ -58,18 +76,20 @@ export const NotesDemo = ({
           {connecting ? 'Connecting…' : 'Start notes'}
         </button>
       ) : (
-        <button type="button" onClick={pause}>
+        <button type="button" aria-describedby={statusId} onClick={pause}>
           Pause notes
         </button>
       )}
-      <div role="status" aria-live="polite">
-        {connecting && <p>Connecting notes…</p>}
-        {failure && <p>{failure.message || 'Notes are delayed. Try again.'}</p>}
+      <div id={statusId} role="status" aria-atomic="true">
+        {status && <p>{status}</p>}
       </div>
-      {!connect &&
-        (connectionHelp ?? (
-          <p>No model connection is configured. You can still transcribe locally.</p>
-        ))}
+      {!connect && (
+        <div id={connectionHelpId}>
+          {connectionHelp ?? (
+            <p>No model connection is configured. You can still transcribe locally.</p>
+          )}
+        </div>
+      )}
     </section>
   );
 

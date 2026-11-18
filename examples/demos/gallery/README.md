@@ -268,6 +268,33 @@ stop/restart retention, fresh visits, Bingo's retained matching evidence, Notes 
 responses, and game replay. This contract preserves the existing reset behavior and local
 storage policy.
 
+## Keyboard navigation and state feedback
+
+After demo navigation, the shared title receives focus so keyboard and assistive-technology
+users arrive at the new content. First mount, readiness updates within the same visit, and a
+focused host control outside the gallery retain their focus. The title is not an extra Tab stop.
+Color Clash keeps one native action button while Play changes to Cancel or Retry, so cancelling
+setup retains focus on the next available action.
+
+Bingo announces its matched-square count and completed lines as a single polite status. Notes
+announces off, connecting, updating, on, paused, and failure states; Start/Pause controls describe
+the current status, and an unavailable Start describes the connection explanation. A finished
+Color Clash round announces its score once; the clock is not a live region. Interrupted rounds
+say Round ended rather than claiming the time expired.
+
+| Review                                                             | Expected evidence                                                                                                        |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| Keyboard navigation across all four demos                          | Focus lands on the new title; Tab reaches privacy and demo actions. Lazy readiness does not take focus again.            |
+| Cancel Color Clash download or permission setup                    | Same focused native button becomes Play or Retry. No clock time is spent.                                                |
+| Notes with missing, pending, active, failed, and paused connection | Visible status or connection help explains the action/disabled reason. New speech cannot resume paused inference.        |
+| Bingo automatic and manual marks                                   | Count/line status changes atomically; native square controls retain pressed state.                                       |
+| Color Clash finish/interruption                                    | One result status reports the score without announcing every clock tick.                                                 |
+| Phone, keyboard help and privacy panels                            | Controls remain reachable, text wraps, help is expandable without hover, and existing Escape/dismissal behavior remains. |
+
+Automated checks validate focus ownership, status semantics, cancellation and lifecycle behavior.
+Real browser keyboard and responsive captures complement those tests. They do not replace a
+screen-reader session, a microphone compatibility check, or a full accessibility audit.
+
 ## Developer mode and public preview
 
 Gallery mode controls the UI and inference policy independently of build optimization:

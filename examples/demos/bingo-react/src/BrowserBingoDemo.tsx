@@ -44,7 +44,7 @@ export const BrowserBingoDemo = ({
       )}
       <div className="bingo-layout">
         <section className="bingo-game" aria-label="Bingo card">
-          <div className="bingo-score">
+          <div className="bingo-score" role="status" aria-atomic="true">
             <strong>{board.winningLines.length ? 'Bingo!' : `${markedCount} of 24 squares`}</strong>
             <span>
               {board.winningLines.length

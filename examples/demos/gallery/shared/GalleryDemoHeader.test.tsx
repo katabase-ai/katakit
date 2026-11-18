@@ -4,6 +4,7 @@ import { afterEach, expect, test } from 'vitest';
 import { Gallery } from './Gallery';
 import { GallerySpeechProvider } from './GallerySpeechProvider';
 import { galleryDemos } from './galleryDemos';
+import { GalleryDemoHeader } from './GalleryDemoHeader';
 
 afterEach(cleanup);
 
@@ -41,3 +42,41 @@ test.each(galleryDemos)(
     view.unmount();
   }
 );
+
+const focusPage = (id: string) => (
+  <>
+    <button>Host action</button>
+    <div className="katakit-gallery">
+      <button>Gallery navigation</button>
+      <GalleryDemoHeader demo={{ id, title: `Demo ${id}` }}>
+        <button>Demo action</button>
+      </GalleryDemoHeader>
+    </div>
+  </>
+);
+
+test('navigation focuses the destination title, while first mount and same-demo updates keep focus', () => {
+  const view = render(focusPage('first'));
+  expect(document.activeElement).not.toBe(screen.getByRole('heading'));
+  const navigation = screen.getByRole('button', { name: 'Gallery navigation' });
+  navigation.focus();
+  view.rerender(focusPage('first'));
+  expect(document.activeElement).toBe(navigation);
+  view.rerender(focusPage('second'));
+  expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Demo second' }));
+  expect(screen.getByRole('heading').getAttribute('tabindex')).toBe('-1');
+  const action = screen.getByRole('button', { name: 'Demo action' });
+  action.focus();
+  view.rerender(focusPage('second'));
+  expect(document.activeElement).toBe(action);
+  view.rerender(focusPage('first'));
+  expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Demo first' }));
+});
+
+test('a host action outside the gallery keeps focus during a programmatic demo change', () => {
+  const view = render(focusPage('first'));
+  const host = screen.getByRole('button', { name: 'Host action' });
+  host.focus();
+  view.rerender(focusPage('second'));
+  expect(document.activeElement).toBe(host);
+});

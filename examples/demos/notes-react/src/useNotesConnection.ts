@@ -3,7 +3,7 @@ import type { createNotesDemo } from './createNotesDemo';
 import { NotesRequestError, type NotesConnection } from './notesModel';
 
 type AdmissionState =
-  | { type: 'idle' | 'connecting' | 'connected'; error?: never }
+  | { type: 'idle' | 'connecting' | 'connected' | 'paused'; error?: never }
   | { type: 'failed'; error: NotesRequestError };
 
 /** Capture and inference are independent. Only an explicit action starts remote work. */
@@ -33,7 +33,7 @@ export const useNotesConnection = ({
   const pause = useCallback(() => {
     if (!owner.current) return;
     owner.current.lifetime.abort();
-    owner.current = { lifetime: new AbortController(), admission: { type: 'idle' } };
+    owner.current = { lifetime: new AbortController(), admission: { type: 'paused' } };
     runtime.notes.pause();
     setAdmission(owner.current.admission);
   }, [runtime]);
@@ -72,6 +72,7 @@ export const useNotesConnection = ({
 
   return {
     connecting: admission.type === 'connecting',
+    paused: admission.type === 'paused',
     connected: admission.type === 'connected',
     admissionError: admission.error,
     connectModel,

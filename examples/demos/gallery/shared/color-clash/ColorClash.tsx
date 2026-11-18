@@ -127,7 +127,16 @@ export const ColorClash = ({
           </div>
         ) : (
           <div className="color-clash-message">
-            <h3>{state.phase === 'finished' ? 'Time’s up' : 'Color Clash'}</h3>
+            <h3>
+              {state.phase === 'finished'
+                ? state.remainingMs === 0
+                  ? 'Time’s up'
+                  : 'Round ended'
+                : 'Color Clash'}
+            </h3>
+            {state.phase === 'finished' && (
+              <p role="status">Round ended. Your score is {state.score}.</p>
+            )}
             {preparing && !blocked ? (
               <>
                 <p role="status">
@@ -138,42 +147,43 @@ export const ColorClash = ({
                 {input.phase === 'loading' && (
                   <progress aria-label="Speech model download" max={1} value={input.progress} />
                 )}
-                <button type="button" className="color-clash-play" onClick={cancel}>
-                  {input.phase === 'loading' ? 'Cancel download' : 'Cancel setup'}
-                </button>
               </>
-            ) : (
-              <>
-                {inputError && (
-                  <GalleryMicrophoneRecovery
-                    failure={failure}
-                    blocked={blocked}
-                    helpClassName="color-clash-permission-help"
-                  />
-                )}
-                <button
-                  type="button"
-                  className="color-clash-play"
-                  disabled={
-                    !blocked &&
-                    (disabled ||
-                      requested ||
-                      (state.phase === 'finished' && (listening || input.phase === 'stopping')))
-                  }
-                  onClick={() => (blocked ? window.location.reload() : void play())}
-                >
-                  {blocked
-                    ? 'Reload page'
-                    : permissionDenied
-                      ? 'Try microphone again'
-                      : inputError
-                        ? 'Try again'
-                        : state.phase === 'finished'
-                          ? 'Play again'
-                          : 'Play'}
-                </button>
-              </>
-            )}
+            ) : inputError ? (
+              <GalleryMicrophoneRecovery
+                failure={failure}
+                blocked={blocked}
+                helpClassName="color-clash-permission-help"
+              />
+            ) : undefined}
+            {/* One native button retains keyboard focus while Play becomes Cancel or Retry. */}
+            <button
+              type="button"
+              className="color-clash-play"
+              disabled={
+                !blocked &&
+                !preparing &&
+                (disabled ||
+                  requested ||
+                  (state.phase === 'finished' && (listening || input.phase === 'stopping')))
+              }
+              onClick={() =>
+                blocked ? window.location.reload() : preparing ? cancel() : void play()
+              }
+            >
+              {blocked
+                ? 'Reload page'
+                : preparing
+                  ? input.phase === 'loading'
+                    ? 'Cancel download'
+                    : 'Cancel setup'
+                  : permissionDenied
+                    ? 'Try microphone again'
+                    : inputError
+                      ? 'Try again'
+                      : state.phase === 'finished'
+                        ? 'Play again'
+                        : 'Play'}
+            </button>
             {state.phase === 'ready' && input.phase === 'idle' && (
               <p className="color-clash-privacy">
                 First play downloads the speech model and asks for microphone access. Setup does not
