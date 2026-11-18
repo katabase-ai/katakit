@@ -1,5 +1,5 @@
-import { useEffect, useId, useState } from 'react';
-import { Circle, CircleAlert, CircleCheck, LoaderCircle } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { GalleryMicrophoneReadiness } from './GalleryMicrophoneReadiness';
 import { createTranscriptionDemo } from '../../transcription-react/src/createTranscriptionDemo';
 import { GalleryDemo } from './GalleryDemo';
 import { GalleryCaptureControls } from './GalleryCaptureControls';
@@ -71,66 +71,12 @@ const MicrophoneRecovery = () => {
   );
 };
 
-const readinessLabels = {
-  untested: 'Not set up',
-  active: 'Setting up',
-  success: 'Ready',
-  error: 'Needs attention',
-} as const;
-
-const MicrophoneReadiness = ({ state }: { state: keyof typeof readinessLabels }) => {
-  // Disclosure state belongs to this mounted tooltip; it never starts capture.
-  const [open, setOpen] = useState(false);
-  const tooltipId = useId();
-  const Icon = { untested: Circle, active: LoaderCircle, success: CircleCheck, error: CircleAlert }[
-    state
-  ];
-  const label = readinessLabels[state];
-  return (
-    <span
-      className="gallery-welcome-readiness"
-      data-state={state}
-      onPointerEnter={event => {
-        if (event.pointerType !== 'touch') setOpen(true);
-      }}
-      onPointerLeave={event => {
-        if (!event.currentTarget.contains(document.activeElement)) setOpen(false);
-      }}
-      onFocus={() => setOpen(true)}
-      onBlur={() => setOpen(false)}
-      onKeyDown={event => {
-        if (event.key === 'Escape') setOpen(false);
-      }}
-    >
-      <button
-        type="button"
-        className="gallery-welcome-readiness-button"
-        aria-label={`Microphone setup: ${label}`}
-        aria-describedby={open ? tooltipId : undefined}
-        onClick={() => setOpen(true)}
-      >
-        <Icon aria-hidden="true" />
-      </button>
-      <span
-        id={tooltipId}
-        role="tooltip"
-        className="gallery-welcome-readiness-tooltip"
-        hidden={!open}
-      >
-        {label}
-      </span>
-    </span>
-  );
-};
-
 export const GalleryWelcomeMicrophone = () => {
   const session = useGallerySpeech();
   const snapshot = session?.snapshot;
   const failed = !!(snapshot?.blocked || snapshot?.error || snapshot?.input.error);
   const successful = !!snapshot?.microphoneVerified && !failed;
   const loading = snapshot?.input.phase === 'loading';
-  const settingUp = snapshot?.starting || loading || snapshot?.input.phase === 'starting';
-  const readiness = failed ? 'error' : successful ? 'success' : settingUp ? 'active' : 'untested';
   const permissionDenied =
     !snapshot?.blocked &&
     (!snapshot?.error || snapshot.error === snapshot.input.error?.message) &&
@@ -150,7 +96,7 @@ export const GalleryWelcomeMicrophone = () => {
     <section className="gallery-microphone-test" aria-labelledby="gallery-test-title">
       <div className="gallery-welcome-microphone-heading">
         <h2 id="gallery-test-title">Set up your mic</h2>
-        <MicrophoneReadiness state={readiness} />
+        <GalleryMicrophoneReadiness />
       </div>
       <p>
         All demos in this gallery turn speech into text right in your browser. Your audio data

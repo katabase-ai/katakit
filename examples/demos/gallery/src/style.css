@@ -45,61 +45,12 @@
   align-items: center;
   gap: 0.75rem;
 }
-.gallery-preview-control {
-  position: relative;
-  display: inline-flex;
-}
-.gallery-preview-tooltip {
+.gallery-tooltip.gallery-preview-control {
   --gallery-tooltip-anchor: 16px;
-  position: absolute;
-  z-index: var(--z-tooltip);
-  top: calc(100% + var(--space-xs));
-  right: 0;
-  width: 20rem;
-  max-width: calc(100vw - var(--gutter) * 2);
-  padding: var(--space-xs) var(--space-sm);
-  border: 1px solid var(--color-rule-2);
-  border-radius: var(--radius-input);
-  background: var(--color-paper-2);
-  color: var(--color-ink);
-  font-size: var(--text-sm);
-  line-height: 1.4;
-  white-space: normal;
-  opacity: 0;
-  visibility: hidden;
-}
-/* Keep the tooltip reachable across the gap without moving surrounding navigation. */
-.gallery-preview-tooltip::before {
-  content: '';
-  position: absolute;
-  bottom: 100%;
-  left: 0;
-  width: 100%;
-  height: var(--space-xs);
-}
-.gallery-preview-tooltip::after {
-  content: '';
-  position: absolute;
-  top: -6px;
-  right: calc(var(--gallery-tooltip-anchor) - 5px);
-  width: 10px;
-  height: 10px;
-  border-top: 1px solid var(--color-rule-2);
-  border-left: 1px solid var(--color-rule-2);
-  background: var(--color-paper-2);
-  transform: rotate(45deg);
-  pointer-events: none;
-}
-.gallery-preview-control:not([data-tooltip-dismissed='true']):has(input:focus-visible)
-  .gallery-preview-tooltip {
-  opacity: 1;
-  visibility: visible;
-}
-@media (hover: hover) {
-  .gallery-preview-control:not([data-tooltip-dismissed='true']):hover .gallery-preview-tooltip {
-    opacity: 1;
-    visibility: visible;
-  }
+  --gallery-tooltip-gap: var(--space-xs);
+  --gallery-tooltip-max-width: min(20rem, calc(100vw - var(--gutter) * 2));
+  --gallery-panel-padding: var(--space-xs) var(--space-sm);
+  --gallery-panel-font-size: var(--text-sm);
 }
 .gallery-preview-toggle {
   position: relative;
@@ -170,8 +121,8 @@
   .gallery-header-actions {
     margin-left: auto;
   }
-  .gallery-preview-tooltip {
+  .gallery-tooltip.gallery-preview-control {
     --gallery-tooltip-anchor: calc(16px + 44px + 0.75rem);
-    right: calc(-44px - 0.75rem);
+    --gallery-tooltip-offset-inline: calc(-44px - 0.75rem);
   }
 }

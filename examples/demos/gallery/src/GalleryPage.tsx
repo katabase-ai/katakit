@@ -10,9 +10,11 @@ import type { GalleryDeveloperPage, GalleryOperation } from '../shared/operation
 export const GalleryPage = ({
   demo,
   developerPage,
+  settingsPage,
 }: {
   demo?: (typeof galleryDemos)[number];
   developerPage?: GalleryDeveloperPage;
+  settingsPage?: boolean;
 }) => {
   const { isDeveloperView } = useGalleryMode();
   const navigate = useNavigate();
@@ -28,7 +30,11 @@ export const GalleryPage = ({
     <Gallery
       demos={galleryDemos}
       developerPage={developerPage}
+      settingsPage={settingsPage}
       onConfigureOperation={configure}
+      onOpenSettings={() => {
+        void navigate({ to: isDeveloperView ? '/operations/setup' : '/settings' });
+      }}
       renderDeveloperLink={({ page, children, current }) => (
         <Link
           to={page === 'setup' ? '/operations/setup' : '/operations/grid'}

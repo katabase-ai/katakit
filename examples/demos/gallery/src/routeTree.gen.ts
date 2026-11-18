@@ -9,11 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as OperationsSetupRouteImport } from './routes/operations.setup'
 import { Route as OperationsGridRouteImport } from './routes/operations.grid'
 import { Route as DemosDemoIdRouteImport } from './routes/demos.$demoId'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -37,12 +43,14 @@ const DemosDemoIdRoute = DemosDemoIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/demos/$demoId': typeof DemosDemoIdRoute
   '/operations/grid': typeof OperationsGridRoute
   '/operations/setup': typeof OperationsSetupRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/demos/$demoId': typeof DemosDemoIdRoute
   '/operations/grid': typeof OperationsGridRoute
   '/operations/setup': typeof OperationsSetupRoute
@@ -50,18 +58,30 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/demos/$demoId': typeof DemosDemoIdRoute
   '/operations/grid': typeof OperationsGridRoute
   '/operations/setup': typeof OperationsSetupRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/demos/$demoId' | '/operations/grid' | '/operations/setup'
+  fullPaths:
+    | '/'
+    | '/settings'
+    | '/demos/$demoId'
+    | '/operations/grid'
+    | '/operations/setup'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demos/$demoId' | '/operations/grid' | '/operations/setup'
+  to:
+    | '/'
+    | '/settings'
+    | '/demos/$demoId'
+    | '/operations/grid'
+    | '/operations/setup'
   id:
     | '__root__'
     | '/'
+    | '/settings'
     | '/demos/$demoId'
     | '/operations/grid'
     | '/operations/setup'
@@ -69,6 +89,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SettingsRoute: typeof SettingsRoute
   DemosDemoIdRoute: typeof DemosDemoIdRoute
   OperationsGridRoute: typeof OperationsGridRoute
   OperationsSetupRoute: typeof OperationsSetupRoute
@@ -76,6 +97,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -109,6 +137,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SettingsRoute: SettingsRoute,
   DemosDemoIdRoute: DemosDemoIdRoute,
   OperationsGridRoute: OperationsGridRoute,
   OperationsSetupRoute: OperationsSetupRoute,

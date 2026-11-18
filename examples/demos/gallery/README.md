@@ -100,8 +100,7 @@ keep gallery layout rules in the shared stylesheet so local and embedded views s
 The standalone gallery copy includes the skin, fonts, licenses, and all imported CSS.
 
 Pass the chosen entries, active entry, a host link renderer, and active content to `Gallery`.
-Pass `GallerySpeechControls` through its `input` slot for compact public Transcription/Inference
-status rows. Public visitors cannot select a provider, enter a key, or override a model. Launch
+Pass `GallerySpeechControls` through its `input` slot for shared microphone, account, and usage controls in both modes. Public visitors cannot select a provider, enter a key, or override a model. Launch
 defaults use the delivered recognizer without an upfront model picker. Welcome and
 the demo views render `GalleryCaptureControls` beside their content. Pass an absolute `privacyUrl`
 to link to the host’s policy in a separate tab (`noopener noreferrer`); independent hosts may omit
@@ -114,9 +113,15 @@ Examples continue to own their code and never import private website components.
 ## Shared input and separate demo runtimes
 
 Mount `GallerySpeechProvider` once above the route outlet. It owns one `@katakit/transcription`
-microphone transcriber and the inference-settings provider. Public status rows sit at the bottom
-of the shared sidebar, outside demo navigation, and become a measured bottom strip on phones.
-Developer mode uses that space for Operation Setup and Operation Grid links instead.
+microphone transcriber and the inference-settings provider. The same footer sits at the bottom
+of the shared sidebar in both modes, outside demo navigation, and becomes a measured bottom strip on phones.
+Both modes include a round Settings button. Public Settings (`/settings`) focuses on signup/account
+access, demo allowance, and privacy. Developer Settings opens Operation Setup; Configuration/Grid route
+tabs above those pages switch between the two developer views.
+The footer shares Welcome’s setup readiness and passive microphone indicators, using a
+smaller microphone circle. Both views follow the same speech owner across demos, including live
+audio levels. A downloaded model alone does not mark microphone setup Ready. Download, cancel,
+and recording actions stay in Welcome, the demo, or developer Operation Setup.
 Download model leaves the microphone off, including without a demo attachment. Welcome’s Set up
 microphone downloads the speech model if needed, then requests microphone permission. Its readiness
 icon distinguishes Not set up, Setting up, Ready, and Needs attention, with text on hover or focus.
@@ -143,11 +148,33 @@ the same instance-owned views; they do not import this gallery.
 
 A host passes one `connectModel` to `Gallery` for its model admission/transport; see
 `shared/galleryModel.tsx` for the contract. Every entry with the `remoteModel` capability uses it,
-so a new such demo needs no host code. With a connected host, Free demo is the default; without
-one, the footer reports Not connected and notes explains that managed inference is unavailable
-while transcription remains usable. Public mode never falls back to a saved developer key. Every demo link stays clickable. Hosts throw `GalleryModelError` for failures they
-want shown or retried. Connection controls, browser verification, allowance, and errors render
-inside the active demo, not the setup footer.
+so a new such demo needs no host code. Without a connected host, notes explains that managed
+inference is unavailable while transcription remains usable. Public mode never falls back to a saved developer key. Every demo link stays clickable. Hosts throw `GalleryModelError` for failures they
+want shown or retried. Connection controls, browser verification, and errors render
+inside the active demo. Host `onAllowance` reports drive the shared footer usage meter: the percentage
+is consumed allowance, yellow at 80% and red at 100%. On-device transcription does not consume this
+allowance. The reported value survives demo navigation under `GallerySpeechProvider`, but source/configuration
+and mode changes clear it. Missing or invalid data shows “Usage unavailable” with an explanation;
+there is no sample or predicted usage. The reference host has no managed allowance service, and
+developer-key providers do not report a demo allowance. No usage request is made on page load.
+
+The optional `Gallery account` prop supplies `user: { name, avatarUrl? }` and real host callbacks
+`onCreateAccount`, `onLogIn`, and `onOpenAccount`. Guests see a person avatar with a blue plus;
+signed-in users see their image or initials. The plus pulses at 80% consumed and grows at exhaustion,
+remaining blue. Reduced-motion preferences disable the pulse. With no callbacks, the avatar panel
+explains that account access is unavailable. Public Settings displays the signup/sign-in actions and
+explains availability when clicked without a host callback; it never simulates authentication.
+Signed-in visitors see their account summary and Manage account instead of signup. The reference
+host has no signup/login implementation. Pass `settingsPage` to render this shared page, and
+`onOpenSettings` for mode-appropriate host navigation; developer operation recovery keeps its
+separate `onConfigureOperation` callback. Neither the public page nor its navigation enables BYOK.
+
+Plain hover text uses `GalleryTooltip` for custom triggers (including the header switch), or
+`GalleryTooltipButton` for buttons. Both share hover, focus, tap, Escape, and outside-pointer
+dismissal. Side/alignment options position the panel; local CSS variables control sizing.
+`galleryTooltip.css` owns the panel surface and caret for tooltips and privacy/account popovers.
+Those interactive popovers retain their own link navigation, pinning, dismissal, and focus behavior.
+The shared tooltip scopes its own header styles outside the gallery grid, with no global reset.
 
 Only **Start notes** admits a remote connection and starts sending finalized transcript text.
 Starting capture never starts inference. Stop/start capture reuses the connection. **Pause notes**,
@@ -218,8 +245,9 @@ an inference request.
 Operation Grid derives requirements from the same selected demo catalogue. It distinguishes required
 and configured, required but missing a connection, and not used. Configured means a selection exists;
 downloads, microphone permission, provider credentials, and availability are checked on use. All
-current demo links remain clickable. Signup/account integration and additional operations pictured
-in earlier mockups are future integrations, not placeholder controls in these pages.
+current demo links remain clickable. Additional operations pictured in earlier mockups are future
+integrations, not placeholder controls in these pages. Account actions are a separate host integration
+through the shared footer, not inference configuration.
 
 Developer-key endpoints must support chat completions with JSON schema output and browser CORS.
 HTTPS is required except for loopback HTTP endpoints; URL credentials, queries, and fragments are

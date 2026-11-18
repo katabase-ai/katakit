@@ -1,0 +1,73 @@
+.katakit-gallery .gallery-public-settings {
+  max-width: 50rem;
+}
+.katakit-gallery .gallery-public-settings h1 {
+  font-size: var(--text-3xl);
+  margin-bottom: 2rem;
+}
+.katakit-gallery .gallery-public-settings h2 {
+  font-size: var(--text-xl);
+  line-height: 1.3;
+  margin: 0 0 0.75rem;
+}
+.katakit-gallery .gallery-public-settings p {
+  line-height: 1.65;
+}
+.katakit-gallery .gallery-settings-account {
+  padding: 2rem;
+  border: 1px solid color-mix(in srgb, var(--color-accent) 35%, var(--color-rule));
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--color-accent) 18%, var(--color-paper));
+}
+.katakit-gallery .gallery-settings-account > p {
+  max-width: 65ch;
+  margin: 0 0 1.5rem;
+}
+.katakit-gallery .gallery-settings-account-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem 1.5rem;
+}
+.katakit-gallery .gallery-settings-account-actions > span {
+  color: var(--color-muted);
+  font-size: 0.875rem;
+}
+.katakit-gallery .gallery-settings-sign-in {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-link, var(--color-accent));
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+.katakit-gallery .gallery-settings-account > .gallery-settings-account-notice {
+  margin: 1rem 0 0;
+  font-size: 0.875rem;
+}
+.katakit-gallery .gallery-settings-account-notice:empty {
+  margin: 0;
+}
+.katakit-gallery .gallery-settings-allowance {
+  --gallery-usage-color: var(--color-accent);
+  margin-top: 2.5rem;
+}
+.katakit-gallery .gallery-settings-allowance > .gallery-tooltip {
+  display: flex;
+  max-width: 24rem;
+}
+.katakit-gallery .gallery-settings-allowance > p {
+  margin: 0.75rem 0 0;
+  color: var(--color-muted);
+}
+.katakit-gallery .gallery-settings-privacy {
+  margin: 2rem 0 0;
+}
+@media (max-width: 650px) {
+  .katakit-gallery .gallery-settings-account {
+    padding: 1.25rem;
+  }
+}

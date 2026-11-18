@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { createGalleryInference, inferenceStorageKey } from './galleryInference';
+import { GalleryUsageProvider } from './GalleryUsageProvider';
 
 type Session = {
   owner: ReturnType<typeof createGalleryInference>;
@@ -31,6 +32,10 @@ export const GalleryInferenceProvider = ({ children }: { children: ReactNode }) 
       owner.dispose();
     };
   }, []);
-  return <Context value={session}>{children}</Context>;
+  return (
+    <Context value={session}>
+      <GalleryUsageProvider>{children}</GalleryUsageProvider>
+    </Context>
+  );
 };
 export const useGalleryInference = () => useContext(Context);

@@ -1,13 +1,6 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useId,
-  useState,
-  type ReactNode,
-} from 'react';
+import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
 import { useGalleryInference } from './GalleryInferenceProvider';
+import { GalleryTooltip } from './GalleryTooltip';
 
 const Context = createContext({
   developerMode: false,
@@ -61,46 +54,38 @@ export const GalleryPreviewToggle = ({
   onChange?: (isPublicPreview: boolean) => void;
 }) => {
   const { developerMode, isPublicPreview, setPublicPreview } = useGalleryMode();
-  const tooltipId = useId();
-  const [tooltipDismissed, setTooltipDismissed] = useState(false);
-  useEffect(() => {
-    if (!developerMode) return;
-    const dismiss = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setTooltipDismissed(true);
-    };
-    window.addEventListener('keydown', dismiss);
-    return () => window.removeEventListener('keydown', dismiss);
-  }, [developerMode]);
   if (!developerMode) return null;
   return (
-    <span
+    <GalleryTooltip
       className="gallery-preview-control"
-      data-tooltip-dismissed={tooltipDismissed}
-      onPointerEnter={() => setTooltipDismissed(false)}
-    >
-      <label className="gallery-preview-toggle">
-        <input
-          type="checkbox"
-          role="switch"
-          checked={isPublicPreview}
-          aria-describedby={tooltipId}
-          onFocus={() => setTooltipDismissed(false)}
-          onChange={event => {
-            const next = event.target.checked;
-            setPublicPreview(next);
-            onChange?.(next);
-          }}
-        />
-        <span className="gallery-preview-label">
-          {isPublicPreview ? 'Public preview' : 'Developer mode'}
-        </span>
-        <span className="gallery-preview-track" aria-hidden="true" />
-      </label>
-      <span className="gallery-preview-tooltip" id={tooltipId} role="tooltip">
-        {isPublicPreview
+      side="bottom"
+      align="end"
+      dismissOnActivate
+      description={
+        isPublicPreview
           ? 'This is what people will see on the public gallery.'
-          : 'Configure and test model connections.'}
-      </span>
-    </span>
+          : 'Configure and test model connections.'
+      }
+    >
+      {trigger => (
+        <label className="gallery-preview-toggle">
+          <input
+            {...trigger}
+            type="checkbox"
+            role="switch"
+            checked={isPublicPreview}
+            onChange={event => {
+              const next = event.target.checked;
+              setPublicPreview(next);
+              onChange?.(next);
+            }}
+          />
+          <span className="gallery-preview-label">
+            {isPublicPreview ? 'Public preview' : 'Developer mode'}
+          </span>
+          <span className="gallery-preview-track" aria-hidden="true" />
+        </label>
+      )}
+    </GalleryTooltip>
   );
 };
