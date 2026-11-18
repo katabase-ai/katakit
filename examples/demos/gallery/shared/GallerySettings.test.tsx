@@ -50,7 +50,6 @@ const Notes = ({ runtime }: { runtime: ReturnType<typeof createNotesDemo> }) => 
   return (
     <NotesDemo
       runtime={runtime}
-      listening
       connect={model.connect && connect}
       renderModelControls={model.renderControls}
       connectionHelp={
