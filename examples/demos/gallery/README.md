@@ -119,6 +119,10 @@ The badge sits beside the title on desktop and below the description on mobile. 
 32px below the gallery edge on desktop and 24px on mobile. Standard adapters suppress their embedded
 introductions when this header is present; standalone views retain their original introductions.
 
+Welcome uses the same immediate header and delayed loading frame. Its title and introduction
+are available before the lazy page code. Page readiness follows code/hydration; microphone setup,
+permission prompts, and speech-model downloads keep their own feedback inside the visible page.
+
 Wrap the active demo content in `shared/GalleryDemoFrame.tsx`, inside Gallery's content slot.
 Keep the frame mounted as its `demo` prop changes. It owns the lazy-component Suspense boundary
 and one loading treatment for both code loading and runtime attachment. A frame used outside

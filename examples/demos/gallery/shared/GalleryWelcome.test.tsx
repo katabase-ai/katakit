@@ -11,7 +11,7 @@ import { createTranscriptionDemo } from '../../transcription-react/src/createTra
 import { GallerySpeechProvider, useGallerySpeech } from './GallerySpeechProvider';
 import { GalleryCaptureControls } from './GalleryCaptureControls';
 import { GalleryDemo } from './GalleryDemo';
-import { GalleryWelcome } from './GalleryWelcome';
+import { Gallery } from './Gallery';
 
 vi.mock('@katakit/transcription/browser', async importOriginal => ({
   ...(await importOriginal<typeof import('@katakit/transcription/browser')>()),
@@ -94,7 +94,11 @@ const Harness = ({ initialWelcome = true }: { initialWelcome?: boolean }) => {
       <SpeechActions />
       <button onClick={() => setWelcome(current => !current)}>Navigate</button>
       {welcome ? (
-        <GalleryWelcome privacyUrl="https://katabase.com/privacy" />
+        <Gallery
+          demos={[]}
+          renderLink={({ children }) => <a href="/">{children}</a>}
+          privacyUrl="https://katabase.com/privacy"
+        />
       ) : (
         <GalleryDemo create={createTranscriptionDemo} render={() => <GalleryCaptureControls />} />
       )}
@@ -244,6 +248,11 @@ test.each(['loading', 'starting'] as const)(
     ).toBeDefined();
     expect(screen.getByRole('heading', { name: 'Set up your mic' })).toBeDefined();
     expect(screen.getByRole('button', { name: 'Microphone setup: Setting up' })).toBeDefined();
+    expect(document.querySelector('.gallery-demo-frame')?.getAttribute('data-loading')).toBe(
+      'false'
+    );
+    expect(document.querySelector('.gallery-demo-stage')?.hasAttribute('hidden')).toBe(false);
+    expect(screen.queryByText('Opening…')).toBeNull();
     expect(
       screen.queryByRole('progressbar', { name: 'Speech model download' })?.getAttribute('value')
     ).toBe(pending === 'loading' ? '0.5' : undefined);

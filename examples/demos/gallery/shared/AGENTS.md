@@ -18,6 +18,9 @@ source checkout. They do not own application bootstraps, routing, or private ser
   immediately and shows activity only after 250ms; clear the timer on completion/navigation/unmount,
   respect reduced motion, and keep status announcements outside the busy incoming content.
   `#gallery-demo-header`
+- Welcome uses the same header and delayed frame; its page readiness follows code/hydration.
+  Keep microphone setup, permission, and download feedback in the visible page, independent of
+  navigation loading. Keep its immediate copy free of eager microphone imports. `#gallery-welcome-loading`
 - Scope portable gallery CSS beneath `.katakit-gallery`; import only `internal/site-ui/components.css`.
   Own inner typography, spacing, and control rules here so host marketing CSS and demo-local button
   defaults cannot change the composition. The host supplies font/palette tokens. The local host opts

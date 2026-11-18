@@ -6,6 +6,8 @@ import { connectWithKey } from './galleryInference';
 import { GalleryFooter } from './GalleryFooter';
 import { GalleryPrivacyBadge } from './GalleryPrivacyBadge';
 import { GalleryDemoHeader } from './GalleryDemoHeader';
+import { GalleryDemoFrame } from './GalleryDemoFrame';
+import { galleryWelcomeDetails } from './galleryWelcomeDetails';
 import { useGalleryMode } from './GalleryModeProvider';
 import type { GalleryDeveloperPage, GalleryOperation } from './operationDetails';
 
@@ -155,12 +157,12 @@ export const Gallery = ({
               {children}
             </GalleryDemoHeader>
           ) : (
-            <>
-              <Suspense fallback={<p role="status">Loading Welcome…</p>}>
+            <GalleryDemoHeader demo={galleryWelcomeDetails}>
+              <GalleryDemoFrame demo={galleryWelcomeDetails}>
                 <Welcome privacyUrl={privacyUrl} />
-              </Suspense>
+              </GalleryDemoFrame>
               {children}
-            </>
+            </GalleryDemoHeader>
           )}
         </div>
       </div>
