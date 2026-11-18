@@ -273,6 +273,9 @@ storage policy.
 After demo navigation, the shared title receives focus so keyboard and assistive-technology
 users arrive at the new content. First mount, readiness updates within the same visit, and a
 focused host control outside the gallery retain their focus. The title is not an extra Tab stop.
+The persistent `GallerySpeechProvider` retains focus ownership when the host router remounts
+the gallery page between Welcome and a demo.
+
 Color Clash keeps one native action button while Play changes to Cancel or Retry, so cancelling
 setup retains focus on the next available action.
 

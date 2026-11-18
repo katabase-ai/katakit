@@ -80,3 +80,24 @@ test('a host action outside the gallery keeps focus during a programmatic demo c
   view.rerender(focusPage('second'));
   expect(document.activeElement).toBe(host);
 });
+
+test('keyboard focus reaches the new title when navigation remounts the gallery route', () => {
+  const route = (id: string) => (
+    <GallerySpeechProvider>
+      <button>Host action</button>
+      <div key={id} className="katakit-gallery">
+        <button>Gallery navigation</button>
+        <GalleryDemoHeader demo={{ id, title: `Demo ${id}` }}>
+          <button>Demo action</button>
+        </GalleryDemoHeader>
+      </div>
+    </GallerySpeechProvider>
+  );
+  const view = render(route('welcome'));
+  screen.getByRole('button', { name: 'Gallery navigation' }).focus();
+  view.rerender(route('notes'));
+  expect(document.activeElement).toBe(screen.getByRole('heading', { name: 'Demo notes' }));
+  screen.getByRole('button', { name: 'Host action' }).focus();
+  view.rerender(route('bingo'));
+  expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Host action' }));
+});

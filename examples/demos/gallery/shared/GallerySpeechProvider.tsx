@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { createGallerySpeech } from './createGallerySpeech';
 import { GalleryInferenceProvider } from './GalleryInferenceProvider';
+import { GalleryNavigationFocusProvider } from './GalleryDemoHeader';
 
 type Session = {
   owner: ReturnType<typeof createGallerySpeech>;
@@ -27,9 +28,11 @@ export const GallerySpeechProvider = ({ children }: { children: ReactNode }) => 
     };
   }, []);
   return (
-    <GalleryInferenceProvider>
-      <GallerySpeechContext value={session}>{children}</GallerySpeechContext>
-    </GalleryInferenceProvider>
+    <GalleryNavigationFocusProvider>
+      <GalleryInferenceProvider>
+        <GallerySpeechContext value={session}>{children}</GallerySpeechContext>
+      </GalleryInferenceProvider>
+    </GalleryNavigationFocusProvider>
   );
 };
 
