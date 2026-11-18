@@ -12,8 +12,6 @@ pnpm build
 pnpm test
 ```
 
-Katakit `0.0.0` is not yet published on npm; standalone installation requires its publication.
-
 ## Standalone setup
 
 Use Node.js 24 or newer and pnpm 11.9.0. Copy this entire directory anywhere outside the

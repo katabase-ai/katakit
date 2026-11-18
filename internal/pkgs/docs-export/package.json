@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "export": "node exportDocs.mjs",
-    "test:ci": "node --test exportDocs.test.mjs"
+    "test:ci": "node --test *.test.mjs"
   },
   "dependencies": {
     "github-slugger": "2.0.0",

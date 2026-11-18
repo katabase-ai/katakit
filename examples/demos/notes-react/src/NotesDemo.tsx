@@ -7,7 +7,6 @@ import './style.css';
 /** Listening is local; Start notes explicitly admits remote inference for this visit. */
 export const NotesDemo = ({
   runtime,
-  listening,
   connect,
   controls,
   connectionHelp,
@@ -22,7 +21,6 @@ export const NotesDemo = ({
   const { notes, markdown } = state;
   const { connecting, connected, admissionError, connectModel, pause } = useNotesConnection({
     runtime,
-    listening,
     connect,
   });
 
@@ -39,7 +37,10 @@ export const NotesDemo = ({
         <button
           type="button"
           onClick={() =>
-            connected && notes.status === 'paused' && !notes.failure?.policy.terminal
+            connected &&
+            notes.status === 'paused' &&
+            !notes.failure?.policy.terminal &&
+            !notes.failure?.policy.restart
               ? runtime.notes.retry()
               : void connectModel()
           }

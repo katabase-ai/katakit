@@ -4,8 +4,6 @@ Record English speech in the browser with Moonshine Tiny. Finalized segments go 
 
 ## Copy and run
 
-Katakit `0.0.0` is not yet published on npm; standalone installation requires its publication.
-
 Use Node.js 24+ and pnpm 11.9.0. Copy this entire directory outside the repository, then run from inside the copy:
 
 ```sh

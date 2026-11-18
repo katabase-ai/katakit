@@ -66,6 +66,14 @@ publishing, including strict publint on the exact tarballs that will be publishe
 warning or error stops the release before any package is published. CI then publishes
 dependency-first using the npm token. Private packages are excluded.
 
+After each upload, CI checks npm metadata every 15 seconds for up to ten minutes.
+It logs progress and verifies the archive integrity before continuing. A successful upload
+can take minutes to become visible through `npm view`, even after its version page or
+tarball appears. Each lookup has a 15-second network timeout and disables npm's own
+retries, so a final in-flight request can add up to 15 seconds to the visibility window.
+Network/authentication failures and integrity mismatches stop immediately. The job's
+90-minute timeout accommodates propagation for all six initial packages plus validation.
+
 After every selected package is available on npm with the expected archive integrity, CI pushes
 all package tags atomically. Each tag, such as `@katakit/core@0.1.0`, points to the merged SHA,
 not a later main commit. It then creates one public GitHub release per tag. Package releases
@@ -73,9 +81,25 @@ do not compete for GitHub's repository-wide “latest release” designation.
 
 ## Recovery
 
-Re-run the original failed workflow from GitHub Actions. It retains the same before/release
-SHAs even if main has moved. Publishing jobs are serialized and active runs are not cancelled
-by newer pushes.
+For a transient failure, re-run the original failed workflow from GitHub Actions. It retains
+the same before/release SHAs **and the old tooling**, even if main has moved.
+Publishing jobs are serialized and active runs are not cancelled by newer pushes.
+
+If recovery needs a tooling fix, merge the fix first, then manually run **Release npm packages**
+from **main**. Supply the original push's full `base_sha` (before) and `release_sha` (resulting)
+commit IDs, as recorded in the failed run. Do not substitute the new tooling commit for the
+original release SHA. The workflow:
+
+- Checks that the base is an ancestor of the release and the release is an ancestor of
+  the selected main/tooling commit.
+- Checks out the original release commit, preserving its package source, manifests,
+  changelogs, lockfile, and build configuration.
+- Uses only `scripts/release.mjs` from the selected tooling commit, then validates and
+  packs the original snapshot. Package tags still point to the original release SHA.
+
+The preparation step logs all three SHAs. Recovery does not require another version bump
+when the archives match. The corrected runner must remain compatible with the original
+snapshot's dependencies and check scripts.
 
 - Already published versions are skipped only when their registry archive integrity matches
   the freshly packed archive. Network/authentication errors fail; only npm `E404` means absent.
@@ -85,6 +109,11 @@ by newer pushes.
 If npm succeeds for some packages and later publication fails, those npm versions remain
 published. Tags are created only after the entire selected set has succeeded. If GitHub release
 creation fails after tagging, rerunning finishes the missing releases.
+
+On a visibility timeout, check `npm view @katakit/<name>@<version>` before retrying.
+A `0.0.0-stage` placeholder alone does not establish that maintainer approval is pending;
+inspect the npm Staged Packages page if relevant. Do not approve, reject, or resubmit a
+version just because metadata is still propagating.
 
 Never move a conflicting version tag or try to overwrite an npm version. Investigate a content
 mismatch (including a nondeterministic build) before retrying. A corrected npm artifact needs

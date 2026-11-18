@@ -1,5 +1,4 @@
-import { useContext, type ReactNode } from 'react';
-import type { TranscriptionModelId } from '@katakit/transcription/browser';
+import { useContext } from 'react';
 import { useGallerySpeech } from './GallerySpeechProvider';
 import { GalleryModelContext } from './galleryModel';
 import { GalleryMicrophoneReadiness } from './GalleryMicrophoneReadiness';
@@ -10,15 +9,8 @@ import { GalleryUsageMeter, galleryUsagePercent } from './GalleryUsageMeter';
 import { GalleryTooltipButton } from './GalleryTooltip';
 import './galleryFooterControls.css';
 
-/** Kept as a host adapter type; model selection now lives in developer Configure models. */
-export type GalleryModelSelect = (props: {
-  model: TranscriptionModelId;
-  disabled: boolean;
-  onChange: (model: TranscriptionModelId) => void;
-}) => ReactNode;
-
 /** Shared setup, capture, usage, and account display; recording stays in the demo. */
-export const GallerySpeechControls = (_props: { renderModelSelect?: GalleryModelSelect }) => {
+export const GallerySpeechControls = () => {
   const session = useGallerySpeech();
   const { isDeveloperView, openSettings, allowance, usageUnavailableReason, account } =
     useContext(GalleryModelContext);

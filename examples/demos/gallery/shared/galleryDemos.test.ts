@@ -2,8 +2,31 @@ import { afterEach, expect, test, vi } from 'vitest';
 import { createTranscriptionDemo } from '../../transcription-react/src/createTranscriptionDemo';
 import { createBrowserBingoDemo } from '../../bingo-react/src/createBrowserBingoDemo';
 import { createNotesDemo } from '../../notes-react/src/createNotesDemo';
+import {
+  transcriptionDemoDetails,
+  bingoDemoDetails,
+  notesDemoDetails,
+  colorClashDemoDetails,
+} from './galleryDemoDetails';
+import {
+  transcriptionGalleryDemo,
+  bingoGalleryDemo,
+  notesGalleryDemo,
+  colorClashGalleryDemo,
+} from './galleryDemos';
 
 afterEach(() => vi.useRealTimers());
+
+test('each named loader carries its matching metadata independent of catalogue position', () => {
+  for (const [entry, details] of [
+    [transcriptionGalleryDemo, transcriptionDemoDetails],
+    [bingoGalleryDemo, bingoDemoDetails],
+    [notesGalleryDemo, notesDemoDetails],
+    [colorClashGalleryDemo, colorClashDemoDetails],
+  ] as const) {
+    expect(entry).toMatchObject(details);
+  }
+});
 
 test('separate transcripts and Bingo state remain isolated; close completes every owned projection and timer', () => {
   vi.useFakeTimers();

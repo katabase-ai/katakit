@@ -12,7 +12,6 @@ pnpm build
 pnpm preview
 ```
 
-Katakit `0.0.0` is not yet published on npm; standalone installation requires its publication.
 The gallery copy includes demo sources under `sources/` and shared CSS under `styles/`.
 
 This is the local TanStack Start host for the React demo gallery. It runs without the private
