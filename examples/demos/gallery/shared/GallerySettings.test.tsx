@@ -325,6 +325,7 @@ test('developer operation grid uses catalogue requirements, remains navigable an
   const runtime = createNotesDemo();
   const view = render(<View developerMode initialPage="grid" runtime={runtime} />);
   const table = await screen.findByRole('table');
+  expect(within(table).getByRole('columnheader', { name: 'Demo' })).toBeDefined();
   expect(within(table).queryByRole('button')).toBeNull();
   expect(within(table).getAllByRole('link')).toHaveLength(galleryDemoDetails.length);
   expect(
