@@ -48,8 +48,8 @@ export const GalleryPublicSettings = ({ privacyUrl }: { privacyUrl?: string }) =
           <>
             <h2 id="gallery-settings-account-title">Take your ideas further with Katabase</h2>
             <p>
-              Create an account to get more tokens for cloud-based models and access to developer
-              tools. We take care of the model setup, so you can focus on exploring and building.
+              Create an account to get more tokens for cloud-based models. We take care of the model
+              setup, so you can focus on exploring and building.
             </p>
             <div className="gallery-settings-account-actions">
               <button
