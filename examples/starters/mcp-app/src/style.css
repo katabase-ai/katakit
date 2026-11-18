@@ -1,0 +1,123 @@
+/* Hallmark · shape: app screen · genre: modern-minimal · theme: Console (graphite) · signature: the running note trail · v2.0.0 */
+/* Critique: The card must read as an instrument for one action, not a marketing screen. */
+:root {
+  --paper: #171b21;
+  --surface: #20252c;
+  --input-surface: #11151b;
+  --ink: #f0f1ef;
+  --muted: #b6bdc5;
+  --rule: #424a53;
+  --accent: #f6c667;
+  --accent-ink: #292016;
+  --focus: #f6c667;
+  --disabled-surface: #424a53;
+  --disabled-ink: #b6bdc5;
+  --font-body: system-ui, -apple-system, sans-serif;
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: var(--paper);
+  color-scheme: dark;
+}
+html,
+body {
+  overflow-x: clip;
+}
+body {
+  margin: 0;
+}
+main {
+  box-sizing: border-box;
+  max-width: 36rem;
+  padding: 1.25rem;
+  margin: 0 auto;
+}
+h1 {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+  overflow-wrap: break-word;
+  min-width: 0;
+  text-wrap: balance;
+}
+header p,
+.privacy {
+  color: var(--muted);
+}
+header p {
+  margin: 0.35rem 0 1.2rem;
+}
+label {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+}
+.entry {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+input,
+button {
+  box-sizing: border-box;
+  min-height: 2.75rem;
+  border-radius: 0.35rem;
+  font: inherit;
+}
+input {
+  flex: 1 1 12rem;
+  min-width: 0;
+  border: 1px solid var(--rule);
+  padding: 0.45rem 0.65rem;
+  background: var(--input-surface);
+  color: var(--ink);
+}
+button {
+  border: 1px solid var(--accent);
+  padding: 0.45rem 0.8rem;
+  background: var(--accent);
+  color: var(--accent-ink);
+  cursor: pointer;
+  font-weight: 600;
+}
+button:hover {
+  filter: brightness(1.08);
+}
+button:active {
+  filter: brightness(0.95);
+}
+button:disabled {
+  opacity: 0.55;
+  background: var(--disabled-surface);
+  color: var(--disabled-ink);
+  cursor: not-allowed;
+}
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+#status {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 1rem 0 0.5rem;
+}
+ol {
+  padding: 0;
+  list-style: none;
+  margin: 0;
+  border: 1px solid var(--rule);
+  background: var(--surface);
+  border-radius: 0.45rem;
+}
+li {
+  padding: 0.7rem 0.85rem;
+  overflow-wrap: anywhere;
+}
+li + li {
+  border-top: 1px solid var(--rule);
+}
+.privacy {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}

@@ -10,10 +10,25 @@ export const checkBrowserSupport = (model: TranscriptionModelId, microphone = fa
       'unsupported-environment',
       'Speech recognition requires WebAssembly and Web Workers. Use a browser runtime or supply an engine to createTranscriber.'
     );
-  if (model.startsWith('moonshine-') && !globalThis.crossOriginIsolated)
+  // Chrome extension documents can expose shared WASM memory without COOP/COEP.
+  // Those policies prevent consuming a tabCapture stream in an offscreen page.
+  const extensionSharedMemory =
+    globalThis.location?.protocol === 'chrome-extension:' &&
+    typeof SharedArrayBuffer !== 'undefined' &&
+    (() => {
+      try {
+        return (
+          new WebAssembly.Memory({ initial: 1, maximum: 2, shared: true }).buffer instanceof
+          SharedArrayBuffer
+        );
+      } catch {
+        return false;
+      }
+    })();
+  if (model.startsWith('moonshine-') && !globalThis.crossOriginIsolated && !extensionSharedMemory)
     throw new TranscriptionError(
       'cross-origin-isolation-required',
-      'Moonshine requires cross-origin isolation. Serve the document with Cross-Origin-Opener-Policy: same-origin and Cross-Origin-Embedder-Policy: require-corp. For local development and preview, use transcriptionAssetsPlugin({ isolate: true }).'
+      'Moonshine requires cross-origin isolation (or shared WASM memory in a Chrome extension page). For websites, serve the document with Cross-Origin-Opener-Policy: same-origin and Cross-Origin-Embedder-Policy: require-corp. For local development and preview, use transcriptionAssetsPlugin({ isolate: true }).'
     );
   if (
     microphone &&

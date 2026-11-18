@@ -1,0 +1,83 @@
+/* The tooltip owns its scope so it can also render in the host header, outside the gallery grid. */
+.gallery-tooltip {
+  --gallery-tooltip-anchor: 16px;
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+}
+:where(.katakit-gallery, .gallery-tooltip) .gallery-hover-panel {
+  position: relative;
+  z-index: 6;
+  padding: var(--gallery-panel-padding, 0.5rem 0.625rem);
+  border: 1px solid var(--color-rule-2);
+  border-radius: var(--gallery-panel-radius, 6px);
+  background: var(--color-key-face, var(--color-paper));
+  color: var(--color-ink);
+  font-size: var(--gallery-panel-font-size, 0.8125rem);
+  line-height: 1.5;
+  text-align: left;
+  white-space: normal;
+}
+:where(.katakit-gallery, .gallery-tooltip) .gallery-hover-panel[hidden] {
+  display: none;
+}
+:where(.katakit-gallery, .gallery-tooltip) .gallery-hover-panel::after {
+  content: '';
+  position: absolute;
+  top: var(--gallery-caret-top, auto);
+  bottom: var(--gallery-caret-bottom, -5px);
+  left: var(--gallery-caret-left, calc(var(--gallery-tooltip-anchor, 16px) - 4px));
+  right: var(--gallery-caret-right, auto);
+  width: 8px;
+  height: 8px;
+  border-right: 1px solid var(--color-rule-2);
+  border-bottom: 1px solid var(--color-rule-2);
+  background: var(--color-key-face, var(--color-paper));
+  transform: rotate(var(--gallery-caret-rotation, 45deg));
+  pointer-events: none;
+}
+:where(.katakit-gallery, .gallery-tooltip) .gallery-hover-panel[data-side='bottom'] {
+  --gallery-caret-top: -5px;
+  --gallery-caret-bottom: auto;
+  --gallery-caret-rotation: 225deg;
+}
+:where(.katakit-gallery, .gallery-tooltip) .gallery-hover-panel[data-align='end'] {
+  --gallery-caret-left: auto;
+  --gallery-caret-right: calc(var(--gallery-tooltip-anchor, 16px) - 4px);
+}
+.gallery-tooltip > .gallery-tooltip-panel {
+  position: absolute;
+  width: max-content;
+  max-width: var(--gallery-tooltip-max-width, min(18rem, calc(100vw - 2rem)));
+}
+.gallery-tooltip-panel[data-side='top'] {
+  bottom: calc(100% + var(--gallery-tooltip-gap, 0.625rem));
+}
+.gallery-tooltip-panel[data-side='bottom'] {
+  top: calc(100% + var(--gallery-tooltip-gap, 0.625rem));
+}
+.gallery-tooltip-panel[data-align='start'] {
+  left: var(--gallery-tooltip-offset-inline, 0px);
+}
+.gallery-tooltip-panel[data-align='end'] {
+  right: var(--gallery-tooltip-offset-inline, 0px);
+}
+/* Keep the panel reachable across the gap while hovering, including the header switch. */
+.gallery-tooltip-panel::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: var(--gallery-tooltip-gap, 0.625rem);
+}
+.gallery-tooltip-panel[data-side='top']::before {
+  top: 100%;
+}
+.gallery-tooltip-panel[data-side='bottom']::before {
+  bottom: 100%;
+}
+@media (pointer: coarse) {
+  .gallery-tooltip {
+    --gallery-tooltip-anchor: 22px;
+  }
+}

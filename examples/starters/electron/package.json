@@ -1,0 +1,27 @@
+{
+  "name": "katakit-electron-starter",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "build": "tsc --noEmit && vite build",
+    "start": "electron .",
+    "test": "node --test tests/*.test.mjs",
+    "check": "pnpm test && pnpm build"
+  },
+  "dependencies": {
+    "@katakit/core": "0.1.0",
+    "@katakit/transcript-ingestion": "0.1.0",
+    "@katakit/transcription": "0.1.0"
+  },
+  "devDependencies": {
+    "electron": "35.7.5",
+    "typescript": "^7.0.2",
+    "vite": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@11.9.0"
+}

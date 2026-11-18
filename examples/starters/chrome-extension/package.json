@@ -1,0 +1,27 @@
+{
+  "name": "@katakit/template-chrome-extension",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc --noEmit && vite build && node scripts/make-moonshine-mv3.mjs",
+    "tsc": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@katakit/core": "0.1.0",
+    "@katakit/transcript-ingestion": "0.1.0",
+    "@katakit/transcription": "0.1.0",
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.1.37",
+    "@types/node": "24.13.3",
+    "typescript": "^7.0.2",
+    "vite": "^6.0.0",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@11.9.0"
+}

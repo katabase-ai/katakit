@@ -33,19 +33,19 @@ consumer separately generates HTML for individual documentation pages.
 Generated API reference covers `@katakit/core`, `@katakit/event-log`,
 `@katakit/persistence`, `@katakit/transcript-ingestion`, `@katakit/transcription`,
 and `@katakit/react`. The package list is explicit in
-[`exportDocs.mjs`](../pkgs/docs-export/exportDocs.mjs), not discovered from every
-workspace package. Private build tools, site UI, demos, and templates are outside
+[`exportDocs.mjs`](../internal/pkgs/docs-export/exportDocs.mjs), not discovered from every
+workspace package. Private build tools, site UI, demos, and starters are outside
 generated API coverage; authored pages can still explain them.
 
 For a new public package, add it to that list and to
-[`tsconfig.reference.json`](../pkgs/docs-export/tsconfig.reference.json). Define its
+[`tsconfig.reference.json`](../internal/pkgs/docs-export/tsconfig.reference.json). Define its
 public entry points through the package manifest's `exports` and `source`
 conditions, then run `pnpm docs:export` and inspect the manifest's `packages` and
 generated pages. Each selected package's public code subpaths are included
 automatically, including transcription's browser, asset, Vite, and recognizer
 entry points. JSON metadata exports are recorded separately in `nonCodeExports`.
 
-`pkgs/docs-export` owns API extraction with TypeDoc 0.28.20, its Markdown plugin 4.14.1,
+`internal/pkgs/docs-export` owns API extraction with TypeDoc 0.28.20, its Markdown plugin 4.14.1,
 and supported TypeScript 6.0.3. Application checking remains on TypeScript 7. Export validates
 actual public package entry points and guide links, and fails conversion errors. React currently
 has no public symbols; the manifest reports that without inventing an API page.
@@ -57,7 +57,10 @@ documentation assets. All manifest paths are relative to the bundle directory. P
 `slug`, `kind`, `title`, `file`, heading IDs, and an authored `sourcePath` where applicable.
 `kind: "guide"` covers all authored pages, including handwritten Reference pages;
 `kind: "api"` identifies generated API reference.
-`navigation` retains guide order and groups API pages by package. `packages` records each public
+`navigation` contains authored pages, with Starters above the package-named Reference section. Generated API
+pages remain in `pages` for existing links and public-export coverage, without sidebar entries.
+Navigation placement does not change page slugs or relative content links.
+`packages` records each public
 entry point and its exported symbol names. `assets` lists exported documentation files. `nonCodeExports` records package metadata
 exports that do not expose TypeScript declarations; these are not invented API pages. The
 transcript-ingestion package is documented separately from the speech transcription utilities.

@@ -1,0 +1,105 @@
+/* Default gallery skin, aligned with the Katabase website's adapted Cobalt theme.
+   Opt in at the application root; embedded galleries can keep their host's tokens instead.
+   Fonts are served locally, with their SIL Open Font Licenses in public/fonts/. */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 350 700;
+  font-display: swap;
+  src: url('/fonts/inter.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Plus Jakarta Sans';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('/fonts/plus-jakarta-sans.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/jetbrains-0.ttf') format('truetype');
+}
+:root {
+  color-scheme: light dark;
+  --color-paper: light-dark(oklch(98.6% 0.005 250), oklch(17% 0.012 250));
+  --color-paper-2: light-dark(oklch(96.2% 0.008 252), oklch(20% 0.014 252));
+  --color-paper-3: light-dark(oklch(93% 0.011 252), oklch(23% 0.016 252));
+  --color-ink: light-dark(oklch(21% 0.028 262), oklch(94% 0.012 262));
+  --color-ink-2: light-dark(oklch(36% 0.022 260), oklch(82% 0.018 260));
+  --color-muted: light-dark(oklch(50% 0.018 258), oklch(69% 0.018 258));
+  --color-rule: light-dark(oklch(90% 0.009 252), oklch(31% 0.018 252));
+  --color-rule-2: light-dark(oklch(83% 0.012 252), oklch(43% 0.022 252));
+  --color-accent: light-dark(oklch(52% 0.19 258), oklch(72% 0.15 258));
+  --color-accent-deep: light-dark(oklch(43% 0.2 262), oklch(80% 0.12 262));
+  --color-accent-wash: light-dark(oklch(95% 0.028 256), oklch(26% 0.045 256));
+  --color-accent-ink: light-dark(oklch(98.6% 0.005 250), oklch(17% 0.02 250));
+  --color-accent-edge: light-dark(oklch(39% 0.16 260), oklch(62% 0.14 260));
+  --color-focus: light-dark(oklch(52% 0.19 258), oklch(76% 0.15 258));
+  --color-error: light-dark(oklch(52% 0.19 27), oklch(76% 0.14 27));
+  --color-success: light-dark(oklch(50% 0.12 150), oklch(76% 0.12 150));
+  --color-key-face: light-dark(oklch(99.4% 0.003 250), oklch(25% 0.018 250));
+  --color-key-edge: light-dark(oklch(80% 0.016 254), oklch(40% 0.022 254));
+  --color-surface: var(--color-paper);
+  --color-surface-muted: var(--color-paper-2);
+  --color-link: var(--color-accent-deep);
+  --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-outlier: 'JetBrains Mono', ui-monospace, monospace;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5625rem;
+  --text-display: clamp(2.75rem, 5vw + 1rem, 5.25rem);
+  --text-section: clamp(2rem, 2.5vw + 1rem, 3.5rem);
+  --tracking-display: -0.028em;
+  --radius-card: 8px;
+  --radius-input: 6px;
+  --container: 1280px;
+  --gutter: 48px;
+  --shadow-key:
+    0 3px 0 var(--color-key-edge), 0 6px 8px -4px oklch(21% 0.028 262 / 0.28),
+    inset 0 1px 0 oklch(100% 0 0 / 0.9);
+  --shadow-key-accent:
+    0 3px 0 var(--color-accent-edge), 0 6px 8px -4px oklch(30% 0.12 260 / 0.45),
+    inset 0 1px 0 oklch(100% 0 0 / 0.22);
+  --shadow-key-press: inset 0 1px 2px oklch(21% 0.028 262 / 0.14);
+  --gallery-body-weight: 400;
+}
+/* light-dark() follows color-scheme, not data-theme by itself. */
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+/* Shadows are a material choice, so switch them with the palette rather than hard-coding
+   a light raised edge into the dark skin. Explicit data-theme overrides the OS preference. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --shadow-key: inset 0 0 0 1px var(--color-rule);
+    --shadow-key-accent: none;
+    --shadow-key-press: inset 0 0 0 1px var(--color-accent);
+    --gallery-body-weight: 350;
+  }
+}
+:root[data-theme='dark'] {
+  --shadow-key: inset 0 0 0 1px var(--color-rule);
+  --shadow-key-accent: none;
+  --shadow-key-press: inset 0 0 0 1px var(--color-accent);
+  --gallery-body-weight: 350;
+}
+body {
+  font-weight: var(--gallery-body-weight);
+  -webkit-font-smoothing: antialiased;
+}
+@media (max-width: 60rem) {
+  :root {
+    --gutter: 24px;
+  }
+}
+@media (max-width: 40rem) {
+  :root {
+    --gutter: 16px;
+  }
+}

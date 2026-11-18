@@ -1,28 +1,33 @@
 # Documentation
 
 This directory owns Katakit's authored documentation and its local Vite viewer.
-`pages/` contains Getting started, Concepts, and authored Reference pages;
+`pages/` contains Quickstart, Tutorial, Starters, and package-named Reference pages;
 `src/` renders them; `scripts/` generates navigation and checks links.
-`../pkgs/docs-export/` combines these pages with generated API reference for
+`../internal/pkgs/docs-export/` combines these pages with generated API reference for
 website consumers. See [EXPORT.md](EXPORT.md) for that boundary and bundle contract.
 
 ## Editing
 
-- Write introductions and task instructions in `pages/getting-started/`, shared
-  concepts in `pages/concepts/`, and behavior, lifecycle, configuration, and
-  examples in `pages/reference/`.
+- Write introductions and task instructions in `pages/getting-started/`, guided
+  conceptual walkthroughs in `pages/concepts/`, platform walkthroughs in `pages/starters/`,
+  and reusable API behavior, lifecycle, configuration, and examples in
+  `pages/reference/`. The copied `examples/starters/*/README.md` files own the exact
+  install and run commands; docs pages explain how and why to adapt them.
 - Describe public symbols beside their source declarations with JSDoc. The
   exporter generates signatures, types, and symbol pages from those declarations;
   edit the source rather than the generated Markdown.
 - Keep package README files focused on package setup and entry points; link to
   authored pages for extended explanations instead of maintaining duplicate prose.
-- Each page needs a level-one title. Directories define sections; a section's
+- Each page needs a level-one title. Directories define page URLs; a section's
   `README.md` is its landing page. Link to other authored pages with relative
   Markdown paths and heading anchors. Images belong in `public/`.
 - After adding, moving, or retitling a page, run
   `pnpm --filter @katakit/docs exec node scripts/generate-nav.mjs` from the repository
   root and commit `src/nav.json`. Root section order is defined in that script;
-  children are ordered by filename, with pages before subsections.
+  Tutorial follows its explicit learning order; other children are ordered by filename,
+  with pages before subsections. Starters is a root section above Reference. Reference lists
+  package pages directly under their full `@katakit/*` names, retaining existing plugin URLs.
+  Standalone conceptual explanations belong in Reference; Tutorial teaches through use.
 
 ## Verification
 

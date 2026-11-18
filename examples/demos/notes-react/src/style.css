@@ -1,0 +1,132 @@
+.structured-notes,
+.structured-notes-model-controls {
+  color: inherit;
+  font: inherit;
+}
+.structured-notes {
+  max-width: 52rem;
+}
+.structured-notes-intro {
+  max-width: 55ch;
+  line-height: 1.6;
+}
+.structured-notes-controls,
+.structured-notes-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+.structured-notes-controls {
+  margin-block: 1.5rem;
+}
+.structured-notes button,
+.structured-notes-model-controls button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+  border-radius: 0.4rem;
+  background: transparent;
+}
+.structured-notes button:disabled,
+.structured-notes-model-controls button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.structured-notes button:focus-visible,
+.structured-notes-model-controls button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+.structured-notes-model-controls {
+  margin-block: 1rem;
+  font-size: 0.875rem;
+  overflow-wrap: anywhere;
+}
+.structured-notes-model-controls h2 {
+  font-size: 0.875rem;
+  margin: 0 0 0.5rem;
+}
+.structured-notes-model-controls p {
+  margin-block: 0.5rem;
+  line-height: 1.5;
+}
+.structured-notes-output {
+  margin-block: 2rem;
+  min-height: 12rem;
+  overflow-wrap: anywhere;
+}
+.structured-notes-heading {
+  justify-content: space-between;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+}
+.structured-notes-heading h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+.structured-notes-heading button {
+  font-size: 0.8125rem;
+}
+.structured-notes-output li {
+  margin-block: 0.6rem;
+  line-height: 1.6;
+}
+.structured-notes-output ul {
+  padding-left: 1.3rem;
+}
+.structured-notes-transcript {
+  width: 33.333%;
+  margin-block: 1.5rem;
+}
+.structured-notes-transcript h2 {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.structured-notes-transcript-words {
+  min-height: 3em;
+  margin-block: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.structured-notes-word {
+  animation: structured-notes-word-fade 20s linear both;
+}
+.structured-notes-word[data-provisional='true'] {
+  font-style: italic;
+}
+@keyframes structured-notes-word-fade {
+  0%,
+  60% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@media (max-width: 640px) {
+  .structured-notes-transcript {
+    width: min(100%, 22rem);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .structured-notes-word {
+    animation-timing-function: step-end;
+  }
+}
+.structured-notes-empty,
+.structured-notes-hint,
+.structured-notes-transcript {
+  color: var(--color-muted, color-mix(in srgb, currentColor 70%, transparent));
+}
+.structured-notes-hint {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}

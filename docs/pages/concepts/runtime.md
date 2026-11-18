@@ -1,17 +1,46 @@
-# Runtime and lifecycle
+# Start a runtime
 
-`makeKatakit({ plugins })` constructs a runtime from configured plugins. A plugin factory defines a type and configuration behavior; `plugin.configure(options)` produces the value registered in `plugins`.
+A runtime connects configured plugins. Start with an event log that accepts one kind of event: a message with some text. The application supplies the schema so the log knows which values it can accept.
+
+Create `eventLog.ts`:
+
+```ts
+import { makeEventLogPlugin } from '@katakit/event-log';
+import * as v from 'valibot';
+
+export const MessageSchema = v.strictObject({
+  type: v.literal('message'),
+  text: v.string(),
+});
+
+export const EventLogPlugin = makeEventLogPlugin({ validateEvent: MessageSchema });
+```
+
+`EventLogPlugin` is a factory. Configure it with an empty history and register that configured value in `main.ts`:
+
+```ts
+import { makeKatakit } from '@katakit/core';
+import { EventLogPlugin } from './eventLog';
+
+const runtime = makeKatakit({
+  plugins: [EventLogPlugin.configure({ initialEvents: [] })],
+});
+const { events$ } = runtime.getObservables(EventLogPlugin);
+const running = runtime.start();
+
+running.getMethods(EventLogPlugin).emitEvent({ type: 'message', text: 'Hello' });
+console.log(events$.getAll());
+// [{ type: 'message', text: 'Hello' }]
+```
+
+An **observable** is a stream of values you can subscribe to. Here, `events$` emits recorded events in order. Its `$` suffix identifies it as a stream. The event-log plugin also gives it `getAll()` to read the recorded history.
 
 ## Before and after start
 
-The constructed runtime exposes `getObservables(plugin)`. Observable collections are created when first requested and reused within that runtime. This path does not start methods or subscribe effects.
+You can read observables before starting the runtime. `start()` enables method lookup and subscribes plugin effects, which you'll add later. Use the returned `running` value to call methods. Start each runtime once.
 
-Call `start()` once to get `getMethods(plugin)` as well. Starting initializes each plugin's effects and their subscriptions. Method collections are also cached per runtime. Calling `start()` a second time throws.
+`emitEvent` validates the new event and publishes it synchronously. Change `text` to a number and TypeScript rejects the call. Data arriving from outside TypeScript still passes through the runtime validator.
 
-Lookups accept either a plugin factory or its configured value, matching the registered plugin by its `type` string. A missing type throws. Register distinct plugin types: the current implementation looks up the first matching type and does **not** reject duplicates.
+The event exists only in this runtime's memory. Restart the application and the empty `initialEvents` produces an empty log again.
 
-## Ownership and shutdown
-
-Each runtime has separate observable and method instances, even when constructed with the same configured plugin. Plugins can own timers or subscriptions; core currently has no general disposal lifecycle. The [persistence plugin](persistence.md) supplies a `kill()` method for its timer and final flush, but it does not dispose its event subscription.
-
-See the [core API](../reference/core.md) and [plugin model](plugins.md).
+Next: [derive a message list from these events](event-history.md). See [Core](../reference/core.md#makekatakit) for runtime lookup and lifecycle rules.
