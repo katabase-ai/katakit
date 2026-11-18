@@ -65,13 +65,15 @@ export const GalleryCaptureControls = ({
         <div className="gallery-welcome-capture-actions">
           <GalleryMicrophoneIndicator recording={recording} level={snapshot.level} />
           {button}
+          <div className="gallery-welcome-capture-feedback">
+            {children}
+            {errorHelp}
+          </div>
         </div>
       ) : (
         button
       )}
       {statusLine}
-      {welcome && children}
-      {welcome && errorHelp}
       {recording && !welcome && (
         <div className="site-audio-level" role="img" aria-label="Microphone: listening">
           <span className="site-audio-level__label">Microphone</span>

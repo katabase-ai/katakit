@@ -24,6 +24,8 @@ type Snapshot = {
   blocked: boolean;
   /** Successful microphone start for the current model, retained only for this host session. */
   microphoneVerified: boolean;
+  /** Completed model download for this selection, retained for this host session. */
+  modelDownloaded: boolean;
   /** One explicit microphone start, including its download and permission handoff. */
   starting: boolean;
   error?: string;
@@ -44,6 +46,7 @@ export const createGallerySpeech = ({
     attached: false,
     blocked: false,
     microphoneVerified: false,
+    modelDownloaded: false,
     starting: false,
   };
   let listeners: (() => void)[] = [];
@@ -86,6 +89,9 @@ export const createGallerySpeech = ({
         if (helper === current)
           update({
             input,
+            modelDownloaded:
+              ['ready', 'starting', 'running', 'stopping'].includes(input.phase) ||
+              snapshot.modelDownloaded,
             microphoneVerified:
               input.phase === 'running' || (input.phase !== 'error' && snapshot.microphoneVerified),
           });
@@ -251,6 +257,7 @@ export const createGallerySpeech = ({
           level: 0,
           error: undefined,
           microphoneVerified: false,
+          modelDownloaded: false,
         });
       }),
     dispose: () => {
@@ -263,7 +270,12 @@ export const createGallerySpeech = ({
         } finally {
           await helper?.dispose();
           helper = undefined;
-          update({ input: { phase: 'disposed' }, level: 0, microphoneVerified: false });
+          update({
+            input: { phase: 'disposed' },
+            level: 0,
+            microphoneVerified: false,
+            modelDownloaded: false,
+          });
         }
       });
     },

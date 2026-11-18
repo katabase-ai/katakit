@@ -105,6 +105,9 @@ microphone downloads the speech model if needed, then requests microphone permis
 icon distinguishes Not set up, Setting up, Ready, and Needs attention, with text on hover or focus.
 The passive microphone glyph reflects capture and live audio levels; the adjacent button owns setup,
 cancellation, testing, and stopping. Stopping capture retains readiness for this host session.
+Setup progress and recovery guidance appear beside the action button. A download confirmation
+remains visible after loading, including during permission setup and after stopping; selecting a
+different model resets that confirmation. The transcript field stays visible throughout setup.
 Start/Stop listening
 belongs inside each demo. Models load only after a visitor action. Standalone controls remain
 independent. Navigation retains the loaded model but stops capture.

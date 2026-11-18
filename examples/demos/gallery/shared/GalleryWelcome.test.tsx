@@ -70,6 +70,7 @@ const fixture = ({ pending }: { pending?: 'loading' | 'starting' } = {}) => {
   });
   return {
     inputs,
+    finishStart: () => finishStart?.(),
     fail: (code?: TranscriptionErrorCode) => {
       failure = code ? new TranscriptionError(code, 'Original failure') : undefined;
     },
@@ -116,6 +117,7 @@ test('a model download alone leaves Welcome untested and preserves the privacy l
   expect(screen.getByRole('heading', { name: 'Set up your mic' })).toBeDefined();
   expect(screen.getByRole('button', { name: 'Microphone setup: Not set up' })).toBeDefined();
   await click('Preload model');
+  expect(screen.getByText('Transcription model successfully downloaded')).toBeDefined();
   expect(inputs[0]!.start).not.toHaveBeenCalled();
   expect(screen.queryByRole('button', { name: 'Microphone setup: Ready' })).toBeNull();
   expect(screen.getByRole('link', { name: 'katabase.com/privacy' }).getAttribute('href')).toBe(
@@ -140,6 +142,7 @@ test('the transcript remains visible before, during, and after a successful test
     })
   );
   await click('Stop listening');
+  expect(screen.getByText('Transcription model successfully downloaded')).toBeDefined();
   expect(screen.getByRole('button', { name: 'Microphone setup: Ready' })).toBeDefined();
   expect(screen.getByRole('img', { name: 'Microphone off' })).toBeDefined();
   expect(screen.getByRole('log', { name: 'Test transcript' }).textContent).toContain(
@@ -151,16 +154,36 @@ test('the transcript remains visible before, during, and after a successful test
   expect(inputs[0]!.start).toHaveBeenCalledTimes(2);
 });
 
+test('a verified retest keeps the download confirmation without flashing setup instructions', async () => {
+  const { finishStart } = fixture({ pending: 'starting' });
+  render(<Harness />);
+  await click('Set up microphone');
+  expect(
+    screen.getByText('Allow microphone access in your browser to finish setup.')
+  ).toBeDefined();
+  await act(async () => finishStart());
+  await screen.findByRole('img', { name: 'Microphone listening' });
+  await click('Stop listening');
+  await click('Test again');
+  expect(screen.getByRole('button', { name: 'Cancel' })).toBeDefined();
+  expect(screen.getByText('Transcription model successfully downloaded')).toBeDefined();
+  expect(screen.queryByText('Allow microphone access in your browser to finish setup.')).toBeNull();
+  expect(screen.queryByText('Preparing microphone…')).toBeNull();
+  await click('Cancel');
+});
+
 test('Welcome remembers a successful start in another demo without restarting capture', async () => {
   const { inputs } = fixture();
   render(<Harness initialWelcome={false} />);
   await click('Start listening');
   await click('Navigate');
   await screen.findByRole('button', { name: 'Test again' });
+  expect(screen.getByText('Transcription model successfully downloaded')).toBeDefined();
   expect(screen.getByRole('button', { name: 'Microphone setup: Ready' })).toBeDefined();
   expect(screen.queryByRole('img', { name: 'Microphone listening' })).toBeNull();
   expect(inputs[0]!.start).toHaveBeenCalledOnce();
   await click('Change model');
+  expect(screen.queryByText('Transcription model successfully downloaded')).toBeNull();
   expect(screen.getByRole('heading', { name: 'Set up your mic' })).toBeDefined();
 });
 
@@ -199,6 +222,8 @@ test.each([
     await click('Set up microphone');
     expect(screen.getByRole('heading', { name: 'Set up your mic' })).toBeDefined();
     expect(screen.getByRole('alert').textContent).toContain(message);
+    expect(screen.getByRole('alert').closest('.gallery-welcome-capture-feedback')).not.toBeNull();
+    expect(screen.queryByText('Transcription model successfully downloaded')).toBeNull();
     expect(screen.queryByText('How to enable your microphone')).toBeNull();
     expect(screen.getByRole('button', { name: 'Try again' })).toBeDefined();
   }
@@ -222,6 +247,9 @@ test.each(['loading', 'starting'] as const)(
     expect(
       screen.queryByRole('progressbar', { name: 'Speech model download' })?.getAttribute('value')
     ).toBe(pending === 'loading' ? '0.5' : undefined);
+    expect(screen.queryByText('Transcription model successfully downloaded') !== null).toBe(
+      pending === 'starting'
+    );
     await click(pending === 'loading' ? 'Cancel download' : 'Cancel');
     await screen.findByRole('button', { name: 'Set up microphone' });
     expect(inputs[0]!.dispose).toHaveBeenCalledOnce();
@@ -317,13 +345,17 @@ test('setup remains in progress across the model-ready handoff until permission 
   render(<Harness />);
   await click('Set up microphone');
   act(() => inputs[0]!.callbacks.onState?.({ phase: 'ready' }));
+  const confirmation = screen.getByText('Transcription model successfully downloaded');
+  const feedback = confirmation.closest<HTMLDivElement>('.gallery-welcome-capture-feedback')!;
   expect(screen.getByRole('button', { name: 'Microphone setup: Setting up' })).toBeDefined();
   expect(screen.queryByRole('progressbar')).toBeNull();
   act(() => inputs[0]!.callbacks.onState?.({ phase: 'starting' }));
+  expect(feedback.parentElement).toBe(screen.getByRole('button', { name: 'Cancel' }).parentElement);
   expect(screen.getByRole('button', { name: 'Microphone setup: Setting up' })).toBeDefined();
   expect(
-    screen.getByText('Allow microphone access in your browser to finish setup.')
+    within(feedback).getByText('Allow microphone access in your browser to finish setup.')
   ).toBeDefined();
+  expect(within(feedback).getByText('Transcription model successfully downloaded')).toBeDefined();
   await click('Cancel');
   expect(screen.getByRole('button', { name: 'Microphone setup: Not set up' })).toBeDefined();
 });

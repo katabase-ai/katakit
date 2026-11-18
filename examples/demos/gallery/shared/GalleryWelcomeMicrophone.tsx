@@ -135,16 +135,15 @@ export const GalleryWelcomeMicrophone = () => {
     !snapshot?.blocked &&
     (!snapshot?.error || snapshot.error === snapshot.input.error?.message) &&
     snapshot?.input.error?.code === 'microphone-permission-denied';
-  const detail = failed
-    ? undefined
-    : loading
-      ? `Downloading speech model…${snapshot.input.progress === undefined ? '' : ` ${Math.round(snapshot.input.progress * 100)}%`}`
-      : snapshot?.input.phase === 'starting'
-        ? 'Allow microphone access in your browser to finish setup.'
-        : snapshot?.starting
-          ? 'Preparing microphone…'
-          : snapshot?.input.phase === 'stopping'
-            ? 'Finishing input…'
+  const detail =
+    failed || successful
+      ? undefined
+      : loading
+        ? `Downloading speech model…${snapshot.input.progress === undefined ? '' : ` ${Math.round(snapshot.input.progress * 100)}%`}`
+        : snapshot?.input.phase === 'starting'
+          ? 'Allow microphone access in your browser to finish setup.'
+          : snapshot?.starting
+            ? 'Preparing microphone…'
             : undefined;
   const progress = snapshot?.input.progress;
   return (
@@ -164,8 +163,13 @@ export const GalleryWelcomeMicrophone = () => {
             <button type="button" className="site-button" onClick={() => window.location.reload()}>
               Reload page
             </button>
+            <div className="gallery-welcome-capture-feedback">
+              {snapshot.modelDownloaded && (
+                <p role="status">Transcription model successfully downloaded</p>
+              )}
+              <MicrophoneRecovery />
+            </div>
           </div>
-          <MicrophoneRecovery />
         </>
       ) : (
         <>
@@ -182,6 +186,9 @@ export const GalleryWelcomeMicrophone = () => {
             }
             errorHelp={failed ? <MicrophoneRecovery /> : undefined}
           >
+            {snapshot?.modelDownloaded && !loading && (
+              <p role="status">Transcription model successfully downloaded</p>
+            )}
             {detail && (
               <p className="gallery-welcome-setup-detail" role="status">
                 {detail}
