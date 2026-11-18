@@ -31,7 +31,7 @@ a host-supplied model connection. Developer mode can instead use your own OpenRo
 responses are handled by Start. Browser-only demo modules mount after hydration, not during SSR.
 
 `shared/ColorClashGalleryDemo.tsx` adapts the existing game to the shared speech owner and runtime
-lease. The game directory is unchanged. Navigation stops/drains capture and releases the game,
+lease. Navigation stops/drains capture and releases the game,
 while the loaded speech model remains ready for the next demo. Named `colorClashGalleryDemo`
 is available from `shared/galleryDemos.tsx`; embedding hosts with an explicit selection must add
 that entry when adopting this source revision. This does not remove the website's homepage embed.
@@ -247,6 +247,26 @@ Owner-level failures take precedence over older microphone errors, including per
 The framework does not change browser permissions for the visitor. Controlled tests exercise
 explicit retries, cancellation during download and permission setup, and blocked-owner recovery
 across the catalogue; these do not establish live microphone compatibility.
+
+## Content lifetime and reset contract
+
+Each navigation creates a fresh demo runtime. Content is local to that visit, without gallery
+storage or reload restoration. The loaded speech model stays ready across navigation. This
+local lifetime says nothing about a connected model service's retention policy.
+
+| Action                           | Content kept                                                                                | Content reset                                                                                                                                                                                           |
+| -------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Stop listening                   | Transcript, Bingo card/marks, Notes outline and buffered turns                              | Capture stops and drains; Notes' existing connection can finish pending work.                                                                                                                           |
+| Pause notes                      | Local notes and transcript; listening can continue                                          | Pending admission/model work is aborted. Only Start notes resumes it.                                                                                                                                   |
+| Clear notes                      | Local transcript (including earlier turns as model context), connection, and used allowance | Outline clears; the completed-turn cursor advances, so earlier completed thoughts are not added again. Late responses cannot restore the old outline. An unfinished thought can still finish afterward. |
+| Bingo Shuffle / change word list | Transcript heard in this visit                                                              | Card and manual overrides reset. New squares are re-matched against that transcript, so automatic marks can remain.                                                                                     |
+| Color Clash Play again           | Loaded speech model                                                                         | Score, clock, and game transcript reset after capture is ready.                                                                                                                                         |
+| Leave a demo / reload            | Saved developer configuration; navigation also retains the loaded model                     | Demo-local transcript, notes, card, and score. Navigation drains and closes the old runtime before a new one attaches.                                                                                  |
+
+The views explain these differences beside the actions. Controlled regression checks cover
+stop/restart retention, fresh visits, Bingo's retained matching evidence, Notes clear/pause late
+responses, and game replay. This contract preserves the existing reset behavior and local
+storage policy.
 
 ## Developer mode and public preview
 

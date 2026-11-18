@@ -102,6 +102,9 @@ export const BrowserBingoDemo = ({
               Shuffle
             </Button>
           </div>
+          <p>
+            Shuffle and word-list changes clear manual marks. Phrases already heard can still match.
+          </p>
           {controls}
           <p>Select a square to mark it or correct a match.</p>
           <div className="bingo-transcript">
@@ -110,6 +113,7 @@ export const BrowserBingoDemo = ({
           </div>
         </aside>
       </div>
+      <p>Stopping keeps this card. Leaving this demo or reloading starts a fresh card.</p>
     </section>
   );
 };

@@ -84,7 +84,8 @@ export const TranscriptionDemo = ({
       </section>
       {(turns.length > 0 || Boolean(provisional)) && afterFirstSpeech}
       <footer>
-        English-only models. Audio stays in this browser. Leaving this demo clears its transcript.
+        English-only models. Audio stays on your device. Stopping keeps your transcript. Leaving
+        this demo or reloading clears it.
       </footer>
     </section>
   );

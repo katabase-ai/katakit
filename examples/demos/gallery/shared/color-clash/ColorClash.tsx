@@ -183,6 +183,10 @@ export const ColorClash = ({
           </div>
         )}
       </div>
+      <p className="color-clash-privacy">
+        Play again resets the score and transcript. Leaving this demo or reloading starts a fresh
+        game.
+      </p>
       <div
         ref={transcript}
         className="color-clash-transcript"

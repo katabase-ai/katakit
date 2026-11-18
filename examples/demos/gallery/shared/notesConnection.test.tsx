@@ -159,3 +159,47 @@ test('restart policy admits a new connection rather than retrying the failed ses
   view.unmount();
   runtime.close();
 });
+
+test('Clear notes preserves local turns, skips old thoughts and rejects a late model result through the UI', async () => {
+  const runtime = createNotesDemo();
+  let finish!: (value: unknown) => void;
+  const request = vi
+    .fn<NotesConnection['requestCompletion']>()
+    .mockResolvedValueOnce(completion('Accepted outline'))
+    .mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          finish = resolve;
+        })
+    )
+    .mockResolvedValue(completion('A fresh topic'));
+  const connect = vi.fn(async () => connection(request));
+  const view = render(<NotesDemo runtime={runtime} connect={connect} />);
+  act(() => turn(runtime, 'Original thought'));
+  fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
+  await screen.findByText('Accepted outline');
+  act(() => turn(runtime, 'Pending thought'));
+  await vi.waitFor(() => expect(request).toHaveBeenCalledTimes(2));
+  const clear = screen.getByRole('button', { name: 'Clear notes' });
+  expect(document.getElementById(clear.getAttribute('aria-describedby')!)?.textContent).toContain(
+    'remain as model context'
+  );
+  fireEvent.click(clear);
+  expect(request.mock.calls[1]![0].signal.aborted).toBe(true);
+  expect(runtime.state$.get().notes.turns).toHaveLength(2);
+  expect(runtime.state$.get().notes.cursor).toBe(2);
+  await act(async () => finish(completion('Obsolete outline')));
+  expect(screen.queryByText('Obsolete outline')).toBeNull();
+  expect(screen.queryByText('Accepted outline')).toBeNull();
+  act(() => turn(runtime, 'A fresh topic'));
+  await screen.findByText('A fresh topic');
+  expect(request).toHaveBeenCalledTimes(3);
+  const conversation = JSON.parse(request.mock.calls[2]![0].body).messages[1].content as string;
+  expect(conversation).toContain('recentTurns[2]{text}:\n  Original thought\n  Pending thought');
+  expect(conversation.split('pendingTurns')[1]).toBe(
+    '[1]{text}:\n  A fresh topic\n</conversation>'
+  );
+  expect(connect).toHaveBeenCalledOnce();
+  view.unmount();
+  runtime.close();
+});

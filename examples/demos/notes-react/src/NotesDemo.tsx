@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useId, useState, type ReactNode } from 'react';
 import Markdown from 'react-markdown';
 import { TranscriptPreview } from './TranscriptPreview';
 import { useNotesConnection } from './useNotesConnection';
@@ -21,6 +21,7 @@ export const NotesDemo = ({
   showIntroduction?: boolean;
 }) => {
   const [state, setState] = useState(() => runtime.state$.get());
+  const clearHelpId = useId();
   const { notes, markdown } = state;
   const { connecting, connected, admissionError, connectModel, pause } = useNotesConnection({
     runtime,
@@ -85,18 +86,22 @@ export const NotesDemo = ({
       )}
       <p className="structured-notes-hint">
         Start listening to transcribe on your device. Choose Start notes to send transcribed text to
-        the connected model. Audio stays on your device. Pausing notes keeps your transcript for
-        when you resume.
+        the connected model. Audio stays on your device. Pause notes stops model requests while
+        listening continues.
       </p>
       {controls}
       {renderModelControls(modelControls)}
       <section className="structured-notes-output" aria-label="Structured notes output">
         <div className="structured-notes-heading">
           <h2>Your notes</h2>
-          <button type="button" onClick={runtime.notes.clear}>
+          <button type="button" aria-describedby={clearHelpId} onClick={runtime.notes.clear}>
             Clear notes
           </button>
         </div>
+        <p id={clearHelpId} className="structured-notes-hint">
+          Clear notes removes the outline; earlier completed thoughts remain as model context. It
+          does not stop listening or restore used allowance.
+        </p>
         {!notes.notes.length && (
           <p className="structured-notes-empty">
             Try planning a trip or describing your next project.
@@ -107,6 +112,10 @@ export const NotesDemo = ({
         </div>
       </section>
       <TranscriptPreview events$={runtime.transcriptEvents$} />
+      <p className="structured-notes-hint">
+        Pausing keeps your notes and transcript for this visit. Leaving this demo or reloading
+        clears its local content.
+      </p>
     </section>
   );
 };
