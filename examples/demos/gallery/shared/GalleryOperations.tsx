@@ -288,7 +288,7 @@ export const GalleryOperationGrid = ({
           <caption className="gallery-visually-hidden">Required operations for each demo</caption>
           <thead>
             <tr>
-              <td />
+              <th scope="col">Demo</th>
               {galleryOperations.map(operation => (
                 <th key={operation.id} scope="col">
                   {operation.title}
