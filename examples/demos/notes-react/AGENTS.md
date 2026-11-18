@@ -13,6 +13,11 @@ copies. `TranscriptPreview.tsx` renders live transcript lines, newest first, lig
 `createTranscriptPreview.ts` owns their twenty-second display lifetime. Keep display timing outside
 the event log; finalization keeps the draft line's identity.
 `main.tsx` is the local standalone host. See `README.md` for embedding and verification.
+`inference/` is the dev-server model connection (Node code loaded by `vite.config.ts`);
+`src/inference/` is its browser client and setup panel. Both are the canonical copy for demos
+that call a model. The key stays on the dev server; never send it to the browser, log it, or echo
+a provider's response body. Change a default in `inference/providers.ts` only after
+`pnpm check:models` passes for it.
 
 Keep model transport and admission in the host. The host returns the chat-completions response
 body; `notesModel.ts` reads and validates it so every host reports the same failures.

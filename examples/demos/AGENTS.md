@@ -19,6 +19,9 @@ copy workflow for those source inputs; follow its narrower instructions.
 - Gallery-specific adapters belong in the gallery and may import examples. Update its
   copy inputs and dependency manifest when adding sources. Keep the reverse dependency
   out of feature examples. Hosts own admission, credentials, and service URLs.
+- A demo that calls a model copies `notes-react/inference/` and `notes-react/src/inference/`
+  as real files, loads the plugin in its Vite config, and ignores `.env` and `.env.*`. Keep keys on
+  the dev server; a demo's browser code never reads one from `import.meta.env`.
 - Verify a prepared copy with no existing node_modules, install, build, relevant
   tests, and the documented manual interaction. Distinguish synthetic tests from live
   microphone/model verification. Preserve explicit resource cleanup on navigation.

@@ -47,7 +47,7 @@ describe('structured notes', () => {
   it('replays accepted outlines, corrections and clears without generating IDs or model calls', async () => {
     const request = vi.fn<NotesConnection['requestCompletion']>().mockResolvedValue(
       completion({
-        additions: [{ text: 'Meet **John** on Tuesday.' }],
+        additions: [{ text: 'Meet **John** on Tuesday.', underId: null }],
         rewords: [],
       })
     );
@@ -102,7 +102,7 @@ describe('structured notes', () => {
     await expect.poll(() => request.mock.calls.length).toBe(1);
     demo.close();
     const before = demo.runtime.events$.getAll();
-    pending.resolve(completion({ additions: [{ text: 'Too late' }], rewords: [] }));
+    pending.resolve(completion({ additions: [{ text: 'Too late', underId: null }], rewords: [] }));
     await Promise.resolve();
     expect(demo.runtime.events$.getAll()).toEqual(before);
     expect(request.mock.calls[0]![0].signal.aborted).toBe(true);
@@ -154,7 +154,9 @@ describe('structured notes', () => {
         rewords: [{ id: demo.state.get().notes[0]!.id, text: 'Meet Jon on Tuesday.' }],
       })
     );
-    pending.resolve(completion({ additions: [{ text: 'Meet John on Tuesday.' }], rewords: [] }));
+    pending.resolve(
+      completion({ additions: [{ text: 'Meet John on Tuesday.', underId: null }], rewords: [] })
+    );
     await expect.poll(() => demo.state.get().notes[0]?.text).toBe('Meet Jon on Tuesday.');
     expect(request).toHaveBeenCalledTimes(2);
     expect(request.mock.calls[1]![0].body).toContain('J O N');
@@ -168,14 +170,16 @@ describe('structured notes', () => {
     const request = vi
       .fn<NotesConnection['requestCompletion']>()
       .mockReturnValueOnce(pending.promise)
-      .mockResolvedValue(completion({ additions: [{ text: 'New topic' }], rewords: [] }));
+      .mockResolvedValue(
+        completion({ additions: [{ text: 'New topic', underId: null }], rewords: [] })
+      );
     const demo = setup(request);
     demo.turn('Old topic');
     await expect.poll(() => request.mock.calls.length).toBe(1);
     demo.methods.clear();
     expect(request.mock.calls[0]![0].signal.aborted).toBe(true);
     demo.turn('New topic');
-    pending.resolve(completion({ additions: [{ text: 'Old topic' }], rewords: [] }));
+    pending.resolve(completion({ additions: [{ text: 'Old topic', underId: null }], rewords: [] }));
     await expect.poll(() => demo.state.get().notes[0]?.text).toBe('New topic');
     expect(demo.state.get().notes).toHaveLength(1);
     demo.close();
@@ -257,7 +261,10 @@ describe('structured notes', () => {
   it('applies what it can when the model misuses a note ID', async () => {
     const request = vi.fn<NotesConnection['requestCompletion']>().mockResolvedValue(
       completion({
-        additions: [{ text: 'Valid note' }, { text: 'Invented parent', underId: 'missing' }],
+        additions: [
+          { text: 'Valid note', underId: null },
+          { text: 'Invented parent', underId: 'missing' },
+        ],
         rewords: [{ id: 'missing', text: 'No such note' }],
       })
     );
@@ -269,6 +276,23 @@ describe('structured notes', () => {
     expect(demo.state.get().status).toBe('idle');
     expect(request).toHaveBeenCalledOnce();
     demo.close();
+  });
+
+  it('sends a wire schema every supported provider enforces', () => {
+    const { body } = createNotesRequest({
+      notes: [],
+      turns: [{ id: 'first', sourceId: 'test', text: 'Meet John on Tuesday.' }],
+      cursor: 0,
+      connection: {
+        model: 'z-ai/glm-5.3',
+        maxBodyBytes: 16_384,
+        maxOutputTokens: 1024,
+        requestCompletion: vi.fn(),
+      },
+    });
+    const schema = JSON.parse(body).response_format.json_schema.schema;
+    expect(schema.properties.additions.items.required).toEqual(['text', 'underId']);
+    expect(JSON.stringify(schema)).not.toMatch(/minLength|maxLength/);
   });
 
   it('keeps blank-note validation out of the provider grammar', () => {
@@ -290,7 +314,8 @@ describe('structured notes', () => {
       'properties.rewords.items.properties.text.pattern'
     );
     expect(
-      v.safeParse(NotesResultSchema, { additions: [{ text: ' \n' }], rewords: [] }).success
+      v.safeParse(NotesResultSchema, { additions: [{ text: ' \n', underId: null }], rewords: [] })
+        .success
     ).toBe(false);
     expect(
       v.safeParse(NotesResultSchema, { additions: [], rewords: [{ id: 'first', text: ' \n' }] })
@@ -301,7 +326,7 @@ describe('structured notes', () => {
   it('does not report a later context-limit failure against the preceding request', async () => {
     const request = vi.fn<NotesConnection['requestCompletion']>().mockResolvedValue(
       completion({
-        additions: [{ text: 'Keep the successful note' }],
+        additions: [{ text: 'Keep the successful note', underId: null }],
         rewords: [],
       })
     );

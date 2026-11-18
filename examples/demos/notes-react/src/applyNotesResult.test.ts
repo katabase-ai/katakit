@@ -21,7 +21,10 @@ test('corrections and additions preserve recorded outlines and existing note IDs
   const updated = applyNotesResult({
     notes,
     response: {
-      additions: [{ text: 'Bring the agenda.', underId: 'meeting' }, { text: 'Ship on Friday.' }],
+      additions: [
+        { text: 'Bring the agenda.', underId: 'meeting' },
+        { text: 'Ship on Friday.', underId: null },
+      ],
       rewords: [
         { id: 'meeting', text: 'Meet Jon.' },
         { id: 'guest', text: 'Invite Anne.' },

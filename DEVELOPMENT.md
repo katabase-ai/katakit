@@ -36,7 +36,8 @@ No example source or asset may be a symlink. A feature demo or starter must not 
 examples or files elsewhere in the repository.
 
 The gallery is an explicit composition exception: it imports the three feature demos' `src/`
-directories and plain internal CSS. Its copy workflow carries those inputs as regular files and
+directories, the notes example's dev-server model connection (`notes-react/inference/`, from its
+Vite config), and plain internal CSS. Its copy workflow carries those inputs as regular files and
 rewrites the copied imports. When adding another gallery source input, update the gallery's
 own dependencies, the copy inputs in `scripts/copy-example.mjs`, and the corresponding narrow
 allowance in `scripts/check-structure.mjs`, then verify a standalone gallery copy.
