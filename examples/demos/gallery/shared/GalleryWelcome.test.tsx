@@ -177,11 +177,11 @@ test('a verified retest keeps the download confirmation without flashing setup i
   await screen.findByRole('img', { name: 'Microphone listening' });
   await click('Stop listening');
   await click('Test again');
-  expect(screen.getByRole('button', { name: 'Cancel' })).toBeDefined();
+  expect(screen.getByRole('button', { name: 'Cancel setup' })).toBeDefined();
   expect(screen.getByText('Transcription model successfully downloaded')).toBeDefined();
   expect(screen.queryByText('Allow microphone access in your browser to finish setup.')).toBeNull();
   expect(screen.queryByText('Preparing microphone…')).toBeNull();
-  await click('Cancel');
+  await click('Cancel setup');
 });
 
 test('Welcome remembers a successful start in another demo without restarting capture', async () => {
@@ -267,7 +267,7 @@ test.each(['loading', 'starting'] as const)(
     expect(screen.queryByText('Transcription model successfully downloaded') !== null).toBe(
       pending === 'starting'
     );
-    await click(pending === 'loading' ? 'Cancel download' : 'Cancel');
+    await click(pending === 'loading' ? 'Cancel download' : 'Cancel setup');
     await screen.findByRole('button', { name: 'Set up microphone' });
     expect(inputs[0]!.dispose).toHaveBeenCalledOnce();
     expect(screen.queryByRole('button', { name: 'Microphone setup: Ready' })).toBeNull();
@@ -367,13 +367,15 @@ test('setup remains in progress across the model-ready handoff until permission 
   expect(screen.getByRole('button', { name: 'Microphone setup: Setting up' })).toBeDefined();
   expect(screen.queryByRole('progressbar')).toBeNull();
   act(() => inputs[0]!.callbacks.onState?.({ phase: 'starting' }));
-  expect(feedback.parentElement).toBe(screen.getByRole('button', { name: 'Cancel' }).parentElement);
+  expect(feedback.parentElement).toBe(
+    screen.getByRole('button', { name: 'Cancel setup' }).parentElement
+  );
   expect(screen.getByRole('button', { name: 'Microphone setup: Setting up' })).toBeDefined();
   expect(
     within(feedback).getByText('Allow microphone access in your browser to finish setup.')
   ).toBeDefined();
   expect(within(feedback).getByText('Transcription model successfully downloaded')).toBeDefined();
-  await click('Cancel');
+  await click('Cancel setup');
   expect(screen.getByRole('button', { name: 'Microphone setup: Not set up' })).toBeDefined();
 });
 

@@ -40,7 +40,7 @@ test('explains a microphone denial and retries without spending the round time',
   expect(alert.textContent).toContain('Microphone access needed');
   expect(alert.textContent).toContain('allow Microphone in site settings');
   expect(alert.textContent).not.toContain('Permission denied');
-  expect(screen.getByText('How to enable it')).toBeTruthy();
+  expect(screen.getByText('How to enable your microphone')).toBeTruthy();
   expect(runtime.getSnapshot().remainingMs).toBe(20000);
   await act(async () => {
     fireEvent.click(screen.getByRole('button', { name: 'Try microphone again' }));
@@ -67,9 +67,9 @@ test('retains a distinct retry for failures unrelated to microphone permission',
       onCancel={() => undefined}
     />
   );
-  expect(screen.getByRole('alert').textContent).toContain('Model unavailable');
+  expect(screen.getByRole('alert').textContent).toContain('Check your internet connection');
   expect(screen.getByRole('button', { name: 'Try again' })).toBeTruthy();
-  expect(screen.queryByText('How to enable it')).toBeNull();
+  expect(screen.queryByText('How to enable your microphone')).toBeNull();
   runtime.close();
 });
 
@@ -91,7 +91,7 @@ test('a host error takes priority over an earlier microphone permission error', 
   );
   expect(screen.getByRole('alert').textContent).toContain('Host connection unavailable');
   expect(screen.getByRole('button', { name: 'Try again' })).toBeTruthy();
-  expect(screen.queryByText('How to enable it')).toBeNull();
+  expect(screen.queryByText('How to enable your microphone')).toBeNull();
   runtime.close();
 });
 

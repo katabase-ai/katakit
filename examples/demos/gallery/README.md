@@ -226,6 +226,28 @@ source changes, saving overrides, and key removal abort remote work and retain l
 Start notes is required to resume. Route exit aborts admission and model work before capture drains.
 See [the notes example](../notes-react/README.md) for the generic contract.
 
+## Capture and recovery contract
+
+All four demos use the gallery's single speech owner. Their first actions stay specific to the
+activity: Start listening for Transcription, Bingo, and Notes; Play for Color Clash. Notes still
+requires a separate Start notes action before remote work.
+
+| State                                  | Action and result                                                                             |
+| -------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Speech model downloading               | Cancel download disposes the pending start; capture does not begin later.                     |
+| Waiting for microphone permission      | Cancel setup invalidates the start; a late completion cannot start the demo.                  |
+| Microphone permission denied           | Try microphone again is explicit. Native expandable help explains browser and OS permissions. |
+| Microphone missing / model load failed | Explain the relevant recovery, then offer Try again.                                          |
+| Capturing                              | Stop listening stops and drains input. Color Clash stops capture when its round ends.         |
+| Capture cannot be safely reused        | Reload page remains actionable; retry is not offered on a blocked owner.                      |
+| Navigation or hidden tab               | Stop/drain the outgoing capture; navigation closes its visit before attaching the next one.   |
+
+`GalleryMicrophoneRecovery` supplies the same typed recovery guidance to Welcome and every demo.
+Owner-level failures take precedence over older microphone errors, including permission denials.
+The framework does not change browser permissions for the visitor. Controlled tests exercise
+explicit retries, cancellation during download and permission setup, and blocked-owner recovery
+across the catalogue; these do not establish live microphone compatibility.
+
 ## Developer mode and public preview
 
 Gallery mode controls the UI and inference policy independently of build optimization:

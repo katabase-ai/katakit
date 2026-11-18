@@ -1,6 +1,10 @@
 import { useId, type ReactNode } from 'react';
 import { useGallerySpeech } from './GallerySpeechProvider';
 import { GalleryMicrophoneIndicator } from './GalleryMicrophoneIndicator';
+import {
+  GalleryMicrophoneRecovery,
+  getGalleryMicrophoneFailure,
+} from './GalleryMicrophoneRecovery';
 
 /** Capture actions belong to the active demo, never the shared setup footer. */
 export const GalleryCaptureControls = ({
@@ -22,6 +26,9 @@ export const GalleryCaptureControls = ({
   const { owner, snapshot } = session;
   const recording = snapshot.input.phase === 'running';
   const preparing = ['loading', 'starting'].includes(snapshot.input.phase);
+  const stopping = snapshot.input.phase === 'stopping';
+  const failed = !!(snapshot.blocked || snapshot.error || snapshot.input.error);
+  const failure = getGalleryMicrophoneFailure(snapshot);
   const welcome = presentation === 'welcome';
   const statusLine = (
     <p id={statusId} role="status" className={welcome ? 'gallery-visually-hidden' : undefined}>
@@ -44,17 +51,28 @@ export const GalleryCaptureControls = ({
     <button
       type="button"
       className="site-button site-button--slate"
-      disabled={snapshot.blocked || (!preparing && (snapshot.transitioning || !snapshot.attached))}
+      disabled={!snapshot.blocked && !preparing && (snapshot.transitioning || !snapshot.attached)}
       aria-describedby={statusId}
-      onClick={() => void (preparing ? owner.cancel() : recording ? owner.stop() : owner.start())}
+      onClick={() => {
+        if (snapshot.blocked) window.location.reload();
+        else void (preparing ? owner.cancel() : recording ? owner.stop() : owner.start());
+      }}
     >
       {preparing
-        ? welcome && snapshot.input.phase === 'loading'
+        ? snapshot.input.phase === 'loading'
           ? 'Cancel download'
-          : 'Cancel'
+          : 'Cancel setup'
         : recording
           ? 'Stop listening'
-          : label}
+          : snapshot.blocked
+            ? 'Reload page'
+            : stopping
+              ? 'Stopping…'
+              : failed
+                ? failure.permissionDenied
+                  ? 'Try microphone again'
+                  : 'Try again'
+                : label}
     </button>
   );
   return (
@@ -82,13 +100,8 @@ export const GalleryCaptureControls = ({
           <span className="site-audio-level__state">Listening</span>
         </div>
       )}
-      {!errorHelp && (snapshot.error || snapshot.input.error) && (
-        <p role="alert">
-          {snapshot.error ?? snapshot.input.error?.message}{' '}
-          {snapshot.blocked
-            ? 'Reload this page before trying again.'
-            : 'Try downloading or starting again.'}
-        </p>
+      {!errorHelp && failed && (
+        <GalleryMicrophoneRecovery failure={failure} blocked={snapshot.blocked} />
       )}
     </div>
   );

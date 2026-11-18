@@ -10,12 +10,7 @@ export const ColorClashGalleryDemo = () => {
   const hasHeader = useGalleryDemoHeader();
   if (!session) return <p role="status">Preparing Color Clash…</p>;
   const { snapshot, owner } = session;
-  // Preserve typed microphone errors so the game can show its permission-recovery instructions.
-  const error = snapshot.blocked
-    ? `${snapshot.error ?? 'Speech recognition is unavailable.'} Reload this page to try again.`
-    : snapshot.error === snapshot.input.error?.message
-      ? undefined
-      : snapshot.error;
+  const error = snapshot.error === snapshot.input.error?.message ? undefined : snapshot.error;
   return (
     <>
       {!hasHeader && (
@@ -33,7 +28,8 @@ export const ColorClashGalleryDemo = () => {
             runtime={runtime}
             input={snapshot.input}
             error={error}
-            disabled={snapshot.blocked || snapshot.transitioning || !snapshot.attached}
+            blocked={snapshot.blocked}
+            disabled={snapshot.transitioning || !snapshot.attached}
             onPlay={async () => {
               await owner.start();
               return owner.getSnapshot().input.phase === 'running';

@@ -1,6 +1,10 @@
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type { TranscriptionState } from '@katakit/transcription';
 import type { createColorClash } from './createColorClash';
+import {
+  GalleryMicrophoneRecovery,
+  getGalleryMicrophoneFailure,
+} from '../GalleryMicrophoneRecovery';
 import './colorClash.css';
 
 /** The host owns microphone/model setup; this view starts its clock only once capture is running. */
@@ -9,6 +13,7 @@ export const ColorClash = ({
   input,
   error,
   disabled,
+  blocked = false,
   onPlay,
   onCancel,
   onStop,
@@ -17,6 +22,7 @@ export const ColorClash = ({
   input: TranscriptionState;
   error?: string;
   disabled: boolean;
+  blocked?: boolean;
   onPlay: () => Promise<boolean>;
   onCancel: () => void;
   onStop: () => void;
@@ -62,9 +68,9 @@ export const ColorClash = ({
     setRequested(false);
     onCancel();
   };
-  const inputError = error ?? input.error?.message;
-  const permissionDenied =
-    error === undefined && input.error?.code === 'microphone-permission-denied';
+  const inputError = blocked || error || input.error;
+  const failure = getGalleryMicrophoneFailure({ input, error, blocked });
+  const permissionDenied = failure.permissionDenied;
   return (
     <section className="color-clash" aria-label="Color Clash game">
       <header className="color-clash-hud">
@@ -133,59 +139,39 @@ export const ColorClash = ({
                   <progress aria-label="Speech model download" max={1} value={input.progress} />
                 )}
                 <button type="button" className="color-clash-play" onClick={cancel}>
-                  Cancel setup
+                  {input.phase === 'loading' ? 'Cancel download' : 'Cancel setup'}
                 </button>
               </>
             ) : (
               <>
-                {permissionDenied ? (
-                  <div className="color-clash-permission" role="alert">
-                    <strong>Microphone access needed</strong>
-                    <p>
-                      Color Clash listens for the colors you say. Allow microphone access to play.
-                    </p>
-                    <p>
-                      If your browser has blocked this site, allow Microphone in site settings
-                      first.
-                    </p>
-                  </div>
-                ) : inputError ? (
-                  <p className="color-clash-error" role="alert">
-                    {inputError}
-                  </p>
-                ) : undefined}
+                {inputError && (
+                  <GalleryMicrophoneRecovery
+                    failure={failure}
+                    blocked={blocked}
+                    helpClassName="color-clash-permission-help"
+                  />
+                )}
                 <button
                   type="button"
                   className="color-clash-play"
                   disabled={
-                    disabled ||
-                    requested ||
-                    (state.phase === 'finished' && (listening || input.phase === 'stopping'))
+                    !blocked &&
+                    (disabled ||
+                      requested ||
+                      (state.phase === 'finished' && (listening || input.phase === 'stopping')))
                   }
-                  onClick={() => void play()}
+                  onClick={() => (blocked ? window.location.reload() : void play())}
                 >
-                  {permissionDenied
-                    ? 'Try microphone again'
-                    : inputError
-                      ? 'Try again'
-                      : state.phase === 'finished'
-                        ? 'Play again'
-                        : 'Play'}
+                  {blocked
+                    ? 'Reload page'
+                    : permissionDenied
+                      ? 'Try microphone again'
+                      : inputError
+                        ? 'Try again'
+                        : state.phase === 'finished'
+                          ? 'Play again'
+                          : 'Play'}
                 </button>
-                {permissionDenied && (
-                  <details className="color-clash-permission-help">
-                    <summary>How to enable it</summary>
-                    <ol>
-                      <li>Open this site's permissions beside your browser's address bar.</li>
-                      <li>Set Microphone to Allow, or reset the blocked permission.</li>
-                      <li>Return here and choose Try microphone again.</li>
-                    </ol>
-                    <p>
-                      Still blocked? Check that your computer's privacy settings allow your browser
-                      to use the microphone.
-                    </p>
-                  </details>
-                )}
               </>
             )}
             {state.phase === 'ready' && input.phase === 'idle' && (

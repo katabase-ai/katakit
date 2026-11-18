@@ -180,7 +180,7 @@ test('navigation during Play model loading cancels setup before a late microphon
   const view = render(<Harness />);
   await screen.findByRole('button', { name: 'Play' });
   await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Play' })));
-  await screen.findByRole('button', { name: 'Cancel setup' });
+  await screen.findByRole('button', { name: 'Cancel download' });
   fireEvent.click(screen.getByRole('button', { name: 'Next demo' }));
   await screen.findByText('Next demo ready');
   expect(inputs[0]!.dispose).toHaveBeenCalledOnce();

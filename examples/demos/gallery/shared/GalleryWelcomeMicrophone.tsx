@@ -1,3 +1,7 @@
+import {
+  GalleryMicrophoneRecovery,
+  getGalleryMicrophoneFailure,
+} from './GalleryMicrophoneRecovery';
 import { useEffect, useState } from 'react';
 import { GalleryMicrophoneReadiness } from './GalleryMicrophoneReadiness';
 import { createTranscriptionDemo } from '../../transcription-react/src/createTranscriptionDemo';
@@ -25,49 +29,11 @@ const TestTranscript = ({ runtime }: { runtime: ReturnType<typeof createTranscri
 const MicrophoneRecovery = () => {
   const session = useGallerySpeech();
   if (!session) return null;
-  const { snapshot } = session;
-  // Color Clash also prioritizes owner failures over an older typed input error.
-  const inputError = snapshot.input.error;
-  const code =
-    !snapshot.blocked && (!snapshot.error || snapshot.error === inputError?.message)
-      ? inputError?.code
-      : undefined;
-  const permissionDenied = code === 'microphone-permission-denied';
-  const message = permissionDenied
-    ? 'If your browser has blocked this site, allow Microphone in site settings first.'
-    : code === 'microphone-unavailable'
-      ? 'Connect a microphone and check that it is selected in your browser or computer’s sound settings, then try again.'
-      : code === 'model-load-failed'
-        ? 'The speech model could not load. Check your internet connection, then try again.'
-        : code === 'unsupported-environment'
-          ? 'This browser cannot run local microphone transcription here. Try an up-to-date browser with microphone support, using HTTPS or localhost.'
-          : code === 'cross-origin-isolation-required'
-            ? 'This site is missing settings needed for local transcription. Contact the site owner for help.'
-            : snapshot.error ||
-              inputError?.message ||
-              'The microphone test could not finish. Try again.';
   return (
-    <>
-      <div role="alert">
-        {permissionDenied && <p>Allow microphone access to test local transcription.</p>}
-        <p>{message}</p>
-        {snapshot.blocked && <p>Reload this page before trying again.</p>}
-      </div>
-      {permissionDenied && (
-        <details className="gallery-microphone-help">
-          <summary>How to enable your microphone</summary>
-          <ol>
-            <li>Open this site's permissions beside your browser's address bar.</li>
-            <li>Set Microphone to Allow, or reset the blocked permission.</li>
-            <li>Return here and choose Try microphone again.</li>
-          </ol>
-          <p>
-            Still blocked? Check that your computer's privacy settings allow your browser to use the
-            microphone.
-          </p>
-        </details>
-      )}
-    </>
+    <GalleryMicrophoneRecovery
+      failure={getGalleryMicrophoneFailure(session.snapshot)}
+      blocked={session.snapshot.blocked}
+    />
   );
 };
 
