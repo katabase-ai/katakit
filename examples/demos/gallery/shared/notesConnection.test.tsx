@@ -138,3 +138,24 @@ test('Strict Mode can replay effects and failed verification still requires an e
   view.unmount();
   runtime.close();
 });
+
+test('restart policy admits a new connection rather than retrying the failed session', async () => {
+  const runtime = createNotesDemo();
+  const stale = vi.fn(async () => {
+    throw new NotesRequestError('Session expired.', { restart: true });
+  });
+  const fresh = vi.fn(async () => completion('Recovered note'));
+  const connect = vi.fn(async () => connection(fresh)).mockResolvedValueOnce(connection(stale));
+  const view = render(<NotesDemo runtime={runtime} listening connect={connect} />);
+  act(() => turn(runtime, 'Keep this thought.'));
+  fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
+  await screen.findByText('Session expired.');
+  expect(stale).toHaveBeenCalledOnce();
+  fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
+  await screen.findByText('Recovered note');
+  expect(connect).toHaveBeenCalledTimes(2);
+  expect(stale).toHaveBeenCalledOnce();
+  expect(fresh).toHaveBeenCalledOnce();
+  view.unmount();
+  runtime.close();
+});

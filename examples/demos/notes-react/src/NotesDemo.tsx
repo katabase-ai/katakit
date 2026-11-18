@@ -39,7 +39,10 @@ export const NotesDemo = ({
         <button
           type="button"
           onClick={() =>
-            connected && notes.status === 'paused' && !notes.failure?.policy.terminal
+            connected &&
+            notes.status === 'paused' &&
+            !notes.failure?.policy.terminal &&
+            !notes.failure?.policy.restart
               ? runtime.notes.retry()
               : void connectModel()
           }
