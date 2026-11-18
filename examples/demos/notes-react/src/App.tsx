@@ -4,13 +4,22 @@ import { createNotesDemo } from './createNotesDemo';
 import { NotesDemo } from './NotesDemo';
 
 /** Standalone capture stays here; the gallery supplies its own shared input owner. */
-export const App = ({ connect }: Pick<ComponentProps<typeof NotesDemo>, 'connect'>) => {
+export const App = ({
+  connect,
+  connectionHelp,
+  renderModelControls,
+}: Pick<
+  ComponentProps<typeof NotesDemo>,
+  'connect' | 'connectionHelp' | 'renderModelControls'
+>) => {
   const microphone = useMicrophoneTranscriber({ createSink: createNotesDemo });
   if (!microphone.sink) return <p role="status">Preparing demo…</p>;
   return (
     <NotesDemo
       runtime={microphone.sink}
       connect={connect}
+      connectionHelp={connectionHelp}
+      renderModelControls={renderModelControls}
       listening={microphone.listening}
       controls={
         <div className="structured-notes-controls">

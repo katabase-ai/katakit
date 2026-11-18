@@ -6,13 +6,14 @@ import { useGalleryMode } from './GalleryModeProvider';
 import { GalleryModelContext } from './galleryModel';
 import { galleryOperations } from './operationDetails';
 import type { Gallery } from './Gallery';
+import { InferenceSetup } from '../../notes-react/src/inference/InferenceSetup';
 
 /** Developer configuration is scoped to implemented operations; no account/unsupported-model placeholders. */
 export const GalleryOperationSetup = () => {
   const { isDeveloperView } = useGalleryMode();
   const inference = useGalleryInference();
   const speech = useGallerySpeech();
-  const { hostAvailable } = useContext(GalleryModelContext);
+  const { hostAvailable, localInference } = useContext(GalleryModelContext);
   const initial = () =>
     inference && !hostAvailable && inference.settings.source === 'free'
       ? { ...inference.settings, source: 'key' as const }
@@ -108,136 +109,147 @@ export const GalleryOperationSetup = () => {
         <h2 id="gallery-language-title">
           Language <span>Generate output from transcript text</span>
         </h2>
-        <form
-          className="gallery-inference-form"
-          onSubmit={event => {
-            event.preventDefault();
-            apply(
-              () => inference.owner.save(draft),
-              'Inference settings saved. Start listening in a demo when ready.'
-            );
-          }}
-        >
-          <div className="gallery-setup-row">
-            <div>
-              <h3>Inference</h3>
-              <p>
-                {inference.settings.source === 'key'
-                  ? 'Developer key selected'
-                  : hostAvailable
-                    ? 'Free demo selected'
-                    : 'Needs a connection'}
-              </p>
-            </div>
-            <label>
-              Provider
-              <select
-                aria-label="Inference source"
-                value={draft.source}
-                onChange={event =>
-                  setDraft({ ...draft, source: event.target.value as 'free' | 'key' })
-                }
-              >
-                <option value="free" disabled={!hostAvailable}>
-                  Free demo
-                </option>
-                <option value="key">OpenRouter · My API key</option>
-              </select>
-            </label>
-            <div>
-              <span className="gallery-field-label">Model</span>
-              <p>{draft.source === 'key' ? draft.model : 'Host default'}</p>
-            </div>
+        {localInference ? (
+          <div className="gallery-local-inference">
+            <p>
+              This dev server holds your key and sends notes requests to your provider. A saved key
+              lives in your user settings, outside this checkout, and works in every Katakit demo
+              copy.
+            </p>
+            <InferenceSetup local={localInference} />
           </div>
-          {draft.source === 'key' && (
-            <>
-              <div className="gallery-key-fields">
-                <label htmlFor="gallery-api-key">
-                  API key
-                  <input
-                    id="gallery-api-key"
-                    type="password"
-                    autoComplete="off"
-                    spellCheck={false}
-                    value={draft.key}
-                    onChange={event => setDraft({ ...draft, key: event.target.value })}
-                  />
-                </label>
-                <label htmlFor="gallery-inference-model">
-                  Model ID
-                  <input
-                    id="gallery-inference-model"
-                    value={draft.model}
-                    spellCheck={false}
-                    onChange={event => setDraft({ ...draft, model: event.target.value })}
-                  />
-                </label>
-              </div>
-              <p>
-                Choose an OpenRouter model ID. Structured notes needs JSON schema output. The key
-                authorizes your account; the model field chooses what runs.{' '}
-                <a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer">
-                  Browse models
-                </a>
-              </p>
-              <p className="gallery-settings-note">
-                Saved in this browser’s local storage, including after tab closure. Developer
-                requests go directly to your endpoint using your provider credits. Public preview
-                ignores these settings.
-              </p>
-              <details>
-                <summary>Advanced</summary>
-                <label htmlFor="gallery-inference-endpoint">
-                  Chat-completions endpoint
-                  <input
-                    id="gallery-inference-endpoint"
-                    type="url"
-                    value={draft.endpoint}
-                    spellCheck={false}
-                    onChange={event => setDraft({ ...draft, endpoint: event.target.value })}
-                  />
-                </label>
+        ) : (
+          <form
+            className="gallery-inference-form"
+            onSubmit={event => {
+              event.preventDefault();
+              apply(
+                () => inference.owner.save(draft),
+                'Inference settings saved. Start listening in a demo when ready.'
+              );
+            }}
+          >
+            <div className="gallery-setup-row">
+              <div>
+                <h3>Inference</h3>
                 <p>
-                  Use an OpenAI-compatible endpoint with JSON schema output and browser access
-                  (CORS). Your key and transcript go to this URL.
+                  {inference.settings.source === 'key'
+                    ? 'Developer key selected'
+                    : hostAvailable
+                      ? 'Free demo selected'
+                      : 'Needs a connection'}
                 </p>
-              </details>
-            </>
-          )}
-          <p>Saving reconnects inference with the new settings; local capture can continue.</p>
-          <div className="gallery-settings-actions">
-            <button type="submit" className="site-button">
-              Save
-            </button>
-            {inference.settings.key && (
+              </div>
+              <label>
+                Provider
+                <select
+                  aria-label="Inference source"
+                  value={draft.source}
+                  onChange={event =>
+                    setDraft({ ...draft, source: event.target.value as 'free' | 'key' })
+                  }
+                >
+                  <option value="free" disabled={!hostAvailable}>
+                    Free demo
+                  </option>
+                  <option value="key">OpenRouter · My API key</option>
+                </select>
+              </label>
+              <div>
+                <span className="gallery-field-label">Model</span>
+                <p>{draft.source === 'key' ? draft.model : 'Host default'}</p>
+              </div>
+            </div>
+            {draft.source === 'key' && (
+              <>
+                <div className="gallery-key-fields">
+                  <label htmlFor="gallery-api-key">
+                    API key
+                    <input
+                      id="gallery-api-key"
+                      type="password"
+                      autoComplete="off"
+                      spellCheck={false}
+                      value={draft.key}
+                      onChange={event => setDraft({ ...draft, key: event.target.value })}
+                    />
+                  </label>
+                  <label htmlFor="gallery-inference-model">
+                    Model ID
+                    <input
+                      id="gallery-inference-model"
+                      value={draft.model}
+                      spellCheck={false}
+                      onChange={event => setDraft({ ...draft, model: event.target.value })}
+                    />
+                  </label>
+                </div>
+                <p>
+                  Choose an OpenRouter model ID. Structured notes needs JSON schema output. The key
+                  authorizes your account; the model field chooses what runs.{' '}
+                  <a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer">
+                    Browse models
+                  </a>
+                </p>
+                <p className="gallery-settings-note">
+                  Saved in this browser’s local storage, including after tab closure. Developer
+                  requests go directly to your endpoint using your provider credits. Public preview
+                  ignores these settings.
+                </p>
+                <details>
+                  <summary>Advanced</summary>
+                  <label htmlFor="gallery-inference-endpoint">
+                    Chat-completions endpoint
+                    <input
+                      id="gallery-inference-endpoint"
+                      type="url"
+                      value={draft.endpoint}
+                      spellCheck={false}
+                      onChange={event => setDraft({ ...draft, endpoint: event.target.value })}
+                    />
+                  </label>
+                  <p>
+                    Use an OpenAI-compatible endpoint with JSON schema output and browser access
+                    (CORS). Your key and transcript go to this URL.
+                  </p>
+                </details>
+              </>
+            )}
+            <p>Saving reconnects inference with the new settings; local capture can continue.</p>
+            <div className="gallery-settings-actions">
+              <button type="submit" className="site-button">
+                Save
+              </button>
+              {inference.settings.key && (
+                <button
+                  type="button"
+                  className="site-button site-button--ghost"
+                  onClick={() =>
+                    apply(
+                      inference.owner.remove,
+                      'Saved key removed. Public preview never uses a developer key.'
+                    )
+                  }
+                >
+                  Remove key
+                </button>
+              )}
               <button
                 type="button"
                 className="site-button site-button--ghost"
-                onClick={() =>
-                  apply(
-                    inference.owner.remove,
-                    'Saved key removed. Public preview never uses a developer key.'
-                  )
-                }
+                onClick={() => {
+                  setDraft(initial());
+                  setError('');
+                  setNotice('');
+                }}
               >
-                Remove key
+                Reset changes
               </button>
-            )}
-            <button
-              type="button"
-              className="site-button site-button--ghost"
-              onClick={() => {
-                setDraft(initial());
-                setError('');
-                setNotice('');
-              }}
-            >
-              Reset changes
-            </button>
-          </div>
-          {error && <p role="alert">{error}</p>}
-          {notice && <p role="status">{notice}</p>}
-        </form>
+            </div>
+            {error && <p role="alert">{error}</p>}
+            {notice && <p role="status">{notice}</p>}
+          </form>
+        )}
       </section>
     </section>
   );

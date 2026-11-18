@@ -13,6 +13,8 @@ type GalleryDemoMetadata = {
   readonly dataHandling: GalleryDataHandling;
   /** Directory name for a local copy; only demos with their own example directory have one. */
   readonly copyDirectory?: string;
+  /** A local copy's dev server holds the model key; others configure their model in the README. */
+  readonly devServerInference?: true;
 };
 
 /**
@@ -41,6 +43,7 @@ export const notesDemoDetails = {
   id: 'notes',
   sourcePath: 'examples/demos/notes-react',
   copyDirectory: 'structured-notes',
+  devServerInference: true,
   title: 'Structured notes',
   description: 'Talk through a plan. Notes take shape as you finish each thought.',
   capabilities: ['microphone', 'localTranscription', 'remoteModel'],

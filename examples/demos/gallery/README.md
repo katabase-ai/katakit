@@ -349,9 +349,18 @@ navigation, so it stops/drains the outgoing demo. The loaded speech model and sa
 
 ## Developer operation setup
 
+Under the Vite dev server, developer view uses the notes example's dev-server model connection
+(`examples/demos/notes-react/inference/`). The reference host passes `localInference` to `Gallery`
+from `src/galleryEnvironment.ts`. The notes demo and Configure models then show the same setup
+panel as the standalone example, and the footer shows the tokens your key has used. The key stays
+on the dev server and is saved outside the checkout. The browser-direct form below remains for
+developer builds without a dev server, such as hosted PR previews and `pnpm preview`.
+The Brainstorming game also judges answers with OpenRouter's decision model, which the dev server
+offers only for an OpenRouter key; with another provider's key it explains that it needs one.
+
 Configure models groups supported work under Audio and Language. Transcription uses the delivered
-local model catalogue with a download-only action. Inference offers the host’s Free demo or a personal
-OpenRouter key. The API key and model ID are visible together; only the full endpoint override is
+local model catalogue with a download-only action. Without the dev server, Inference offers the
+host’s Free demo or a personal OpenRouter key. The API key and model ID are visible together; only the full endpoint override is
 under collapsed Advanced. Defaults are `z-ai/glm-5.3` and
 `https://openrouter.ai/api/v1/chat/completions`. The key authorizes an account; the model ID chooses
 what runs. Structured notes needs JSON schema output. Setup saves configuration without making

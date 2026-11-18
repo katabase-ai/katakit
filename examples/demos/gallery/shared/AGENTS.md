@@ -8,7 +8,8 @@ source checkout. They do not own application bootstraps, routing, or private ser
 - `GalleryRunLocally` copies a demo with `npx degit` from its `sourcePath` at the host's
   `sourceRevision`. Give an entry `copyDirectory` only when that path is a standalone example a
   plain `pnpm install` and `pnpm dev` can run; check a real `degit` copy before adding one.
-  The prompt must not ask an agent to handle an API key without asking the person first.
+  For `devServerInference` demos the prompt tells an agent never to ask for an API key or write
+  one to a file; for other model demos it asks the agent to check with the person first.
   `#gallery-run-locally`
 - Keep metadata and `Gallery.tsx` free of eager recognizer/runtime imports. Welcome loads lazily. Accept host-rendered links
   and children instead of importing a host router. `#gallery-portable-presentation`
@@ -44,6 +45,9 @@ source checkout. They do not own application bootstraps, routing, or private ser
   errors to its example's own error class. Keep it free of any one demo's types, and keep
   host admission and private service URLs in the host. `galleryInference.ts` owns the optional
   visitor-key transport and local-storage policy; never include keys or endpoint URLs in diagnostics. `#gallery-model-connection`
+- With a host's `localInference`, developer view uses the notes example's dev-server connection
+  and its setup panel instead of the browser-direct key form. Keep that form for developer builds
+  without a dev server. Public mode never uses either. `#gallery-local-inference`
 - `galleryEvents.ts` owns the host measurement contract. `GallerySpeechProvider` takes one optional
   `onEvent`; `createGallerySpeech` derives speech events from phase changes, adapters report the
   demo actions they own, and `GalleryDemoFrame` reports the kind of control clicked. Events carry

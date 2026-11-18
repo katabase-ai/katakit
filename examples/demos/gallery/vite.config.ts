@@ -5,9 +5,12 @@ import react from '@vitejs/plugin-react';
 import { transcriptionAssetsPlugin } from '@katakit/transcription/vite';
 import { copyTranscriptionAssets } from '@katakit/transcription/assets';
 import { resolve } from 'node:path';
+import { katakitInference } from '../notes-react/inference/inferencePlugin';
 
 export default defineConfig({
   plugins: [
+    // First, so its dev-server routes answer before Start and the Workers runtime.
+    katakitInference(),
     cloudflare({ viteEnvironment: { name: 'ssr' } }),
     tanstackStart(),
     react(),

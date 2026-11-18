@@ -23,6 +23,7 @@ import { useGalleryUsage, type GalleryAllowance } from './GalleryUsageProvider';
 import type { GalleryAccount } from './GalleryAccountButton';
 import { useGalleryEvents } from './galleryEvents';
 import { GalleryRunLocally } from './GalleryRunLocally';
+import { useLocalInference } from '../../notes-react/src/inference/localInference';
 import { GalleryTermsContext } from './GalleryTermsContext';
 
 const OperationSetup = lazy(async () => ({
@@ -59,6 +60,7 @@ export const Gallery = ({
   onOpenSettings,
   account,
   sourceRevision,
+  localInference = false,
 }: {
   demos: readonly (typeof galleryDemoDetails)[number][];
   activeDemo?: (typeof galleryDemoDetails)[number];
@@ -97,6 +99,11 @@ export const Gallery = ({
    * matches the demo the visitor used; without one it copies the default branch.
    */
   sourceRevision?: string;
+  /**
+   * The host's Vite dev server runs the model connection plugin. Developer view then uses it in
+   * place of the browser-direct key form, which remains for builds without a dev server.
+   */
+  localInference?: boolean;
 }) => {
   const inheritedTermsUrl = useContext(GalleryTermsContext);
   const effectiveTermsUrl = termsUrl ?? inheritedTermsUrl;
@@ -115,10 +122,22 @@ export const Gallery = ({
     content.current?.scrollTo({ top: 0 });
   }, [activeDemoId, developerPage, settingsPage]);
   const sourceSignal = inference?.owner.getSignal();
-  const usesDeveloperKey = isDeveloperView && inference?.settings.source === 'key';
+  const usesLocalInference = isDeveloperView && localInference;
+  const local = useLocalInference({ enabled: usesLocalInference });
+  const usesDeveloperKey =
+    usesLocalInference || (isDeveloperView && inference?.settings.source === 'key');
   const recordAllowance = usage?.reportAllowance;
   const reportTokenUsage = usage?.reportTokenUsage;
-  const tokenUsage = usesDeveloperKey ? usage?.tokenUsage : undefined;
+  // The dev server counts the tokens its provider reports; the browser-direct key counts its own.
+  const localUsage = local.status?.connection && local.status.usage;
+  const tokenUsage = usesLocalInference
+    ? localUsage && {
+        total: localUsage.inputTokens + localUsage.outputTokens,
+        incomplete: false,
+      }
+    : usesDeveloperKey
+      ? usage?.tokenUsage
+      : undefined;
   const reportAllowance = useCallback(
     (value: GalleryAllowance) => {
       if (!usesDeveloperKey && connectModel && sourceSignal)
@@ -143,6 +162,7 @@ export const Gallery = ({
         ? 'The service returned invalid allowance data.'
         : 'The service has not reported an allowance yet.';
   const connect = useMemo<GalleryModelConnect | undefined>(() => {
+    if (usesLocalInference) return local.connect;
     if (!inference) return undefined;
     const sourceSignal = inference.owner.getSignal();
     if (isDeveloperView && inference.settings.source === 'key')
@@ -164,7 +184,14 @@ export const Gallery = ({
         },
       };
     };
-  }, [connectModel, inference, isDeveloperView, reportTokenUsage]);
+  }, [
+    connectModel,
+    inference,
+    isDeveloperView,
+    reportTokenUsage,
+    usesLocalInference,
+    local.connect,
+  ]);
   // Named only once browser settings have loaded, so it never appears and then vanishes.
   const settingsNotice =
     inference &&
@@ -187,8 +214,11 @@ export const Gallery = ({
       usageUnavailableReason,
       reportAllowance,
       account,
+      localInference: usesLocalInference ? local : undefined,
     }),
     [
+      local,
+      usesLocalInference,
       connect,
       connectModel,
       isDeveloperView,
@@ -261,7 +291,7 @@ export const Gallery = ({
                         key={activeDemo.id}
                         dataHandling={activeDemo.dataHandling}
                         privacyUrl={privacyUrl}
-                        developerEndpoint={isDeveloperView && inference?.settings.source === 'key'}
+                        developerEndpoint={usesDeveloperKey}
                         cloudPrivacyDescription={
                           connectModel &&
                           (!isDeveloperView || inference?.settings.source === 'free')
