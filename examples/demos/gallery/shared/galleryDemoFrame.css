@@ -35,6 +35,11 @@
   grid-row: 1;
   padding-top: 6px;
 }
+.katakit-gallery .gallery-demo-header-actions {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  min-width: 0;
+}
 .katakit-gallery .gallery-demo-header-badge .gallery-privacy-row {
   margin: 0;
 }
@@ -81,6 +86,7 @@
     justify-self: start;
     padding-top: 0;
   }
+  .katakit-gallery .gallery-demo-header-actions { grid-row: 4; }
   .katakit-gallery .gallery-demo-header-badge .gallery-privacy-panel {
     inset-inline-start: 0;
     inset-inline-end: auto;

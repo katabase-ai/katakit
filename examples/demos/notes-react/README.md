@@ -1,6 +1,19 @@
 # Structured notes
 
-## Prepare an independent copy
+## Run it locally
+
+Copy this demo from GitHub and start it. You need Node.js 24 or newer and pnpm:
+
+```sh
+npx degit katabase-ai/katakit/examples/demos/notes-react structured-notes
+cd structured-notes
+pnpm install
+pnpm dev
+```
+
+The gallery's **Run locally** control shows the same command and a prompt for a coding agent.
+
+## Prepare an independent copy from a checkout
 
 From an installed Katakit checkout, run:
 
