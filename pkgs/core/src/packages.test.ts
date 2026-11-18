@@ -17,7 +17,7 @@ import { promisify } from 'node:util';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 
 const run = promisify(execFile);
-const packageNames = ['core', 'event-log', 'persistence', 'react'];
+const packageNames = ['core', 'event-log', 'persistence', 'react', 'transcript-ingestion'];
 const repository = fileURLToPath(new URL('../../../', import.meta.url));
 
 type Manifest = {
@@ -216,12 +216,30 @@ describe('published packages', () => {
     await expect(access(join(directory, 'dist', 'index.d.ts'))).resolves.toBeUndefined();
     await expect(access(join(directory, 'src'))).rejects.toMatchObject({ code: 'ENOENT' });
     expect(
-      Object.values(manifest?.dependencies ?? {}).some(version => version.startsWith('workspace:'))
+      Object.values({
+        ...manifest?.dependencies,
+        ...manifest?.peerDependencies,
+      }).some(version => version.startsWith('workspace:'))
     ).toBe(false);
     const local = JSON.parse(
       await readFile(join(repository, 'pkgs', name, 'package.json'), 'utf8')
     );
     expect(local.exports['.'].source).toBe('./src/index.ts');
+  });
+
+  test.each([
+    ['event-log', ['core']],
+    ['persistence', ['core', 'event-log']],
+    ['react', ['core']],
+    ['transcript-ingestion', ['core']],
+  ] as const)('%s publishes Katakit requirements as peer dependencies', (name, peers) => {
+    const manifest = manifests[name]!;
+    expect(
+      Object.keys(manifest.dependencies ?? {}).filter(name => name.startsWith('@katakit/'))
+    ).toEqual([]);
+    for (const peer of peers) {
+      expect(manifest.peerDependencies?.[`@katakit/${peer}`]).toBe(`^${manifests[peer]!.version}`);
+    }
   });
 
   test.each([false, true])(

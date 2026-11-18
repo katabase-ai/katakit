@@ -12,15 +12,15 @@ pnpm build
 pnpm preview
 ```
 
-The copy includes built Katakit tarballs and local dependency overrides while the libraries
-are unpublished. Keep `vendor/` with it. The gallery also carries its composed demo sources under `sources/` and plain shared CSS under `styles/`.
-No original checkout is needed after copying. Follow the platform and hosting instructions below.
+Katakit `0.0.0` is not yet published on npm; standalone installation requires its publication.
+The gallery copy includes demo sources under `sources/` and shared CSS under `styles/`.
 
 This is the local TanStack Start host for the React demo gallery. It runs without the private
 website, account credentials, or a model-provider key. Install dependencies from the Katakit root:
 
 ```sh
 pnpm install --frozen-lockfile
+pnpm build:pkgs
 pnpm -F @katakit/gallery dev
 ```
 
@@ -40,7 +40,8 @@ that entry when adopting this source revision. This does not remove the website'
 ## Build and inspect
 
 ```sh
-pnpm --filter @katakit/gallery... build
+pnpm build:pkgs
+pnpm --filter @katakit/gallery build
 pnpm --filter @katakit/gallery tsc
 pnpm --filter @katakit/gallery preview
 ```
@@ -48,7 +49,8 @@ pnpm --filter @katakit/gallery preview
 Open <http://127.0.0.1:4348>. The `preview` command serves the last built artifact using the local
 Workers runtime; it does not select the gallery mode. A normal build is public. No Cloudflare
 login or credentials are needed for local development or serving a local build.
-Use `pnpm --filter @katakit/gallery... build` to build the gallery and its upstream packages in dependency order.
+Build libraries explicitly before the gallery: dependency filters can omit local packages
+while the examples' registry pins lag behind local versions.
 The gallery build itself does not rebuild shared assets while sibling apps may be copying them.
 
 The `pnpm-workspace.yaml` build allowance for `workerd` installs the local runtime binary.

@@ -43,13 +43,17 @@ jobs:
       - name: Check documentation
         if: matrix.site == 'Docs'
         run: pnpm -F @katakit/docs check
-      # Build the local viewers and their dependencies; Start emits the gallery Worker configuration.
+      # Registry pins can lag local versions, so dependency filters may omit these libraries.
+      - name: Build gallery libraries
+        if: matrix.site == 'Gallery'
+        run: pnpm build:pkgs
+      # Start emits the gallery Worker configuration.
       - name: Build preview
         # Gallery PR deployments expose developer tools and the header's public Preview toggle.
         # Scope this opt-in to PR builds; ordinary production builds remain public.
         env:
           VITE_GALLERY_DEV_MODE: ${{ matrix.site == 'Gallery' && 'true' || 'false' }}
-        run: pnpm --filter '${{ matrix.package }}...' build
+        run: pnpm --filter '${{ matrix.package }}' build
       - name: Report fork deployment limitation
         if: github.event.pull_request.head.repo.full_name != github.repository
         run: echo 'Fork PRs build both viewers but cannot upload previews without repository credentials.' >> "$GITHUB_STEP_SUMMARY"

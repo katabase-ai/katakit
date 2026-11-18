@@ -48,8 +48,9 @@ update their aliases independently of these default deployments.
 
    ```sh
    pnpm install --frozen-lockfile
-   pnpm --filter @katakit/docs... build
-   pnpm --filter @katakit/gallery... build
+   pnpm build:pkgs
+   pnpm --filter @katakit/docs build
+   pnpm --filter @katakit/gallery build
    pnpm exec wrangler deploy --config wrangler.docs.jsonc
    pnpm exec wrangler deploy --config examples/demos/gallery/dist/server/wrangler.json
    ```

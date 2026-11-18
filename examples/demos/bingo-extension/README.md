@@ -12,9 +12,7 @@ pnpm build
 pnpm test
 ```
 
-The copy includes built Katakit tarballs and local dependency overrides while the libraries
-are unpublished. Keep `vendor/` with it. All application source stays in this directory.
-No original checkout is needed after copying. Follow the platform and hosting instructions below.
+Katakit `0.0.0` is not yet published on npm; standalone installation requires its publication.
 
 ## Standalone setup
 
@@ -22,44 +20,6 @@ Use Node.js 24 or newer and pnpm 11.9.0. Copy this entire directory anywhere out
 repository; no gallery, sibling example, or shared application UI is needed.
 React, React-RxJS, Vite, TypeScript, and the utility dependencies are declared
 in `package.json`.
-
-The utility dependencies `@katakit/core`, `@katakit/transcript-ingestion`, and
-`@katakit/transcription` are currently version `0.0.0` and are not yet available on the public npm registry. Until they
-are published, create installable tarballs from a checkout of this repository:
-
-```sh
-# In the repository root:
-pnpm install
-pnpm --filter @katakit/core build
-pnpm --filter @katakit/transcript-ingestion build
-pnpm --filter @katakit/transcription build
-mkdir -p /tmp/example-utilities
-pnpm --filter @katakit/core pack --pack-destination /tmp/example-utilities
-pnpm --filter @katakit/transcript-ingestion pack --pack-destination /tmp/example-utilities
-pnpm --filter @katakit/transcription pack --pack-destination /tmp/example-utilities
-```
-
-In the copied example directory, install those artifacts:
-
-```sh
-mkdir -p vendor
-cp /tmp/example-utilities/*.tgz vendor/
-```
-
-Append these overrides to the copied example's `pnpm-workspace.yaml` so both
-its direct and transitive utility dependencies resolve to the local artifacts:
-
-```yaml
-overrides:
-  '@katakit/core': file:vendor/katakit-core-0.0.0.tgz
-  '@katakit/transcript-ingestion': file:vendor/katakit-transcript-ingestion-0.0.0.tgz
-  '@katakit/transcription': file:vendor/katakit-transcription-0.0.0.tgz
-```
-
-Then run `pnpm install` in the copied directory. Keep `vendor/` with the example
-when moving it again; its source and installed dependencies no longer need the
-repository. Once compatible utility versions are published, ordinary
-registry versions can be used instead.
 
 Build from the copied example directory:
 
