@@ -1,13 +1,7 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useId,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react';
-import { createPortal } from 'react-dom';
+import { createContext, useCallback, useContext, useRef, type ReactNode } from 'react';
+import type { GalleryOperation } from './operationDetails';
+import type { GalleryAllowance } from './GalleryUsageProvider';
+import type { GalleryAccount } from './GalleryAccountButton';
 
 /** Only failures a host marks retryable are retried automatically; the rest need a click. */
 export class GalleryModelError extends Error {
@@ -52,53 +46,45 @@ export type GalleryModelConnect = (input: {
   onAllowance: (allowance: { remaining: number; total: number }) => void;
 }) => Promise<GalleryModelConnection>;
 
-/** `Gallery` provides this; `GallerySpeechControls` registers the element demos portal into. */
+/** `Gallery` selects either the host connection or the visitor-key transport. */
 export const GalleryModelContext = createContext<{
   connect?: GalleryModelConnect;
-  controls?: HTMLElement;
-  setControls?: (node: HTMLElement | null) => void;
+  hostAvailable?: boolean;
+  isDeveloperView?: boolean;
+  configure?: (operation?: GalleryOperation) => void;
+  openSettings?: () => void;
+  allowance?: GalleryAllowance;
+  usageUnavailableReason?: string;
+  reportAllowance?: (allowance: GalleryAllowance) => void;
+  account?: GalleryAccount;
 }>({});
 
 /**
  * One demo visit's use of the host's model connection. Its controls, the host's browser
- * check, and the usage meter render beside the shared speech controls, outside the demo view.
+ * check render inside the demo view; host allowance is shared with the footer.
  */
 export const useGalleryModel = () => {
-  const { connect, controls: target } = useContext(GalleryModelContext);
+  const { connect, isDeveloperView, configure, reportAllowance } = useContext(GalleryModelContext);
   const verification = useRef<HTMLDivElement>(null);
-  const [allowance, setAllowance] = useState<{ remaining: number; total: number }>();
-  const usageId = useId();
   const connectVisit = useCallback(
     ({ signal }: { signal: AbortSignal }) =>
-      connect!({ signal, verification: verification.current!, onAllowance: setAllowance }),
-    [connect]
+      connect!({
+        signal,
+        verification: verification.current!,
+        onAllowance: value => {
+          if (!signal.aborted) reportAllowance?.(value);
+        },
+      }),
+    [connect, reportAllowance]
   );
   return {
     connect: connect && connectVisit,
-    renderControls: (controls: ReactNode) =>
-      target &&
-      createPortal(
-        <>
-          {controls}
-          <div ref={verification} aria-label="Browser verification" />
-          {allowance && (
-            <div className="gallery-model-allowance">
-              <div className="gallery-model-allowance-label">
-                <span id={usageId}>Usage</span>
-                <span>
-                  {allowance.remaining} / {allowance.total} requests left
-                </span>
-              </div>
-              <progress
-                aria-labelledby={usageId}
-                value={allowance.remaining}
-                max={allowance.total}
-                aria-valuetext={`${allowance.remaining} of ${allowance.total} requests left`}
-              />
-            </div>
-          )}
-        </>,
-        target
-      ),
+    configure: isDeveloperView ? configure : undefined,
+    renderControls: (controls: ReactNode) => (
+      <>
+        {controls}
+        <div ref={verification} aria-label="Browser verification" />
+      </>
+    ),
   };
 };

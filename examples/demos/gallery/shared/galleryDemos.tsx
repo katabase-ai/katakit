@@ -1,12 +1,18 @@
 import { lazy } from 'react';
-import { galleryDemoDetails } from './galleryDemoDetails';
+import {
+  transcriptionDemoDetails,
+  bingoDemoDetails,
+  notesDemoDetails,
+  colorClashDemoDetails,
+} from './galleryDemoDetails';
+import { GalleryCaptureControls } from './GalleryCaptureControls';
 import { GalleryDemo } from './GalleryDemo';
 import { TranscriptionIntroduction, TranscriptionSetupComplete } from './TranscriptionIntroduction';
 
 // Named entries let another host import only its selected demos. Lazy construction is inert,
 // so unused eligible entries can be removed without retaining their module loaders.
 export const transcriptionGalleryDemo = {
-  ...galleryDemoDetails[0],
+  ...transcriptionDemoDetails,
   component: /* @__PURE__ */ lazy(async () => {
     const [{ TranscriptionDemo }, { createTranscriptionDemo }] = await Promise.all([
       import('../../transcription-react/src/TranscriptionDemo'),
@@ -19,6 +25,7 @@ export const transcriptionGalleryDemo = {
           render={runtime => (
             <TranscriptionDemo
               runtime={runtime}
+              controls={<GalleryCaptureControls />}
               introduction={<TranscriptionIntroduction />}
               afterFirstSpeech={<TranscriptionSetupComplete />}
             />
@@ -29,7 +36,7 @@ export const transcriptionGalleryDemo = {
   }),
 };
 export const bingoGalleryDemo = {
-  ...galleryDemoDetails[1],
+  ...bingoDemoDetails,
   component: /* @__PURE__ */ lazy(async () => {
     const [{ BrowserBingoDemo }, { createBrowserBingoDemo }] = await Promise.all([
       import('../../bingo-react/src/BrowserBingoDemo'),
@@ -39,16 +46,29 @@ export const bingoGalleryDemo = {
       default: () => (
         <GalleryDemo
           create={createBrowserBingoDemo}
-          render={runtime => <BrowserBingoDemo runtime={runtime} />}
+          render={runtime => (
+            <BrowserBingoDemo runtime={runtime} controls={<GalleryCaptureControls />} />
+          )}
         />
       ),
     };
   }),
 };
 export const notesGalleryDemo = {
-  ...galleryDemoDetails[2],
+  ...notesDemoDetails,
   component: /* @__PURE__ */ lazy(async () => ({
     default: (await import('./NotesGalleryDemo')).NotesGalleryDemo,
   })),
 };
-export const galleryDemos = [transcriptionGalleryDemo, bingoGalleryDemo, notesGalleryDemo];
+export const colorClashGalleryDemo = {
+  ...colorClashDemoDetails,
+  component: /* @__PURE__ */ lazy(async () => ({
+    default: (await import('./ColorClashGalleryDemo')).ColorClashGalleryDemo,
+  })),
+};
+export const galleryDemos = [
+  transcriptionGalleryDemo,
+  bingoGalleryDemo,
+  notesGalleryDemo,
+  colorClashGalleryDemo,
+];

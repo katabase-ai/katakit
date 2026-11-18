@@ -2,9 +2,9 @@ import { useCallback } from 'react';
 import { createNotesDemo } from '../../notes-react/src/createNotesDemo';
 import { NotesDemo } from '../../notes-react/src/NotesDemo';
 import { NotesRequestError } from '../../notes-react/src/notesModel';
+import { GalleryCaptureControls } from './GalleryCaptureControls';
 import { GalleryDemo } from './GalleryDemo';
 import { GalleryModelError, useGalleryModel } from './galleryModel';
-import { useGallerySpeech } from './GallerySpeechProvider';
 
 // The copyable example recognizes only its own error class, so host failures are rethrown as it.
 const toNotesError = (error: unknown) =>
@@ -12,7 +12,6 @@ const toNotesError = (error: unknown) =>
 
 /** The gallery's host supplies model admission; shared speech attaches only to this visit's runtime. */
 export const NotesGalleryDemo = () => {
-  const session = useGallerySpeech();
   const model = useGalleryModel();
   const connectGallery = model.connect;
   const connect = useCallback(
@@ -41,7 +40,23 @@ export const NotesGalleryDemo = () => {
       render={runtime => (
         <NotesDemo
           runtime={runtime}
-          listening={session?.snapshot.input.phase === 'running'}
+          connectionHelp={
+            model.configure ? (
+              <p>
+                No inference is configured. You can still transcribe locally.{' '}
+                <button
+                  type="button"
+                  className="site-button"
+                  onClick={() => model.configure?.('inference')}
+                >
+                  Configure inference
+                </button>
+              </p>
+            ) : (
+              <p>Free inference is not available here. You can still transcribe locally.</p>
+            )
+          }
+          controls={<GalleryCaptureControls />}
           connect={connectGallery && connect}
           renderModelControls={model.renderControls}
         />

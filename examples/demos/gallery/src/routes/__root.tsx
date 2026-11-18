@@ -1,5 +1,8 @@
 import { createRootRoute, HeadContent, Scripts, Outlet, Link } from '@tanstack/react-router';
 import '../style.css';
+import { GalleryHeader } from '../GalleryHeader';
+import { GalleryModeProvider } from '../../shared/GalleryModeProvider';
+import { galleryDeveloperBuild } from '../galleryEnvironment';
 import { GallerySpeechProvider } from '../../shared/GallerySpeechProvider';
 
 export const Route = createRootRoute({
@@ -16,16 +19,16 @@ export const Route = createRootRoute({
         <HeadContent />
       </head>
       <body>
-        <div className="gallery-host">
-          <header className="gallery-header">
-            <Link to="/">Katakit · Demos</Link>
-          </header>
-          <main>
-            <GallerySpeechProvider>
-              <Outlet />
-            </GallerySpeechProvider>
-          </main>
-        </div>
+        <GallerySpeechProvider>
+          <GalleryModeProvider developerMode={galleryDeveloperBuild}>
+            <div className="gallery-host">
+              <GalleryHeader />
+              <main>
+                <Outlet />
+              </main>
+            </div>
+          </GalleryModeProvider>
+        </GallerySpeechProvider>
         <Scripts />
       </body>
     </html>

@@ -13,7 +13,7 @@ pnpm dev
 ```
 
 This React example turns on-device speech recognition into a two-level outline rendered as Markdown.
-Starting the microphone connects the model automatically. Finalized turns trigger requests. Later speech can correct a
+Start listening captures locally; **Start notes** connects the model. Finalized turns then trigger requests. Later speech can correct a
 misheard name in an existing note. The transcript keeps the original recognition text.
 
 ## Run the standalone example
@@ -34,8 +34,8 @@ connection. A public host should supply anonymous admission through its own prox
 
 The dev server serves the packaged worker/WASM assets and cross-origin isolation headers.
 Click **Start listening** to load the recognizer and request microphone access. Audio stays on-device.
-Once listening starts, the example connects to your model endpoint and sends finalized transcript
-turns with the existing outline. A hosted connection may require browser verification first.
+Choose **Start notes** to connect to your model endpoint and send finalized transcript
+turns with the existing outline. **Pause notes** stops remote work while local capture continues. A hosted connection may require browser verification first.
 
 ## Embed the example
 
@@ -46,7 +46,7 @@ A host can consume them through an exact source pin without publishing a demo pa
 connection, the public gallery still demonstrates transcription.
 
 `renderModelControls` receives connection status, retry buttons, and errors. The gallery uses it
-to place them beside its shared speech controls with the host's browser check and a usage meter.
+to render them inside the demo with the host’s browser check and a usage meter.
 Without this callback, controls render above the outline. Usage is measured in requests. Errors
 and allowance never become note content.
 
@@ -72,10 +72,12 @@ import { App } from './src/App';
 />;
 ```
 
-`connect` runs once the microphone is listening, never on page load, model download, or pending
-microphone permission. It may run again on an explicit connection retry or session restart.
+`connect` runs only on **Start notes**, never on page load, model download, microphone permission,
+or capture start. Pause notes aborts model work without clearing content. Changing the `connect`
+function also pauses admission and inference; memoize it in hosts and require Start notes to resume.
+It may run again on an explicit connection retry or session restart.
 Stop/start reuses admission and the connection, including failed or exhausted sessions.
-Stopping capture still lets its final turns produce notes. The host owns authorization and transport errors.
+Once notes have been started, stopping capture still lets its final turns produce notes. The host owns authorization and transport errors.
 `NotesRequestError` supplies bounded retry, terminal, and explicit restart policies.
 Quota exhaustion should be terminal and never clearable. Only a context-limit failure is clearable.
 An optional `reportFailure` callback receives `NotesRequestError` after transport or validation

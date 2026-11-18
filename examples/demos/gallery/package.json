@@ -20,6 +20,7 @@
     "@toon-format/toon": "2.1.0",
     "@valibot/to-json-schema": "1.7.1",
     "es-toolkit": "^1.39.8",
+    "lucide-react": "1.70.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",

@@ -10,7 +10,6 @@ export const App = ({ connect }: Pick<ComponentProps<typeof NotesDemo>, 'connect
   return (
     <NotesDemo
       runtime={microphone.sink}
-      listening={microphone.listening}
       connect={connect}
       controls={
         <div className="structured-notes-controls">

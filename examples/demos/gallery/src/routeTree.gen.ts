@@ -9,12 +9,30 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as OperationsSetupRouteImport } from './routes/operations.setup'
+import { Route as OperationsGridRouteImport } from './routes/operations.grid'
 import { Route as DemosDemoIdRouteImport } from './routes/demos.$demoId'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OperationsSetupRoute = OperationsSetupRouteImport.update({
+  id: '/operations/setup',
+  path: '/operations/setup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OperationsGridRoute = OperationsGridRouteImport.update({
+  id: '/operations/grid',
+  path: '/operations/grid',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemosDemoIdRoute = DemosDemoIdRouteImport.update({
@@ -25,37 +43,86 @@ const DemosDemoIdRoute = DemosDemoIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/demos/$demoId': typeof DemosDemoIdRoute
+  '/operations/grid': typeof OperationsGridRoute
+  '/operations/setup': typeof OperationsSetupRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/demos/$demoId': typeof DemosDemoIdRoute
+  '/operations/grid': typeof OperationsGridRoute
+  '/operations/setup': typeof OperationsSetupRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRoute
   '/demos/$demoId': typeof DemosDemoIdRoute
+  '/operations/grid': typeof OperationsGridRoute
+  '/operations/setup': typeof OperationsSetupRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/demos/$demoId'
+  fullPaths:
+    | '/'
+    | '/settings'
+    | '/demos/$demoId'
+    | '/operations/grid'
+    | '/operations/setup'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demos/$demoId'
-  id: '__root__' | '/' | '/demos/$demoId'
+  to:
+    | '/'
+    | '/settings'
+    | '/demos/$demoId'
+    | '/operations/grid'
+    | '/operations/setup'
+  id:
+    | '__root__'
+    | '/'
+    | '/settings'
+    | '/demos/$demoId'
+    | '/operations/grid'
+    | '/operations/setup'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SettingsRoute: typeof SettingsRoute
   DemosDemoIdRoute: typeof DemosDemoIdRoute
+  OperationsGridRoute: typeof OperationsGridRoute
+  OperationsSetupRoute: typeof OperationsSetupRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operations/setup': {
+      id: '/operations/setup'
+      path: '/operations/setup'
+      fullPath: '/operations/setup'
+      preLoaderRoute: typeof OperationsSetupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/operations/grid': {
+      id: '/operations/grid'
+      path: '/operations/grid'
+      fullPath: '/operations/grid'
+      preLoaderRoute: typeof OperationsGridRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demos/$demoId': {
@@ -70,7 +137,10 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SettingsRoute: SettingsRoute,
   DemosDemoIdRoute: DemosDemoIdRoute,
+  OperationsGridRoute: OperationsGridRoute,
+  OperationsSetupRoute: OperationsSetupRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

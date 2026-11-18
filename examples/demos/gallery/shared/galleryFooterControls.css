@@ -1,0 +1,182 @@
+.katakit-gallery .gallery-footer-controls {
+  --gallery-usage-color: var(--color-accent);
+  display: grid;
+  gap: 0.5rem;
+}
+.katakit-gallery :is(.gallery-footer-controls, .gallery-settings-allowance)[data-usage-phase='warning'] {
+  --gallery-usage-color: light-dark(rgb(166 119 0), rgb(242 198 57));
+}
+.katakit-gallery :is(.gallery-footer-controls, .gallery-settings-allowance)[data-usage-phase='exhausted'] {
+  --gallery-usage-color: light-dark(rgb(205 39 35), rgb(255 85 78));
+}
+.katakit-gallery .gallery-footer-controls .gallery-speech-indicators {
+  justify-content: space-between;
+  margin: 0;
+}
+.katakit-gallery .gallery-account {
+  --gallery-tooltip-anchor: 16px;
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+}
+.katakit-gallery .gallery-footer-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--color-rule);
+  border-radius: 50%;
+  background: var(--color-paper-3);
+  color: var(--color-muted);
+  font: inherit;
+  cursor: pointer;
+}
+.katakit-gallery .gallery-footer-icon:hover {
+  border-color: var(--color-accent);
+  color: var(--color-ink);
+}
+.katakit-gallery .gallery-footer-icon svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+.katakit-gallery .gallery-account-tooltip {
+  --gallery-tooltip-max-width: min(12rem, calc(100vw - 2rem));
+}
+.katakit-gallery .gallery-account-avatar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.katakit-gallery .gallery-account-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+.katakit-gallery .gallery-account-plus {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--color-paper);
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: white;
+}
+.katakit-gallery .gallery-account-plus svg {
+  width: 10px;
+  height: 10px;
+  stroke-width: 3;
+}
+.katakit-gallery .gallery-footer-controls[data-usage-phase='exhausted'] .gallery-account-plus {
+  width: 18px;
+  height: 18px;
+}
+.katakit-gallery .gallery-footer-controls[data-usage-phase='exhausted'] .gallery-account-plus svg {
+  width: 12px;
+  height: 12px;
+}
+.katakit-gallery .gallery-footer-controls[data-guest='true']:is([data-usage-phase='warning'], [data-usage-phase='exhausted']) .gallery-account-plus {
+  animation: gallery-account-pulse 2.272s ease-in-out infinite;
+}
+@keyframes gallery-account-pulse {
+  0%, 40.845%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 transparent;
+  }
+  66.197% {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--color-accent) 22%, transparent);
+  }
+}
+.katakit-gallery .gallery-usage-meter,
+.katakit-gallery .gallery-usage-error-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-muted);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+.katakit-gallery .gallery-usage-meter progress {
+  flex: 1;
+  width: 0;
+  height: 6px;
+  appearance: none;
+  border: 0;
+  border-radius: 1rem;
+  overflow: hidden;
+  background: var(--color-rule);
+}
+.katakit-gallery .gallery-usage-meter progress::-webkit-progress-bar {
+  background: var(--color-rule);
+}
+.katakit-gallery .gallery-usage-meter progress::-webkit-progress-value {
+  background: var(--gallery-usage-color);
+}
+.katakit-gallery .gallery-usage-meter progress::-moz-progress-bar {
+  background: var(--gallery-usage-color);
+}
+.katakit-gallery .gallery-usage-percent {
+  min-width: 4ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--gallery-usage-color);
+}
+.katakit-gallery .gallery-usage-unavailable > .gallery-tooltip {
+  display: flex;
+}
+.katakit-gallery .gallery-usage-error-button svg {
+  width: 14px;
+  height: 14px;
+}
+.katakit-gallery .gallery-account-panel {
+  --gallery-panel-padding: 0.75rem;
+  --gallery-panel-radius: 0.5rem;
+  position: absolute;
+  z-index: 7;
+  right: 0;
+  bottom: calc(100% + 0.625rem);
+  display: grid;
+  gap: 0.5rem;
+  width: 13rem;
+  max-width: calc(100vw - 2rem);
+  box-shadow: 0 4px 18px rgb(0 0 0 / 12%);
+}
+.katakit-gallery .gallery-account-panel p {
+  margin: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .katakit-gallery .gallery-account-plus {
+    animation: none !important;
+  }
+}
+@media (pointer: coarse) {
+  .katakit-gallery .gallery-account {
+    --gallery-tooltip-anchor: 22px;
+  }
+  .katakit-gallery .gallery-footer-icon {
+    width: 44px;
+    height: 44px;
+  }
+  .katakit-gallery .gallery-usage-meter,
+  .katakit-gallery .gallery-usage-error-button {
+    min-height: 44px;
+  }
+}

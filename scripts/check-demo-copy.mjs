@@ -50,7 +50,28 @@ const checkServer = async (cwd, gallery) => {
     const asset = await fetch('http://127.0.0.1:14347/transcription-assets/microphone-worklet.js');
     if (!asset.ok || !(await asset.text()).includes('AudioWorkletProcessor'))
       throw new Error('Invalid worklet response');
-    console.log(`HTTP smoke passed: ${cwd}, document, COOP/COEP, worklet`);
+    if (gallery) {
+      // The default skin must work in a copied host, including locally served fonts/licenses.
+      for (const file of [
+        'inter.woff2',
+        'plus-jakarta-sans.woff2',
+        'jetbrains-0.ttf',
+        'inter-OFL.txt',
+        'plus-jakarta-sans-OFL.txt',
+        'jetbrains-OFL.txt',
+      ]) {
+        const font = await fetch(`http://127.0.0.1:14347/fonts/${file}`);
+        if (
+          !font.ok ||
+          font.headers.get('content-type')?.includes('text/html') ||
+          (await font.arrayBuffer()).byteLength < 1000
+        )
+          throw new Error(`Missing gallery font asset: ${file}`);
+      }
+    }
+    console.log(
+      `HTTP smoke passed: ${cwd}, document, COOP/COEP, worklet${gallery ? ', fonts/licenses' : ''}`
+    );
   } finally {
     if (server.exitCode === null) {
       const stopped = new Promise(resolve => server.once('exit', resolve));
