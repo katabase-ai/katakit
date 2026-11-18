@@ -15,6 +15,7 @@ test('signup and sign-in use the host actions without exposing provider configur
     </GalleryModelContext>
   );
   expect(screen.getByRole('heading', { name: 'Every demo. One Katabase account.' })).toBeDefined();
+  expect(screen.queryByText(/access to developer tools/i)).toBeNull();
   fireEvent.click(screen.getByRole('button', { name: 'Create an account' }));
   fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
   expect(onCreateAccount).toHaveBeenCalledOnce();
