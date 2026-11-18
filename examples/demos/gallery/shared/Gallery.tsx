@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useMemo, type ReactNode } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, type ReactNode } from 'react';
 import type { galleryDemoDetails } from './galleryDemoDetails';
 import { GalleryModelContext, type GalleryModelConnect } from './galleryModel';
 import { useGalleryInference } from './GalleryInferenceProvider';
@@ -12,6 +12,7 @@ import { useGalleryMode } from './GalleryModeProvider';
 import type { GalleryDeveloperPage, GalleryOperation } from './operationDetails';
 import { useGalleryUsage, type GalleryAllowance } from './GalleryUsageProvider';
 import type { GalleryAccount } from './GalleryAccountButton';
+import { useGalleryEvents } from './galleryEvents';
 
 const OperationSetup = lazy(async () => ({
   default: (await import('./GalleryOperations')).GalleryOperationSetup,
@@ -77,6 +78,12 @@ export const Gallery = ({
   const inference = useGalleryInference();
   const { isDeveloperView } = useGalleryMode();
   const usage = useGalleryUsage();
+  const { setActiveDemo } = useGalleryEvents();
+  const activeDemoId = activeDemo?.id;
+  useEffect(() => {
+    setActiveDemo(activeDemoId);
+    return () => setActiveDemo(undefined);
+  }, [setActiveDemo, activeDemoId]);
   const sourceSignal = inference?.owner.getSignal();
   const usesDeveloperKey = isDeveloperView && inference?.settings.source === 'key';
   const recordAllowance = usage?.reportAllowance;

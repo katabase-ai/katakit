@@ -6,6 +6,7 @@ import {
   type TranscriptionModelId,
 } from '@katakit/transcription/browser';
 import type { TranscriptionState } from '@katakit/transcription';
+import type { GalleryEvent } from './galleryEvents';
 
 /** Each attachment owns its conversation/runtime; the gallery owns capture and recognition. */
 export type GalleryInputSink = {
@@ -37,7 +38,15 @@ type Snapshot = {
  */
 export const createGallerySpeech = ({
   createTranscriber = createMicrophoneTranscriber,
-}: { createTranscriber?: typeof createMicrophoneTranscriber } = {}) => {
+  onEvent,
+  getDemoId,
+}: {
+  createTranscriber?: typeof createMicrophoneTranscriber;
+  /** Reports model load, microphone, and recording outcomes; never recognized text. */
+  onEvent?: (event: GalleryEvent) => void;
+  /** The demo a recording belongs to, read when it starts so a later navigation cannot relabel it. */
+  getDemoId?: () => string | undefined;
+} = {}) => {
   let snapshot: Snapshot = {
     model: defaultTranscriptionModel,
     input: { phase: 'idle' },
@@ -62,6 +71,65 @@ export const createGallerySpeech = ({
   let wantsRecording = false;
   let pendingDisposal: Promise<void> | undefined;
   const message = (error: unknown) => (error instanceof Error ? error.message : String(error));
+  let loadStartedAt: number | undefined;
+  let microphoneRequested = false;
+  let recording: { startedAt: number; segmentCount: number; demoId?: string } | undefined;
+  /** Derives host events from one phase change. `cancelled` marks a visitor's own cancellation. */
+  const reportPhase = (next: TranscriptionState, cancelled = false) => {
+    if (!onEvent) return;
+    const model = snapshot.model;
+    const demoId = getDemoId?.();
+    const errorCode = next.error ? { errorCode: next.error.code } : {};
+    if (next.phase === 'loading') {
+      loadStartedAt ??= performance.now();
+      return;
+    }
+    if (loadStartedAt !== undefined) {
+      onEvent({
+        type: 'speechModelLoadFinished',
+        model,
+        outcome: cancelled ? 'cancelled' : next.phase === 'error' ? 'failed' : 'completed',
+        durationMs: Math.round(performance.now() - loadStartedAt),
+        ...errorCode,
+        demoId,
+      });
+      loadStartedAt = undefined;
+    }
+    if (next.phase === 'starting') {
+      if (!microphoneRequested) onEvent({ type: 'microphoneRequested', model, demoId });
+      microphoneRequested = true;
+      return;
+    }
+    if (microphoneRequested) {
+      microphoneRequested = false;
+      onEvent({
+        type: 'microphoneAnswered',
+        outcome:
+          next.phase === 'running'
+            ? 'granted'
+            : cancelled || !next.error
+              ? 'cancelled'
+              : next.error.code === 'microphone-permission-denied'
+                ? 'denied'
+                : 'unavailable',
+        ...errorCode,
+        demoId,
+      });
+    }
+    if (next.phase === 'running' && !recording) {
+      recording = { startedAt: performance.now(), segmentCount: 0, demoId };
+      onEvent({ type: 'recordingStarted', model, demoId });
+    } else if (recording && !['running', 'stopping'].includes(next.phase)) {
+      onEvent({
+        type: 'recordingStopped',
+        model,
+        durationMs: Math.round(performance.now() - recording.startedAt),
+        segmentCount: recording.segmentCount,
+        demoId: recording.demoId,
+      });
+      recording = undefined;
+    }
+  };
   const enqueue = <T>(action: () => Promise<T>) => {
     const previous = queue;
     const operation = (async () => {
@@ -86,6 +154,7 @@ export const createGallerySpeech = ({
     const current = createTranscriber({
       model: snapshot.model,
       onState: input => {
+        if (helper === current) reportPhase(input);
         if (helper === current)
           update({
             input,
@@ -100,8 +169,10 @@ export const createGallerySpeech = ({
         if (helper === current) update({ level });
       },
       onFinal: segment => {
-        if (helper === current && capture?.sourceId === segment.sourceId)
+        if (helper === current && capture?.sourceId === segment.sourceId) {
+          if (recording) recording.segmentCount += 1;
           capture.sink.ingestSegment(segment);
+        }
       },
       onProvisional: text => {
         if (helper === current) capture?.sink.updateProvisional(text);
@@ -119,6 +190,7 @@ export const createGallerySpeech = ({
     if (!helper || !['loading', 'starting'].includes(snapshot.input.phase)) return;
     const current = helper;
     helper = undefined;
+    reportPhase({ phase: 'idle' }, true);
     pendingDisposal = (async () => {
       try {
         await current.dispose();
@@ -259,6 +331,7 @@ export const createGallerySpeech = ({
           microphoneVerified: false,
           modelDownloaded: false,
         });
+        onEvent?.({ type: 'speechModelChanged', model, demoId: getDemoId?.() });
       }),
     dispose: () => {
       disposed = true;

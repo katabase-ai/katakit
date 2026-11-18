@@ -190,6 +190,15 @@ separate histories, final-result ordering, timer cleanup, model retention/replac
 attachments, load retry, and Strict Mode cleanup. Standalone entry points own local capture using
 the same instance-owned views; they do not import this gallery.
 
+A host that measures usage passes `onEvent` to `GallerySpeechProvider`; see
+`shared/galleryEvents.ts` for the events. The speech owner reports model changes, model-download
+outcomes, microphone requests and answers, and each recording's duration and finalized segment
+count. Gallery adapters report the demo actions they own, and the demo frame reports which kind
+of control was clicked inside a demo. Each event carries the active demo's ID; a recording keeps
+the demo it started in. Events hold keys, error codes, counts, and durations only. They never
+hold audio, transcript text, prompts, model output, or control labels. A handler that throws does
+not affect capture. The local host passes no handler.
+
 A host passes one `connectModel` to `Gallery` for its model admission/transport; see
 `shared/galleryModel.tsx` for the contract. Every entry with the `remoteModel` capability uses it,
 so a new such demo needs no host code. Without a connected host, notes explains that managed

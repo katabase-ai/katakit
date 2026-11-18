@@ -6,6 +6,7 @@ import { GalleryCaptureControls } from './GalleryCaptureControls';
 import { GalleryDemo } from './GalleryDemo';
 import { GalleryModelError, useGalleryModel } from './galleryModel';
 import { useGalleryDemoHeader } from './GalleryDemoHeader';
+import { useGalleryEvents } from './galleryEvents';
 
 // The copyable example recognizes only its own error class, so host failures are rethrown as it.
 const toNotesError = (error: unknown) =>
@@ -15,9 +16,11 @@ const toNotesError = (error: unknown) =>
 export const NotesGalleryDemo = () => {
   const model = useGalleryModel();
   const hasHeader = useGalleryDemoHeader();
+  const { report } = useGalleryEvents();
   const connectGallery = model.connect;
   const connect = useCallback(
     async (input: { signal: AbortSignal }) => {
+      report({ type: 'demoControlUsed', control: 'startNotes' });
       try {
         const connection = await connectGallery!(input);
         return {
@@ -34,7 +37,7 @@ export const NotesGalleryDemo = () => {
         throw toNotesError(error);
       }
     },
-    [connectGallery]
+    [connectGallery, report]
   );
   return (
     <GalleryDemo
