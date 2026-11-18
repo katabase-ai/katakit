@@ -4,7 +4,11 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, expect, test, vi } from 'vitest';
 import { NotesDemo } from '../../notes-react/src/NotesDemo';
 import { createNotesDemo } from '../../notes-react/src/createNotesDemo';
-import { NotesRequestError, type NotesConnection } from '../../notes-react/src/notesModel';
+import {
+  createNotesRequest,
+  NotesRequestError,
+  type NotesConnection,
+} from '../../notes-react/src/notesModel';
 
 const completion = (text: string) => ({
   choices: [
@@ -182,7 +186,7 @@ test('Clear notes preserves local turns, skips old thoughts and rejects a late m
   await vi.waitFor(() => expect(request).toHaveBeenCalledTimes(2));
   const clear = screen.getByRole('button', { name: 'Clear notes' });
   expect(document.getElementById(clear.getAttribute('aria-describedby')!)?.textContent).toContain(
-    'remain as model context'
+    'may still be sent as model context'
   );
   fireEvent.click(clear);
   expect(request.mock.calls[1]![0].signal.aborted).toBe(true);
@@ -201,5 +205,28 @@ test('Clear notes preserves local turns, skips old thoughts and rejects a late m
   );
   expect(connect).toHaveBeenCalledOnce();
   view.unmount();
+  runtime.close();
+});
+
+test('Clear notes retains the transcript but limits earlier context sent to the model', () => {
+  const runtime = createNotesDemo();
+  for (let index = 0; index < 8; index++) turn(runtime, `Thought ${index}`);
+  runtime.notes.clear();
+  turn(runtime, 'New thought');
+  const { notes, turns } = runtime.state$.get();
+  const { cursor } = notes;
+  expect(turns).toHaveLength(9);
+  expect(cursor).toBe(8);
+  const request = createNotesRequest({
+    notes: notes.notes,
+    turns,
+    cursor,
+    connection: connection(vi.fn()),
+  });
+  const conversation = JSON.parse(request.body).messages[1].content as string;
+  expect(conversation).not.toContain('Thought 0');
+  expect(conversation).not.toContain('Thought 1');
+  expect(conversation).toContain('Thought 2');
+  expect(conversation).toContain('New thought');
   runtime.close();
 });

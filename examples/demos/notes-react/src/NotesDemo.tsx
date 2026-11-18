@@ -99,8 +99,8 @@ export const NotesDemo = ({
           </button>
         </div>
         <p id={clearHelpId} className="structured-notes-hint">
-          Clear notes removes the outline; earlier completed thoughts remain as model context. It
-          does not stop listening or restore used allowance.
+          Clear notes removes the outline. Recent completed thoughts may still be sent as model
+          context. It does not stop listening or restore used allowance.
         </p>
         {!notes.notes.length && (
           <p className="structured-notes-empty">
