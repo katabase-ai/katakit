@@ -7,9 +7,11 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  type MouseEvent,
   type ReactNode,
 } from 'react';
 import { GalleryDemoHeader, useGalleryDemoHeader } from './GalleryDemoHeader';
+import { useGalleryEvents } from './galleryEvents';
 
 const Ready = createContext<(() => void) | undefined>(undefined);
 
@@ -71,6 +73,28 @@ const GalleryDemoBody = ({
     () => setState(current => (current.id === demo.id ? { ...current, ready: true } : current)),
     [demo.id]
   );
+  const { report } = useGalleryEvents();
+  // Reports only which kind of control was clicked. Capture controls report through the speech
+  // owner, and a demo's own text or labels are never read.
+  const reportInteraction = (event: MouseEvent<HTMLDivElement>) => {
+    const control =
+      event.target instanceof Element
+        ? event.target.closest('button, [role="button"], select, input, textarea, a')
+        : undefined;
+    if (!control || control.closest('.gallery-capture-controls')) return;
+    const tag = control.tagName.toLowerCase();
+    report({
+      type: 'demoInteracted',
+      element:
+        tag === 'select'
+          ? 'select'
+          : tag === 'a'
+            ? 'link'
+            : tag === 'input' || tag === 'textarea'
+              ? 'input'
+              : 'button',
+    });
+  };
 
   useLayoutEffect(() => {
     if (pending || !content.current) return;
@@ -100,6 +124,7 @@ const GalleryDemoBody = ({
           aria-busy={pending}
           hidden={pending}
           key={demo.id}
+          onClickCapture={reportInteraction}
         >
           <Suspense fallback={null}>{children}</Suspense>
         </div>

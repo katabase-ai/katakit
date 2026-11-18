@@ -39,6 +39,13 @@ source checkout. They do not own application bootstraps, routing, or private ser
   errors to its example's own error class. Keep it free of any one demo's types, and keep
   host admission and private service URLs in the host. `galleryInference.ts` owns the optional
   visitor-key transport and local-storage policy; never include keys or endpoint URLs in diagnostics. `#gallery-model-connection`
+- `galleryEvents.ts` owns the host measurement contract. `GallerySpeechProvider` takes one optional
+  `onEvent`; `createGallerySpeech` derives speech events from phase changes, adapters report the
+  demo actions they own, and `GalleryDemoFrame` reports the kind of control clicked. Events carry
+  catalogued keys, error codes, counts, and durations: never audio, recognized or typed text,
+  prompts, model output, or labels read from the DOM. Do not add reporting to the copyable
+  examples; a finer-grained action reaches the host through its gallery adapter. A host handler
+  that throws must not interrupt capture. `#gallery-host-events`
 - Public mode is the default. `GalleryModeProvider` enables developer tools only when a host explicitly
   opts in through build configuration. Public mode and public preview ignore saved developer keys;
   never enable BYOK through a visitor URL or local-storage flag. `#gallery-developer-mode`
