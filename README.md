@@ -8,7 +8,7 @@ Screenshots are captured from the actual Katakit gallery, not mockups. This bran
 - Source worktree: `/private/tmp/katakit-gallery-consistency`.
 - URL: `http://127.0.0.1:59926/demos/{transcription,bingo,notes,color-clash}`.
 - Production/public build, dark theme, default desktop viewport 1280 × 720; full-page captures can be taller. Mobile Notes uses 390 × 844.
-- Empty initial state, no microphone or model requests. The Bingo card is randomly drawn by the app, so card phrases differ across visits; those differences are not part of the change.
+- Empty initial state, no microphone or model requests. The initial Bingo card is the default Meeting phrases card. Shuffle and word-list changes draw a new card.
 - `01-*-before.jpg` is the baseline; `01-*-after.jpg` is the proposed version.
 
 Later evidence with controlled services will be identified separately. Controlled services establish UI/lifecycle behavior, not live microphone compatibility or provider performance.
@@ -22,3 +22,12 @@ Later evidence with controlled services will be identified separately. Controlle
 - `02-permission-{before,after}.jpg` and `02-download-{before,after}.jpg` compare the parent and proposed version. Expanded help is captured separately.
 - `02-cancel-sequence.mp4` stitches two real app screenshots (downloading → cancelled), held for 2 seconds each; it is a state sequence, not a real-time recording. Duration 4 seconds, 540 × 900, verified with ffprobe.
 - Timed lifecycle behavior is verified by automated tests; still images do not prove cancellation timing.
+
+## PR 3: content lifetime
+
+- Baseline: `b6ef0fb` (PR #85); proposed source: `4f6957a`, carried into `2b54ea3` after the parent recovery fixes. Those fixes affect blocked/stopping states, not the shown states.
+- Actual public gallery, dark theme, 1280 × 720 viewport with full-page captures; mobile Notes is 390 × 844.
+- Controlled transcriber supplies: “We will plan the launch on Friday. Quick question: who will review the plan?” The review host implements the public `connectModel` contract and returns “Plan the launch on Friday.” No microphone, model download, or external service request occurs.
+- Notes is shown with the same completed input and accepted outline on both sides. Paused and cleared states are separate captures. The outline clears while capture continues; earlier input remains local and may be sent as context by subsequent requests.
+- Other pairs show the default initial view with the model retained from the prior visit.
+- Timed cancellation, late-result rejection, fresh visits, and retained matching evidence are covered by tests. Screenshots show messaging and resulting state.
