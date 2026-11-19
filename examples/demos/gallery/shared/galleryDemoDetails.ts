@@ -33,7 +33,7 @@ export const bingoDemoDetails = {
   sourcePath: 'examples/demos/bingo-react',
   copyDirectory: 'conversation-bingo',
   title: 'Conversation bingo',
-  description: 'Say it in the conversation. See it on the card.',
+  description: 'Say it in the conversation. See it on the card. Five in a row wins!',
   capabilities: ['microphone', 'localTranscription'],
   dataHandling: { audio: 'device', transcribedText: 'device' },
 } as const satisfies GalleryDemoMetadata;

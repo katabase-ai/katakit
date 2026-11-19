@@ -79,9 +79,9 @@ always use neutral configured-service wording, ignoring any host promise. The ga
 verify endpoint security, retention, or model-provider policies.
 
 Entries with their own example directory also declare `copyDirectory`. `Gallery` gives those demos
-a **Run locally** control below the description: an `npx degit` command that copies the example
-directory and starts it, and a prompt that asks a coding agent to do the same. Demos with the
-`remoteModel` capability label it **Run locally with your own API key**. Pass `sourceRevision`
+a **Run locally** control beside the data-handling badge: an `npx degit` command that copies the example
+directory and starts it, and a prompt that asks a coding agent to do the same. For demos with the
+`remoteModel` capability its panel says the copy needs your own model API key. Pass `sourceRevision`
 with the Katakit commit the host's demos come from, so a copy matches the demo the visitor used;
 without it the command copies the default branch. Copying reports `runLocallyCopied` with which
 text was copied. Color Clash lives inside the gallery and has no control.
@@ -170,21 +170,23 @@ of the shared sidebar in both modes, outside demo navigation, and becomes a meas
 Both modes include a round Settings button. Public Settings (`/settings`) focuses on signup/account
 access, demo allowance, and privacy. Developer Settings opens Configure models; Configuration/Grid route
 tabs above those pages switch between the two developer views.
-The footer shares Welcome’s setup readiness and passive microphone indicators, using a
-smaller microphone circle. Both views follow the same speech owner across demos, including live
-audio levels. A downloaded model alone does not mark microphone setup Ready. Download, cancel,
+The footer has no microphone status. The live audio level fills the microphone glyph beside a demo's Start button and
+Welcome's microphone glyph. Download, cancel,
 and recording actions stay in Welcome, the demo, or developer Configure models.
 Download model leaves the microphone off, including without a demo attachment. Welcome’s Set up
-microphone downloads the speech model if needed, then requests microphone permission. Its readiness
-icon distinguishes Not set up, Setting up, Ready, and Needs attention, with text on hover or focus.
+microphone downloads the speech model if needed, then requests microphone permission.
+Its button label and feedback text show where setup stands; there is no separate readiness icon.
 The passive microphone glyph reflects capture and live audio levels; the adjacent button owns setup,
 cancellation, testing, and stopping. Stopping capture retains readiness for this host session.
 Setup progress and recovery guidance appear beside the action button. A download confirmation
 remains visible after loading, including during permission setup and after stopping; selecting a
 different model resets that confirmation. The transcript field stays visible throughout setup.
-Start/Stop listening
-belongs inside each demo. Models load only after a visitor action. Standalone controls remain
-independent. Navigation retains the loaded model but stops capture.
+Listening belongs to each demo. Its button sits beside the demo's title: a primary Start, then a
+secondary Pause, beside a microphone glyph that fills with the level being heard. Setup progress shows beside the button.
+A demo's own controls stay inside the demo. Run locally and the
+data-handling badge sit at the header's top right, level with the top of the title.
+Models load only after a visitor action. Standalone controls
+remain independent. Navigation retains the loaded model but stops capture.
 Each view acquires a runtime lease. Release keeps the outgoing sink attached through stop/drain and
 flush, closes its runtime, then permits the next factory to run. The next demo starts idle with no
 previous transcript. Hiding the tab stops capture; root teardown disposes the helper. A pending
@@ -209,13 +211,13 @@ not affect capture. The local host passes no handler.
 
 A host passes one `connectModel` to `Gallery` for its model admission/transport; see
 `shared/galleryModel.tsx` for the contract. Every entry with the `remoteModel` capability uses it,
-so a new such demo needs no host code. Without a connected host, notes explains that managed
-inference is unavailable while transcription remains usable. Public mode never falls back to a saved developer key. Every demo link stays clickable. Hosts throw `GalleryModelError` for failures they
+so a new such demo needs no host code. Without a connection, the footer's Settings button opens a
+notice that inference is unavailable while transcription remains usable; pressing it opens Settings. Public mode never falls back to a saved developer key. Every demo link stays clickable. Hosts throw `GalleryModelError` for failures they
 want shown or retried. Connection controls, browser verification, and errors render
 inside the active demo. Host `onAllowance` reports drive the shared footer usage meter: the percentage
 is consumed allowance, yellow at 80% and red at 100%. On-device transcription does not consume this
 allowance. The reported value survives demo navigation under `GallerySpeechProvider`, but source/configuration
-and mode changes clear it. Missing or invalid data shows “Usage unavailable” with an explanation;
+and mode changes clear it. Without valid data the footer shows no usage row, and Settings shows “Usage unavailable” with an explanation;
 there is no sample or predicted usage. The reference host has no managed allowance service, and
 developer-key providers do not report a demo allowance. No usage request is made on page load.
 
@@ -237,10 +239,10 @@ dismissal. Side/alignment options position the panel; local CSS variables contro
 Those interactive popovers retain their own link navigation, pinning, dismissal, and focus behavior.
 The shared tooltip scopes its own header styles outside the gallery grid, with no global reset.
 
-Only **Start notes** admits a remote connection and starts sending finalized transcript text.
-Starting capture never starts inference. Stop/start capture reuses the connection. **Pause notes**,
-source changes, saving overrides, and key removal abort remote work and retain local content;
-Start notes is required to resume. Route exit aborts admission and model work before capture drains.
+With inference configured, notes start when listening begins: that admits a remote connection and
+starts sending finalized transcript text. There is no separate notes control. Stop/start capture
+reuses the connection. Source changes, saving overrides, and key removal abort remote work and
+retain local content; a demo that is still listening reconnects through the new source. Route exit aborts admission and model work before capture drains.
 See [the notes example](../notes-react/README.md) for the generic contract.
 
 ## Developer mode and public preview
@@ -284,8 +286,8 @@ deployments. `/operations/setup` and `/operations/grid`
 redirect to Welcome in public builds. In a developer build, the header’s Preview toggle switches
 the live gallery into public mode. It hides developer tools and ignores developer keys, retaining
 the toggle as the way back. Entering preview from a tools page opens Welcome; leaving returns to
-that tools page. From a demo, the same local content remains, but inference pauses in both directions
-and requires another explicit Start notes. Saved developer settings survive. Unsaved form edits are
+that tools page. From a demo, the same local content remains; inference stops in both directions,
+and a listening demo reconnects through the new mode's connection. Saved developer settings survive. Unsaved form edits are
 ordinary page-local drafts.
 
 Preview uses the current host’s real managed inference contract. It does not create a proxy,

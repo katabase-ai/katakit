@@ -14,7 +14,6 @@ import { GalleryDemoHeader, useGalleryDemoHeader } from './GalleryDemoHeader';
 import { useGalleryEvents } from './galleryEvents';
 
 const Ready = createContext<(() => void) | undefined>(undefined);
-
 /** Report a settled runtime lease before paint. Hosts without a frame keep their existing fallback. */
 export const useGalleryDemoReady = (settled: boolean) => {
   const ready = useContext(Ready);

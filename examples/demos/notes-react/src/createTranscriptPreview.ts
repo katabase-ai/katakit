@@ -1,84 +1,78 @@
 import type { TranscriptEvent } from '@katakit/transcript-ingestion';
-import { minBy } from 'es-toolkit';
 import type { Observable } from 'rxjs';
-import { match } from 'ts-pattern';
 
-export type TranscriptPreviewWord = {
+export type TranscriptPreviewLine = {
   id: number;
   text: string;
-  durationMs: number;
   expiresAt: number;
   provisional: boolean;
 };
 
-/** Presentation time belongs to the live visit, not to the replayable transcript. */
+const lineLifetimeMs = 20_000;
+// Lines normally leave by age; this only bounds a very fast speaker's column.
+const maxLines = 30;
+
+/**
+ * One line per finalized segment, newest first, so an expiring line leaves from the end without
+ * moving the others. Fast speech fills the column as far as it reaches. Presentation time belongs to the live visit, not the replayable transcript.
+ * The structured-notes and bingo examples each carry this file so either can be copied alone.
+ */
 export const createTranscriptPreview = ({
   events$,
-  onWords,
+  onLines,
 }: {
   events$: Observable<TranscriptEvent>;
-  onWords: (words: TranscriptPreviewWord[]) => void;
+  onLines: (lines: TranscriptPreviewLine[]) => void;
 }) => {
-  let finalized: TranscriptPreviewWord[] = [];
-  let provisional: TranscriptPreviewWord[] = [];
-  let showProvisional = false;
+  let finalized: TranscriptPreviewLine[] = [];
+  let draft: TranscriptPreviewLine | undefined;
+  let showDraft = false;
   let nextId = 0;
   let timer: ReturnType<typeof setTimeout> | undefined;
 
-  const updateWords = ({ text, draft }: { text: string; draft: boolean }) => {
-    const words = text.match(/\S+/g) ?? [];
-    const now = Date.now();
-    // Chunked recognizers deliver several words together. Stagger their fade within 20 seconds.
-    const stagger = Math.min(180, 4000 / Math.max(1, words.length - 1));
-    return words.map((text, index) => {
-      const previous = provisional[index];
-      const durationMs = 20_000 - (words.length - index - 1) * stagger;
-      // Recognition corrections and finalization keep the original word's age and DOM identity.
-      return previous
-        ? { ...previous, text, provisional: draft }
-        : { id: nextId++, text, durationMs, expiresAt: now + durationMs, provisional: draft };
-    });
-  };
+  // A draft keeps its identity through corrections and finalization; each update renews its time.
+  const line = ({ text, provisional }: { text: string; provisional: boolean }) => ({
+    id: draft?.id ?? nextId++,
+    text,
+    provisional,
+    expiresAt: Date.now() + lineLifetimeMs,
+  });
 
   const publish = () => {
     if (timer) clearTimeout(timer);
     const now = Date.now();
-    finalized = finalized.filter(word => word.expiresAt > now);
-    // Keep expired draft slots until finalization so another provisional update cannot revive them.
-    const visible = [...finalized, ...(showProvisional ? provisional : [])].filter(
-      word => word.expiresAt > now
-    );
-    onWords(visible);
-    const nextExpiry = minBy(visible, word => word.expiresAt);
-    timer = nextExpiry ? setTimeout(publish, nextExpiry.expiresAt - now) : undefined;
+    finalized = finalized.filter(current => current.expiresAt > now).slice(0, maxLines);
+    const visible = [...(showDraft && draft ? [draft] : []), ...finalized]
+      .filter(current => current.expiresAt > now)
+      .slice(0, maxLines);
+    onLines(visible);
+    timer = visible.length
+      ? setTimeout(publish, Math.min(...visible.map(current => current.expiresAt)) - now)
+      : undefined;
   };
 
   const subscription = events$.subscribe(event => {
     if (event.type === 'turn') return;
-    match(event)
-      .with({ type: 'reset' }, () => {
-        finalized = [];
-        provisional = [];
-        showProvisional = false;
-      })
-      .with({ type: 'provisional' }, ({ text }) => {
-        showProvisional = !!text;
-        // Ingestion clears provisional text immediately before publishing the finalized segment.
-        if (text) provisional = updateWords({ text, draft: true });
-        else {
-          const cleared = provisional;
-          queueMicrotask(() => {
-            // A clear without a following segment discards the draft before the next utterance.
-            if (provisional === cleared && !showProvisional) provisional = [];
-          });
-        }
-      })
-      .with({ type: 'segment' }, ({ segment }) => {
-        finalized.push(...updateWords({ text: segment.text, draft: false }));
-        provisional = [];
-        showProvisional = false;
-      })
-      .exhaustive();
+    if (event.type === 'reset') {
+      finalized = [];
+      draft = undefined;
+      showDraft = false;
+    } else if (event.type === 'provisional') {
+      showDraft = !!event.text;
+      // Ingestion clears provisional text immediately before publishing the finalized segment.
+      if (event.text) draft = line({ text: event.text, provisional: true });
+      else {
+        const cleared = draft;
+        queueMicrotask(() => {
+          // A clear without a following segment discards the draft before the next utterance.
+          if (draft === cleared && !showDraft) draft = undefined;
+        });
+      }
+    } else {
+      finalized.unshift(line({ text: event.segment.text, provisional: false }));
+      draft = undefined;
+      showDraft = false;
+    }
     publish();
   });
 

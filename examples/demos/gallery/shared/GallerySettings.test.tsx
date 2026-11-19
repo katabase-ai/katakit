@@ -31,6 +31,7 @@ const savedKey = () =>
 const Notes = ({ runtime }: { runtime: ReturnType<typeof createNotesDemo> }) => {
   useGalleryDemoReady(true);
   const model = useGalleryModel();
+  const [listening, setListening] = useState(false);
   const connect = useCallback(
     async ({ signal }: { signal: AbortSignal }): Promise<NotesConnection> => {
       const connection = await model.connect!({ signal });
@@ -53,6 +54,12 @@ const Notes = ({ runtime }: { runtime: ReturnType<typeof createNotesDemo> }) => 
     <NotesDemo
       showIntroduction={false}
       runtime={runtime}
+      listening={listening}
+      controls={
+        <button type="button" onClick={() => setListening(current => !current)}>
+          {listening ? 'Stop listening' : 'Start listening'}
+        </button>
+      }
       connect={model.connect && connect}
       renderModelControls={model.renderControls}
       connectionHelp={
@@ -163,14 +170,14 @@ test('public mode ignores saved developer keys and visitor flags, and uses only 
   const direct = vi.fn<typeof fetch>();
   vi.stubGlobal('fetch', direct);
   const view = render(<View runtime={runtime} connectModel={host} />);
-  await screen.findByText('Usage unavailable');
+  await screen.findByRole('button', { name: 'Settings' });
   expect(screen.queryByRole('switch')).toBeNull();
   expect(screen.getByRole('button', { name: 'Settings' })).toBeDefined();
   expect(screen.queryByLabelText('API key')).toBeNull();
   expect(screen.queryByRole('button', { name: /Configure inference|Add API key/ })).toBeNull();
   act(() => turn(runtime, 'A public thought.'));
   expect(host).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Start listening' }));
   await screen.findByText('Public note');
   expect(host).toHaveBeenCalledOnce();
   expect(
@@ -195,7 +202,7 @@ test('developer setup exposes the model alongside the key, keeps only the endpoi
   fireEvent.change(model, { target: { value: 'custom/model' } });
   fireEvent.change(screen.getByLabelText('API key'), { target: { value: 'test-saved-key' } });
   fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-  await screen.findByText('Inference settings saved. Start notes in a demo when ready.');
+  await screen.findByText('Inference settings saved. Start listening in a demo when ready.');
   expect(JSON.parse(window.localStorage.getItem(inferenceStorageKey)!)).toMatchObject({
     key: 'test-saved-key',
     model: 'custom/model',
@@ -206,7 +213,7 @@ test('developer setup exposes the model alongside the key, keeps only the endpoi
     })
   );
   act(() => turn(runtime, 'Test the selected model.'));
-  fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Start listening' }));
   await vi.waitFor(() => expect(direct).toHaveBeenCalledOnce());
   expect(JSON.parse(direct.mock.calls[0]![1]!.body as string).model).toBe('custom/model');
   view.unmount();
@@ -224,7 +231,7 @@ test('developer setup exposes the model alongside the key, keeps only the endpoi
   fresh.close();
 });
 
-test('public preview aborts BYOK, ignores late results, preserves content/settings and requires explicit starts in both directions', async () => {
+test('public preview aborts BYOK, ignores late results, preserves content/settings and reconnects a listening demo in both directions', async () => {
   savedKey();
   const runtime = createNotesDemo();
   let finish!: (response: Response) => void;
@@ -242,7 +249,7 @@ test('public preview aborts BYOK, ignores late results, preserves content/settin
   });
   const view = render(<View developerMode runtime={runtime} connectModel={host} />);
   act(() => turn(runtime, 'Keep these local words.'));
-  fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Start listening' }));
   await vi.waitFor(() => expect(direct).toHaveBeenCalledOnce());
   expect((screen.getByRole('switch', { name: 'Developer mode' }) as HTMLInputElement).checked).toBe(
     false
@@ -257,10 +264,8 @@ test('public preview aborts BYOK, ignores late results, preserves content/settin
   await act(async () => {
     finish(Response.json(completion('Obsolete developer note')));
   });
-  expect(runtime.state$.get().notes.notes).toEqual([]);
-  expect(host).not.toHaveBeenCalled();
+  expect(screen.queryByText('Obsolete developer note')).toBeNull();
   expect(window.localStorage.getItem(inferenceStorageKey)).toContain('test-developer-key');
-  fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
   await screen.findByText('Managed note');
   fireEvent.click(screen.getByRole('switch', { name: 'Public preview' }));
   expect((screen.getByRole('switch', { name: 'Developer mode' }) as HTMLInputElement).checked).toBe(
@@ -269,7 +274,6 @@ test('public preview aborts BYOK, ignores late results, preserves content/settin
   expect(hostSignal.aborted).toBe(true);
   expect(runtime.state$.get().notes.notes[0]?.text).toBe('Managed note');
   expect(screen.getByRole('button', { name: 'Settings' })).toBeDefined();
-  expect(screen.getByRole('button', { name: 'Start notes' })).toBeDefined();
   expect(direct).toHaveBeenCalledOnce();
   expect(host).toHaveBeenCalledOnce();
   view.unmount();
@@ -282,23 +286,17 @@ test('a public preview without host inference never falls back to the saved deve
   const direct = vi.fn<typeof fetch>();
   vi.stubGlobal('fetch', direct);
   const view = render(<View developerMode runtime={runtime} />);
-  await vi.waitFor(() =>
-    expect(
-      (screen.getByRole('button', { name: 'Start notes' }) as HTMLButtonElement).disabled
-    ).toBe(false)
-  );
+  const unavailable = 'No managed inference is available.';
+  await vi.waitFor(() => expect(screen.queryByText(unavailable)).toBeNull());
+  fireEvent.click(screen.getByRole('button', { name: 'Start listening' }));
   fireEvent.click(screen.getByRole('switch', { name: 'Developer mode' }));
-  expect((screen.getByRole('button', { name: 'Start notes' }) as HTMLButtonElement).disabled).toBe(
-    true
-  );
-  expect(screen.getByText('Usage unavailable')).toBeDefined();
+  expect(screen.getByText(unavailable)).toBeDefined();
+  expect(screen.queryByText('Usage unavailable')).toBeNull();
   expect(screen.queryByRole('button', { name: 'Configure inference' })).toBeNull();
   act(() => turn(runtime, 'Still local.'));
   expect(direct).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole('switch', { name: 'Public preview' }));
-  expect((screen.getByRole('button', { name: 'Start notes' }) as HTMLButtonElement).disabled).toBe(
-    false
-  );
+  expect(screen.queryByText(unavailable)).toBeNull();
   expect(runtime.state$.get().notes.turns).toHaveLength(1);
   view.unmount();
   runtime.close();
@@ -370,14 +368,13 @@ test('reported usage stays live without restarting inference, survives navigatio
     return hostConnection(async () => completion());
   });
   const view = render(<View developerMode runtime={runtime} connectModel={host} />);
-  await screen.findByText('Usage unavailable');
+  await screen.findByRole('button', { name: 'Settings' });
   act(() => turn(runtime, 'First thought.'));
-  fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Start listening' }));
   await screen.findByText('20%');
   act(() => report({ remaining: 1, total: 5 }));
   expect(screen.getByText('80%')).toBeDefined();
   expect(host).toHaveBeenCalledOnce();
-  expect(screen.getByRole('button', { name: 'Pause notes' })).toBeDefined();
   fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
   await screen.findByRole('heading', { name: 'Configure models' });
   const tabs = within(screen.getByRole('navigation', { name: 'Operation views' }));
@@ -392,7 +389,7 @@ test('reported usage stays live without restarting inference, survives navigatio
   act(() => report({ remaining: 0, total: 5 }));
   expect(screen.getByText('80%')).toBeDefined();
   fireEvent.click(screen.getByRole('switch', { name: 'Developer mode' }));
-  expect(screen.getByText('Usage unavailable')).toBeDefined();
+  expect(screen.queryByText('Usage unavailable')).toBeNull();
   expect(screen.queryByRole('progressbar', { name: 'Demo allowance used' })).toBeNull();
   expect(screen.getByRole('button', { name: 'Settings' })).toBeDefined();
   view.unmount();
@@ -409,9 +406,9 @@ test('public Settings opens account content, shares allowance with the footer, a
     return hostConnection(async () => completion());
   });
   const view = render(<View runtime={runtime} connectModel={host} />);
-  await screen.findByText('Usage unavailable');
+  await screen.findByRole('button', { name: 'Settings' });
   act(() => turn(runtime, 'A thought before Settings.'));
-  fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Start listening' }));
   await screen.findByText('80%');
   fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
   await screen.findByRole('heading', { name: 'Settings' });
@@ -429,9 +426,25 @@ test('public Settings opens account content, shares allowance with the footer, a
       name: 'Structured notes',
     })
   );
-  expect(screen.getByRole('button', { name: 'Start notes' })).toBeDefined();
+  expect(screen.getByRole('button', { name: 'Start listening' })).toBeDefined();
   expect(host).toHaveBeenCalledOnce();
   expect(screen.getByText('80%')).toBeDefined();
   view.unmount();
+  runtime.close();
+});
+
+test('a demo without inference says so on the Settings button, which opens Settings', async () => {
+  const runtime = createNotesDemo();
+  render(<View runtime={runtime} />);
+  const notice = await screen.findByRole('tooltip');
+  expect(notice.textContent).toBe(
+    'Free inference is not available here. You can still transcribe locally.'
+  );
+  expect(screen.getByRole('button', { name: 'Settings' }).getAttribute('aria-describedby')).toBe(
+    notice.id
+  );
+  fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+  await screen.findByRole('heading', { name: 'Settings' });
+  expect(screen.queryByRole('tooltip')).toBeNull();
   runtime.close();
 });

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, type ReactNode } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import type { galleryDemoDetails } from './galleryDemoDetails';
 import { GalleryModelContext, type GalleryModelConnect } from './galleryModel';
 import { useGalleryInference } from './GalleryInferenceProvider';
@@ -91,6 +91,11 @@ export const Gallery = ({
     setActiveDemo(activeDemoId);
     return () => setActiveDemo(undefined);
   }, [setActiveDemo, activeDemoId]);
+  // The content column is its own scroller, so a new page has to be returned to its top.
+  const content = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    content.current?.scrollTo({ top: 0 });
+  }, [activeDemoId, developerPage, settingsPage]);
   const sourceSignal = inference?.owner.getSignal();
   const usesDeveloperKey = isDeveloperView && inference?.settings.source === 'key';
   const recordAllowance = usage?.reportAllowance;
@@ -140,6 +145,13 @@ export const Gallery = ({
       };
     };
   }, [connectModel, inference, isDeveloperView]);
+  // Named only once browser settings have loaded, so it never appears and then vanishes.
+  const settingsNotice =
+    inference &&
+    !connect &&
+    (activeDemo?.capabilities as readonly string[] | undefined)?.includes('remoteModel')
+      ? `${isDeveloperView ? 'No inference is configured.' : 'Free inference is not available here.'} You can still transcribe locally.`
+      : undefined;
   const model = useMemo(
     () => ({
       connect,
@@ -147,6 +159,7 @@ export const Gallery = ({
       isDeveloperView,
       configure: isDeveloperView ? onConfigureOperation : undefined,
       openSettings: onOpenSettings ?? (isDeveloperView ? onConfigureOperation : undefined),
+      settingsNotice,
       allowance,
       usageUnavailableReason,
       reportAllowance,
@@ -158,6 +171,7 @@ export const Gallery = ({
       isDeveloperView,
       onConfigureOperation,
       onOpenSettings,
+      settingsNotice,
       allowance,
       usageUnavailableReason,
       reportAllowance,
@@ -185,7 +199,7 @@ export const Gallery = ({
           </nav>
           <GalleryFooter>{input}</GalleryFooter>
         </aside>
-        <div className="gallery-content">
+        <div ref={content} className="gallery-content">
           {settingsPage ? (
             <Suspense fallback={<p role="status">Loading Settings…</p>}>
               <PublicSettings privacyUrl={privacyUrl} />
@@ -216,21 +230,21 @@ export const Gallery = ({
               demo={activeDemo ?? galleryWelcomeDetails}
               badge={
                 activeDemo && (
-                  <GalleryPrivacyBadge
-                    key={activeDemo.id}
-                    dataHandling={activeDemo.dataHandling}
-                    privacyUrl={privacyUrl}
-                    developerEndpoint={isDeveloperView && inference?.settings.source === 'key'}
-                    cloudPrivacyDescription={
-                      connectModel && (!isDeveloperView || inference?.settings.source === 'free')
-                        ? cloudPrivacyDescription
-                        : undefined
-                    }
-                  />
+                  <>
+                    <GalleryRunLocally demo={activeDemo} revision={sourceRevision} />
+                    <GalleryPrivacyBadge
+                      key={activeDemo.id}
+                      dataHandling={activeDemo.dataHandling}
+                      privacyUrl={privacyUrl}
+                      developerEndpoint={isDeveloperView && inference?.settings.source === 'key'}
+                      cloudPrivacyDescription={
+                        connectModel && (!isDeveloperView || inference?.settings.source === 'free')
+                          ? cloudPrivacyDescription
+                          : undefined
+                      }
+                    />
+                  </>
                 )
-              }
-              actions={
-                activeDemo && <GalleryRunLocally demo={activeDemo} revision={sourceRevision} />
               }
             >
               <GalleryDemoFrame demo={activeDemo ?? galleryWelcomeDetails}>

@@ -60,8 +60,8 @@ source checkout. They do not own application bootstraps, routing, or private ser
 - Keep `GallerySpeechProvider` and `GalleryModeProvider` above the host header/outlet. The header’s
   `GalleryPreviewToggle` remains visible in developer builds while previewing public mode; it never
   renders in a public build. Mode transitions invalidate inference immediately, preserve saved
-  developer settings/local content, and require explicit Start notes to resume. `#gallery-public-preview`
-- Both modes use `GallerySpeechControls` for shared readiness, passive microphone, account, and usage
+  developer settings/local content; a demo that is listening reconnects through the new mode's connection. `#gallery-public-preview`
+- Both modes use `GallerySpeechControls` for the shared account and usage
   controls. Settings opens the account/allowance page in public mode and Configure models with
   Configuration/Grid route tabs in developer mode. Host navigation comes through `onOpenSettings`;
   developer-only inference recovery still uses `onConfigureOperation`.

@@ -49,6 +49,5 @@ test('Welcome keeps its real header through a delayed import and reveals without
   expect(frame.getAttribute('data-loading')).toBe('false');
   expect(screen.queryByText('Opening…')).toBeNull();
   expect(screen.getByRole('button', { name: 'Set up microphone' })).toBeDefined();
-  expect(screen.getByRole('button', { name: 'Microphone setup: Not set up' })).toBeDefined();
   expect(screen.queryByRole('progressbar')).toBeNull();
 });

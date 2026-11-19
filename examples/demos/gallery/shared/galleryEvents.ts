@@ -31,7 +31,7 @@ export type GalleryEventDetail =
       segmentCount: number;
     }
   /** A demo action its gallery adapter owns, such as starting a Color Clash round. */
-  | { type: 'demoControlUsed'; control: 'play' | 'cancel' | 'startNotes' }
+  | { type: 'demoControlUsed'; control: 'play' | 'cancel' }
   /** A click on a control inside the demo's own content, outside the capture controls. */
   | { type: 'demoInteracted'; element: 'button' | 'select' | 'input' | 'link' }
   /** A copy from Run locally: which text was copied, never the text itself. */

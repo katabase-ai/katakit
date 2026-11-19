@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from 'react';
+import { useCallback, useEffect, useId, useState, type RefCallback } from 'react';
 import { Check, Copy, SquareTerminal } from 'lucide-react';
 import type { galleryDemoDetails } from './galleryDemoDetails';
 import { useGalleryEvents } from './galleryEvents';
@@ -100,17 +100,37 @@ const CopyBlock = ({
 
 /**
  * Copy a demo to your machine: a shell command and a prompt for a coding agent. Demos that call a
- * model say so in the label, because running them locally needs your own API key.
+ * model say in the panel that running them locally needs your own API key.
  */
 export const GalleryRunLocally = ({ demo, revision }: { demo: Demo; revision?: string }) => {
   const events = useGalleryEvents();
+  // A pointer press or Escape anywhere outside closes the open panel, as the other popovers do.
+  const dismissOutside: RefCallback<HTMLDetailsElement> = useCallback(node => {
+    if (!node) return;
+    const dismiss = (event: KeyboardEvent | PointerEvent) => {
+      if (!node.open) return;
+      if (
+        event instanceof KeyboardEvent
+          ? event.key !== 'Escape'
+          : node.contains(event.target as Node)
+      )
+        return;
+      node.open = false;
+    };
+    document.addEventListener('pointerdown', dismiss);
+    document.addEventListener('keydown', dismiss);
+    return () => {
+      document.removeEventListener('pointerdown', dismiss);
+      document.removeEventListener('keydown', dismiss);
+    };
+  }, []);
   if (!canRunLocally(demo)) return null;
   const needsKey = (demo.capabilities as readonly string[]).includes('remoteModel');
   return (
-    <details className="gallery-run-locally">
+    <details ref={dismissOutside} className="gallery-run-locally">
       <summary>
         <SquareTerminal aria-hidden="true" />
-        {needsKey ? 'Run locally with your own API key' : 'Run locally'}
+        Run locally
       </summary>
       <div className="gallery-run-locally-panel">
         <CopyBlock

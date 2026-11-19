@@ -108,12 +108,6 @@
 .interim p {
   color: var(--color-muted);
 }
-footer {
-  margin-top: 2.5rem;
-  color: var(--color-muted);
-  font-size: 0.85rem;
-}
-
 @media (max-width: 540px) {
   .turn {
     grid-template-columns: 1.8rem minmax(0, 1fr);
