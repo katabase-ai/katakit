@@ -170,9 +170,8 @@ of the shared sidebar in both modes, outside demo navigation, and becomes a meas
 Both modes include a round Settings button. Public Settings (`/settings`) focuses on signup/account
 access, demo allowance, and privacy. Developer Settings opens Configure models; Configuration/Grid route
 tabs above those pages switch between the two developer views.
-The footer shows a small passive microphone circle, on or off, following the same speech owner
-across demos. The live audio level fills a listening demo's pause button and Welcome's microphone
-glyph; the setup readiness icon appears only on Welcome. A downloaded model alone does not mark microphone setup Ready. Download, cancel,
+The footer has no microphone status. The live audio level fills a listening demo's pause button and
+Welcome's microphone glyph; the setup readiness icon appears only on Welcome. A downloaded model alone does not mark microphone setup Ready. Download, cancel,
 and recording actions stay in Welcome, the demo, or developer Configure models.
 Download model leaves the microphone off, including without a demo attachment. Welcome’s Set up
 microphone downloads the speech model if needed, then requests microphone permission. Its readiness
@@ -184,9 +183,9 @@ remains visible after loading, including during permission setup and after stopp
 different model resets that confirmation. The transcript field stays visible throughout setup.
 Listening belongs to each demo. A demo opens behind an overlay with a Start button; after its first
 start, a pause/resume icon button sits beside the demo's title and fills with the level being heard.
-A demo's own controls sit just before that button and stay hidden until the demo has started
-(`GalleryDemoControls` moves them there). Run locally and the data-handling badge sit above the title.
-The footer has the only
+A demo's own controls stay inside the demo, behind the overlay until it starts. Run locally and the
+data-handling badge sit at the header's top right, level with the top of the title.
+The pause button is the
 live microphone indicator. Models load only after a visitor action. Standalone controls
 remain independent. Navigation retains the loaded model but stops capture.
 Each view acquires a runtime lease. Release keeps the outgoing sink attached through stop/drain and

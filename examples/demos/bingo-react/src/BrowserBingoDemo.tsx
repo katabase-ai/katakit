@@ -8,13 +8,10 @@ import './style.css';
 export const BrowserBingoDemo = ({
   runtime,
   controls,
-  renderControls = controls => controls,
   showIntroduction = true,
 }: {
   runtime: ReturnType<typeof createBrowserBingoDemo>;
   controls?: ReactNode;
-  /** A host can show the word-list controls elsewhere, such as in its own toolbar. */
-  renderControls?: (controls: ReactNode) => ReactNode;
   /** Embedded hosts can supply their own page header. */
   showIntroduction?: boolean;
 }) => {
@@ -96,6 +93,7 @@ export const BrowserBingoDemo = ({
                 {`${board.winningLines.length} line${board.winningLines.length === 1 ? '' : 's'} complete`}
               </span>
             )}
+            {packPicker}
           </div>
           <div
             className="bingo-grid"
@@ -130,7 +128,6 @@ export const BrowserBingoDemo = ({
           </div>
         </section>
         <aside className="bingo-controls" aria-label="Bingo controls">
-          {renderControls(packPicker)}
           {controls}
           <TranscriptTurns transcript={runtime.transcript} />
         </aside>

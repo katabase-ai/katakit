@@ -10,53 +10,47 @@
 .katakit-gallery .gallery-demo-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
+  grid-template-rows: auto 1fr;
+  align-items: start;
   gap: 8px 16px;
+  /* Room for the badges and the pause button in the right column with space between them. */
+  min-height: 88px;
   margin-bottom: 32px;
-}
-/* What the demo is, above its title: Run locally and the data-handling badge. */
-.katakit-gallery .gallery-demo-header-badge {
-  grid-column: 1 / -1;
-  grid-row: 1;
-  justify-self: end;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 14px;
 }
 .katakit-gallery .gallery-demo-header > h1 {
   grid-column: 1;
-  grid-row: 2;
+  grid-row: 1;
   margin: 0;
   font-size: 36px;
   line-height: 1.2;
 }
-/* Beside the title: the demo's own controls, then its pause/resume button. The row keeps its
-   height before they exist, and a demo's controls stay hidden until it has started. */
-.katakit-gallery .gallery-demo-header-controls {
-  grid-column: 2;
-  grid-row: 2;
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 12px;
-  min-height: 44px;
-}
-.katakit-gallery .gallery-demo-header-controls > div {
-  display: contents;
-}
-.katakit-gallery .gallery-demo-header-controls:not(:has(.gallery-capture-toggle)) > div:first-child {
-  display: none;
-}
 .katakit-gallery .gallery-demo-header > p {
-  grid-column: 1 / -1;
-  grid-row: 3;
+  grid-column: 1;
+  grid-row: 2;
   max-width: 65ch;
   margin: 0;
   color: var(--color-muted);
   font-size: 16px;
   line-height: 24px;
+}
+/* The right column: Run locally and the data-handling badge level with the top of the title,
+   and the pause/resume button at the bottom, clear of them. */
+.katakit-gallery .gallery-demo-header-badge {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: start;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.katakit-gallery .gallery-demo-header-controls {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: end;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 44px;
 }
 /* Beside the badge there is no room to expand in place, so the panel opens over the page. */
 .katakit-gallery .gallery-demo-header-badge .gallery-run-locally {
@@ -206,13 +200,12 @@
 }
 @media (max-width: 650px) {
   .katakit-gallery .gallery-demo-header > h1 { font-size: 28px; }
-  .katakit-gallery .gallery-demo-header-badge { justify-self: start; }
-  /* A narrow title row has no room for a word list; the controls take their own row. */
-  .katakit-gallery .gallery-demo-header-controls {
+  /* A narrow header has no right column to spare: the badges follow the description instead. */
+  .katakit-gallery .gallery-demo-header { grid-template-rows: auto auto auto; min-height: 0; }
+  .katakit-gallery .gallery-demo-header-badge {
     grid-column: 1 / -1;
-    grid-row: 4;
-    justify-content: flex-start;
-    min-height: 0;
+    grid-row: 3;
+    justify-self: start;
   }
   .katakit-gallery .gallery-demo-header-badge .gallery-run-locally-panel {
     inset-inline-start: 0;
@@ -230,44 +223,10 @@
 }
 /* What a demo may fill below the gallery's own header, so its card or column ends at the page's end. */
 .katakit-gallery .browser-bingo {
-  --bingo-grid-max-height: calc(var(--gallery-sidebar-height, 100dvh) - 19.5rem);
+  --bingo-grid-max-height: calc(var(--gallery-sidebar-height, 100dvh) - 17.75rem);
 }
 .katakit-gallery .structured-notes {
   /* Full width, so its transcript column sits under the header controls as bingo's does. */
   max-width: none;
-  --transcript-column-height: calc(var(--gallery-sidebar-height, 100dvh) - 16rem);
-}
-/* Beside the title the word list is as wide as the transcript column below it, in smaller type,
-   and reads from its selected value; its label stays for assistive tech. */
-.katakit-gallery .gallery-demo-header-controls:has(.bingo-pack-picker) {
-  flex-wrap: nowrap;
-  gap: 8px;
-  width: 270px;
-  max-width: 100%;
-}
-.katakit-gallery .gallery-demo-header-controls .bingo-pack-picker {
-  flex: 1;
-  align-items: center;
-  flex-wrap: nowrap;
-  min-width: 0;
-  margin: 0;
-}
-.katakit-gallery .gallery-demo-header-controls .bingo-pack-picker .site-field {
-  flex: 1;
-  min-width: 0;
-}
-.katakit-gallery .gallery-demo-header-controls .bingo-pack-picker .site-select {
-  padding-inline: 0.625rem 1.75rem;
-  font-size: 0.8125rem;
-}
-.katakit-gallery .gallery-demo-header-controls .bingo-pack-picker .site-field::after {
-  right: 0.7rem;
-}
-.katakit-gallery .gallery-demo-header-controls .bingo-pack-picker .site-field > label {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip-path: inset(50%);
-  white-space: nowrap;
+  --transcript-column-height: calc(var(--gallery-sidebar-height, 100dvh) - 14.25rem);
 }

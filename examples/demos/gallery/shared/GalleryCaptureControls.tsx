@@ -2,14 +2,14 @@ import { useEffect, useId, useState, type CSSProperties, type ReactNode } from '
 import { createPortal } from 'react-dom';
 import { Pause, Play } from 'lucide-react';
 import { useGalleryDemoStage } from './GalleryDemoFrame';
-import { GalleryDemoControls } from './GalleryDemoHeader';
+import { GalleryDemoCapture } from './GalleryDemoHeader';
 import { useGallerySpeech } from './GallerySpeechProvider';
 import { GalleryMicrophoneIndicator } from './GalleryMicrophoneIndicator';
 
 /**
  * Capture actions belong to the active demo, never the shared setup footer. In the gallery frame
  * a demo and its toolbar wait behind a Start overlay; after its first start the toolbar holds a
- * pause/resume button. The footer has the only live microphone indicator.
+ * pause/resume button, which is the live microphone indicator.
  */
 export const GalleryCaptureControls = ({
   label = 'Start listening',
@@ -127,7 +127,7 @@ export const GalleryCaptureControls = ({
   const progress = snapshot.input.progress;
   return (
     <>
-      <GalleryDemoControls slot="capture">
+      <GalleryDemoCapture>
         <div className="gallery-capture-controls gallery-capture-action">
           {started && (
             <button
@@ -150,7 +150,7 @@ export const GalleryCaptureControls = ({
             </button>
           )}
         </div>
-      </GalleryDemoControls>
+      </GalleryDemoCapture>
       {/* Until this visit has listened once, and again after a failure, the demo waits behind Start. */}
       {(!started || !!failure || snapshot.blocked) &&
         createPortal(
