@@ -26,10 +26,8 @@
   border-radius: 50%;
   background: transparent;
   color: inherit;
-  cursor: pointer;
-}
-.katakit-gallery .gallery-microphone-readiness-button:hover {
-  background: var(--color-paper-3);
+  /* Status with a tooltip: focusable for its description, but it performs no action. */
+  cursor: default;
 }
 .katakit-gallery .gallery-microphone-readiness-button svg {
   width: 25px;
@@ -69,6 +67,9 @@
 }
 .katakit-gallery .gallery-microphone-glyph > svg {
   opacity: 0.5;
+}
+.katakit-gallery .gallery-microphone-glyph svg {
+  display: block;
 }
 .katakit-gallery .gallery-microphone-glyph-level {
   position: absolute;

@@ -7,8 +7,8 @@ import {
 } from './galleryDemoDetails';
 import { GalleryCaptureControls } from './GalleryCaptureControls';
 import { GalleryDemo } from './GalleryDemo';
-import { TranscriptionIntroduction, TranscriptionSetupComplete } from './TranscriptionIntroduction';
-import { useGalleryDemoHeader } from './GalleryDemoHeader';
+import { TranscriptionIntroduction } from './TranscriptionIntroduction';
+import { GalleryDemoControls, useGalleryDemoHeader } from './GalleryDemoHeader';
 
 // Named entries let another host import only its selected demos. Lazy construction is inert,
 // so unused eligible entries can be removed without retaining their module loaders.
@@ -30,7 +30,6 @@ export const transcriptionGalleryDemo = {
                 runtime={runtime}
                 controls={<GalleryCaptureControls />}
                 introduction={<TranscriptionIntroduction />}
-                afterFirstSpeech={<TranscriptionSetupComplete />}
                 showIntroduction={!hasHeader}
               />
             )}
@@ -57,6 +56,7 @@ export const bingoGalleryDemo = {
               <BrowserBingoDemo
                 runtime={runtime}
                 controls={<GalleryCaptureControls />}
+                renderControls={controls => <GalleryDemoControls>{controls}</GalleryDemoControls>}
                 showIntroduction={!hasHeader}
               />
             )}

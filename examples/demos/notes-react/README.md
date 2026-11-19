@@ -26,7 +26,7 @@ pnpm dev
 ```
 
 This React example turns on-device speech recognition into a two-level outline rendered as Markdown.
-Start listening captures locally; **Start notes** connects the model. Finalized turns then trigger requests. Later speech can correct a
+Start listening captures locally and, when a connection is configured, connects the model. Finalized turns then trigger requests. Later speech can correct a
 misheard name in an existing note. The transcript keeps the original recognition text.
 
 ## Run the standalone example
@@ -47,8 +47,8 @@ connection. A public host should supply anonymous admission through its own prox
 
 The dev server serves the packaged worker/WASM assets and cross-origin isolation headers.
 Click **Start listening** to load the recognizer and request microphone access. Audio stays on-device.
-Choose **Start notes** to connect to your model endpoint and send finalized transcript
-turns with the existing outline. **Pause notes** stops remote work while local capture continues. A hosted connection may require browser verification first.
+Listening also connects to your model endpoint and sends finalized transcript
+turns with the existing outline. Stop listening to stop sending. A failed connection or request is retried twice on its own; after that, pausing and resuming listening tries again. A hosted connection may require browser verification first.
 
 ## Embed the example
 
@@ -58,7 +58,7 @@ host passes to `Gallery` as `connectModel`. Catalogue metadata and source paths 
 A host can consume them through an exact source pin without publishing a demo package. Without a
 connection, the public gallery still demonstrates transcription.
 
-`renderModelControls` receives connection status, retry buttons, and errors. The gallery uses it
+`renderModelControls` receives connection status and errors. The gallery uses it
 to render them inside the demo with the host’s browser check and a usage meter.
 Without this callback, controls render above the outline. Usage is measured in requests. Errors
 and allowance never become note content.
@@ -85,13 +85,18 @@ import { App } from './src/App';
 />;
 ```
 
-`connect` runs only on **Start notes**, never on page load, model download, microphone permission,
-or capture start. Pause notes aborts model work without clearing content. Changing the `connect`
-function also pauses admission and inference; memoize it in hosts and require Start notes to resume.
-It may run again on an explicit connection retry or session restart.
-Stop/start reuses admission and the connection, including failed or exhausted sessions.
+`connect` runs when `listening` becomes true, never on page load, model
+download, or microphone permission. Changing the `connect` function aborts admission and inference
+without clearing content, then connects again if still listening; memoize it in hosts.
+A failed admission is retried twice automatically, and a session whose failure has the `restart`
+policy is admitted again twice per listening start. Stop/start reuses a working connection and
+gives a failed one another attempt; an exhausted (`terminal`) session is never retried.
 Once notes have been started, stopping capture still lets its final turns produce notes. The host owns authorization and transport errors.
-`NotesRequestError` supplies bounded retry, terminal, and explicit restart policies.
+A failed request is retried twice by default; `NotesRequestError` policies change the limit
+(`retryLimit: 0` for failures another attempt cannot fix) and delay, or mark it terminal or restart.
+A response that misuses a note ID is applied without the misplaced part instead of failing: an
+unknown reword is dropped, detail aimed at a nested note joins its siblings, and an addition under
+an unknown ID becomes a top-level note. Note IDs are short so a model can copy them back exactly.
 Quota exhaustion should be terminal and never clearable. Only a context-limit failure is clearable.
 An optional `reportFailure` callback receives `NotesRequestError` after transport or validation
 fails. Hosts can log its policy code with their last request ID. The example reads the response
@@ -119,10 +124,11 @@ transcript without generating IDs or calling a model. An explicit connection can
 remaining after the recorded cursor. The example keeps its history in memory for one visit.
 
 Markdown is a projection of the structured outline. The model still returns validated additions
-and rewords. A compact transcript preview uses about one-third of the notes' width on desktop.
-Each live word fades through a CSS animation and expires within twenty seconds. Words received
-together disappear in sequence across at most four seconds. Provisional corrections and finalization
-preserve each word's age. The preview has no scrolling or spatial fade mask.
+and rewords. A thin Transcript column sits to the right of the notes and stays in view as they grow.
+It shows one line per finalized segment, newest first, running to the bottom of the page when
+speech is fast; older lines are lighter by position and each expires after twenty seconds, leaving
+from the end of the list.
+The line being spoken is italic and keeps its place when it is finalized.
 
 Display timing comes from live ingestion events, not the replayable history. Old transcript does not
 reappear on replay or after model updates. All finalized turns remain available to inference and replay.
@@ -138,7 +144,7 @@ unmount releases it. Pending microphone permission is cancelled, including late 
 
 Run `pnpm install` and `pnpm build` in the copied directory.
 The manifest includes `react-markdown` for rendering, `ts-pattern` for exhaustive event handling,
-and `es-toolkit` for abortable retry delays and word-expiry selection.
+and `es-toolkit` for abortable retry delays.
 The included `pnpm-workspace.yaml` allows the `esbuild` install script.
 
 Requests include the full outline, pending turns, and up to six preceding context turns. The

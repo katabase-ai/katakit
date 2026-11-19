@@ -10,44 +10,171 @@
 .katakit-gallery .gallery-demo-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: start;
-  gap: 12px 16px;
+  align-items: center;
+  gap: 8px 16px;
   margin-bottom: 32px;
+}
+/* What the demo is, above its title: Run locally and the data-handling badge. */
+.katakit-gallery .gallery-demo-header-badge {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
 }
 .katakit-gallery .gallery-demo-header > h1 {
   grid-column: 1;
-  grid-row: 1;
+  grid-row: 2;
   margin: 0;
   font-size: 36px;
   line-height: 1.2;
 }
+/* Beside the title: the demo's own controls, then its pause/resume button. The row keeps its
+   height before they exist, and a demo's controls stay hidden until it has started. */
+.katakit-gallery .gallery-demo-header-controls {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+  min-height: 44px;
+}
+.katakit-gallery .gallery-demo-header-controls > div {
+  display: contents;
+}
+.katakit-gallery .gallery-demo-header-controls:not(:has(.gallery-capture-toggle)) > div:first-child {
+  display: none;
+}
 .katakit-gallery .gallery-demo-header > p {
   grid-column: 1 / -1;
-  grid-row: 2;
+  grid-row: 3;
   max-width: 65ch;
   margin: 0;
   color: var(--color-muted);
   font-size: 16px;
   line-height: 24px;
 }
-.katakit-gallery .gallery-demo-header-badge {
-  grid-column: 2;
-  grid-row: 1;
-  padding-top: 6px;
+/* Beside the badge there is no room to expand in place, so the panel opens over the page. */
+.katakit-gallery .gallery-demo-header-badge .gallery-run-locally {
+  position: relative;
 }
-.katakit-gallery .gallery-demo-header-actions {
-  grid-column: 1 / -1;
-  grid-row: 3;
-  min-width: 0;
+/* Beside the badge, Run locally is a text button at the badge's type size; the badge keeps its pill. */
+.katakit-gallery .gallery-demo-header-badge .gallery-run-locally > summary {
+  gap: 6px;
+  min-height: 0;
+  padding: 4px 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  /* Without this the inline summary leaves descender space below it and sits off the badge's centre. */
+  vertical-align: top;
+}
+.katakit-gallery .gallery-demo-header-badge .gallery-run-locally > summary:hover,
+.katakit-gallery .gallery-demo-header-badge .gallery-run-locally[open] > summary {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.katakit-gallery .gallery-demo-header-badge .gallery-run-locally > summary svg {
+  width: 14px;
+  height: 14px;
+  flex-basis: 14px;
+}
+.katakit-gallery .gallery-demo-header-badge .gallery-privacy-badge {
+  font-size: 0.8125rem;
+}
+
+.katakit-gallery .gallery-demo-header-badge .gallery-run-locally-panel {
+  position: absolute;
+  inset-block-start: 100%;
+  inset-inline-end: 0;
+  z-index: 5;
+  width: min(40rem, 60vw);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+}
+.katakit-gallery .gallery-capture-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.katakit-gallery .gallery-demo-header-controls .gallery-capture-action {
+  max-width: none;
+  margin: 0;
+}
+.katakit-gallery .gallery-demo-header-controls .gallery-capture-action svg {
+  width: 18px;
+  height: 18px;
+  position: relative;
+}
+.katakit-gallery .gallery-capture-toggle {
+  position: relative;
+  overflow: hidden;
+}
+.katakit-gallery .gallery-capture-level {
+  position: absolute;
+  inset: auto 0 0;
+  height: calc(var(--gallery-capture-level, 0) * 100%);
+  background: color-mix(in oklch, var(--color-accent) 45%, transparent);
+  transition: height 120ms linear;
+}
+@media (prefers-reduced-motion: reduce) {
+  .katakit-gallery .gallery-capture-level {
+    transition: none;
+  }
+}
+.katakit-gallery .gallery-demo-stage {
+  position: relative;
+}
+.katakit-gallery .gallery-demo-stage:has(> .gallery-capture-overlay) {
+  min-height: 18rem;
+}
+.katakit-gallery .gallery-capture-controls.gallery-capture-overlay {
+  position: absolute;
+  inset: -8px;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  max-width: none;
+  margin: 0;
+  /* Start sits around the middle of the visible demo, not at its top edge. */
+  padding: clamp(4rem, 24dvh, 16rem) 1rem 1rem;
+  border-radius: 12px;
+  background: color-mix(in oklch, var(--color-paper) 72%, transparent);
+  backdrop-filter: blur(3px);
+}
+.katakit-gallery .gallery-capture-overlay-card {
+  /* Start stays in view while a tall demo is scrolled behind it. */
+  position: sticky;
+  top: 5rem;
+  display: grid;
+  justify-items: center;
+  gap: 12px;
+  width: min(100%, 22rem);
+  text-align: center;
+}
+.katakit-gallery .gallery-capture-overlay-card p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+/* The one Start style: a demo's overlay and Color Clash's Play. */
+.katakit-gallery .gallery-capture-start {
+  min-width: 8rem;
+  min-height: 52px;
+  font-size: var(--text-base, 1rem);
 }
 .katakit-gallery .gallery-demo-header-badge .gallery-privacy-row {
   margin: 0;
 }
 .katakit-gallery .gallery-demo-header-badge .gallery-privacy-panel {
   max-width: min(20rem, calc(100vw - 2 * var(--gutter, 1rem) - 2 * var(--gallery-gutter)));
-}
-.katakit-gallery .gallery-demo-stage > .transcription-demo > .gallery-capture-controls:first-child {
-  margin-top: 0;
 }
 .katakit-gallery .gallery-demo-activity-slot {
   min-height: 24px;
@@ -78,15 +205,20 @@
   .katakit-gallery .gallery-demo-spinner { animation: none; }
 }
 @media (max-width: 650px) {
-  .katakit-gallery .gallery-demo-header { grid-template-columns: minmax(0, 1fr); }
   .katakit-gallery .gallery-demo-header > h1 { font-size: 28px; }
-  .katakit-gallery .gallery-demo-header-badge {
-    grid-column: 1;
-    grid-row: 3;
-    justify-self: start;
-    padding-top: 0;
+  .katakit-gallery .gallery-demo-header-badge { justify-self: start; }
+  /* A narrow title row has no room for a word list; the controls take their own row. */
+  .katakit-gallery .gallery-demo-header-controls {
+    grid-column: 1 / -1;
+    grid-row: 4;
+    justify-content: flex-start;
+    min-height: 0;
   }
-  .katakit-gallery .gallery-demo-header-actions { grid-row: 4; }
+  .katakit-gallery .gallery-demo-header-badge .gallery-run-locally-panel {
+    inset-inline-start: 0;
+    inset-inline-end: auto;
+    width: calc(100vw - 2 * var(--gutter, 1rem) - 2 * var(--gallery-gutter));
+  }
   .katakit-gallery .gallery-demo-header-badge .gallery-privacy-panel {
     inset-inline-start: 0;
     inset-inline-end: auto;
@@ -95,4 +227,47 @@
     inset-inline-start: 2rem;
     inset-inline-end: auto;
   }
+}
+/* What a demo may fill below the gallery's own header, so its card or column ends at the page's end. */
+.katakit-gallery .browser-bingo {
+  --bingo-grid-max-height: calc(var(--gallery-sidebar-height, 100dvh) - 19.5rem);
+}
+.katakit-gallery .structured-notes {
+  /* Full width, so its transcript column sits under the header controls as bingo's does. */
+  max-width: none;
+  --transcript-column-height: calc(var(--gallery-sidebar-height, 100dvh) - 16rem);
+}
+/* Beside the title the word list is as wide as the transcript column below it, in smaller type,
+   and reads from its selected value; its label stays for assistive tech. */
+.katakit-gallery .gallery-demo-header-controls:has(.bingo-pack-picker) {
+  flex-wrap: nowrap;
+  gap: 8px;
+  width: 270px;
+  max-width: 100%;
+}
+.katakit-gallery .gallery-demo-header-controls .bingo-pack-picker {
+  flex: 1;
+  align-items: center;
+  flex-wrap: nowrap;
+  min-width: 0;
+  margin: 0;
+}
+.katakit-gallery .gallery-demo-header-controls .bingo-pack-picker .site-field {
+  flex: 1;
+  min-width: 0;
+}
+.katakit-gallery .gallery-demo-header-controls .bingo-pack-picker .site-select {
+  padding-inline: 0.625rem 1.75rem;
+  font-size: 0.8125rem;
+}
+.katakit-gallery .gallery-demo-header-controls .bingo-pack-picker .site-field::after {
+  right: 0.7rem;
+}
+.katakit-gallery .gallery-demo-header-controls .bingo-pack-picker .site-field > label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }

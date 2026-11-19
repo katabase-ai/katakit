@@ -12,6 +12,7 @@ import { GallerySpeechProvider, useGallerySpeech } from './GallerySpeechProvider
 import { GalleryCaptureControls } from './GalleryCaptureControls';
 import { GalleryDemo } from './GalleryDemo';
 import { Gallery } from './Gallery';
+import { transcriptionDemoDetails } from './galleryDemoDetails';
 import { GallerySpeechControls } from './GallerySpeechControls';
 
 vi.mock('@katakit/transcription/browser', async importOriginal => ({
@@ -377,24 +378,22 @@ test('setup remains in progress across the model-ready handoff until permission 
   expect(screen.getByRole('button', { name: 'Microphone setup: Not set up' })).toBeDefined();
 });
 
-test('footer and Welcome share all setup states and audio levels without footer capture actions', async () => {
+test('Welcome shows every setup state and the level; the footer shows only on or off, with no capture actions', async () => {
   const { inputs, finishStart, fail } = fixture({ pending: 'loading' });
   render(<Harness showFooter />);
   const footer = within(screen.getByRole('region', { name: 'Operation status' }));
   const page = within(screen.getByRole('region', { name: 'Set up your mic' }));
   const bothShow = (state: string) => {
-    for (const view of [footer, page])
-      expect(view.getByRole('button', { name: `Microphone setup: ${state}` })).toBeDefined();
+    expect(page.getByRole('button', { name: `Microphone setup: ${state}` })).toBeDefined();
+    expect(footer.queryByRole('button', { name: /Microphone setup/ })).toBeNull();
   };
   bothShow('Not set up');
   const footerMic = footer.getByRole('img', { name: 'Microphone off' });
   expect(footerMic.getAttribute('data-size')).toBe('small');
   fireEvent.click(footerMic);
-  fireEvent.focus(footer.getByRole('button', { name: 'Microphone setup: Not set up' }));
-  expect(footer.getByRole('tooltip').textContent).toBe('Not set up');
   expect(inputs).toHaveLength(0);
   expect(footer.queryByRole('button', { name: /Download|Cancel|Start|Stop|Test/ })).toBeNull();
-  expect(footer.getByText('Usage unavailable')).toBeDefined();
+  expect(footer.queryByText('Usage unavailable')).toBeNull();
   await click('Set up microphone');
   bothShow('Setting up');
   act(() => inputs[0]!.callbacks.onState?.({ phase: 'ready' }));
@@ -402,11 +401,14 @@ test('footer and Welcome share all setup states and audio levels without footer 
   await act(async () => finishStart());
   bothShow('Ready');
   act(() => inputs[0]!.callbacks.onLevel?.(0.64));
-  for (const view of [footer, page]) {
-    const mic = view.getByRole('img', { name: 'Microphone listening' });
-    expect(mic.style.getPropertyValue('--gallery-microphone-level')).toBe('0.64');
-    expect(mic.style.getPropertyValue('--gallery-microphone-response')).toBe('0.8');
-  }
+  const pageMic = page.getByRole('img', { name: 'Microphone listening' });
+  expect(pageMic.style.getPropertyValue('--gallery-microphone-level')).toBe('0.64');
+  expect(pageMic.style.getPropertyValue('--gallery-microphone-response')).toBe('0.8');
+  expect(
+    footer
+      .getByRole('img', { name: 'Microphone listening' })
+      .style.getPropertyValue('--gallery-microphone-response')
+  ).toBe('0');
   await click('Stop listening');
   bothShow('Ready');
   for (const view of [footer, page]) {
@@ -419,23 +421,53 @@ test('footer and Welcome share all setup states and audio levels without footer 
   bothShow('Needs attention');
 });
 
-test('the footer tracks another demo and retains readiness across navigation while capture stops', async () => {
+test('the footer tracks another demo, and Welcome retains readiness across navigation while capture stops', async () => {
   const { inputs } = fixture();
   render(<Harness initialWelcome={false} showFooter />);
   const footer = within(screen.getByRole('region', { name: 'Operation status' }));
-  expect(footer.getByRole('button', { name: 'Microphone setup: Not set up' })).toBeDefined();
   await click('Preload model');
-  expect(footer.queryByRole('button', { name: 'Microphone setup: Ready' })).toBeNull();
   await click('Start listening');
-  expect(footer.getByRole('button', { name: 'Microphone setup: Ready' })).toBeDefined();
   expect(footer.getByRole('img', { name: 'Microphone listening' })).toBeDefined();
   await click('Navigate');
   await screen.findByRole('button', { name: 'Test again' });
-  expect(screen.getAllByRole('button', { name: 'Microphone setup: Ready' })).toHaveLength(2);
+  expect(screen.getAllByRole('button', { name: 'Microphone setup: Ready' })).toHaveLength(1);
   expect(footer.getByRole('img', { name: 'Microphone off' })).toBeDefined();
   expect(inputs[0]!.start).toHaveBeenCalledOnce();
   await click('Navigate');
   await click('Start listening');
   expect(footer.getByRole('img', { name: 'Microphone listening' })).toBeDefined();
   expect(inputs[0]!.start).toHaveBeenCalledTimes(2);
+});
+
+test('a demo waits behind Start, then offers pause and resume beside its title', async () => {
+  const { inputs } = fixture();
+  render(
+    <GallerySpeechProvider>
+      <Gallery
+        demos={[transcriptionDemoDetails]}
+        activeDemo={transcriptionDemoDetails}
+        renderLink={({ children }) => <a href="/">{children}</a>}
+      >
+        <GalleryDemo create={createTranscriptionDemo} render={() => <GalleryCaptureControls />} />
+      </Gallery>
+    </GallerySpeechProvider>
+  );
+  await click('Start listening');
+  const header = within(screen.getByRole('banner'));
+  const pause = await header.findByRole('button', { name: 'Pause listening' });
+  expect(screen.queryByRole('button', { name: 'Start listening' })).toBeNull();
+  act(() => inputs[0]!.callbacks.onLevel?.(0.64));
+  const fill = () =>
+    Number(
+      pause
+        .querySelector<HTMLElement>('.gallery-capture-level')!
+        .style.getPropertyValue('--gallery-capture-level')
+    );
+  expect(fill()).toBe(0.64);
+  // A drop to silence falls part of the way, not straight to empty.
+  act(() => inputs[0]!.callbacks.onLevel?.(0));
+  expect(fill()).toBeCloseTo(0.448);
+  await click('Pause listening');
+  await header.findByRole('button', { name: 'Resume listening' });
+  expect(screen.queryByRole('button', { name: 'Start listening' })).toBeNull();
 });

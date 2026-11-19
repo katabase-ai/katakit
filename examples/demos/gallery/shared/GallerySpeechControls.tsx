@@ -1,7 +1,6 @@
 import { useContext } from 'react';
 import { useGallerySpeech } from './GallerySpeechProvider';
 import { GalleryModelContext } from './galleryModel';
-import { GalleryMicrophoneReadiness } from './GalleryMicrophoneReadiness';
 import { GalleryMicrophoneIndicator } from './GalleryMicrophoneIndicator';
 import { Settings } from 'lucide-react';
 import { GalleryAccountButton } from './GalleryAccountButton';
@@ -9,11 +8,10 @@ import { GalleryUsageMeter, galleryUsagePercent } from './GalleryUsageMeter';
 import { GalleryTooltipButton } from './GalleryTooltip';
 import './galleryFooterControls.css';
 
-/** Shared setup, capture, usage, and account display; recording stays in the demo. */
+/** Shared capture, usage, and account display; recording stays in the demo. */
 export const GallerySpeechControls = () => {
   const session = useGallerySpeech();
-  const { isDeveloperView, openSettings, allowance, usageUnavailableReason, account } =
-    useContext(GalleryModelContext);
+  const { isDeveloperView, openSettings, allowance, account } = useContext(GalleryModelContext);
   const snapshot = session?.snapshot;
   const percent = galleryUsagePercent(allowance);
   const phase =
@@ -32,10 +30,10 @@ export const GallerySpeechControls = () => {
       data-guest={!account?.user}
     >
       <div className="gallery-speech-indicators" role="group" aria-label="Gallery controls">
-        <GalleryMicrophoneReadiness side="top" align="start" />
+        {/* On or off only: the live level is shown on the listening demo's pause button. */}
         <GalleryMicrophoneIndicator
           recording={snapshot?.input.phase === 'running'}
-          level={snapshot?.level ?? 0}
+          level={0}
           size="small"
         />
         {openSettings && (
@@ -50,7 +48,8 @@ export const GallerySpeechControls = () => {
         )}
         <GalleryAccountButton />
       </div>
-      <GalleryUsageMeter percent={percent} unavailableReason={usageUnavailableReason} />
+      {/* The footer has no usage row until an allowance is reported; Settings explains why. */}
+      {percent !== undefined && <GalleryUsageMeter percent={percent} />}
       {(snapshot?.error || snapshot?.input.error) && (
         <p role="alert">{snapshot.error ?? snapshot.input.error?.message}</p>
       )}

@@ -1,8 +1,16 @@
-import { useId, type ReactNode } from 'react';
+import { useEffect, useId, useState, type CSSProperties, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
+import { Pause, Play } from 'lucide-react';
+import { useGalleryDemoStage } from './GalleryDemoFrame';
+import { GalleryDemoControls } from './GalleryDemoHeader';
 import { useGallerySpeech } from './GallerySpeechProvider';
 import { GalleryMicrophoneIndicator } from './GalleryMicrophoneIndicator';
 
-/** Capture actions belong to the active demo, never the shared setup footer. */
+/**
+ * Capture actions belong to the active demo, never the shared setup footer. In the gallery frame
+ * a demo and its toolbar wait behind a Start overlay; after its first start the toolbar holds a
+ * pause/resume button. The footer has the only live microphone indicator.
+ */
 export const GalleryCaptureControls = ({
   label = 'Start listening',
   errorHelp,
@@ -17,14 +25,31 @@ export const GalleryCaptureControls = ({
   presentation?: 'default' | 'welcome';
 }) => {
   const session = useGallerySpeech();
+  const stage = useGalleryDemoStage();
   const statusId = useId();
+  // Each demo visit mounts its own controls, so this is "has this visit listened yet".
+  const [started, setStarted] = useState(false);
+  if (session?.snapshot.input.phase === 'running' && !started) setStarted(true);
+  // Raw levels jump between silence and full ten times a second. Rise at once but fall gradually,
+  // so the fill reads as speech rather than flickering between empty and full.
+  const [shownLevel, setShownLevel] = useState(0);
+  const snapshotForLevel = session?.snapshot;
+  useEffect(() => {
+    const level =
+      snapshotForLevel?.input.phase === 'running' && Number.isFinite(snapshotForLevel.level)
+        ? Math.max(0, Math.min(1, snapshotForLevel.level))
+        : 0;
+    setShownLevel(shown => (level >= shown ? level : shown * 0.7 + level * 0.3));
+  }, [snapshotForLevel]);
   if (!session) return <p role="status">Preparing microphone…</p>;
   const { owner, snapshot } = session;
   const recording = snapshot.input.phase === 'running';
   const preparing = ['loading', 'starting'].includes(snapshot.input.phase);
   const welcome = presentation === 'welcome';
+  const failure = snapshot.error ?? snapshot.input.error?.message;
+  // The overlay and Welcome show setup progress themselves; this line is for assistive tech.
   const statusLine = (
-    <p id={statusId} role="status" className={welcome ? 'gallery-visually-hidden' : undefined}>
+    <p id={statusId} role="status" className="gallery-visually-hidden">
       {welcome
         ? recording
           ? 'Microphone listening'
@@ -43,9 +68,11 @@ export const GalleryCaptureControls = ({
   const button = (
     <button
       type="button"
-      className="site-button site-button--slate"
+      className={`site-button ${stage && !welcome ? 'site-button--blue gallery-capture-start' : 'site-button--slate'}`}
       disabled={snapshot.blocked || (!preparing && (snapshot.transitioning || !snapshot.attached))}
       aria-describedby={statusId}
+      // Demos show the short verb; the accessible name still says what starts and stops.
+      aria-label={welcome || preparing ? undefined : recording ? 'Stop listening' : label}
       onClick={() => void (preparing ? owner.cancel() : recording ? owner.stop() : owner.start())}
     >
       {preparing
@@ -53,43 +80,109 @@ export const GalleryCaptureControls = ({
           ? 'Cancel download'
           : 'Cancel'
         : recording
-          ? 'Stop listening'
-          : label}
+          ? welcome
+            ? 'Stop listening'
+            : 'Stop'
+          : welcome || label !== 'Start listening'
+            ? label
+            : failure
+              ? 'Try again'
+              : 'Start'}
     </button>
   );
-  return (
-    <div className={`gallery-capture-controls${welcome ? ' gallery-welcome-capture-actions' : ''}`}>
-      {!welcome && children}
-      {!welcome && errorHelp}
-      {welcome && <GalleryMicrophoneIndicator recording={recording} level={snapshot.level} />}
-      {button}
-      {welcome && (
+  if (welcome)
+    return (
+      <div className="gallery-capture-controls gallery-welcome-capture-actions">
+        <GalleryMicrophoneIndicator recording={recording} level={snapshot.level} />
+        {button}
         <div className="gallery-welcome-capture-feedback">
           {children}
           {errorHelp}
         </div>
-      )}
-      {statusLine}
-      {recording && !welcome && (
-        <div className="site-audio-level" role="img" aria-label="Microphone: listening">
-          <span className="site-audio-level__label">Microphone</span>
-          <span className="site-audio-level__track" aria-hidden="true">
-            <span
-              className="site-audio-level__fill"
-              style={{ width: `${Math.round(Math.max(0, Math.min(1, snapshot.level)) * 100)}%` }}
-            />
-          </span>
-          <span className="site-audio-level__state">Listening</span>
+        {statusLine}
+      </div>
+    );
+  const alert =
+    errorHelp ??
+    (failure && (
+      <p role="alert">
+        {failure}{' '}
+        {snapshot.blocked
+          ? 'Reload this page before trying again.'
+          : 'Try downloading or starting again.'}
+      </p>
+    ));
+  // A host without the gallery frame has no demo space to cover; it keeps a plain button.
+  if (!stage)
+    return (
+      <>
+        <div className="gallery-capture-controls gallery-capture-action">
+          {statusLine}
+          {button}
         </div>
-      )}
-      {!errorHelp && (snapshot.error || snapshot.input.error) && (
-        <p role="alert">
-          {snapshot.error ?? snapshot.input.error?.message}{' '}
-          {snapshot.blocked
-            ? 'Reload this page before trying again.'
-            : 'Try downloading or starting again.'}
-        </p>
-      )}
-    </div>
+        {children}
+        {alert}
+      </>
+    );
+  const progress = snapshot.input.progress;
+  return (
+    <>
+      <GalleryDemoControls slot="capture">
+        <div className="gallery-capture-controls gallery-capture-action">
+          {started && (
+            <button
+              type="button"
+              className="site-button site-button--icon gallery-capture-toggle"
+              disabled={snapshot.blocked || snapshot.transitioning || preparing}
+              aria-label={recording ? 'Pause listening' : 'Resume listening'}
+              title={recording ? 'Pause' : 'Resume'}
+              onClick={() => void (recording ? owner.stop() : owner.start())}
+            >
+              {recording && (
+                // The whole button fills from the bottom with the level being heard.
+                <span
+                  className="gallery-capture-level"
+                  aria-hidden="true"
+                  style={{ '--gallery-capture-level': shownLevel } as CSSProperties}
+                />
+              )}
+              {recording ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
+            </button>
+          )}
+        </div>
+      </GalleryDemoControls>
+      {/* Until this visit has listened once, and again after a failure, the demo waits behind Start. */}
+      {(!started || !!failure || snapshot.blocked) &&
+        createPortal(
+          <div className="gallery-capture-controls gallery-capture-overlay">
+            <div className="gallery-capture-overlay-card">
+              {alert}
+              {preparing && (
+                <>
+                  <p>
+                    {snapshot.input.phase === 'loading'
+                      ? `Downloading speech model…${progress === undefined ? '' : ` ${Math.round(progress * 100)}%`}`
+                      : 'Allow microphone access in your browser.'}
+                  </p>
+                  {snapshot.input.phase === 'loading' && (
+                    <progress
+                      className="gallery-welcome-download-progress"
+                      aria-label="Speech model download"
+                      max={1}
+                      value={
+                        progress === undefined ? undefined : Math.max(0, Math.min(1, progress))
+                      }
+                    />
+                  )}
+                </>
+              )}
+              {statusLine}
+              {button}
+            </div>
+          </div>,
+          stage
+        )}
+      {children}
+    </>
   );
 };

@@ -10,8 +10,7 @@
   max-width: 55ch;
   line-height: 1.6;
 }
-.structured-notes-controls,
-.structured-notes-heading {
+.structured-notes-controls {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -55,20 +54,23 @@
 }
 .structured-notes-output {
   margin-block: 2rem;
-  min-height: 12rem;
   overflow-wrap: anywhere;
 }
-.structured-notes-heading {
-  justify-content: space-between;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+/* A text button beside the notes it clears, present only once there is something to clear. */
+.structured-notes-actions {
+  display: flex;
+  justify-content: flex-end;
 }
-.structured-notes-heading h2 {
-  margin: 0;
-  font-size: 1.1rem;
-}
-.structured-notes-heading button {
+.structured-notes-actions button {
+  padding: 0.25rem 0;
+  border: 0;
+  color: var(--color-muted, color-mix(in srgb, currentColor 70%, transparent));
   font-size: 0.8125rem;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.structured-notes-actions button:hover {
+  color: inherit;
 }
 .structured-notes-output li {
   margin-block: 0.6rem;
@@ -77,53 +79,138 @@
 .structured-notes-output ul {
   padding-left: 1.3rem;
 }
-.structured-notes-transcript {
-  width: 33.333%;
-  margin-block: 1.5rem;
+/* Notes on the left, a thin transcript column on the right that stays in view as notes grow. */
+.structured-notes-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 270px);
+  align-items: start;
+  gap: 2.5rem;
 }
-.structured-notes-transcript h2 {
-  margin: 0;
-  font-size: 0.875rem;
-  font-weight: 500;
+.structured-notes-output {
+  min-height: 12rem;
 }
-.structured-notes-transcript-words {
-  min-height: 3em;
-  margin-block: 0.75rem;
-  font-size: 0.875rem;
-  line-height: 1.6;
-  overflow-wrap: anywhere;
-}
-.structured-notes-word {
-  animation: structured-notes-word-fade 20s linear both;
-}
-.structured-notes-word[data-provisional='true'] {
-  font-style: italic;
-}
-@keyframes structured-notes-word-fade {
-  0%,
-  60% {
-    opacity: 1;
-  }
-  85% {
-    opacity: 0.5;
-  }
-  100% {
-    opacity: 0;
-  }
+.structured-notes-layout > :is(.transcript-preview, .transcript-turns) {
+  position: sticky;
+  top: 0;
+  /* To the bottom of the page; a host with its own chrome sets the variable. */
+  height: var(--transcript-column-height, calc(100dvh - 14rem));
 }
 @media (max-width: 640px) {
-  .structured-notes-transcript {
-    width: min(100%, 22rem);
+  .structured-notes-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+  .structured-notes-layout > :is(.transcript-preview, .transcript-turns) {
+    position: static;
+    height: auto;
   }
 }
-@media (prefers-reduced-motion: reduce) {
-  .structured-notes-word {
-    animation-timing-function: step-end;
-  }
+/* The transcript column as numbered turns. The structured-notes and bingo examples each carry
+   these rules. */
+.transcript-turns {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
 }
-.structured-notes-empty,
-.structured-notes-hint,
-.structured-notes-transcript {
+.transcript-turns h2 {
+  margin: 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-rule, color-mix(in srgb, currentColor 18%, transparent));
+  color: var(--color-ink, inherit);
+  font-size: var(--text-lg, 1.25rem);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: normal;
+}
+/* Turns fill the column to its end and scroll there; their content never sizes the column. */
+.transcript-turns-list {
+  flex: 1 1 0;
+  min-height: 6rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.transcript-turn {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr);
+  gap: 0.25rem 0.5rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--color-rule, color-mix(in srgb, currentColor 18%, transparent));
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.transcript-turn p {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+.transcript-turn-index,
+.transcript-turn time {
+  color: var(--color-muted, color-mix(in srgb, currentColor 70%, transparent));
+  font-family: var(--font-outlier, ui-monospace, monospace);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+.transcript-turn-index {
+  padding-top: 0.15rem;
+}
+/* The turn's start time sits beneath its text, at the column's right edge. */
+.transcript-turn time {
+  grid-column: 2;
+  justify-self: end;
+}
+.transcript-turn[data-interim='true'] p {
+  color: var(--color-muted, color-mix(in srgb, currentColor 70%, transparent));
+  font-style: italic;
+}
+/* The transcript column. The structured-notes and bingo examples each carry these rules. */
+.transcript-preview {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  color: var(--color-muted, color-mix(in srgb, currentColor 70%, transparent));
+}
+/* The heading sits above its rule, the same shape as a section heading beside it. */
+.transcript-preview h2 {
+  margin: 0 0 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-rule, color-mix(in srgb, currentColor 18%, transparent));
+  color: var(--color-ink, inherit);
+  font-size: var(--text-lg, 1.25rem);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: normal;
+}
+/* Lines fill the column to its end and are cut off there; their content never sizes the column. */
+.transcript-preview-lines {
+  display: grid;
+  align-content: start;
+  flex: 1 1 0;
+  min-height: 6rem;
+  overflow: hidden;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.transcript-preview-lines p {
+  margin: 0 0 0.375rem;
+}
+/* Older lines are quieter by position, not by animation: animated lines were painted at stale
+   positions when a new line pushed them down. */
+.transcript-preview-lines p:nth-child(2) {
+  opacity: 0.75;
+}
+.transcript-preview-lines p:nth-child(3) {
+  opacity: 0.55;
+}
+.transcript-preview-lines p:nth-child(n + 4) {
+  opacity: 0.4;
+}
+.transcript-preview-lines p[data-provisional='true'] {
+  font-style: italic;
+}
+.structured-notes-hint {
   color: var(--color-muted, color-mix(in srgb, currentColor 70%, transparent));
 }
 .structured-notes-hint {

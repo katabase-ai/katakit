@@ -24,6 +24,10 @@ import {
   type NotesConnection,
 } from './notesModel';
 
+/** A failed request is tried again on its own this many times before notes pause. */
+const DEFAULT_RETRY_LIMIT = 2;
+const DEFAULT_RETRY_AFTER_MS = 300;
+
 type RequestState =
   | { status: 'idle' | 'requesting'; failure?: never }
   | { status: 'waiting' | 'paused'; failure: NotesRequestError };
@@ -171,11 +175,16 @@ export const makeNotesPlugin = ({
               const failure =
                 error instanceof NotesRequestError
                   ? error
-                  : new NotesRequestError('Notes could not be updated. Try again.');
+                  : new NotesRequestError('Notes could not be updated.');
               // Local sizing failures have no transport request to correlate.
               if (requestStarted) activeConnection.reportFailure?.(failure);
-              const { retryAfterMs, retryLimit = 0 } = failure.policy;
-              if (retryAfterMs === undefined || retries >= retryLimit) {
+              const {
+                retryAfterMs = DEFAULT_RETRY_AFTER_MS,
+                retryLimit = DEFAULT_RETRY_LIMIT,
+                terminal,
+                restart,
+              } = failure.policy;
+              if (terminal || restart || retries >= retryLimit) {
                 options.request.next({ status: 'paused', failure });
                 return;
               }

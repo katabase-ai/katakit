@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, type ReactNode } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import type { galleryDemoDetails } from './galleryDemoDetails';
 import { GalleryModelContext, type GalleryModelConnect } from './galleryModel';
 import { useGalleryInference } from './GalleryInferenceProvider';
@@ -91,6 +91,11 @@ export const Gallery = ({
     setActiveDemo(activeDemoId);
     return () => setActiveDemo(undefined);
   }, [setActiveDemo, activeDemoId]);
+  // The content column is its own scroller, so a new page has to be returned to its top.
+  const content = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    content.current?.scrollTo({ top: 0 });
+  }, [activeDemoId, developerPage, settingsPage]);
   const sourceSignal = inference?.owner.getSignal();
   const usesDeveloperKey = isDeveloperView && inference?.settings.source === 'key';
   const recordAllowance = usage?.reportAllowance;
@@ -185,7 +190,7 @@ export const Gallery = ({
           </nav>
           <GalleryFooter>{input}</GalleryFooter>
         </aside>
-        <div className="gallery-content">
+        <div ref={content} className="gallery-content">
           {settingsPage ? (
             <Suspense fallback={<p role="status">Loading Settings…</p>}>
               <PublicSettings privacyUrl={privacyUrl} />
@@ -216,21 +221,21 @@ export const Gallery = ({
               demo={activeDemo ?? galleryWelcomeDetails}
               badge={
                 activeDemo && (
-                  <GalleryPrivacyBadge
-                    key={activeDemo.id}
-                    dataHandling={activeDemo.dataHandling}
-                    privacyUrl={privacyUrl}
-                    developerEndpoint={isDeveloperView && inference?.settings.source === 'key'}
-                    cloudPrivacyDescription={
-                      connectModel && (!isDeveloperView || inference?.settings.source === 'free')
-                        ? cloudPrivacyDescription
-                        : undefined
-                    }
-                  />
+                  <>
+                    <GalleryRunLocally demo={activeDemo} revision={sourceRevision} />
+                    <GalleryPrivacyBadge
+                      key={activeDemo.id}
+                      dataHandling={activeDemo.dataHandling}
+                      privacyUrl={privacyUrl}
+                      developerEndpoint={isDeveloperView && inference?.settings.source === 'key'}
+                      cloudPrivacyDescription={
+                        connectModel && (!isDeveloperView || inference?.settings.source === 'free')
+                          ? cloudPrivacyDescription
+                          : undefined
+                      }
+                    />
+                  </>
                 )
-              }
-              actions={
-                activeDemo && <GalleryRunLocally demo={activeDemo} revision={sourceRevision} />
               }
             >
               <GalleryDemoFrame demo={activeDemo ?? galleryWelcomeDetails}>

@@ -11,6 +11,7 @@ export const App = ({ connect }: Pick<ComponentProps<typeof NotesDemo>, 'connect
     <NotesDemo
       runtime={microphone.sink}
       connect={connect}
+      listening={microphone.listening}
       controls={
         <div className="structured-notes-controls">
           <button type="button" onClick={() => void microphone.toggle()} disabled={microphone.busy}>
