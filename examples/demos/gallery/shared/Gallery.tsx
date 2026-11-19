@@ -40,6 +40,7 @@ export const Gallery = ({
   input,
   connectModel,
   privacyUrl,
+  termsUrl,
   cloudPrivacyDescription,
   developerPage,
   renderDeveloperLink,
@@ -59,8 +60,12 @@ export const Gallery = ({
   children?: ReactNode;
   input?: ReactNode;
   connectModel?: GalleryModelConnect;
-  /** Absolute host privacy URL, opened separately to preserve this conversation. */
+  /** Host privacy URL, opened separately to preserve this conversation. */
   privacyUrl?: string;
+  /**
+   * Host terms URL, opened separately so reading it does not leave the demo.
+   */
+  termsUrl?: string;
   /** Verified managed-service privacy wording. Never used for developer key connections. */
   cloudPrivacyDescription?: string;
   developerPage?: GalleryDeveloperPage;
@@ -202,7 +207,7 @@ export const Gallery = ({
         <div ref={content} className="gallery-content">
           {settingsPage ? (
             <Suspense fallback={<p role="status">Loading Settings…</p>}>
-              <PublicSettings privacyUrl={privacyUrl} />
+              <PublicSettings privacyUrl={privacyUrl} termsUrl={termsUrl} />
             </Suspense>
           ) : isDeveloperView && developerPage ? (
             <>
@@ -248,7 +253,7 @@ export const Gallery = ({
               }
             >
               <GalleryDemoFrame demo={activeDemo ?? galleryWelcomeDetails}>
-                {activeDemo ? children : <Welcome privacyUrl={privacyUrl} />}
+                {activeDemo ? children : <Welcome privacyUrl={privacyUrl} termsUrl={termsUrl} />}
               </GalleryDemoFrame>
               {!activeDemo && children}
             </GalleryDemoHeader>

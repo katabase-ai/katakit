@@ -107,6 +107,7 @@ const Harness = ({
           demos={[]}
           renderLink={({ children }) => <a href="/">{children}</a>}
           privacyUrl="https://katabase.com/privacy"
+          termsUrl="https://example.com/terms"
         />
       ) : (
         <GalleryDemo create={createTranscriptionDemo} render={() => <GalleryCaptureControls />} />
@@ -131,9 +132,13 @@ test('a model download alone leaves Welcome untested and preserves the privacy l
   await click('Preload model');
   expect(screen.getByText('Transcription model successfully downloaded')).toBeDefined();
   expect(inputs[0]!.start).not.toHaveBeenCalled();
-  expect(screen.getByRole('link', { name: 'katabase.com/privacy' }).getAttribute('href')).toBe(
+  expect(screen.getByRole('link', { name: 'Privacy Policy' }).getAttribute('href')).toBe(
     'https://katabase.com/privacy'
   );
+  const terms = screen.getByRole('link', { name: 'Terms of Service' });
+  expect(terms.getAttribute('href')).toBe('https://example.com/terms');
+  expect(terms.getAttribute('target')).toBe('_blank');
+  expect(terms.getAttribute('rel')).toBe('noopener noreferrer');
 });
 
 test('the transcript remains visible before, during, and after a successful test', async () => {
