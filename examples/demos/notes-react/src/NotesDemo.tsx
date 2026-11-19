@@ -65,14 +65,18 @@ export const NotesDemo = ({
       {controls}
       <div className="structured-notes-layout">
         <div>
+          <div className="structured-notes-heading">
+            <h2>Notes</h2>
+            {(notes.notes.length > 0 || notes.failure?.policy.clearable) && (
+              <button type="button" onClick={runtime.notes.clear}>
+                Clear notes
+              </button>
+            )}
+          </div>
           {renderModelControls(modelControls)}
           <section className="structured-notes-output" aria-label="Structured notes output">
-            {(notes.notes.length > 0 || notes.failure?.policy.clearable) && (
-              <div className="structured-notes-actions">
-                <button type="button" onClick={runtime.notes.clear}>
-                  Clear notes
-                </button>
-              </div>
+            {!notes.notes.length && (
+              <p className="structured-notes-empty">Your notes will appear here…</p>
             )}
             <div aria-live="polite" aria-relevant="additions text">
               <Markdown skipHtml>{markdown}</Markdown>

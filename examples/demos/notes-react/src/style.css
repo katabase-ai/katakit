@@ -40,7 +40,7 @@
   outline-offset: 3px;
 }
 .structured-notes-model-controls {
-  margin-block: 1rem;
+  margin-block: 0;
   font-size: 0.875rem;
   overflow-wrap: anywhere;
 }
@@ -53,24 +53,46 @@
   line-height: 1.5;
 }
 .structured-notes-output {
-  margin-block: 2rem;
+  margin-block: 0 2rem;
   overflow-wrap: anywhere;
 }
-/* A text button beside the notes it clears, present only once there is something to clear. */
-.structured-notes-actions {
+/* The same heading-above-a-rule as the Transcript column beside it, so the two line up. */
+.structured-notes-heading {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-rule, color-mix(in srgb, currentColor 18%, transparent));
 }
-.structured-notes-actions button {
-  padding: 0.25rem 0;
+.structured-notes-heading h2 {
+  margin: 0;
+  color: var(--color-ink, inherit);
+  font-size: var(--text-lg, 1.25rem);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: normal;
+}
+/* A text button beside the notes it clears, present only once there is something to clear. */
+.structured-notes-heading button {
+  padding: 0;
   border: 0;
   color: var(--color-muted, color-mix(in srgb, currentColor 70%, transparent));
   font-size: 0.8125rem;
+  line-height: 1.4;
   text-decoration: underline;
   text-underline-offset: 0.2em;
 }
-.structured-notes-actions button:hover {
+.structured-notes-heading button:hover {
   color: inherit;
+}
+/* A placeholder, not content: centered and quieter than the notes that replace it. */
+.structured-notes-empty {
+  margin: 2rem 0;
+  color: var(--color-muted, color-mix(in srgb, currentColor 70%, transparent));
+  font-style: italic;
+  text-align: center;
 }
 .structured-notes-output li {
   margin-block: 0.6rem;
