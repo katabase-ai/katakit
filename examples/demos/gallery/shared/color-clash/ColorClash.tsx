@@ -194,8 +194,8 @@ export const ColorClash = ({
             )}
             {state.phase === 'ready' && input.phase === 'idle' && (
               <p className="color-clash-privacy">
-                First play downloads the speech model and asks for microphone access. Setup does not
-                use your round time.
+                Play sets up the speech model and microphone if needed. Setup does not use your
+                round time.
               </p>
             )}
           </div>
