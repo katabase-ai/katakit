@@ -11,19 +11,24 @@ export const createBrowserBingoDemo = () => {
   const running = kit.start();
   const methods = running.getMethods(transcript);
   const bingoMethods = running.getMethods(bingo);
-  const { conversationTurns$, currentTurn$, lastHeard$ } = kit.getObservables(transcript);
+  const {
+    conversationTurns$,
+    currentTurn$,
+    provisional$,
+    events$: transcriptEvents$,
+  } = kit.getObservables(transcript);
   const board$ = kit.getObservables(bingo).state$;
   const bridge = combineLatest([conversationTurns$, currentTurn$]).subscribe(([turns, current]) => {
     bingoMethods.setTurns(current ? [...turns, current] : turns);
   });
-  const state$ = new BehaviorSubject({ board: board$.get(), lastHeard: lastHeard$.get() });
-  const subscription = combineLatest([board$, lastHeard$]).subscribe(([board, lastHeard]) =>
-    state$.next({ board, lastHeard })
-  );
+  const state$ = new BehaviorSubject({ board: board$.get() });
+  const subscription = board$.subscribe(board => state$.next({ board }));
   return {
     ...methods,
     bingoMethods,
     state$,
+    transcriptEvents$,
+    transcript: { conversationTurns$, currentTurn$, provisional$ },
     close: () => {
       methods.close();
       bridge.unsubscribe();

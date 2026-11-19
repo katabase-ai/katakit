@@ -5,6 +5,11 @@ source checkout. They do not own application bootstraps, routing, or private ser
 
 - `galleryDemoDetails.ts` owns React demo eligibility and metadata; `galleryDemos.tsx` adds lazy
   components. Keep extension information pages out of both. `#gallery-react-catalogue`
+- `GalleryRunLocally` copies a demo with `npx degit` from its `sourcePath` at the host's
+  `sourceRevision`. Give an entry `copyDirectory` only when that path is a standalone example a
+  plain `pnpm install` and `pnpm dev` can run; check a real `degit` copy before adding one.
+  The prompt must not ask an agent to handle an API key without asking the person first.
+  `#gallery-run-locally`
 - Keep metadata and `Gallery.tsx` free of eager recognizer/runtime imports. Welcome loads lazily. Accept host-rendered links
   and children instead of importing a host router. `#gallery-portable-presentation`
 - `Gallery` wraps Welcome and active demo content in one persistent `GalleryDemoFrame`; it owns one loading view across
@@ -39,6 +44,13 @@ source checkout. They do not own application bootstraps, routing, or private ser
   errors to its example's own error class. Keep it free of any one demo's types, and keep
   host admission and private service URLs in the host. `galleryInference.ts` owns the optional
   visitor-key transport and local-storage policy; never include keys or endpoint URLs in diagnostics. `#gallery-model-connection`
+- `galleryEvents.ts` owns the host measurement contract. `GallerySpeechProvider` takes one optional
+  `onEvent`; `createGallerySpeech` derives speech events from phase changes, adapters report the
+  demo actions they own, and `GalleryDemoFrame` reports the kind of control clicked. Events carry
+  catalogued keys, error codes, counts, and durations: never audio, recognized or typed text,
+  prompts, model output, or labels read from the DOM. Do not add reporting to the copyable
+  examples; a finer-grained action reaches the host through its gallery adapter. A host handler
+  that throws must not interrupt capture. `#gallery-host-events`
 - Public mode is the default. `GalleryModeProvider` enables developer tools only when a host explicitly
   opts in through build configuration. Public mode and public preview ignore saved developer keys;
   never enable BYOK through a visitor URL or local-storage flag. `#gallery-developer-mode`
@@ -48,8 +60,8 @@ source checkout. They do not own application bootstraps, routing, or private ser
 - Keep `GallerySpeechProvider` and `GalleryModeProvider` above the host header/outlet. The header’s
   `GalleryPreviewToggle` remains visible in developer builds while previewing public mode; it never
   renders in a public build. Mode transitions invalidate inference immediately, preserve saved
-  developer settings/local content, and require explicit Start notes to resume. `#gallery-public-preview`
-- Both modes use `GallerySpeechControls` for shared readiness, passive microphone, account, and usage
+  developer settings/local content; a demo that is listening reconnects through the new mode's connection. `#gallery-public-preview`
+- Both modes use `GallerySpeechControls` for the shared account and usage
   controls. Settings opens the account/allowance page in public mode and Configure models with
   Configuration/Grid route tabs in developer mode. Host navigation comes through `onOpenSettings`;
   developer-only inference recovery still uses `onConfigureOperation`.

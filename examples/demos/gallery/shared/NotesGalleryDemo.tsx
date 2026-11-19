@@ -6,6 +6,7 @@ import { GalleryCaptureControls } from './GalleryCaptureControls';
 import { GalleryDemo } from './GalleryDemo';
 import { GalleryModelError, useGalleryModel } from './galleryModel';
 import { useGalleryDemoHeader } from './GalleryDemoHeader';
+import { useGallerySpeech } from './GallerySpeechProvider';
 
 // The copyable example recognizes only its own error class, so host failures are rethrown as it.
 const toNotesError = (error: unknown) =>
@@ -14,6 +15,7 @@ const toNotesError = (error: unknown) =>
 /** The gallery's host supplies model admission; shared speech attaches only to this visit's runtime. */
 export const NotesGalleryDemo = () => {
   const model = useGalleryModel();
+  const listening = useGallerySpeech()?.snapshot.input.phase === 'running';
   const hasHeader = useGalleryDemoHeader();
   const connectGallery = model.connect;
   const connect = useCallback(
@@ -43,22 +45,9 @@ export const NotesGalleryDemo = () => {
         <NotesDemo
           showIntroduction={!hasHeader}
           runtime={runtime}
-          connectionHelp={
-            model.configure ? (
-              <p>
-                Connect a model to generate notes. You can still transcribe on your device.{' '}
-                <button
-                  type="button"
-                  className="site-button"
-                  onClick={() => model.configure?.('inference')}
-                >
-                  Configure models
-                </button>
-              </p>
-            ) : (
-              <p>Notes are unavailable here. You can still transcribe on your device.</p>
-            )
-          }
+          listening={listening}
+          // The Settings button explains a missing connection, where the remedy is one click away.
+          connectionHelp={model.settingsNotice ? false : undefined}
           controls={<GalleryCaptureControls />}
           connect={connectGallery && connect}
           renderModelControls={model.renderControls}

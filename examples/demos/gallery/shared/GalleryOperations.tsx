@@ -114,7 +114,7 @@ export const GalleryOperationSetup = () => {
             event.preventDefault();
             apply(
               () => inference.owner.save(draft),
-              'Inference settings saved. Start notes in a demo when ready.'
+              'Inference settings saved. Start listening in a demo when ready.'
             );
           }}
         >
@@ -204,9 +204,7 @@ export const GalleryOperationSetup = () => {
               </details>
             </>
           )}
-          <p>
-            Saving pauses inference. Start notes in the demo to resume; local capture can continue.
-          </p>
+          <p>Saving reconnects inference with the new settings; local capture can continue.</p>
           <div className="gallery-settings-actions">
             <button type="submit" className="site-button">
               Save

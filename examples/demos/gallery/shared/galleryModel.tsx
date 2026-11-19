@@ -53,6 +53,8 @@ export const GalleryModelContext = createContext<{
   isDeveloperView?: boolean;
   configure?: (operation?: GalleryOperation) => void;
   openSettings?: () => void;
+  /** Why the active demo is limited; shown on the Settings button, which leads to the remedy. */
+  settingsNotice?: string;
   allowance?: GalleryAllowance;
   usageUnavailableReason?: string;
   reportAllowance?: (allowance: GalleryAllowance) => void;
@@ -64,7 +66,8 @@ export const GalleryModelContext = createContext<{
  * check render inside the demo view; host allowance is shared with the footer.
  */
 export const useGalleryModel = () => {
-  const { connect, isDeveloperView, configure, reportAllowance } = useContext(GalleryModelContext);
+  const { connect, isDeveloperView, configure, reportAllowance, settingsNotice, openSettings } =
+    useContext(GalleryModelContext);
   const verification = useRef<HTMLDivElement>(null);
   const connectVisit = useCallback(
     ({ signal }: { signal: AbortSignal }) =>
@@ -80,6 +83,7 @@ export const useGalleryModel = () => {
   return {
     connect: connect && connectVisit,
     configure: isDeveloperView ? configure : undefined,
+    settingsNotice: openSettings ? settingsNotice : undefined,
     renderControls: (controls: ReactNode) => (
       <>
         {controls}

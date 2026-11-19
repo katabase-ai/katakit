@@ -60,7 +60,7 @@ export const GalleryAccountButton = () => {
     >
       <GalleryTooltipButton
         className="gallery-footer-icon gallery-account-button"
-        align="end"
+        align="start"
         tooltipClassName="gallery-account-tooltip"
         aria-label={label}
         aria-haspopup="dialog"
@@ -90,7 +90,7 @@ export const GalleryAccountButton = () => {
         <div
           className="gallery-account-panel gallery-hover-panel"
           data-side="top"
-          data-align="end"
+          data-align="start"
           role="dialog"
           aria-label={user ? 'Your account' : 'Free demo account'}
         >

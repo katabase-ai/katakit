@@ -44,3 +44,30 @@ test('corrections and additions preserve recorded outlines and existing note IDs
   const ids = updated.flatMap(note => [note.id, ...note.children.map(child => child.id)]);
   expect(new Set(ids).size).toBe(4);
 });
+
+test('a misused ID costs one placement or correction, never the whole update', () => {
+  const notes: Note[] = [
+    { id: 'trip', text: 'Trip to Japan', children: [{ id: 'flights', text: 'Book flights' }] },
+  ];
+  const updated = applyNotesResult({
+    notes,
+    response: {
+      additions: [
+        { text: 'Window seat', underId: 'flights' },
+        { text: 'Hotel in Kyoto', underId: 'invented' },
+      ],
+      rewords: [{ id: 'invented', text: 'Ignored' }],
+    },
+  });
+  expect(updated).toEqual([
+    {
+      id: 'trip',
+      text: 'Trip to Japan',
+      children: [
+        { id: 'flights', text: 'Book flights' },
+        { id: expect.any(String), text: 'Window seat' },
+      ],
+    },
+    { id: expect.any(String), text: 'Hotel in Kyoto', children: [] },
+  ]);
+});
