@@ -1,5 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import type { MicrophoneOptions } from '@katakit/transcription/browser';
+import { TranscriptionError } from '@katakit/transcription';
 import { createGallerySpeech } from './createGallerySpeech';
 
 const fixture = () => {
@@ -241,4 +242,105 @@ test('downloads without a demo attachment or microphone start, then retains the 
   expect(inputs).toHaveLength(1);
   expect(events).not.toContain('start');
   await owner.dispose();
+});
+
+test('reports load, microphone, and recording outcomes to the host without recognized text', async () => {
+  const reported: Record<string, unknown>[] = [];
+  let demoId = 'bingo';
+  let callbacks: MicrophoneOptions | undefined;
+  let sourceId: string | undefined;
+  const owner = createGallerySpeech({
+    onEvent: event => reported.push(event),
+    getDemoId: () => demoId,
+    createTranscriber: options => {
+      callbacks = options;
+      return {
+        load: async () => {},
+        start: async start => {
+          sourceId = start?.sourceId;
+          options.onState?.({ phase: 'loading', progress: 0 });
+          options.onState?.({ phase: 'ready' });
+          options.onState?.({ phase: 'starting' });
+          options.onState?.({ phase: 'running' });
+        },
+        stop: async () => {
+          options.onState?.({ phase: 'stopping' });
+          options.onState?.({ phase: 'ready' });
+        },
+        dispose: async () => {},
+      };
+    },
+  });
+  await owner.attach(() => ({
+    ingestSegment: vi.fn(),
+    updateProvisional: vi.fn(),
+    flush: vi.fn(),
+    close: vi.fn(),
+  })).ready;
+  await owner.start();
+  callbacks?.onFinal({ id: 'one', sourceId: sourceId!, text: 'spoken words' });
+  callbacks?.onFinal({ id: 'two', sourceId: sourceId!, text: 'more spoken words' });
+  // Navigation changes the active demo before the outgoing recording finishes draining.
+  demoId = 'notes';
+  await owner.stop();
+  expect(reported.map(event => [event.type, event.demoId])).toEqual([
+    ['speechModelLoadFinished', 'bingo'],
+    ['microphoneRequested', 'bingo'],
+    ['microphoneAnswered', 'bingo'],
+    ['recordingStarted', 'bingo'],
+    ['recordingStopped', 'bingo'],
+  ]);
+  expect(reported[0]).toMatchObject({ outcome: 'completed', model: 'moonshine-small' });
+  expect(reported[2]).toMatchObject({ outcome: 'granted' });
+  expect(reported[4]).toMatchObject({ segmentCount: 2 });
+  expect(JSON.stringify(reported)).not.toContain('spoken');
+  await owner.select('whisper-tiny');
+  expect(reported.at(-1)).toEqual({
+    type: 'speechModelChanged',
+    model: 'whisper-tiny',
+    demoId: 'notes',
+  });
+});
+
+test('reports a denied microphone and a cancelled download by their own outcomes', async () => {
+  const reported: Record<string, unknown>[] = [];
+  let denied = true;
+  let releaseDownload: (() => void) | undefined;
+  const owner = createGallerySpeech({
+    onEvent: event => reported.push(event),
+    createTranscriber: options => ({
+      load: async () => {},
+      start: async () => {
+        if (!denied) {
+          options.onState?.({ phase: 'loading' });
+          await new Promise<void>(resolve => {
+            releaseDownload = resolve;
+          });
+        }
+        options.onState?.({ phase: 'starting' });
+        const error = new TranscriptionError('microphone-permission-denied', 'Permission denied');
+        options.onState?.({ phase: 'error', error });
+        throw error;
+      },
+      stop: async () => {},
+      dispose: async () => releaseDownload?.(),
+    }),
+  });
+  await owner.attach(() => ({
+    ingestSegment: vi.fn(),
+    updateProvisional: vi.fn(),
+    flush: vi.fn(),
+    close: vi.fn(),
+  })).ready;
+  await owner.start();
+  expect(reported.at(-1)).toMatchObject({
+    type: 'microphoneAnswered',
+    outcome: 'denied',
+    errorCode: 'microphone-permission-denied',
+  });
+  denied = false;
+  void owner.start();
+  await vi.waitFor(() => expect(owner.getSnapshot().input.phase).toBe('loading'));
+  await owner.cancel();
+  expect(reported.at(-1)).toMatchObject({ type: 'speechModelLoadFinished', outcome: 'cancelled' });
 });

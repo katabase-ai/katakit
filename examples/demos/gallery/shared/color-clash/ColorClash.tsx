@@ -138,7 +138,11 @@ export const ColorClash = ({
                 {input.phase === 'loading' && (
                   <progress aria-label="Speech model download" max={1} value={input.progress} />
                 )}
-                <button type="button" className="color-clash-play" onClick={cancel}>
+                <button
+                  type="button"
+                  className="site-button site-button--slate color-clash-play"
+                  onClick={cancel}
+                >
                   {input.phase === 'loading' ? 'Cancel download' : 'Cancel setup'}
                 </button>
               </>
@@ -153,7 +157,7 @@ export const ColorClash = ({
                 )}
                 <button
                   type="button"
-                  className="color-clash-play"
+                  className="site-button site-button--blue gallery-capture-start color-clash-play"
                   disabled={
                     !blocked &&
                     (disabled ||
@@ -176,8 +180,8 @@ export const ColorClash = ({
             )}
             {state.phase === 'ready' && input.phase === 'idle' && (
               <p className="color-clash-privacy">
-                First play downloads the speech model and asks for microphone access. Setup does not
-                use your round time.
+                Play sets up the speech model and microphone if needed. Setup does not use your
+                round time.
               </p>
             )}
           </div>

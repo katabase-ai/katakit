@@ -3,7 +3,6 @@ import {
   getGalleryMicrophoneFailure,
 } from './GalleryMicrophoneRecovery';
 import { useEffect, useState } from 'react';
-import { GalleryMicrophoneReadiness } from './GalleryMicrophoneReadiness';
 import { createTranscriptionDemo } from '../../transcription-react/src/createTranscriptionDemo';
 import { GalleryDemo } from './GalleryDemo';
 import { GalleryCaptureControls } from './GalleryCaptureControls';
@@ -62,7 +61,6 @@ export const GalleryWelcomeMicrophone = () => {
     <section className="gallery-microphone-test" aria-labelledby="gallery-test-title">
       <div className="gallery-welcome-microphone-heading">
         <h2 id="gallery-test-title">Set up your mic</h2>
-        <GalleryMicrophoneReadiness />
       </div>
       <p>
         All demos in this gallery turn speech into text right in your browser. Your audio data

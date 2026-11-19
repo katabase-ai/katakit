@@ -1,12 +1,14 @@
 .katakit-gallery .color-clash {
-  --clash-red: #ff4545;
-  --clash-blue: #5599ff;
-  --clash-green: #40dd70;
-  --clash-yellow: #ffe035;
+  /* Inks on the panel follow the theme; the target keeps one vivid set on its own dark disc. */
+  --clash-red: light-dark(#d42a2a, #ff4545);
+  --clash-blue: light-dark(#2463e0, #5599ff);
+  --clash-green: light-dark(#15803d, #40dd70);
+  --clash-yellow: light-dark(#a16207, #ffe035);
+  border: 1px solid var(--color-rule);
   border-radius: 12px;
   overflow: clip;
-  background: #11131b;
-  color: #f0f2ff;
+  background: var(--color-paper-2);
+  color: var(--color-ink);
   font-family: var(--font-body, ui-sans-serif, sans-serif);
   container-type: inline-size;
 }
@@ -32,7 +34,7 @@
   gap: 2px;
 }
 .katakit-gallery .color-clash-hud span {
-  color: #a7aec8;
+  color: var(--color-muted);
   font-size: 11px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -48,11 +50,11 @@
 .katakit-gallery .color-clash-clock {
   height: 3px;
   margin: 0 24px;
-  background: #ffffff0d;
+  background: var(--color-rule);
 }
 .katakit-gallery .color-clash-clock > div {
   height: 100%;
-  background: #b7a6ff;
+  background: var(--color-accent);
   transition: width 60ms linear;
 }
 .katakit-gallery .color-clash-stage {
@@ -61,7 +63,7 @@
   place-items: center;
   min-height: 350px;
   overflow: clip;
-  background: radial-gradient(ellipse at 50% 45%, #28213a88, transparent 68%);
+  background: radial-gradient(ellipse at 50% 45%, var(--color-accent-wash), transparent 68%);
 }
 .katakit-gallery .color-clash-message {
   position: relative;
@@ -78,46 +80,35 @@
   margin: 0 0 20px;
   font-size: 15px;
   line-height: 1.6;
-  color: #b8bfd5;
+  color: var(--color-ink-2);
 }
 .katakit-gallery .color-clash-message strong {
-  color: #ffe17b;
+  color: var(--color-accent-deep);
 }
+/* Play is the gallery's Start button; only its placement in the message is set here. */
 .katakit-gallery .color-clash-play {
-  display: block;
+  display: flex;
   margin: 24px auto;
-  border: 1px solid #d4cbff;
-  border-radius: 999px;
-  padding: 12px 26px;
-  background: #d4cbff;
-  color: #211c35;
-  font: 600 14px/1.2 var(--font-body, ui-sans-serif, sans-serif);
-  cursor: pointer;
 }
 .katakit-gallery .color-clash-play:disabled {
-  opacity: 0.5;
   cursor: wait;
-}
-.katakit-gallery .color-clash-play:focus-visible {
-  outline: 2px solid white;
-  outline-offset: 4px;
 }
 .katakit-gallery .color-clash-message .color-clash-privacy {
   margin: 16px 0 0;
-  color: #8e97b4;
+  color: var(--color-muted);
   font-size: 11px;
 }
 .katakit-gallery .color-clash-message .color-clash-error {
-  color: #ff9f9f;
+  color: var(--color-error);
   font-size: 13px;
   overflow-wrap: anywhere;
 }
 .katakit-gallery .color-clash-permission {
   margin-top: 24px;
   padding: 16px;
-  border: 1px solid #ffe17b66;
+  border: 1px solid color-mix(in oklch, var(--color-accent) 45%, transparent);
   border-radius: 8px;
-  background: #ffe17b0d;
+  background: var(--color-accent-wash);
   text-align: left;
 }
 .katakit-gallery .color-clash-permission > strong {
@@ -127,12 +118,12 @@
 }
 .katakit-gallery .color-clash-message .color-clash-permission p {
   margin: 8px 0 0;
-  color: #e3e6f2;
+  color: var(--color-ink-2);
   font-size: 14px;
   line-height: 1.5;
 }
 .katakit-gallery .color-clash-permission-help {
-  color: #b8bfd5;
+  color: var(--color-ink-2);
   font-size: 14px;
   line-height: 1.5;
   text-align: left;
@@ -143,7 +134,7 @@
   text-underline-offset: 0.2em;
 }
 .katakit-gallery .color-clash-permission-help summary:focus-visible {
-  outline: 2px solid #d4cbff;
+  outline: 2px solid var(--color-focus);
   outline-offset: 4px;
 }
 .katakit-gallery .color-clash-permission-help ol {
@@ -160,7 +151,7 @@
 .katakit-gallery .color-clash-message progress {
   max-width: 100%;
   width: 200px;
-  accent-color: #c3b4ff;
+  accent-color: var(--color-accent);
 }
 .katakit-gallery .color-clash-prompt {
   position: absolute;
@@ -168,7 +159,7 @@
   left: 0;
   right: 0;
   text-align: center;
-  color: #a7aec8;
+  color: var(--color-muted);
   font-size: 12px;
 }
 .katakit-gallery .color-clash-position {
@@ -176,6 +167,10 @@
   transform: translate(-50%, -50%);
 }
 .katakit-gallery .color-clash-target {
+  --clash-red: #ff4545;
+  --clash-blue: #5599ff;
+  --clash-green: #40dd70;
+  --clash-yellow: #ffe035;
   color: var(--clash-ink);
   border: 1px solid #ffffff22;
   border-radius: 50%;
@@ -186,7 +181,7 @@
   letter-spacing: -0.055em;
   line-height: 1;
   background: #171922;
-  box-shadow: 0 0 45px #ffffff05;
+  box-shadow: 0 6px 24px rgb(0 0 0 / 0.18);
   animation:
     clash-arrive 220ms ease-out,
     clash-float 3s 220ms ease-in-out infinite alternate;
@@ -227,16 +222,16 @@
 }
 .katakit-gallery .color-clash-transcript {
   padding: 16px 20px;
-  border-top: 1px solid #ffffff12;
+  border-top: 1px solid var(--color-rule);
   overflow: auto hidden;
   white-space: nowrap;
   scrollbar-width: none;
   font: 13px/1.5 var(--font-body, ui-sans-serif, sans-serif);
-  color: #d3d8e8;
+  color: var(--color-ink-2);
   min-height: 52px;
 }
 .katakit-gallery .color-clash-provisional {
-  color: #a79cc9;
+  color: var(--color-muted);
 }
 @keyframes clash-arrive {
   from {

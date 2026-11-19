@@ -1,6 +1,6 @@
 import { useCallback, type ReactNode, type RefCallback } from 'react';
 
-/** Reserve mobile space for either mode's footer, and fit beneath the host header. */
+/** Reserve mobile space for either mode's footer, and size the gallery to the window below the host header. */
 export const GalleryFooter = ({ children }: { children: ReactNode }) => {
   const measureInput: RefCallback<HTMLElement> = useCallback(node => {
     const gallery = node?.closest('.katakit-gallery');

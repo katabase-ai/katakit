@@ -10,8 +10,11 @@
 .katakit-gallery .gallery-demo-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto 1fr;
   align-items: start;
-  gap: 12px 16px;
+  gap: 8px 16px;
+  /* Room for the badges and the pause button in the right column with space between them. */
+  min-height: 88px;
   margin-bottom: 32px;
 }
 .katakit-gallery .gallery-demo-header > h1 {
@@ -22,7 +25,7 @@
   line-height: 1.2;
 }
 .katakit-gallery .gallery-demo-header > p {
-  grid-column: 1 / -1;
+  grid-column: 1;
   grid-row: 2;
   max-width: 65ch;
   margin: 0;
@@ -30,19 +33,96 @@
   font-size: 16px;
   line-height: 24px;
 }
+/* The right column: Run locally and the data-handling badge level with the top of the title,
+   and the pause/resume button at the bottom, clear of them. */
 .katakit-gallery .gallery-demo-header-badge {
   grid-column: 2;
-  grid-row: 1;
-  padding-top: 6px;
+  grid-row: 1 / span 2;
+  align-self: start;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.katakit-gallery .gallery-demo-header-controls {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: end;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-height: 44px;
+}
+/* Beside the badge there is no room to expand in place, so the panel opens over the page. */
+.katakit-gallery .gallery-demo-header-badge .gallery-run-locally {
+  position: relative;
+}
+/* Beside the badge, Run locally is a text button at the badge's type size; the badge keeps its pill. */
+.katakit-gallery .gallery-demo-header-badge .gallery-run-locally > summary {
+  gap: 6px;
+  min-height: 0;
+  padding: 4px 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  /* Without this the inline summary leaves descender space below it and sits off the badge's centre. */
+  vertical-align: top;
+}
+.katakit-gallery .gallery-demo-header-badge .gallery-run-locally > summary:hover,
+.katakit-gallery .gallery-demo-header-badge .gallery-run-locally[open] > summary {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.katakit-gallery .gallery-demo-header-badge .gallery-run-locally > summary svg {
+  width: 14px;
+  height: 14px;
+  flex-basis: 14px;
+}
+.katakit-gallery .gallery-demo-header-badge .gallery-privacy-badge {
+  font-size: 0.8125rem;
+}
+
+.katakit-gallery .gallery-demo-header-badge .gallery-run-locally-panel {
+  position: absolute;
+  inset-block-start: 100%;
+  inset-inline-end: 0;
+  z-index: 5;
+  width: min(40rem, 60vw);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+}
+.katakit-gallery .gallery-capture-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.katakit-gallery .gallery-demo-header-controls .gallery-capture-action {
+  max-width: none;
+  margin: 0;
+}
+.katakit-gallery .gallery-capture-action [role='status'] {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.8125rem;
+  text-align: right;
+}
+/* Start and Pause share a width, so the button does not jump when it changes. */
+.katakit-gallery .gallery-capture-toggle {
+  min-width: 6rem;
+}
+/* One Start style for a demo's button and Color Clash's Play. */
+.katakit-gallery .gallery-capture-start {
+  min-width: 8rem;
+  min-height: 52px;
+  font-size: var(--text-base, 1rem);
 }
 .katakit-gallery .gallery-demo-header-badge .gallery-privacy-row {
   margin: 0;
 }
 .katakit-gallery .gallery-demo-header-badge .gallery-privacy-panel {
   max-width: min(20rem, calc(100vw - 2 * var(--gutter, 1rem) - 2 * var(--gallery-gutter)));
-}
-.katakit-gallery .gallery-demo-stage > .transcription-demo > .gallery-capture-controls:first-child {
-  margin-top: 0;
 }
 .katakit-gallery .gallery-demo-activity-slot {
   min-height: 24px;
@@ -73,13 +153,25 @@
   .katakit-gallery .gallery-demo-spinner { animation: none; }
 }
 @media (max-width: 650px) {
-  .katakit-gallery .gallery-demo-header { grid-template-columns: minmax(0, 1fr); }
   .katakit-gallery .gallery-demo-header > h1 { font-size: 28px; }
+  /* A narrow header has no right column to spare: the badges follow the description instead. */
+  .katakit-gallery .gallery-demo-header { grid-template-rows: auto; min-height: 0; }
+  .katakit-gallery .gallery-demo-header > :is(h1, p) { grid-column: 1 / -1; }
+  /* The title keeps the full width; Start takes its own row under the badges. */
+  .katakit-gallery .gallery-demo-header-controls {
+    grid-column: 1 / -1;
+    grid-row: 4;
+    justify-content: flex-start;
+  }
   .katakit-gallery .gallery-demo-header-badge {
-    grid-column: 1;
+    grid-column: 1 / -1;
     grid-row: 3;
     justify-self: start;
-    padding-top: 0;
+  }
+  .katakit-gallery .gallery-demo-header-badge .gallery-run-locally-panel {
+    inset-inline-start: 0;
+    inset-inline-end: auto;
+    width: calc(100vw - 2 * var(--gutter, 1rem) - 2 * var(--gallery-gutter));
   }
   .katakit-gallery .gallery-demo-header-badge .gallery-privacy-panel {
     inset-inline-start: 0;
@@ -89,4 +181,13 @@
     inset-inline-start: 2rem;
     inset-inline-end: auto;
   }
+}
+/* What a demo may fill below the gallery's own header, so its card or column ends at the page's end. */
+.katakit-gallery .browser-bingo {
+  --bingo-grid-max-height: calc(var(--gallery-sidebar-height, 100dvh) - 17.75rem);
+}
+.katakit-gallery .structured-notes {
+  /* Full width, so its transcript column sits under the header controls as bingo's does. */
+  max-width: none;
+  --transcript-column-height: calc(var(--gallery-sidebar-height, 100dvh) - 14.25rem);
 }

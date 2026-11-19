@@ -1,34 +1,34 @@
-import { useEffect, useState } from 'react';
-import type { createNotesDemo } from './createNotesDemo';
-import { createTranscriptPreview, type TranscriptPreviewWord } from './createTranscriptPreview';
+import { useEffect, useState, type ReactNode } from 'react';
+import type { TranscriptEvent } from '@katakit/transcript-ingestion';
+import type { Observable } from 'rxjs';
+import { createTranscriptPreview, type TranscriptPreviewLine } from './createTranscriptPreview';
 
-/** Each word fades in place; expiry removes only its presentation, never the inference history. */
+/**
+ * A thin column of what was just said, newest line first. Expiry removes only a line's
+ * presentation, never the transcript a demo keeps. The structured-notes and bingo examples each
+ * carry this file so either can be copied alone.
+ */
 export const TranscriptPreview = ({
   events$,
+  children,
 }: {
-  events$: ReturnType<typeof createNotesDemo>['transcriptEvents$'];
+  events$: Observable<TranscriptEvent>;
+  /** A short note about the transcript, shown beneath its lines. */
+  children?: ReactNode;
 }) => {
-  const [words, setWords] = useState<TranscriptPreviewWord[]>([]);
-  useEffect(() => createTranscriptPreview({ events$, onWords: setWords }), [events$]);
+  const [lines, setLines] = useState<TranscriptPreviewLine[]>([]);
+  useEffect(() => createTranscriptPreview({ events$, onLines: setLines }), [events$]);
   return (
-    <section className="structured-notes-transcript" aria-label="Transcript">
-      <h2>What you’re saying</h2>
-      <p className="structured-notes-transcript-words">
-        {!words.length && (
-          <span className="structured-notes-empty">Your latest words appear here.</span>
-        )}
-        {words.map(word => (
-          <span
-            key={word.id}
-            className="structured-notes-word"
-            data-provisional={word.provisional}
-            style={{ animationDuration: `${word.durationMs}ms` }}
-          >
-            {word.text}{' '}
-          </span>
+    <aside className="transcript-preview" aria-label="Transcript">
+      <h2>Transcript</h2>
+      <div className="transcript-preview-lines" aria-live="polite">
+        {lines.map(line => (
+          <p key={line.id} data-provisional={line.provisional}>
+            {line.text}
+          </p>
         ))}
-      </p>
-      <p className="structured-notes-hint">Spell out a misheard name to correct the note.</p>
-    </section>
+      </div>
+      {children}
+    </aside>
   );
 };
