@@ -11,6 +11,8 @@ type GalleryDemoMetadata = {
   readonly description: string;
   readonly capabilities: readonly ('microphone' | 'localTranscription' | 'remoteModel')[];
   readonly dataHandling: GalleryDataHandling;
+  /** Directory name for a local copy; only demos with their own example directory have one. */
+  readonly copyDirectory?: string;
 };
 
 /**
@@ -20,27 +22,28 @@ type GalleryDemoMetadata = {
 export const transcriptionDemoDetails = {
   id: 'transcription',
   sourcePath: 'examples/demos/transcription-react',
+  copyDirectory: 'local-transcription',
   title: 'Local transcription',
-  description:
-    'Turn speech into text on your device. Choose Start listening, then speak naturally.',
+  description: 'Turn speech into text on your device. Choose Start, then speak naturally.',
   capabilities: ['microphone', 'localTranscription'],
   dataHandling: { audio: 'device', transcribedText: 'device' },
 } as const satisfies GalleryDemoMetadata;
 export const bingoDemoDetails = {
   id: 'bingo',
   sourcePath: 'examples/demos/bingo-react',
+  copyDirectory: 'conversation-bingo',
   title: 'Conversation bingo',
-  description:
-    'Choose a word list, then Start listening. Matching phrases mark the card; five in a row wins.',
+  description: 'Choose a word list and Start. Matching phrases mark the card; five in a row wins.',
   capabilities: ['microphone', 'localTranscription'],
   dataHandling: { audio: 'device', transcribedText: 'device' },
 } as const satisfies GalleryDemoMetadata;
 export const notesDemoDetails = {
   id: 'notes',
   sourcePath: 'examples/demos/notes-react',
+  copyDirectory: 'structured-notes',
   title: 'Structured notes',
   description:
-    'Choose Start listening to transcribe a plan. If a model is available, Start notes builds an outline.',
+    'Choose Start to transcribe a plan on your device. With a model available, notes form as you speak.',
   capabilities: ['microphone', 'localTranscription', 'remoteModel'],
   dataHandling: { audio: 'device', transcribedText: 'cloud' },
 } as const satisfies GalleryDemoMetadata;

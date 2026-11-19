@@ -158,7 +158,7 @@ export const ColorClash = ({
             {/* One native button retains keyboard focus while Play becomes Cancel or Retry. */}
             <button
               type="button"
-              className="color-clash-play"
+              className={`site-button ${preparing ? 'site-button--slate' : 'site-button--blue gallery-capture-start'} color-clash-play`}
               disabled={
                 !blocked &&
                 !preparing &&
@@ -186,8 +186,8 @@ export const ColorClash = ({
             </button>
             {state.phase === 'ready' && input.phase === 'idle' && (
               <p className="color-clash-privacy">
-                First play downloads the speech model and asks for microphone access. Setup does not
-                use your round time.
+                Play sets up the speech model and microphone if needed. Setup does not use your
+                round time.
               </p>
             )}
           </div>

@@ -9,8 +9,9 @@
 .katakit-gallery :is(.gallery-footer-controls, .gallery-settings-allowance)[data-usage-phase='exhausted'] {
   --gallery-usage-color: light-dark(rgb(205 39 35), rgb(255 85 78));
 }
+/* Two icons read as a group at the sidebar's left edge, not as opposite corners. */
 .katakit-gallery .gallery-footer-controls .gallery-speech-indicators {
-  justify-content: space-between;
+  justify-content: flex-start;
   margin: 0;
 }
 .katakit-gallery .gallery-account {
@@ -151,7 +152,8 @@
   --gallery-panel-radius: 0.5rem;
   position: absolute;
   z-index: 7;
-  right: 0;
+  /* The account button sits near the sidebar's left edge, so its panel opens rightward. */
+  left: 0;
   bottom: calc(100% + 0.625rem);
   display: grid;
   gap: 0.5rem;

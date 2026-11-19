@@ -78,6 +78,14 @@ the reference host has no managed service and makes no security claim. Developer
 always use neutral configured-service wording, ignoring any host promise. The gallery does not
 verify endpoint security, retention, or model-provider policies.
 
+Entries with their own example directory also declare `copyDirectory`. `Gallery` gives those demos
+a **Run locally** control beside the data-handling badge: an `npx degit` command that copies the example
+directory and starts it, and a prompt that asks a coding agent to do the same. For demos with the
+`remoteModel` capability its panel says the copy needs your own model API key. Pass `sourceRevision`
+with the Katakit commit the host's demos come from, so a copy matches the demo the visitor used;
+without it the command copies the default branch. Copying reports `runLocallyCopied` with which
+text was copied. Color Clash lives inside the gallery and has no control.
+
 A host can select metadata and render `shared/Gallery.tsx` without importing recognizers or this
 app's bootstrap. Import `shared/gallery.css` for the scoped presentation. It owns the gallery’s
 inner type scale, spacing, control styles, and demo layout resets while using the host’s font and
@@ -162,21 +170,23 @@ of the shared sidebar in both modes, outside demo navigation, and becomes a meas
 Both modes include a round Settings button. Public Settings (`/settings`) focuses on signup/account
 access, demo allowance, and privacy. Developer Settings opens Configure models; Configuration/Grid route
 tabs above those pages switch between the two developer views.
-The footer shares Welcome’s setup readiness and passive microphone indicators, using a
-smaller microphone circle. Both views follow the same speech owner across demos, including live
-audio levels. A downloaded model alone does not mark microphone setup Ready. Download, cancel,
+The footer has no microphone status. The live audio level fills the microphone glyph beside a demo's Start button and
+Welcome's microphone glyph. Download, cancel,
 and recording actions stay in Welcome, the demo, or developer Configure models.
 Download model leaves the microphone off, including without a demo attachment. Welcome’s Set up
-microphone downloads the speech model if needed, then requests microphone permission. Its readiness
-icon distinguishes Not set up, Setting up, Ready, and Needs attention, with text on hover or focus.
+microphone downloads the speech model if needed, then requests microphone permission.
+Its button label and feedback text show where setup stands; there is no separate readiness icon.
 The passive microphone glyph reflects capture and live audio levels; the adjacent button owns setup,
 cancellation, testing, and stopping. Stopping capture retains readiness for this host session.
 Setup progress and recovery guidance appear beside the action button. A download confirmation
 remains visible after loading, including during permission setup and after stopping; selecting a
 different model resets that confirmation. The transcript field stays visible throughout setup.
-Start/Stop listening
-belongs inside each demo. Models load only after a visitor action. Standalone controls remain
-independent. Navigation retains the loaded model but stops capture.
+Listening belongs to each demo. Its button sits beside the demo's title: a primary Start, then a
+secondary Pause, beside a microphone glyph that fills with the level being heard. Setup progress shows beside the button.
+A demo's own controls stay inside the demo. Run locally and the
+data-handling badge sit at the header's top right, level with the top of the title.
+Models load only after a visitor action. Standalone controls
+remain independent. Navigation retains the loaded model but stops capture.
 Each view acquires a runtime lease. Release keeps the outgoing sink attached through stop/drain and
 flush, closes its runtime, then permits the next factory to run. The next demo starts idle with no
 previous transcript. Hiding the tab stops capture; root teardown disposes the helper. A pending
@@ -190,15 +200,24 @@ separate histories, final-result ordering, timer cleanup, model retention/replac
 attachments, load retry, and Strict Mode cleanup. Standalone entry points own local capture using
 the same instance-owned views; they do not import this gallery.
 
+A host that measures usage passes `onEvent` to `GallerySpeechProvider`; see
+`shared/galleryEvents.ts` for the events. The speech owner reports model changes, model-download
+outcomes, microphone requests and answers, and each recording's duration and finalized segment
+count. Gallery adapters report the demo actions they own, and the demo frame reports which kind
+of control was clicked inside a demo. Each event carries the active demo's ID; a recording keeps
+the demo it started in. Events hold keys, error codes, counts, and durations only. They never
+hold audio, transcript text, prompts, model output, or control labels. A handler that throws does
+not affect capture. The local host passes no handler.
+
 A host passes one `connectModel` to `Gallery` for its model admission/transport; see
 `shared/galleryModel.tsx` for the contract. Every entry with the `remoteModel` capability uses it,
-so a new such demo needs no host code. Without a connected host, notes explains that managed
-inference is unavailable while transcription remains usable. Public mode never falls back to a saved developer key. Every demo link stays clickable. Hosts throw `GalleryModelError` for failures they
+so a new such demo needs no host code. Without a connection, the footer's Settings button opens a
+notice that inference is unavailable while transcription remains usable; pressing it opens Settings. Public mode never falls back to a saved developer key. Every demo link stays clickable. Hosts throw `GalleryModelError` for failures they
 want shown or retried. Connection controls, browser verification, and errors render
 inside the active demo. Host `onAllowance` reports drive the shared footer usage meter: the percentage
 is consumed allowance, yellow at 80% and red at 100%. On-device transcription does not consume this
 allowance. The reported value survives demo navigation under `GallerySpeechProvider`, but source/configuration
-and mode changes clear it. Missing or invalid data shows “Usage unavailable” with an explanation;
+and mode changes clear it. Without valid data the footer shows no usage row, and Settings shows “Usage unavailable” with an explanation;
 there is no sample or predicted usage. The reference host has no managed allowance service, and
 developer-key providers do not report a demo allowance. No usage request is made on page load.
 
@@ -220,17 +239,17 @@ dismissal. Side/alignment options position the panel; local CSS variables contro
 Those interactive popovers retain their own link navigation, pinning, dismissal, and focus behavior.
 The shared tooltip scopes its own header styles outside the gallery grid, with no global reset.
 
-Only **Start notes** admits a remote connection and starts sending finalized transcript text.
-Starting capture never starts inference. Stop/start capture reuses the connection. **Pause notes**,
-source changes, saving overrides, and key removal abort remote work and retain local content;
-Start notes is required to resume. Route exit aborts admission and model work before capture drains.
+With inference configured, notes start when listening begins: that admits a remote connection and
+starts sending finalized transcript text. There is no separate notes control. Stop/start capture
+reuses the connection. Source changes, saving overrides, and key removal abort remote work and
+retain local content; a demo that is still listening reconnects through the new source. Route exit aborts admission and model work before capture drains.
 See [the notes example](../notes-react/README.md) for the generic contract.
 
 ## Capture and recovery contract
 
 All four demos use the gallery's single speech owner. Their first actions stay specific to the
-activity: Start listening for Transcription, Bingo, and Notes; Play for Color Clash. Notes still
-requires a separate Start notes action before remote work.
+activity: Start listening for Transcription, Bingo, and Notes; Play for Color Clash. With a model
+configured, Notes connects and sends finished thoughts while listening.
 
 | State                                  | Action and result                                                                             |
 | -------------------------------------- | --------------------------------------------------------------------------------------------- |
@@ -254,17 +273,16 @@ Each navigation creates a fresh demo runtime. Content is local to that visit, wi
 storage or reload restoration. The loaded speech model stays ready across navigation. This
 local lifetime says nothing about a connected model service's retention policy.
 
-| Action                           | Content kept                                                                                | Content reset                                                                                                                                                                                           |
-| -------------------------------- | ------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Stop listening                   | Transcript, Bingo card/marks, Notes outline and buffered turns                              | Capture stops and drains; Notes' existing connection can finish pending work.                                                                                                                           |
-| Pause notes                      | Local notes and transcript; listening can continue                                          | Pending admission/model work is aborted. Only Start notes resumes it.                                                                                                                                   |
-| Clear notes                      | Local transcript (including earlier turns as model context), connection, and used allowance | Outline clears; the completed-turn cursor advances, so earlier completed thoughts are not added again. Late responses cannot restore the old outline. An unfinished thought can still finish afterward. |
-| Bingo Shuffle / change word list | Transcript heard in this visit                                                              | Card and manual overrides reset. New squares are re-matched against that transcript, so automatic marks can remain.                                                                                     |
-| Color Clash Play again           | Loaded speech model                                                                         | Score, clock, and game transcript reset after capture is ready.                                                                                                                                         |
-| Leave a demo / reload            | Saved developer configuration; navigation also retains the loaded model                     | Demo-local transcript, notes, card, and score. Navigation drains and closes the old runtime before a new one attaches.                                                                                  |
+| Action                           | Content kept                                                            | Content reset                                                                                                                                                                                                                                                                                         |
+| -------------------------------- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Stop listening                   | Transcript, Bingo card/marks, Notes outline and buffered turns          | Capture stops and drains; Notes' existing connection can finish pending work.                                                                                                                                                                                                                         |
+| Clear notes                      | Local transcript, connection, and used allowance                        | Outline clears; the completed-turn cursor advances, so earlier completed thoughts are not added again. Up to six recent completed turns may still be sent as model context, subject to request size. Late responses cannot restore the old outline. An unfinished thought can still finish afterward. |
+| Bingo Shuffle / change word list | Transcript heard in this visit                                          | Card and manual overrides reset. New squares are re-matched against that transcript, so automatic marks can remain.                                                                                                                                                                                   |
+| Color Clash Play again           | Loaded speech model                                                     | Score, clock, and game transcript reset after capture is ready.                                                                                                                                                                                                                                       |
+| Leave a demo / reload            | Saved developer configuration; navigation also retains the loaded model | Demo-local transcript, notes, card, and score. Navigation drains and closes the old runtime before a new one attaches.                                                                                                                                                                                |
 
 The views explain these differences beside the actions. Controlled regression checks cover
-stop/restart retention, fresh visits, Bingo's retained matching evidence, Notes clear/pause late
+stop/restart retention, fresh visits, Bingo's retained matching evidence, Notes clear and late
 responses, and game replay. This contract preserves the existing reset behavior and local
 storage policy.
 
@@ -280,19 +298,19 @@ Color Clash keeps one native action button while Play changes to Cancel or Retry
 setup retains focus on the next available action.
 
 Bingo announces its matched-square count and completed lines as a single polite status. Notes
-announces off, connecting, updating, on, paused, and failure states; Start/Pause controls describe
-the current status, and an unavailable Start describes the connection explanation. A finished
+announces off, connecting, updating, on, and failure states as listening starts or stops; when no
+model is available, connection help explains why notes cannot be generated. A finished
 Color Clash round announces its score once; the clock is not a live region. Interrupted rounds
 say Round ended rather than claiming the time expired.
 
-| Review                                                             | Expected evidence                                                                                                        |
-| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------ |
-| Keyboard navigation across all four demos                          | Focus lands on the new title; Tab reaches privacy and demo actions. Lazy readiness does not take focus again.            |
-| Cancel Color Clash download or permission setup                    | Same focused native button becomes Play or Retry. No clock time is spent.                                                |
-| Notes with missing, pending, active, failed, and paused connection | Visible status or connection help explains the action/disabled reason. New speech cannot resume paused inference.        |
-| Bingo automatic and manual marks                                   | Count/line status changes atomically; native square controls retain pressed state.                                       |
-| Color Clash finish/interruption                                    | One result status reports the score without announcing every clock tick.                                                 |
-| Phone, keyboard help and privacy panels                            | Controls remain reachable, text wraps, help is expandable without hover, and existing Escape/dismissal behavior remains. |
+| Review                                                     | Expected evidence                                                                                                        |
+| ---------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Keyboard navigation across all four demos                  | Focus lands on the new title; Tab reaches privacy and demo actions. Lazy readiness does not take focus again.            |
+| Cancel Color Clash download or permission setup            | Same focused native button becomes Play or Retry. No clock time is spent.                                                |
+| Notes with missing, pending, active, and failed connection | Status or connection help explains what listening can do; retries follow the host's capture lifecycle.                   |
+| Bingo automatic and manual marks                           | Count/line status changes atomically; native square controls retain pressed state.                                       |
+| Color Clash finish/interruption                            | One result status reports the score without announcing every clock tick.                                                 |
+| Phone, keyboard help and privacy panels                    | Controls remain reachable, text wraps, help is expandable without hover, and existing Escape/dismissal behavior remains. |
 
 Automated checks validate focus ownership, status semantics, cancellation and lifecycle behavior.
 Real browser keyboard and responsive captures complement those tests. They do not replace a
@@ -339,8 +357,8 @@ deployments. `/operations/setup` and `/operations/grid`
 redirect to Welcome in public builds. In a developer build, the header’s Preview toggle switches
 the live gallery into public mode. It hides developer tools and ignores developer keys, retaining
 the toggle as the way back. Entering preview from a tools page opens Welcome; leaving returns to
-that tools page. From a demo, the same local content remains, but inference pauses in both directions
-and requires another explicit Start notes. Saved developer settings survive. Unsaved form edits are
+that tools page. From a demo, the same local content remains; inference stops in both directions,
+and a listening demo reconnects through the new mode's connection. Saved developer settings survive. Unsaved form edits are
 ordinary page-local drafts.
 
 Preview uses the current host’s real managed inference contract. It does not create a proxy,

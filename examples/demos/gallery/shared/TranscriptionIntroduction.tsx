@@ -8,9 +8,3 @@ export const TranscriptionIntroduction = () => (
     </p>
   </div>
 );
-
-export const TranscriptionSetupComplete = () => (
-  <p className="gallery-setup-complete" role="status">
-    Your microphone and model are working. The model stays ready when you choose another demo.
-  </p>
-);

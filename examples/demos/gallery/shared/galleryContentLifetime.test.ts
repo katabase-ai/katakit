@@ -27,7 +27,16 @@ const demos: { name: string; create: () => ContentSink }[] = [
     name: 'Bingo',
     create: () => {
       const runtime = createBrowserBingoDemo();
-      return { ...runtime, content: () => runtime.state$.getValue().lastHeard ?? '' };
+      return {
+        ...runtime,
+        content: () =>
+          [
+            ...runtime.transcript.conversationTurns$.get().map(turn => turn.text),
+            runtime.transcript.currentTurn$.get()?.text,
+          ]
+            .filter(Boolean)
+            .join(' '),
+      };
     },
   },
   {
@@ -102,11 +111,13 @@ test('a new Bingo card clears manual overrides while retaining matches from the 
   runtime.bingoMethods.setOverride(1, true);
   const squares = [...runtime.state$.getValue().board.squares];
   runtime.bingoMethods.setSquares(squares);
-  const { board, lastHeard } = runtime.state$.getValue();
+  const { board } = runtime.state$.getValue();
   expect(board.marked[0]).toBe(true);
   expect(board.evidence[0]).toBe('Quick question');
   expect(board.marked[1]).toBe(false);
   expect(board.overrides).toEqual({});
-  expect(lastHeard).toBe('Quick question');
+  expect(runtime.transcript.conversationTurns$.get().map(turn => turn.text)).toEqual([
+    'Quick question',
+  ]);
   runtime.close();
 });

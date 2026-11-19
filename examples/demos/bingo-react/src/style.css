@@ -19,31 +19,32 @@
 .bingo-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(220px, 270px);
-  align-items: start;
+  /* The transcript column is as tall as the card, so its lines can run to the card's end. */
+  align-items: stretch;
   gap: var(--space-xl);
 }
 
 .bingo-game { min-width: 0; }
 .bingo-score {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: center;
   flex-wrap: wrap;
   gap: var(--space-xs) var(--space-md);
   margin-bottom: var(--space-md);
   padding-bottom: var(--space-sm);
   border-bottom: 1px solid var(--color-rule);
 }
-.bingo-score strong { font-size: var(--text-lg); font-weight: 600; }
+.bingo-score strong { font-size: var(--text-lg); font-weight: 600; line-height: 1.4; }
 .bingo-score span { color: var(--color-muted); font-size: var(--text-sm); }
 
-.bingo-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: var(--space-xs); }
+/* The whole card stays on screen: square while there is room, shorter rows when the window is
+   short. A host with its own chrome sets the variable. */
+.bingo-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(5, minmax(0, 1fr)); gap: var(--space-xs); width: 100%; aspect-ratio: 1; max-height: var(--bingo-grid-max-height, calc(100dvh - 16rem)); min-height: 18rem; }
 .bingo-square {
   display: flex;
   align-items: center;
   justify-content: center;
   min-width: 0;
-  aspect-ratio: 1;
   padding: var(--space-2xs);
   border: 1px solid var(--color-rule);
   border-radius: var(--radius-input);
@@ -62,23 +63,136 @@
 .bingo-square[data-free='true'] { background: var(--color-paper-3); color: var(--color-muted); font-weight: 600; cursor: default; }
 .bingo-square[data-long='true'] { font-size: clamp(0.58rem, 1vw, 0.74rem); line-height: 1.1; }
 
-.bingo-controls { min-width: 0; padding-top: var(--space-2xs); }
-.bingo-pack-picker { display: flex; align-items: end; flex-wrap: wrap; gap: var(--space-xs); margin-bottom: var(--space-xl); }
-.bingo-pack-picker .site-field { position: relative; width: 174px; min-width: 0; }
-.bingo-pack-picker .site-field::after { content: ''; position: absolute; right: 0.9rem; bottom: 0.9rem; width: 0.5rem; height: 0.5rem; border-right: 2px solid var(--color-muted); border-bottom: 2px solid var(--color-muted); transform: rotate(45deg); pointer-events: none; }
-.bingo-pack-picker .site-select { width: 100%; appearance: none; padding-right: 2.25rem; text-overflow: ellipsis; }
+.bingo-controls { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.bingo-controls > :is(.transcript-preview, .transcript-turns) { flex: 1; }
+/* The word list is a text button at the right of the score line, with Shuffle beside it. */
+.bingo-pack-picker { display: flex; align-items: center; gap: var(--space-2xs); margin-left: auto; }
+/* The underline belongs to the field, so it runs under the chevron as well as the text. */
+.bingo-pack-picker .site-field { position: relative; min-width: 0; border-bottom: 1px solid var(--color-muted); }
+.bingo-pack-picker .site-field:hover { border-bottom-color: var(--color-ink); }
+.bingo-pack-picker .site-field > label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.bingo-pack-picker .site-field::after { content: ''; position: absolute; right: 0.2rem; top: 50%; width: 0.35rem; height: 0.35rem; margin-top: -0.3rem; border-right: 1.5px solid var(--color-muted); border-bottom: 1.5px solid var(--color-muted); transform: rotate(45deg); pointer-events: none; }
+.browser-bingo .bingo-pack-picker .site-select { width: auto; min-height: 0; padding: 0 1.1rem 0 0; border: 0; border-radius: 4px; background: transparent; box-shadow: none; color: var(--color-muted); font-size: var(--text-sm); line-height: 1.4; appearance: none; cursor: pointer; }
+.browser-bingo .bingo-pack-picker .site-select:hover { color: var(--color-ink); }
+.browser-bingo .bingo-pack-picker .site-button.site-button--icon { width: 28px; min-height: 28px; color: var(--color-muted); }
+.browser-bingo .bingo-pack-picker .site-button.site-button--icon:hover { color: var(--color-ink); }
+.browser-bingo .bingo-pack-picker .site-button.site-button--icon svg { width: 15px; height: 15px; }
 .bingo-controls h2 { font-size: var(--text-lg); }
 .bingo-controls > p { margin: var(--space-sm) 0 var(--space-lg); color: var(--color-muted); font-size: var(--text-sm); }
 .bingo-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs); }
 .bingo-audio-level { margin-top: var(--space-md); }
 .bingo-error { color: var(--color-error) !important; }
 .bingo-controls p[role='status'], .bingo-controls p[role='alert'] { margin-top: var(--space-md); font-size: var(--text-sm); }
-.bingo-transcript { margin-top: var(--space-xl); padding-top: var(--space-md); border-top: 1px solid var(--color-rule); }
-.bingo-transcript p { margin-top: var(--space-sm); color: var(--color-ink-2); font-size: var(--text-sm); overflow-wrap: break-word; }
+
+/* The transcript column as numbered turns. The structured-notes and bingo examples each carry
+   these rules. */
+.transcript-turns {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.transcript-turns h2 {
+  margin: 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-rule, color-mix(in srgb, currentColor 18%, transparent));
+  color: var(--color-ink, inherit);
+  font-size: var(--text-lg, 1.25rem);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: normal;
+}
+/* Turns fill the column to its end and scroll there; their content never sizes the column. */
+.transcript-turns-list {
+  flex: 1 1 0;
+  min-height: 6rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.transcript-turn {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr);
+  gap: 0.25rem 0.5rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--color-rule, color-mix(in srgb, currentColor 18%, transparent));
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.transcript-turn p {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+.transcript-turn-index,
+.transcript-turn time {
+  color: var(--color-muted, color-mix(in srgb, currentColor 70%, transparent));
+  font-family: var(--font-outlier, ui-monospace, monospace);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+.transcript-turn-index {
+  padding-top: 0.15rem;
+}
+/* The turn's start time sits beneath its text, at the column's right edge. */
+.transcript-turn time {
+  grid-column: 2;
+  justify-self: end;
+}
+.transcript-turn[data-interim='true'] p {
+  color: var(--color-muted, color-mix(in srgb, currentColor 70%, transparent));
+  font-style: italic;
+}
+/* The transcript column. The structured-notes and bingo examples each carry these rules. */
+.transcript-preview {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  color: var(--color-muted, color-mix(in srgb, currentColor 70%, transparent));
+}
+/* The heading sits above its rule, the same shape as a section heading beside it. */
+.transcript-preview h2 {
+  margin: 0 0 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-rule, color-mix(in srgb, currentColor 18%, transparent));
+  color: var(--color-ink, inherit);
+  font-size: var(--text-lg, 1.25rem);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: normal;
+}
+/* Lines fill the column to its end and are cut off there; their content never sizes the column. */
+.transcript-preview-lines {
+  display: grid;
+  align-content: start;
+  flex: 1 1 0;
+  min-height: 6rem;
+  overflow: hidden;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.transcript-preview-lines p {
+  margin: 0 0 0.375rem;
+}
+/* Older lines are quieter by position, not by animation: animated lines were painted at stale
+   positions when a new line pushed them down. */
+.transcript-preview-lines p:nth-child(2) {
+  opacity: 0.75;
+}
+.transcript-preview-lines p:nth-child(3) {
+  opacity: 0.55;
+}
+.transcript-preview-lines p:nth-child(n + 4) {
+  opacity: 0.4;
+}
+.transcript-preview-lines p[data-provisional='true'] {
+  font-style: italic;
+}
 
 @container (max-width: 720px) {
   .bingo-layout { grid-template-columns: minmax(0, 1fr); gap: var(--space-xl); }
-  .bingo-controls { padding-top: var(--space-lg); border-top: 1px solid var(--color-rule); }
+  .bingo-grid { max-height: none; }
   .bingo-square { font-size: clamp(0.7rem, 2.6vw, 0.9rem); }
 }
 @media (max-width: 540px) {

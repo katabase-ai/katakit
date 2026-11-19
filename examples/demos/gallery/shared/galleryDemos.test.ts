@@ -40,7 +40,6 @@ test('separate transcripts and Bingo state remain isolated; close completes ever
   bingo.state$.subscribe({ complete: bingoCompleted });
   notes.state$.subscribe({ complete: notesCompleted });
   transcript.ingestSegment({ id: 'first', sourceId: 'one', text: 'a private transcript' });
-  expect(bingo.state$.getValue().lastHeard).toBeUndefined();
   bingo.ingestSegment({ id: 'second', sourceId: 'two', text: 'Quick question' });
   expect(bingo.state$.getValue().board.marked[0]).toBe(true);
   expect(transcript.state$.getValue().currentTurn?.text).toBe('a private transcript');
@@ -56,6 +55,5 @@ test('separate transcripts and Bingo state remain isolated; close completes ever
   expect(vi.getTimerCount()).toBe(0);
   const fresh = createBrowserBingoDemo();
   expect(fresh.state$.getValue().board.marked[0]).toBe(false);
-  expect(fresh.state$.getValue().lastHeard).toBeUndefined();
   fresh.close();
 });

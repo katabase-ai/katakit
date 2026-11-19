@@ -4,7 +4,11 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, expect, test, vi } from 'vitest';
 import { NotesDemo } from '../../notes-react/src/NotesDemo';
 import { createNotesDemo } from '../../notes-react/src/createNotesDemo';
-import { NotesRequestError, type NotesConnection } from '../../notes-react/src/notesModel';
+import {
+  createNotesRequest,
+  NotesRequestError,
+  type NotesConnection,
+} from '../../notes-react/src/notesModel';
 
 const completion = (text: string) => ({
   choices: [
@@ -26,14 +30,15 @@ const turn = (runtime: ReturnType<typeof createNotesDemo>, text: string) => {
 };
 afterEach(cleanup);
 
-test('listening buffers locally; explicit start sends, source change aborts, preserves content and requires another start', async () => {
+test('notes connect only while listening; a source change aborts, preserves content and reconnects', async () => {
   const runtime = createNotesDemo();
   let finish!: (value: unknown) => void;
   let signal!: AbortSignal;
   const firstRequest = vi.fn<NotesConnection['requestCompletion']>(({ signal: requestSignal }) => {
     signal = requestSignal;
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
       finish = resolve;
+      requestSignal.addEventListener('abort', () => reject(requestSignal.reason));
     });
   });
   const first = vi.fn(async () => connection(firstRequest));
@@ -45,28 +50,23 @@ test('listening buffers locally; explicit start sends, source change aborts, pre
   act(() => turn(runtime, 'Plan the launch.'));
   await act(async () => {});
   expect(first).not.toHaveBeenCalled();
-  expect(firstRequest).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
+  expect(screen.queryByRole('button')).toBeNull();
+  view.rerender(<NotesDemo runtime={runtime} connect={first} listening />);
   await vi.waitFor(() => expect(firstRequest).toHaveBeenCalledOnce());
-  view.rerender(<NotesDemo runtime={runtime} connect={second} />);
+  view.rerender(<NotesDemo runtime={runtime} connect={second} listening />);
   expect(signal.aborted).toBe(true);
   expect(runtime.state$.get().notes.turns).toHaveLength(1);
-  act(() => turn(runtime, 'Keep capture running.'));
   await act(async () => {
     finish(completion('Obsolete note'));
   });
-  expect(runtime.state$.get().notes.notes).toEqual([]);
-  expect(second).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
+  await vi.waitFor(() => expect(second).toHaveBeenCalledOnce());
+  act(() => turn(runtime, 'Keep capture running.'));
   await screen.findByText('Accepted note');
+  expect(screen.queryByText('Obsolete note')).toBeNull();
   expect(JSON.parse(secondRequest.mock.calls[0]![0].body).messages[1].content).toContain(
     'Plan the launch.'
   );
   expect(runtime.state$.get().notes.cursor).toBe(2);
-  fireEvent.click(screen.getByRole('button', { name: 'Pause notes' }));
-  act(() => turn(runtime, 'A later thought.'));
-  expect(secondRequest).toHaveBeenCalledOnce();
-  expect(runtime.state$.get().notes.notes[0]?.text).toBe('Accepted note');
   view.unmount();
   runtime.close();
 });
@@ -82,9 +82,8 @@ test('unmount aborts pending admission and ignores its late connection', async (
       finish = resolve;
     });
   });
-  const view = render(<NotesDemo runtime={runtime} connect={connect} />);
+  const view = render(<NotesDemo runtime={runtime} connect={connect} listening />);
   act(() => turn(runtime, 'Before unmount.'));
-  fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
   view.unmount();
   expect(signal.aborted).toBe(true);
   await act(async () => {
@@ -100,14 +99,13 @@ test('exhaustion leaves capture usable and clear/new turns cannot restart or res
     throw new NotesRequestError('Free demo allowance used.', { terminal: true });
   });
   const connect = vi.fn(async () => connection(request));
-  const view = render(<NotesDemo runtime={runtime} connect={connect} />);
+  const view = render(<NotesDemo runtime={runtime} connect={connect} listening />);
   act(() => turn(runtime, 'First thought.'));
-  fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
   await screen.findByText('Free demo allowance used.');
-  expect((screen.getByRole('button', { name: 'Start notes' }) as HTMLButtonElement).disabled).toBe(
-    true
-  );
-  fireEvent.click(screen.getByRole('button', { name: 'Clear notes' }));
+  expect(screen.queryByRole('button', { name: 'Try again' })).toBeNull();
+  // Nothing to clear is offered while the outline is empty; clearing still cannot restore allowance.
+  expect(screen.queryByRole('button', { name: 'Clear notes' })).toBeNull();
+  act(() => runtime.notes.clear());
   act(() => turn(runtime, 'Still transcribing.'));
   expect(runtime.state$.get().notes.turns).toHaveLength(2);
   expect(request).toHaveBeenCalledOnce();
@@ -116,42 +114,56 @@ test('exhaustion leaves capture usable and clear/new turns cannot restart or res
   runtime.close();
 });
 
-test('Strict Mode can replay effects and failed verification still requires an explicit retry', async () => {
+test('a failed admission is retried twice on its own, then again when listening restarts', async () => {
   const runtime = createNotesDemo();
   const request = vi.fn(async () => completion('Verified note'));
   const connect = vi.fn(async () => connection(request));
-  connect.mockRejectedValueOnce(new NotesRequestError('Verification failed. Try again.'));
-  const view = render(
-    <StrictMode>
-      <NotesDemo runtime={runtime} connect={connect} />
-    </StrictMode>
-  );
+  const failure = new NotesRequestError('Verification failed.');
+  connect
+    .mockRejectedValueOnce(failure)
+    .mockRejectedValueOnce(failure)
+    .mockRejectedValueOnce(failure);
+  const view = render(<NotesDemo runtime={runtime} connect={connect} listening />);
   act(() => turn(runtime, 'Retained across verification.'));
-  fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
-  await screen.findByText('Verification failed. Try again.');
-  act(() => turn(runtime, 'Another local thought.'));
-  expect(connect).toHaveBeenCalledOnce();
+  await screen.findByText('Verification failed. Pause and resume to try again.', undefined, {
+    timeout: 3000,
+  });
+  expect(connect).toHaveBeenCalledTimes(3);
   expect(request).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
+  expect(screen.queryByRole('button', { name: 'Try again' })).toBeNull();
+  view.rerender(<NotesDemo runtime={runtime} connect={connect} />);
+  view.rerender(<NotesDemo runtime={runtime} connect={connect} listening />);
   await screen.findByText('Verified note');
-  expect(runtime.state$.get().notes.cursor).toBe(2);
+  expect(connect).toHaveBeenCalledTimes(4);
   view.unmount();
   runtime.close();
 });
 
-test('restart policy admits a new connection rather than retrying the failed session', async () => {
+test('Strict Mode replays effects without leaving a second admission running', async () => {
+  const runtime = createNotesDemo();
+  const request = vi.fn(async () => completion('Verified note'));
+  const connect = vi.fn(async () => connection(request));
+  const view = render(
+    <StrictMode>
+      <NotesDemo runtime={runtime} connect={connect} listening />
+    </StrictMode>
+  );
+  act(() => turn(runtime, 'A thought.'));
+  await screen.findByText('Verified note');
+  expect(request).toHaveBeenCalledOnce();
+  view.unmount();
+  runtime.close();
+});
+
+test('restart policy admits a new connection on its own rather than retrying the failed session', async () => {
   const runtime = createNotesDemo();
   const stale = vi.fn(async () => {
     throw new NotesRequestError('Session expired.', { restart: true });
   });
   const fresh = vi.fn(async () => completion('Recovered note'));
   const connect = vi.fn(async () => connection(fresh)).mockResolvedValueOnce(connection(stale));
-  const view = render(<NotesDemo runtime={runtime} connect={connect} />);
+  const view = render(<NotesDemo runtime={runtime} connect={connect} listening />);
   act(() => turn(runtime, 'Keep this thought.'));
-  fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
-  await screen.findByText('Session expired.');
-  expect(stale).toHaveBeenCalledOnce();
-  fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
   await screen.findByText('Recovered note');
   expect(connect).toHaveBeenCalledTimes(2);
   expect(stale).toHaveBeenCalledOnce();
@@ -174,15 +186,14 @@ test('Clear notes preserves local turns, skips old thoughts and rejects a late m
     )
     .mockResolvedValue(completion('A fresh topic'));
   const connect = vi.fn(async () => connection(request));
-  const view = render(<NotesDemo runtime={runtime} connect={connect} />);
+  const view = render(<NotesDemo runtime={runtime} connect={connect} listening />);
   act(() => turn(runtime, 'Original thought'));
-  fireEvent.click(screen.getByRole('button', { name: 'Start notes' }));
   await screen.findByText('Accepted outline');
   act(() => turn(runtime, 'Pending thought'));
   await vi.waitFor(() => expect(request).toHaveBeenCalledTimes(2));
   const clear = screen.getByRole('button', { name: 'Clear notes' });
   expect(document.getElementById(clear.getAttribute('aria-describedby')!)?.textContent).toContain(
-    'remain as model context'
+    'may still be sent as model context'
   );
   fireEvent.click(clear);
   expect(request.mock.calls[1]![0].signal.aborted).toBe(true);
@@ -201,5 +212,43 @@ test('Clear notes preserves local turns, skips old thoughts and rejects a late m
   );
   expect(connect).toHaveBeenCalledOnce();
   view.unmount();
+  runtime.close();
+});
+
+test('stopping and restarting listening reuses the connection', async () => {
+  const runtime = createNotesDemo();
+  const request = vi.fn(async () => completion('Automatic note'));
+  const connect = vi.fn(async () => connection(request));
+  const view = render(<NotesDemo runtime={runtime} connect={connect} listening />);
+  act(() => turn(runtime, 'Spoken while listening.'));
+  await screen.findByText('Automatic note');
+  view.rerender(<NotesDemo runtime={runtime} connect={connect} />);
+  view.rerender(<NotesDemo runtime={runtime} connect={connect} listening />);
+  await act(async () => {});
+  expect(connect).toHaveBeenCalledOnce();
+  view.unmount();
+  runtime.close();
+});
+
+test('Clear notes retains the transcript but limits earlier context sent to the model', () => {
+  const runtime = createNotesDemo();
+  for (let index = 0; index < 8; index++) turn(runtime, `Thought ${index}`);
+  runtime.notes.clear();
+  turn(runtime, 'New thought');
+  const { notes, turns } = runtime.state$.get();
+  const { cursor } = notes;
+  expect(turns).toHaveLength(9);
+  expect(cursor).toBe(8);
+  const request = createNotesRequest({
+    notes: notes.notes,
+    turns,
+    cursor,
+    connection: connection(vi.fn()),
+  });
+  const conversation = JSON.parse(request.body).messages[1].content as string;
+  expect(conversation).not.toContain('Thought 0');
+  expect(conversation).not.toContain('Thought 1');
+  expect(conversation).toContain('Thought 2');
+  expect(conversation).toContain('New thought');
   runtime.close();
 });
