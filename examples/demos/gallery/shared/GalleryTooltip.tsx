@@ -25,14 +25,17 @@ export const GalleryTooltip = ({
   align = 'start',
   className = '',
   dismissOnActivate = false,
+  defaultOpen = false,
   children,
 }: GalleryTooltipPosition & {
   description: string;
+  /** Shows a notice without waiting for hover; it dismisses like any open tooltip. */
+  defaultOpen?: boolean;
   className?: string;
   dismissOnActivate?: boolean;
   children: (trigger: TriggerProps) => ReactNode;
 }) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
   const id = useId();
   const root = useRef<HTMLSpanElement>(null);
   useEffect(() => {
@@ -89,6 +92,7 @@ export const GalleryTooltipButton = ({
   side,
   align,
   tooltipClassName,
+  defaultOpen,
   children,
   onClick,
   ...button
@@ -96,6 +100,7 @@ export const GalleryTooltipButton = ({
   GalleryTooltipPosition & {
     description: string;
     tooltipClassName?: string;
+    defaultOpen?: boolean;
   }) => (
   <GalleryTooltip
     description={description}
@@ -103,6 +108,7 @@ export const GalleryTooltipButton = ({
     align={align}
     className={tooltipClassName}
     dismissOnActivate={!!onClick}
+    defaultOpen={defaultOpen}
   >
     {trigger => (
       <button

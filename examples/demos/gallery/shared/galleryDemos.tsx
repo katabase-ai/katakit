@@ -7,7 +7,7 @@ import {
 } from './galleryDemoDetails';
 import { GalleryCaptureControls } from './GalleryCaptureControls';
 import { GalleryDemo } from './GalleryDemo';
-import { TranscriptionIntroduction, TranscriptionSetupComplete } from './TranscriptionIntroduction';
+import { TranscriptionIntroduction } from './TranscriptionIntroduction';
 import { useGalleryDemoHeader } from './GalleryDemoHeader';
 
 // Named entries let another host import only its selected demos. Lazy construction is inert,
@@ -30,7 +30,6 @@ export const transcriptionGalleryDemo = {
                 runtime={runtime}
                 controls={<GalleryCaptureControls />}
                 introduction={<TranscriptionIntroduction />}
-                afterFirstSpeech={<TranscriptionSetupComplete />}
                 showIntroduction={!hasHeader}
               />
             )}

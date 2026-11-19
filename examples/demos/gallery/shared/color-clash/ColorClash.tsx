@@ -132,7 +132,11 @@ export const ColorClash = ({
                 {input.phase === 'loading' && (
                   <progress aria-label="Speech model download" max={1} value={input.progress} />
                 )}
-                <button type="button" className="color-clash-play" onClick={cancel}>
+                <button
+                  type="button"
+                  className="site-button site-button--slate color-clash-play"
+                  onClick={cancel}
+                >
                   Cancel setup
                 </button>
               </>
@@ -156,7 +160,7 @@ export const ColorClash = ({
                 ) : undefined}
                 <button
                   type="button"
-                  className="color-clash-play"
+                  className="site-button site-button--blue gallery-capture-start color-clash-play"
                   disabled={
                     disabled ||
                     requested ||

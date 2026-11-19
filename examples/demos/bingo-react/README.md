@@ -1,6 +1,19 @@
 # Browser conversation bingo example
 
-## Prepare an independent copy
+## Run it locally
+
+Copy this demo from GitHub and start it. You need Node.js 24 or newer and pnpm:
+
+```sh
+npx degit katabase-ai/katakit/examples/demos/bingo-react conversation-bingo
+cd conversation-bingo
+pnpm install
+pnpm dev
+```
+
+The gallery's **Run locally** control shows the same command and a prompt for a coding agent.
+
+## Prepare an independent copy from a checkout
 
 From an installed Katakit checkout, run:
 
@@ -39,8 +52,8 @@ pnpm -F @katakit/demo-bingo-react dev
 
 Start Moonshine Tiny streaming transcription with your microphone. The first use
 downloads a model. Audio stays in the browser; the board and transcript reset on
-reload. Finalized words appear in Last heard; interim recognition text is not
-displayed or used for bingo.
+reload. Finalized words appear in Transcript, newest line first; interim recognition text is shown there
+in italics and is not used for bingo.
 
 Choose a word list. Built-in packs draw a mix of familiar, less familiar, and
 wildcard entries; choose **Shuffle** for another draw. Rare names and tricky words

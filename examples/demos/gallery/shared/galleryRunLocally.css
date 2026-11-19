@@ -1,0 +1,103 @@
+.katakit-gallery .gallery-run-locally {
+  min-width: 0;
+}
+.katakit-gallery .gallery-run-locally > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--color-rule);
+  border-radius: 999px;
+  background: var(--color-paper-3);
+  color: var(--color-ink);
+  font-size: 14px;
+  line-height: 20px;
+  cursor: pointer;
+  list-style: none;
+}
+.katakit-gallery .gallery-run-locally > summary::-webkit-details-marker {
+  display: none;
+}
+.katakit-gallery .gallery-run-locally > summary:hover {
+  border-color: var(--color-accent);
+}
+.katakit-gallery .gallery-run-locally > summary:focus-visible,
+.katakit-gallery .gallery-run-locally-copy:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+.katakit-gallery .gallery-run-locally > summary svg,
+.katakit-gallery .gallery-run-locally-copy svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+.katakit-gallery .gallery-run-locally-panel {
+  display: grid;
+  gap: 16px;
+  max-width: 48rem;
+  margin-top: 12px;
+  padding: 16px;
+  border: 1px solid var(--color-rule);
+  border-radius: 12px;
+  background: var(--color-paper-2);
+}
+.katakit-gallery .gallery-run-locally-panel > p {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: 20px;
+}
+.katakit-gallery .gallery-run-locally-block {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.katakit-gallery .gallery-run-locally-block-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.katakit-gallery .gallery-run-locally-copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--color-rule);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  cursor: pointer;
+}
+.katakit-gallery .gallery-run-locally-copy:hover {
+  border-color: var(--color-accent);
+  color: var(--color-ink);
+}
+.katakit-gallery .gallery-run-locally-block pre {
+  margin: 0;
+  max-height: 16rem;
+  padding: 12px;
+  overflow: auto;
+  border-radius: 8px;
+  background: var(--color-paper-3);
+  font-family: var(--font-outlier, ui-monospace, monospace);
+  font-size: 13px;
+  line-height: 20px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.katakit-gallery .gallery-run-locally-block code {
+  font: inherit;
+}
+.katakit-gallery .gallery-run-locally-block p[role='alert'] {
+  margin: 0;
+  font-size: 13px;
+}

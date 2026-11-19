@@ -237,36 +237,39 @@ describe('structured notes', () => {
     demo.close();
   });
 
-  it.each([
-    ['notes_schema', { additions: 'invalid' }],
-    [
-      'notes_target',
-      {
-        additions: [{ text: 'Valid note' }, { text: 'Missing parent', underId: 'missing' }],
-        rewords: [],
-      },
-    ],
-    [
-      'notes_target',
-      { additions: [{ text: 'Valid note' }], rewords: [{ id: 'missing', text: 'Missing note' }] },
-    ],
-  ])(
-    'keeps invalid output pending without repairing it in a paid retry loop: %j',
-    async (code, response) => {
-      const request = vi
-        .fn<NotesConnection['requestCompletion']>()
-        .mockResolvedValue(completion(response));
-      const reportFailure = vi.fn();
-      const demo = setup(request, reportFailure);
-      demo.turn('Keep this pending');
-      await expect.poll(() => demo.state.get().status).toBe('paused');
-      expect(demo.state.get().pendingTurnCount).toBe(1);
-      expect(demo.state.get().notes).toEqual([]);
-      expect(request).toHaveBeenCalledOnce();
-      expect(reportFailure).toHaveBeenCalledWith(expect.objectContaining({ policy: { code } }));
-      demo.close();
-    }
-  );
+  it('retries invalid output twice, then keeps the turn pending and pauses', async () => {
+    const request = vi
+      .fn<NotesConnection['requestCompletion']>()
+      .mockResolvedValue(completion({ additions: 'invalid' }));
+    const reportFailure = vi.fn();
+    const demo = setup(request, reportFailure);
+    demo.turn('Keep this pending');
+    await expect.poll(() => demo.state.get().status, { timeout: 3000 }).toBe('paused');
+    expect(demo.state.get().pendingTurnCount).toBe(1);
+    expect(demo.state.get().notes).toEqual([]);
+    expect(request).toHaveBeenCalledTimes(3);
+    expect(reportFailure).toHaveBeenCalledWith(
+      expect.objectContaining({ policy: { code: 'notes_schema' } })
+    );
+    demo.close();
+  });
+
+  it('applies what it can when the model misuses a note ID', async () => {
+    const request = vi.fn<NotesConnection['requestCompletion']>().mockResolvedValue(
+      completion({
+        additions: [{ text: 'Valid note' }, { text: 'Invented parent', underId: 'missing' }],
+        rewords: [{ id: 'missing', text: 'No such note' }],
+      })
+    );
+    const demo = setup(request);
+    demo.turn('A thought');
+    await expect
+      .poll(() => demo.state.get().notes.map(note => note.text))
+      .toEqual(['Valid note', 'Invented parent']);
+    expect(demo.state.get().status).toBe('idle');
+    expect(request).toHaveBeenCalledOnce();
+    demo.close();
+  });
 
   it('keeps blank-note validation out of the provider grammar', () => {
     const { body } = createNotesRequest({

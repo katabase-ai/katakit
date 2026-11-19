@@ -138,17 +138,29 @@ export const connectWithKey =
           });
           combined.throwIfAborted();
           if (!response.ok) {
-            const message =
-              response.status === 401 || response.status === 403
-                ? 'The provider rejected your key. Check it in Inference settings.'
-                : response.status === 402
-                  ? 'Your provider account needs credits. Check your provider account or choose Free demo.'
-                  : response.status === 429
-                    ? 'The provider is rate limiting requests. Wait, then start notes again.'
-                    : response.status === 400 || response.status === 404 || response.status === 422
-                      ? 'Check the model ID and structured-output support in Configure models, and the endpoint under Advanced.'
-                      : 'The provider could not complete this request. Start notes again when ready.';
-            throw new GalleryModelError(message);
+            // Another attempt cannot fix a rejected key, missing credits, or an unsupported
+            // model, so only rate limits and provider faults keep the automatic retries.
+            const status = response.status;
+            throw status === 401 || status === 403
+              ? new GalleryModelError(
+                  'The provider rejected your key. Check it in Inference settings.',
+                  { retryLimit: 0 }
+                )
+              : status === 402
+                ? new GalleryModelError(
+                    'Your provider account needs credits. Check your provider account or choose Free demo.',
+                    { retryLimit: 0 }
+                  )
+                : status === 429
+                  ? new GalleryModelError('The provider is rate limiting requests.', {
+                      retryAfterMs: 2000,
+                    })
+                  : status === 400 || status === 404 || status === 422
+                    ? new GalleryModelError(
+                        'Check the model ID and structured-output support in Configure models, and the endpoint under Advanced.',
+                        { retryLimit: 0 }
+                      )
+                    : new GalleryModelError('The provider could not complete this request.');
           }
           const result: unknown = await response.json();
           combined.throwIfAborted();
@@ -158,7 +170,7 @@ export const connectWithKey =
           if (error instanceof GalleryModelError) throw error;
           // Do not surface provider bodies or native fetch errors: either can contain credentials/URLs.
           throw new GalleryModelError(
-            'Could not reach the model. Check your endpoint, network, and browser access (CORS), then start notes again.'
+            'Could not reach the model. Check your endpoint, network, and browser access (CORS).'
           );
         }
       },
