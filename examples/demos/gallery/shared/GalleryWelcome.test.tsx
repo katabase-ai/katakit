@@ -392,7 +392,7 @@ test('Welcome retains readiness from another demo across navigation while captur
   expect(inputs[0]!.start).toHaveBeenCalledTimes(2);
 });
 
-test('a demo offers Start beside its title, then a Pause beside a microphone that fills with the level', async () => {
+test('a demo offers Start in its header, then a Pause beside a microphone that fills with the level', async () => {
   const { inputs } = fixture();
   render(
     <GallerySpeechProvider>

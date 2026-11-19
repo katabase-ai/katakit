@@ -1,3 +1,4 @@
+import * as v from 'valibot';
 import { GalleryModelError, type GalleryModelConnect } from './galleryModel';
 
 export const inferenceStorageKey = 'katakit.gallery.inference.v1';
@@ -108,12 +109,23 @@ export const createGalleryInference = (
   };
 };
 
-/** Visitor-owned chat-completions transport. Never touches host admission or allowance. */
+const responseUsageSchema = v.object({
+  usage: v.object({ total_tokens: v.pipe(v.number(), v.integer(), v.minValue(0)) }),
+});
+
+/** Visitor-owned transport reports received token usage independently of host allowance. */
 export const connectWithKey =
   (
     settings: GalleryInference,
     sourceSignal: AbortSignal,
-    request: typeof fetch = fetch
+    {
+      request = fetch,
+      onTokenUsage,
+    }: {
+      request?: typeof fetch;
+      /** Undefined means this response omitted a valid token total; never estimate it. */
+      onTokenUsage?: (tokens?: number) => void;
+    } = {}
   ): GalleryModelConnect =>
   async ({ signal }) => {
     const config = validateInference(settings);
@@ -164,6 +176,9 @@ export const connectWithKey =
           }
           const result: unknown = await response.json();
           combined.throwIfAborted();
+          // Count each received completion, including responses the demo rejects and retries.
+          const usage = v.safeParse(responseUsageSchema, result);
+          onTokenUsage?.(usage.success ? usage.output.usage.total_tokens : undefined);
           return result;
         } catch (error) {
           combined.throwIfAborted();

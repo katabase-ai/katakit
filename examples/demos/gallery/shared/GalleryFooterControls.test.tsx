@@ -26,18 +26,41 @@ test.each([
     const footer = screen.getByRole('region', { name: 'Operation status' });
     expect(footer.dataset.usagePhase).toBe(phase);
     const progress = screen.getByRole('progressbar', {
-      name: 'Demo allowance used',
+      name: 'Model call usage',
     }) as HTMLProgressElement;
     expect(progress.value).toBe(percent);
     expect(screen.getByText(`${percent}%`)).toBeDefined();
-    fireEvent.focus(screen.getByRole('button', { name: /of your demo allowance/ }));
+    expect(screen.getByText('Usage')).toBeDefined();
+    fireEvent.focus(screen.getByRole('button', { name: /of your allowed model calls/ }));
     expect(screen.getByRole('tooltip').textContent).toContain('on-device transcription does not');
-    fireEvent.keyDown(screen.getByRole('button', { name: /of your demo allowance/ }), {
+    fireEvent.keyDown(screen.getByRole('button', { name: /of your allowed model calls/ }), {
       key: 'Escape',
     });
     expect(screen.queryByRole('tooltip')).toBeNull();
   }
 );
+
+test.each([
+  [{ total: 0, incomplete: false }, '0 tokens'],
+  [{ total: 1234, incomplete: false }, '1,234 tokens'],
+  [{ total: 1234, incomplete: true }, '≥1,234 tokens'],
+  [{ total: 0, incomplete: true }, 'Unavailable'],
+] as const)('personal-key usage %j shows %s without a budget bar', (tokenUsage, value) => {
+  render(
+    <GalleryModelContext value={{ tokenUsage }}>
+      <GallerySpeechControls />
+    </GalleryModelContext>
+  );
+  expect(screen.getByText('Usage')).toBeDefined();
+  expect(screen.getByText(value)).toBeDefined();
+  expect(screen.queryByRole('progressbar')).toBeNull();
+  fireEvent.focus(screen.getByRole('button', { name: `Usage: ${value} this session` }));
+  const tooltip = screen.getByRole('tooltip');
+  expect(tooltip.textContent).toContain('resets on reload');
+  expect(tooltip.textContent?.includes('Some responses did not report')).toBe(
+    tokenUsage.incomplete
+  );
+});
 
 test.each([
   undefined,

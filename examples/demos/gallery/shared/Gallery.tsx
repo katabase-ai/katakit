@@ -99,6 +99,8 @@ export const Gallery = ({
   const sourceSignal = inference?.owner.getSignal();
   const usesDeveloperKey = isDeveloperView && inference?.settings.source === 'key';
   const recordAllowance = usage?.reportAllowance;
+  const reportTokenUsage = usage?.reportTokenUsage;
+  const tokenUsage = usesDeveloperKey ? usage?.tokenUsage : undefined;
   const reportAllowance = useCallback(
     (value: GalleryAllowance) => {
       if (!usesDeveloperKey && connectModel && sourceSignal)
@@ -126,7 +128,7 @@ export const Gallery = ({
     if (!inference) return undefined;
     const sourceSignal = inference.owner.getSignal();
     if (isDeveloperView && inference.settings.source === 'key')
-      return connectWithKey(inference.settings, sourceSignal);
+      return connectWithKey(inference.settings, sourceSignal, { onTokenUsage: reportTokenUsage });
     if (!connectModel) return undefined;
     return async input => {
       const signal = AbortSignal.any([input.signal, sourceSignal]);
@@ -144,7 +146,7 @@ export const Gallery = ({
         },
       };
     };
-  }, [connectModel, inference, isDeveloperView]);
+  }, [connectModel, inference, isDeveloperView, reportTokenUsage]);
   // Named only once browser settings have loaded, so it never appears and then vanishes.
   const settingsNotice =
     inference &&
@@ -161,6 +163,7 @@ export const Gallery = ({
       openSettings: onOpenSettings ?? (isDeveloperView ? onConfigureOperation : undefined),
       settingsNotice,
       allowance,
+      tokenUsage,
       usageUnavailableReason,
       reportAllowance,
       account,
@@ -173,6 +176,7 @@ export const Gallery = ({
       onOpenSettings,
       settingsNotice,
       allowance,
+      tokenUsage,
       usageUnavailableReason,
       reportAllowance,
       account,

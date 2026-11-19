@@ -79,11 +79,12 @@ always use neutral configured-service wording, ignoring any host promise. The ga
 verify endpoint security, retention, or model-provider policies.
 
 Entries with their own example directory also declare `copyDirectory`. `Gallery` gives those demos
-a **Run locally** control beside the data-handling badge: an `npx degit` command that copies the example
-directory and starts it, and a prompt that asks a coding agent to do the same. For demos with the
+a **Run locally** control beside the data-handling badge: a **View example source** link, an `npx degit`
+command that copies the example directory and starts it, and a prompt that asks a coding agent to do the same. For demos with the
 `remoteModel` capability its panel says the copy needs your own model API key. Pass `sourceRevision`
-with the Katakit commit the host's demos come from, so a copy matches the demo the visitor used;
-without it the command copies the default branch. Copying reports `runLocallyCopied` with which
+with the Katakit commit the host's demos come from, so the source link and local copy match the demo
+the visitor used; without it they use the default branch. Hosts should remove their separate source
+link for these demos when adopting this revision. Copying reports `runLocallyCopied` with which
 text was copied. Color Clash lives inside the gallery and has no control.
 
 A host can select metadata and render `shared/Gallery.tsx` without importing recognizers or this
@@ -181,8 +182,10 @@ cancellation, testing, and stopping. Stopping capture retains readiness for this
 Setup progress and recovery guidance appear beside the action button. A download confirmation
 remains visible after loading, including during permission setup and after stopping; selecting a
 different model resets that confirmation. The transcript field stays visible throughout setup.
-Listening belongs to each demo. Its button sits beside the demo's title: a primary Start, then a
-secondary Pause, beside a microphone glyph that fills with the level being heard. Setup progress shows beside the button.
+Listening belongs to each demo. Its button sits at the left, below the description and above the
+body heading: a primary Start, then a secondary Pause, beside a microphone glyph that fills with
+the level being heard. Mouse controls are 36px high; touch controls remain 44px. Setup progress
+follows the button.
 A demo's own controls stay inside the demo. Run locally and the
 data-handling badge sit at the header's top right, level with the top of the title.
 Models load only after a visitor action. Standalone controls
@@ -214,12 +217,19 @@ A host passes one `connectModel` to `Gallery` for its model admission/transport;
 so a new such demo needs no host code. Without a connection, the footer's Settings button opens a
 notice that inference is unavailable while transcription remains usable; pressing it opens Settings. Public mode never falls back to a saved developer key. Every demo link stays clickable. Hosts throw `GalleryModelError` for failures they
 want shown or retried. Connection controls, browser verification, and errors render
-inside the active demo. Host `onAllowance` reports drive the shared footer usage meter: the percentage
-is consumed allowance, yellow at 80% and red at 100%. On-device transcription does not consume this
-allowance. The reported value survives demo navigation under `GallerySpeechProvider`, but source/configuration
-and mode changes clear it. Without valid data the footer shows no usage row, and Settings shows “Usage unavailable” with an explanation;
-there is no sample or predicted usage. The reference host has no managed allowance service, and
-developer-key providers do not report a demo allowance. No usage request is made on page load.
+inside the active demo. Host `onAllowance` reports drive the shared footer’s “Usage” bar: the percentage
+of allowed model calls used, yellow at 80% and red at 100%. On-device transcription does not consume
+model calls. The reported value survives demo navigation under `GallerySpeechProvider`, but source/configuration
+and mode changes clear it. Without valid host data the footer shows no usage row, and Settings shows
+“Usage unavailable” with an explanation. The reference host has no managed allowance service.
+
+With a personal key selected, “Usage” shows the session’s input and output token total instead of a
+bar. It sums `usage.total_tokens` from received chat-completions responses, including responses a demo
+rejects and retries. Missing or invalid totals mark the count as incomplete, shown as “≥” or
+“Unavailable” when no tokens have been reported. Canceled requests can consume tokens that are not
+reported here. The count survives demo navigation and key/model/source changes in this tab, stays
+hidden in public preview, and resets on page reload. It is kept in memory, never local storage.
+Neither mode estimates usage or makes a usage request on page load.
 
 The optional `Gallery account` prop supplies `user: { name, avatarUrl? }` and real host callbacks
 `onCreateAccount`, `onLogIn`, and `onOpenAccount`. Guests see a person avatar with a blue plus;

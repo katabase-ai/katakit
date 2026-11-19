@@ -5,7 +5,7 @@ import { GalleryMicrophoneIndicator } from './GalleryMicrophoneIndicator';
 
 /**
  * Capture actions belong to the active demo, never the shared setup footer. Under the gallery's
- * header a demo's button sits beside its title: a primary Start, then a secondary Pause. The
+ * header a demo's button sits below its description: a primary Start, then a secondary Pause. The
  * microphone glyph beside it fills with the level being heard.
  */
 export const GalleryCaptureControls = ({

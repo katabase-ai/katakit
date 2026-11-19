@@ -8,6 +8,10 @@ import { GalleryRunLocally, runLocallyCommand, runLocallyPrompt } from './Galler
 afterEach(cleanup);
 
 test('the command copies the pinned example directory and starts it', () => {
+  render(<GalleryRunLocally demo={notesDemoDetails} revision="abc123" />);
+  expect(screen.getByRole('link', { name: 'View example source' }).getAttribute('href')).toBe(
+    'https://github.com/katabase-ai/katakit/tree/abc123/examples/demos/notes-react'
+  );
   expect(runLocallyCommand(notesDemoDetails, 'abc123')).toBe(
     [
       'npx degit katabase-ai/katakit/examples/demos/notes-react#abc123 structured-notes',

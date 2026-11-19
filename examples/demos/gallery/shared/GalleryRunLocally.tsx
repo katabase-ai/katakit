@@ -133,6 +133,15 @@ export const GalleryRunLocally = ({ demo, revision }: { demo: Demo; revision?: s
         Run locally
       </summary>
       <div className="gallery-run-locally-panel">
+        <p>
+          <a
+            href={`https://github.com/katabase-ai/katakit/tree/${revision ?? 'main'}/${demo.sourcePath}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View example source
+          </a>
+        </p>
         <CopyBlock
           label="Command"
           text={runLocallyCommand(demo, revision)}
@@ -143,10 +152,7 @@ export const GalleryRunLocally = ({ demo, revision }: { demo: Demo; revision?: s
           text={runLocallyPrompt(demo, revision)}
           onCopied={() => events.report({ type: 'runLocallyCopied', content: 'prompt' })}
         />
-        <p>
-          Needs Node.js 24 or newer and pnpm.
-          {needsKey && ' The demo’s README explains connecting your own model API key.'}
-        </p>
+        {needsKey && <p>The demo’s README explains connecting your own model API key.</p>}
       </div>
     </details>
   );

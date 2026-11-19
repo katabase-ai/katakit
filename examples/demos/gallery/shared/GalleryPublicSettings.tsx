@@ -1,12 +1,13 @@
 import { useContext, useState } from 'react';
 import { GalleryModelContext } from './galleryModel';
-import { GalleryUsageMeter, galleryUsagePercent } from './GalleryUsageMeter';
+import { GalleryTokenCounter, GalleryUsageMeter, galleryUsagePercent } from './GalleryUsageMeter';
 import './galleryFooterControls.css';
 import './galleryPublicSettings.css';
 
 /** Public account presentation; the host owns real identity, authentication, and allowance. */
 export const GalleryPublicSettings = ({ privacyUrl }: { privacyUrl?: string }) => {
-  const { account, allowance, usageUnavailableReason } = useContext(GalleryModelContext);
+  const { account, allowance, tokenUsage, usageUnavailableReason } =
+    useContext(GalleryModelContext);
   const [notice, setNotice] = useState('');
   const percent = galleryUsagePercent(allowance);
   const phase =
@@ -48,8 +49,8 @@ export const GalleryPublicSettings = ({ privacyUrl }: { privacyUrl?: string }) =
           <>
             <h2 id="gallery-settings-account-title">Take your ideas further with Katabase</h2>
             <p>
-              Create an account to get more tokens for cloud-based models. We take care of the model
-              setup, so you can focus on exploring and building.
+              Create an account to get more model calls for cloud-based demos. We take care of the
+              model setup, so you can focus on exploring and building.
             </p>
             <div className="gallery-settings-account-actions">
               <button
@@ -83,9 +84,20 @@ export const GalleryPublicSettings = ({ privacyUrl }: { privacyUrl?: string }) =
         data-usage-phase={phase}
         aria-labelledby="gallery-settings-allowance-title"
       >
-        <h2 id="gallery-settings-allowance-title">Your demo allowance</h2>
-        <GalleryUsageMeter percent={percent} unavailableReason={usageUnavailableReason} />
-        <p>Cloud-based demos use this allowance. On-device transcription doesn’t.</p>
+        <h2 id="gallery-settings-allowance-title">Usage</h2>
+        {tokenUsage ? (
+          <>
+            <GalleryTokenCounter usage={tokenUsage} />
+            <p>Personal-key tokens used this session. Reloading starts a new count.</p>
+          </>
+        ) : (
+          <>
+            <GalleryUsageMeter percent={percent} unavailableReason={usageUnavailableReason} />
+            <p>
+              The percentage of allowed model calls used. On-device transcription doesn’t count.
+            </p>
+          </>
+        )}
       </section>
       {privacyUrl && (
         <p className="gallery-settings-privacy">

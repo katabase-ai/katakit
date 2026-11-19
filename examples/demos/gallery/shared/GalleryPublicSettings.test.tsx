@@ -69,7 +69,7 @@ test('allowance summary follows host updates and explains missing data', () => {
     </GalleryModelContext>
   );
   expect(
-    (screen.getByRole('progressbar', { name: 'Demo allowance used' }) as HTMLProgressElement).value
+    (screen.getByRole('progressbar', { name: 'Model call usage' }) as HTMLProgressElement).value
   ).toBe(80);
   view.rerender(
     <GalleryModelContext value={{ allowance: { remaining: 0, total: 5 } }}>
