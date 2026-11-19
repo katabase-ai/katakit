@@ -10,7 +10,8 @@ import './galleryFooterControls.css';
 /** Shared settings, usage, and account display; listening and its indicator stay in the demo. */
 export const GallerySpeechControls = () => {
   const session = useGallerySpeech();
-  const { isDeveloperView, openSettings, allowance, account } = useContext(GalleryModelContext);
+  const { isDeveloperView, openSettings, settingsNotice, allowance, account } =
+    useContext(GalleryModelContext);
   const snapshot = session?.snapshot;
   const percent = galleryUsagePercent(allowance);
   const phase =
@@ -32,8 +33,14 @@ export const GallerySpeechControls = () => {
         {openSettings && (
           <GalleryTooltipButton
             className="gallery-footer-icon gallery-settings-button"
+            // A notice opens with the demo it concerns and opens again on the next such visit.
+            key={settingsNotice}
+            defaultOpen={!!settingsNotice}
             aria-label="Settings"
-            description={isDeveloperView ? 'Configure models' : 'Account and demo allowance'}
+            description={
+              settingsNotice ??
+              (isDeveloperView ? 'Configure models' : 'Account and demo allowance')
+            }
             onClick={openSettings}
           >
             <Settings aria-hidden="true" />

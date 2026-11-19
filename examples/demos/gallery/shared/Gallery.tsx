@@ -145,6 +145,13 @@ export const Gallery = ({
       };
     };
   }, [connectModel, inference, isDeveloperView]);
+  // Named only once browser settings have loaded, so it never appears and then vanishes.
+  const settingsNotice =
+    inference &&
+    !connect &&
+    (activeDemo?.capabilities as readonly string[] | undefined)?.includes('remoteModel')
+      ? `${isDeveloperView ? 'No inference is configured.' : 'Free inference is not available here.'} You can still transcribe locally.`
+      : undefined;
   const model = useMemo(
     () => ({
       connect,
@@ -152,6 +159,7 @@ export const Gallery = ({
       isDeveloperView,
       configure: isDeveloperView ? onConfigureOperation : undefined,
       openSettings: onOpenSettings ?? (isDeveloperView ? onConfigureOperation : undefined),
+      settingsNotice,
       allowance,
       usageUnavailableReason,
       reportAllowance,
@@ -163,6 +171,7 @@ export const Gallery = ({
       isDeveloperView,
       onConfigureOperation,
       onOpenSettings,
+      settingsNotice,
       allowance,
       usageUnavailableReason,
       reportAllowance,

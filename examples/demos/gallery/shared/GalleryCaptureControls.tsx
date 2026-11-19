@@ -1,15 +1,12 @@
-import { useEffect, useId, useState, type CSSProperties, type ReactNode } from 'react';
-import { createPortal } from 'react-dom';
-import { Pause, Play } from 'lucide-react';
-import { useGalleryDemoStage } from './GalleryDemoFrame';
+import { useEffect, useId, useState, type ReactNode } from 'react';
 import { GalleryDemoCapture } from './GalleryDemoHeader';
 import { useGallerySpeech } from './GallerySpeechProvider';
 import { GalleryMicrophoneIndicator } from './GalleryMicrophoneIndicator';
 
 /**
- * Capture actions belong to the active demo, never the shared setup footer. In the gallery frame
- * a demo and its toolbar wait behind a Start overlay; after its first start the toolbar holds a
- * pause/resume button, which is the live microphone indicator.
+ * Capture actions belong to the active demo, never the shared setup footer. Under the gallery's
+ * header a demo's button sits beside its title: a primary Start, then a secondary Pause. The
+ * microphone glyph beside it fills with the level being heard.
  */
 export const GalleryCaptureControls = ({
   label = 'Start listening',
@@ -25,13 +22,9 @@ export const GalleryCaptureControls = ({
   presentation?: 'default' | 'welcome';
 }) => {
   const session = useGallerySpeech();
-  const stage = useGalleryDemoStage();
   const statusId = useId();
-  // Each demo visit mounts its own controls, so this is "has this visit listened yet".
-  const [started, setStarted] = useState(false);
-  if (session?.snapshot.input.phase === 'running' && !started) setStarted(true);
   // Raw levels jump between silence and full ten times a second. Rise at once but fall gradually,
-  // so the fill reads as speech rather than flickering between empty and full.
+  // so the glyph's fill reads as speech rather than flickering between empty and full.
   const [shownLevel, setShownLevel] = useState(0);
   const snapshotForLevel = session?.snapshot;
   useEffect(() => {
@@ -45,144 +38,94 @@ export const GalleryCaptureControls = ({
   const { owner, snapshot } = session;
   const recording = snapshot.input.phase === 'running';
   const preparing = ['loading', 'starting'].includes(snapshot.input.phase);
-  const welcome = presentation === 'welcome';
   const failure = snapshot.error ?? snapshot.input.error?.message;
-  // The overlay and Welcome show setup progress themselves; this line is for assistive tech.
-  const statusLine = (
-    <p id={statusId} role="status" className="gallery-visually-hidden">
-      {welcome
-        ? recording
-          ? 'Microphone listening'
-          : 'Microphone off'
-        : snapshot.input.phase === 'loading'
-          ? `Downloading model${snapshot.input.progress === undefined ? '…' : `: ${Math.round(snapshot.input.progress * 100)}%`} · microphone off`
-          : snapshot.input.phase === 'starting'
-            ? 'Waiting for microphone permission…'
-            : recording
-              ? 'Listening locally'
-              : snapshot.transitioning
-                ? 'Finishing input…'
-                : 'Microphone off'}
-    </p>
-  );
-  const button = (
-    <button
-      type="button"
-      className={`site-button ${stage && !welcome ? 'site-button--blue gallery-capture-start' : 'site-button--slate'}`}
-      disabled={snapshot.blocked || (!preparing && (snapshot.transitioning || !snapshot.attached))}
-      aria-describedby={statusId}
-      // Demos show the short verb; the accessible name still says what starts and stops.
-      aria-label={welcome || preparing ? undefined : recording ? 'Stop listening' : label}
-      onClick={() => void (preparing ? owner.cancel() : recording ? owner.stop() : owner.start())}
-    >
-      {preparing
-        ? welcome && snapshot.input.phase === 'loading'
-          ? 'Cancel download'
-          : 'Cancel'
-        : recording
-          ? welcome
-            ? 'Stop listening'
-            : 'Stop'
-          : welcome || label !== 'Start listening'
-            ? label
-            : failure
-              ? 'Try again'
-              : 'Start'}
-    </button>
-  );
-  if (welcome)
+  const disabled =
+    snapshot.blocked || (!preparing && (snapshot.transitioning || !snapshot.attached));
+  const toggle = () => void (preparing ? owner.cancel() : recording ? owner.stop() : owner.start());
+
+  if (presentation === 'welcome')
     return (
       <div className="gallery-capture-controls gallery-welcome-capture-actions">
         <GalleryMicrophoneIndicator recording={recording} level={snapshot.level} />
-        {button}
+        <button
+          type="button"
+          className={`site-button ${preparing || recording ? 'site-button--slate' : 'site-button--blue'}`}
+          disabled={disabled}
+          aria-describedby={statusId}
+          onClick={toggle}
+        >
+          {preparing
+            ? snapshot.input.phase === 'loading'
+              ? 'Cancel download'
+              : 'Cancel'
+            : recording
+              ? 'Stop listening'
+              : label}
+        </button>
         <div className="gallery-welcome-capture-feedback">
           {children}
           {errorHelp}
         </div>
-        {statusLine}
+        <p id={statusId} role="status" className="gallery-visually-hidden">
+          {recording ? 'Microphone listening' : 'Microphone off'}
+        </p>
       </div>
     );
-  const alert =
-    errorHelp ??
-    (failure && (
-      <p role="alert">
-        {failure}{' '}
-        {snapshot.blocked
-          ? 'Reload this page before trying again.'
-          : 'Try downloading or starting again.'}
-      </p>
-    ));
-  // A host without the gallery frame has no demo space to cover; it keeps a plain button.
-  if (!stage)
-    return (
-      <>
-        <div className="gallery-capture-controls gallery-capture-action">
-          {statusLine}
-          {button}
-        </div>
-        {children}
-        {alert}
-      </>
-    );
+
   const progress = snapshot.input.progress;
+  // Only a first-time setup is worth words: the model download, and the first permission prompt.
+  // Once the microphone has worked this session, starting again passes through the same phases
+  // in a moment, and naming them would flash text beside the button on every Start.
+  const settingUp =
+    snapshot.input.phase === 'loading' ||
+    (snapshot.input.phase === 'starting' && !snapshot.microphoneVerified);
+  const status =
+    snapshot.input.phase === 'loading'
+      ? `Downloading speech model…${progress === undefined ? '' : ` ${Math.round(progress * 100)}%`}`
+      : settingUp
+        ? 'Allow microphone access in your browser.'
+        : undefined;
   return (
     <>
       <GalleryDemoCapture>
         <div className="gallery-capture-controls gallery-capture-action">
-          {started && (
-            <button
-              type="button"
-              className="site-button site-button--icon gallery-capture-toggle"
-              disabled={snapshot.blocked || snapshot.transitioning || preparing}
-              aria-label={recording ? 'Pause listening' : 'Resume listening'}
-              title={recording ? 'Pause' : 'Resume'}
-              onClick={() => void (recording ? owner.stop() : owner.start())}
-            >
-              {recording && (
-                // The whole button fills from the bottom with the level being heard.
-                <span
-                  className="gallery-capture-level"
-                  aria-hidden="true"
-                  style={{ '--gallery-capture-level': shownLevel } as CSSProperties}
-                />
-              )}
-              {recording ? <Pause aria-hidden="true" /> : <Play aria-hidden="true" />}
-            </button>
-          )}
+          <p id={statusId} role="status" className={status ? undefined : 'gallery-visually-hidden'}>
+            {status ?? (recording ? 'Listening locally' : 'Microphone off')}
+          </p>
+          <GalleryMicrophoneIndicator recording={recording} level={shownLevel} />
+          <button
+            type="button"
+            className={`site-button gallery-capture-toggle ${
+              settingUp || recording ? 'site-button--slate' : 'site-button--blue'
+            }`}
+            disabled={disabled}
+            aria-describedby={statusId}
+            // The button shows the short verb; its accessible name says what starts and pauses.
+            aria-label={settingUp ? undefined : recording ? 'Pause listening' : label}
+            onClick={toggle}
+          >
+            {settingUp
+              ? 'Cancel'
+              : recording
+                ? 'Pause'
+                : label !== 'Start listening'
+                  ? label
+                  : failure
+                    ? 'Try again'
+                    : 'Start'}
+          </button>
         </div>
       </GalleryDemoCapture>
-      {/* Until this visit has listened once, and again after a failure, the demo waits behind Start. */}
-      {(!started || !!failure || snapshot.blocked) &&
-        createPortal(
-          <div className="gallery-capture-controls gallery-capture-overlay">
-            <div className="gallery-capture-overlay-card">
-              {alert}
-              {preparing && (
-                <>
-                  <p>
-                    {snapshot.input.phase === 'loading'
-                      ? `Downloading speech model…${progress === undefined ? '' : ` ${Math.round(progress * 100)}%`}`
-                      : 'Allow microphone access in your browser.'}
-                  </p>
-                  {snapshot.input.phase === 'loading' && (
-                    <progress
-                      className="gallery-welcome-download-progress"
-                      aria-label="Speech model download"
-                      max={1}
-                      value={
-                        progress === undefined ? undefined : Math.max(0, Math.min(1, progress))
-                      }
-                    />
-                  )}
-                </>
-              )}
-              {statusLine}
-              {button}
-            </div>
-          </div>,
-          stage
-        )}
       {children}
+      {errorHelp ??
+        (failure && (
+          <p role="alert">
+            {failure}{' '}
+            {snapshot.blocked
+              ? 'Reload this page before trying again.'
+              : 'Try downloading or starting again.'}
+          </p>
+        ))}
     </>
   );
 };

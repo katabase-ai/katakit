@@ -14,11 +14,6 @@ import { GalleryDemoHeader, useGalleryDemoHeader } from './GalleryDemoHeader';
 import { useGalleryEvents } from './galleryEvents';
 
 const Ready = createContext<(() => void) | undefined>(undefined);
-const Stage = createContext<HTMLElement | undefined>(undefined);
-
-/** The element holding the active demo, for a layer that must cover the whole demo. */
-export const useGalleryDemoStage = () => useContext(Stage);
-
 /** Report a settled runtime lease before paint. Hosts without a frame keep their existing fallback. */
 export const useGalleryDemoReady = (settled: boolean) => {
   const ready = useContext(Ready);
@@ -71,7 +66,6 @@ const GalleryDemoBody = ({
   // A destination visited again must acquire a new lease, even if an earlier visit was ready.
   if (state.id !== demo.id) setState({ id: demo.id, ready: false });
   const content = useRef<HTMLDivElement>(null);
-  const [stage, setStage] = useState<HTMLElement>();
   const previousHeight = useRef<number | undefined>(undefined);
   const pending = state.id !== demo.id || !state.ready;
   const ready = useCallback(
@@ -124,19 +118,14 @@ const GalleryDemoBody = ({
       >
         {pending && <GalleryDemoActivity key={`activity-${demo.id}`} />}
         <div
-          ref={node => {
-            content.current = node;
-            setStage(node ?? undefined);
-          }}
+          ref={content}
           className="gallery-demo-stage"
           aria-busy={pending}
           hidden={pending}
           key={demo.id}
           onClickCapture={reportInteraction}
         >
-          <Stage value={stage}>
-            <Suspense fallback={null}>{children}</Suspense>
-          </Stage>
+          <Suspense fallback={null}>{children}</Suspense>
         </div>
       </div>
     </Ready>

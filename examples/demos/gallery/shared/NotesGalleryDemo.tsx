@@ -46,22 +46,8 @@ export const NotesGalleryDemo = () => {
           showIntroduction={!hasHeader}
           runtime={runtime}
           listening={listening}
-          connectionHelp={
-            model.configure ? (
-              <p>
-                No inference is configured. You can still transcribe locally.{' '}
-                <button
-                  type="button"
-                  className="site-button"
-                  onClick={() => model.configure?.('inference')}
-                >
-                  Configure inference
-                </button>
-              </p>
-            ) : (
-              <p>Free inference is not available here. You can still transcribe locally.</p>
-            )
-          }
+          // The Settings button explains a missing connection, where the remedy is one click away.
+          connectionHelp={model.settingsNotice ? false : undefined}
           controls={<GalleryCaptureControls />}
           connect={connectGallery && connect}
           renderModelControls={model.renderControls}

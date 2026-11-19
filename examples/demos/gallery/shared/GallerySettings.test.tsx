@@ -432,3 +432,19 @@ test('public Settings opens account content, shares allowance with the footer, a
   view.unmount();
   runtime.close();
 });
+
+test('a demo without inference says so on the Settings button, which opens Settings', async () => {
+  const runtime = createNotesDemo();
+  render(<View runtime={runtime} />);
+  const notice = await screen.findByRole('tooltip');
+  expect(notice.textContent).toBe(
+    'Free inference is not available here. You can still transcribe locally.'
+  );
+  expect(screen.getByRole('button', { name: 'Settings' }).getAttribute('aria-describedby')).toBe(
+    notice.id
+  );
+  fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+  await screen.findByRole('heading', { name: 'Settings' });
+  expect(screen.queryByRole('tooltip')).toBeNull();
+  runtime.close();
+});

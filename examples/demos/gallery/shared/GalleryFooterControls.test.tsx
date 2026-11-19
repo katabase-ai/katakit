@@ -69,7 +69,6 @@ test('both modes expose Settings through the host action', () => {
   fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
   expect(openSettings).toHaveBeenCalledOnce();
   expect(screen.queryByRole('img', { name: /Microphone/ })).toBeNull();
-  expect(screen.queryByRole('button', { name: /Microphone setup/ })).toBeNull();
   expect(screen.getByRole('button', { name: 'Account' })).toBeDefined();
   view.rerender(
     <GalleryModelContext value={{ isDeveloperView: true, openSettings }}>
