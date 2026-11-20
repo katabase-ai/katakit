@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useRef, type ReactNode } from '
 import type { GalleryOperation } from './operationDetails';
 import type { GalleryAllowance, GalleryTokenUsage } from './GalleryUsageProvider';
 import type { GalleryAccount } from './GalleryAccountButton';
+import type { LocalInference } from '../../notes-react/src/inference/localInference';
 
 /** Only failures a host marks retryable are retried automatically; the rest need a click. */
 export class GalleryModelError extends Error {
@@ -60,6 +61,8 @@ export const GalleryModelContext = createContext<{
   usageUnavailableReason?: string;
   reportAllowance?: (allowance: GalleryAllowance) => void;
   account?: GalleryAccount;
+  /** The dev server's model connection, present in developer view while `vite dev` runs. */
+  localInference?: LocalInference;
 }>({});
 
 /**
@@ -67,8 +70,15 @@ export const GalleryModelContext = createContext<{
  * check render inside the demo view; host allowance is shared with the footer.
  */
 export const useGalleryModel = () => {
-  const { connect, isDeveloperView, configure, reportAllowance, settingsNotice, openSettings } =
-    useContext(GalleryModelContext);
+  const {
+    connect,
+    isDeveloperView,
+    configure,
+    reportAllowance,
+    settingsNotice,
+    openSettings,
+    localInference,
+  } = useContext(GalleryModelContext);
   const verification = useRef<HTMLDivElement>(null);
   const connectVisit = useCallback(
     ({ signal }: { signal: AbortSignal }) =>
@@ -85,6 +95,7 @@ export const useGalleryModel = () => {
     connect: connect && connectVisit,
     configure: isDeveloperView ? configure : undefined,
     settingsNotice: openSettings ? settingsNotice : undefined,
+    localInference,
     renderControls: (controls: ReactNode) => (
       <>
         {controls}

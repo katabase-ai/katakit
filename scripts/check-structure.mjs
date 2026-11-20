@@ -153,6 +153,7 @@ export const checkStructure = (root = repository) => {
           (['bingo-react', 'transcription-react', 'notes-react'].some(name =>
             inside(join(root, 'examples/demos', name, 'src'), target)
           ) ||
+            inside(join(root, 'examples/demos/notes-react/inference'), target) ||
             (file.endsWith('.css') &&
               target.endsWith('.css') &&
               inside(join(root, 'internal/site-ui'), target)));

@@ -43,7 +43,7 @@ export const runLocallyPrompt = (
     ...((demo.capabilities as readonly string[]).includes('remoteModel')
       ? [
           '',
-          'This demo calls a language model with my own API key. Read README.md for how the model connection is configured. Ask me before you read, create, or edit anything that holds an API key.',
+          'This demo calls a language model with my own API key. The dev server uses a provider key already in my shell (OPENROUTER_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, or GROQ_API_KEY); otherwise I will set one up in the demo. Do not ask me for an API key and do not write one to any file.',
         ]
       : []),
     '',
@@ -157,7 +157,9 @@ export const GalleryRunLocally = ({ demo, revision }: { demo: Demo; revision?: s
           text={runLocallyPrompt(demo, revision)}
           onCopied={() => events.report({ type: 'runLocallyCopied', content: 'prompt' })}
         />
-        {needsKey && <p>The demo’s README explains connecting your own model API key.</p>}
+        {needsKey && (
+          <p>The demo uses a provider API key from your shell, or asks for one when it starts.</p>
+        )}
       </div>
     </details>
   );

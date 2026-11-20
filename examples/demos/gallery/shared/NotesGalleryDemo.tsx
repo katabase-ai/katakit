@@ -7,6 +7,7 @@ import { GalleryDemo } from './GalleryDemo';
 import { GalleryModelError, useGalleryModel } from './galleryModel';
 import { useGalleryDemoHeader } from './GalleryDemoHeader';
 import { useGallerySpeech } from './GallerySpeechProvider';
+import { InferenceSetup } from '../../notes-react/src/inference/InferenceSetup';
 
 // The copyable example recognizes only its own error class, so host failures are rethrown as it.
 const toNotesError = (error: unknown) =>
@@ -46,11 +47,25 @@ export const NotesGalleryDemo = () => {
           showIntroduction={!hasHeader}
           runtime={runtime}
           listening={listening}
-          // The Settings button explains a missing connection, where the remedy is one click away.
-          connectionHelp={model.settingsNotice ? false : undefined}
+          // The dev-server connection is set up in place; otherwise the Settings button explains a
+          // missing connection, where the remedy is one click away.
+          connectionHelp={
+            model.localInference ? (
+              <InferenceSetup local={model.localInference} />
+            ) : model.settingsNotice ? (
+              false
+            ) : undefined
+          }
           controls={<GalleryCaptureControls />}
           connect={connectGallery && connect}
-          renderModelControls={model.renderControls}
+          renderModelControls={controls =>
+            model.renderControls(
+              <>
+                {controls}
+                {model.localInference?.connect && <InferenceSetup local={model.localInference} />}
+              </>
+            )
+          }
         />
       )}
     />

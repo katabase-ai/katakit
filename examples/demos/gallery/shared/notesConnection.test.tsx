@@ -10,7 +10,7 @@ const completion = (text: string) => ({
   choices: [
     {
       finish_reason: 'stop',
-      message: { content: JSON.stringify({ additions: [{ text }], rewords: [] }) },
+      message: { content: JSON.stringify({ additions: [{ text, underId: null }], rewords: [] }) },
     },
   ],
 });

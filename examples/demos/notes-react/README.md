@@ -13,6 +13,12 @@ pnpm dev
 
 The gallery's **Get the code** control shows the same command and a prompt for a coding agent.
 
+Notes need a language model. If `OPENROUTER_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,
+`GEMINI_API_KEY`, `GOOGLE_API_KEY`, or `GROQ_API_KEY` is in your shell or `.env.local`, `pnpm dev`
+uses it and prints the model it chose. Otherwise the demo shows a setup panel: paste a key from any
+of those providers, sign in with OpenRouter, or pick a model from a local Ollama. See
+[Model connection](#model-connection).
+
 ## Prepare an independent copy from a checkout
 
 From an installed Katakit checkout, run:
@@ -39,16 +45,51 @@ pnpm -F @katakit/demo-notes... build
 pnpm -F @katakit/demo-notes dev
 ```
 
-Set `VITE_NOTES_ENDPOINT` to an OpenAI-compatible chat-completions endpoint and
-`VITE_NOTES_CREDENTIAL` to its credential in an ignored `examples/demos/notes-react/.env.local` file.
-The endpoint must accept browser requests from your local origin. The standalone host uses
-`z-ai/glm-5.3`. These Vite values are visible in the browser; use this host locally with your own
-connection. A public host should supply anonymous admission through its own proxy instead.
-
 The dev server serves the packaged worker/WASM assets and cross-origin isolation headers.
 Click **Start listening** to load the recognizer and request microphone access. Audio stays on-device.
-Listening also connects to your model endpoint and sends finalized transcript
+Listening also connects to your model through the dev server and sends finalized transcript
 turns with the existing outline. Stop listening to stop sending. A failed connection or request is retried twice on its own; after that, pausing and resuming listening tries again. A hosted connection may require browser verification first.
+
+## Model connection
+
+The dev server holds your key; the browser never receives it. `inference/` is a Vite plugin that
+runs only under `pnpm dev`. It answers same-origin requests from the demo under
+`/__katakit/inference/` and forwards notes requests to your provider. A production build includes
+none of it; a public host supplies its own connection through `connect`, as the gallery does.
+
+The plugin uses the first credential it finds:
+
+1. A key you saved in the setup panel or through OpenRouter sign-in. It lives in
+   `~/.config/katakit/inference.json` (`$XDG_CONFIG_HOME/katakit/`, or `%APPDATA%\katakit\` on
+   Windows) with owner-only permissions, outside this folder, so a commit cannot include it and
+   every later Katakit demo copy reuses it.
+2. The first provider variable set in your shell or `.env.local`, in the order listed above.
+
+Each provider has a default model that supports strict JSON schema output and costs no more than
+Claude Sonnet 5.5:
+
+| Key                        | Default model                                                 |
+| -------------------------- | ------------------------------------------------------------- |
+| OpenRouter (`sk-or-v1-…`)  | `z-ai/glm-5.3`, falling back to `anthropic/claude-sonnet-5.5` |
+| Anthropic (`sk-ant-api…`)  | `claude-sonnet-5-5`                                           |
+| OpenAI                     | `gpt-6.2-sol`                                                 |
+| Google (`AIza…` or `AQ.…`) | `gemini-4-hydrogen`                                           |
+| Groq (`gsk_…`)             | `openai/gpt-oss-120b`                                         |
+
+A pasted key selects its provider by its prefix; an unrecognized key asks which provider it
+belongs to. Saving a key or a model sends one small structured request first, and nothing is saved
+if it fails. **Change** in the setup panel overrides the model (and, for OpenRouter, the upstream
+provider) and shows the tokens your key has used since the dev server started. A custom
+OpenAI-compatible endpoint, such as LM Studio, is under **Custom endpoint**.
+
+Sign in with OpenRouter creates a key limited to $5 that expires after 30 days. Signing in leaves the
+page, so a transcript in progress is not kept.
+
+Once a key works, starting to listen connects notes. A rejected key, an account without credits, or
+a model without structured output is not retried; fix it in the setup panel and notes reconnect.
+
+Run `pnpm check:models` to send the real notes request to every provider default you have a key for.
+Run it before changing a default. **Pause notes** stops remote work while local capture continues. A hosted connection may require browser verification first.
 
 ## Embed the example
 
@@ -153,4 +194,5 @@ notes or turns. Quota failures pause notes while transcription continues.
 
 Run `pnpm -F @katakit/demo-notes test:ci` and `pnpm -F @katakit/demo-notes tsc` from the repository
 root. The tests use controlled model responses. Real speech recognition, spelling correction
-quality, and provider latency require separate browser/model checks.
+quality, and provider latency require separate browser/model checks; `pnpm check:models` covers
+the provider defaults.

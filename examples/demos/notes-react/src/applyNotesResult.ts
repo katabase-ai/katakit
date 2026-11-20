@@ -30,7 +30,7 @@ export const applyNotesResult = ({ notes, response }: { notes: Note[]; response:
     // ID the outline does not contain, such as one invented for a note added in this same
     // response, keeps the text as a new top-level note rather than losing it.
     const parent =
-      addition.underId === undefined
+      addition.underId === null
         ? undefined
         : updated.find(
             note =>
