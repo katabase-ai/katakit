@@ -15,3 +15,8 @@ Run commands from the Katakit root with `pnpm --filter @katakit/gallery`.
   Operation routes redirect in public builds. Public preview hides those routes within a developer
   build, retaining only its header switch as the way back. `#gallery-build-mode`
 - Generate `src/routeTree.gen.ts` with the Start router plugin; do not edit it by hand.
+- `localInferenceProxy.ts` runs only as local Vite dev/preview middleware. Keep credentials out
+  of browser modules, `VITE_` variables, generated assets, responses and diagnostics. The host's
+  `src/localInference.ts` discovers nonsecret metadata and connects only in developer mode on
+  loopback. Public mode and public preview must not use this developer credential. Retain origin,
+  loopback, request-size and cancellation checks; do not turn this into a deployed open proxy.

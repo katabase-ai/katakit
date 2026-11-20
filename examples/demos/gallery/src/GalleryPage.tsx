@@ -5,6 +5,7 @@ import { GallerySpeechControls } from '../shared/GallerySpeechControls';
 import { galleryDemos } from '../shared/galleryDemos';
 import { useGalleryMode } from '../shared/GalleryModeProvider';
 import type { GalleryDeveloperPage, GalleryOperation } from '../shared/operationDetails';
+import { useLocalInference } from './localInference';
 
 /** Browser demos are mounted only after hydration, never by the SSR Worker. */
 export const GalleryPage = ({
@@ -17,6 +18,7 @@ export const GalleryPage = ({
   settingsPage?: boolean;
 }) => {
   const { isDeveloperView } = useGalleryMode();
+  const localConnect = useLocalInference(isDeveloperView);
   const navigate = useNavigate();
   const configure = useCallback(
     (operation?: GalleryOperation) => {
@@ -29,6 +31,8 @@ export const GalleryPage = ({
   return (
     <Gallery
       demos={galleryDemos}
+      connectModel={localConnect}
+      modelConnectionLabel={localConnect ? 'Server environment' : undefined}
       developerPage={developerPage}
       settingsPage={settingsPage}
       onConfigureOperation={configure}
@@ -51,7 +55,6 @@ export const GalleryPage = ({
           <Link
             to="/demos/$demoId"
             params={{ demoId: entry.id }}
-
             aria-current={current ? 'page' : undefined}
           >
             {children}
