@@ -14,6 +14,8 @@ const config = {
   action: 'demo_session',
   enabled: true,
   defaultModel: 'z-ai/glm-5.3',
+  defaultDecisionModel: 'typesafe/jev-1.13',
+  decisionLimits: { maxQuestions: 16, maxCriteria: 32 },
   limits: { MAX_BODY_BYTES: 16384, MAX_OUTPUT_TOKENS: 1024, DEADLINE_MS: 60000 },
 };
 const session = () => ({
@@ -183,3 +185,94 @@ test('network exhaustion reports known policy without revealing arbitrary upstre
     policy: { terminal: true, code: 'ip_allowance' },
   });
 });
+
+test('chat and Jev reuse one verified session and report the same shared allowance', async () => {
+  sessionStorage.setItem(storageKey, 'saved-session');
+  const result = { model: 'typesafe/jev-1.13', answers: { valid: { type: 'noul', noul: 0.99 } } };
+  const request = vi
+    .fn()
+    .mockResolvedValueOnce(Response.json(config))
+    .mockResolvedValueOnce(Response.json(session()))
+    .mockResolvedValueOnce(
+      Response.json({ choices: [] }, { headers: { 'X-Demo-Session-Calls-Remaining': '58' } })
+    )
+    .mockResolvedValueOnce(
+      Response.json(result, { headers: { 'X-Demo-Session-Calls-Remaining': '57' } })
+    );
+  vi.stubGlobal('fetch', request);
+  const { connection, onAllowance } = admit();
+  const connected = await connection;
+  await connected.requestCompletion({ body: '{}', signal: new AbortController().signal });
+  expect(connected.decisions).toMatchObject({ model: 'typesafe/jev-1.13', maxQuestions: 16 });
+  const body = JSON.stringify({
+    model: connected.decisions!.model,
+    state: 'skirt',
+    questions: { valid: { type: 'noul', instructions: 'Is this a garment worn below the waist?' } },
+  });
+  await expect(
+    connected.decisions!.requestDecision({ body, signal: new AbortController().signal })
+  ).resolves.toEqual(result);
+  expect(request.mock.calls[3]).toEqual([
+    'https://proxy.example/api/alpha/decisions',
+    expect.objectContaining({
+      body,
+      credentials: 'omit',
+      redirect: 'error',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer saved-session' },
+    }),
+  ]);
+  expect(onAllowance.mock.calls.map(([value]) => value.remaining)).toEqual([59, 58, 57]);
+  expect(requestTurnstileToken).not.toHaveBeenCalled();
+});
+
+test('an older chat-only proxy remains available to chat demos without advertising decisions', async () => {
+  sessionStorage.setItem(storageKey, 'saved-session');
+  vi.stubGlobal(
+    'fetch',
+    vi
+      .fn()
+      .mockResolvedValueOnce(
+        Response.json({ ...config, defaultDecisionModel: undefined, decisionLimits: undefined })
+      )
+      .mockResolvedValueOnce(Response.json(session()))
+  );
+  const connected = await admit().connection;
+  expect(connected.requestCompletion).toBeTypeOf('function');
+  expect(connected.decisions).toBeUndefined();
+});
+
+test.each(['visit', 'request'])(
+  'canceled %s rejects a late decision without reporting its allowance',
+  async scope => {
+    sessionStorage.setItem(storageKey, 'saved-session');
+    const visit = new AbortController();
+    const call = new AbortController();
+    let finish!: (response: Response) => void;
+    const request = vi
+      .fn()
+      .mockResolvedValueOnce(Response.json(config))
+      .mockResolvedValueOnce(Response.json(session()))
+      .mockImplementationOnce(
+        () =>
+          new Promise(resolve => {
+            finish = resolve;
+          })
+      );
+    vi.stubGlobal('fetch', request);
+    const { connection, onAllowance } = admit(visit.signal);
+    const connected = await connection;
+    const pending = connected.decisions!.requestDecision({ body: '{}', signal: call.signal });
+    const rejected = (async () => {
+      try {
+        return await pending;
+      } catch (error) {
+        return error;
+      }
+    })();
+    (scope === 'visit' ? visit : call).abort();
+    finish(Response.json({ answers: {} }, { headers: { 'X-Demo-Session-Calls-Remaining': '58' } }));
+    expect(await rejected).toMatchObject({ name: 'AbortError' });
+    expect(request.mock.calls[2]![1].signal.aborted).toBe(true);
+    expect(onAllowance).toHaveBeenCalledTimes(1);
+  }
+);

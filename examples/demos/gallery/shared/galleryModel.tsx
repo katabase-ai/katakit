@@ -32,6 +32,12 @@ export type GalleryModelConnection = {
   maxOutputTokens: number;
   /** Send a chat-completions request body and resolve with the parsed response body. */
   requestCompletion: (input: { body: string; signal: AbortSignal }) => Promise<unknown>;
+  /** Optional typed decision transport, sharing this visit's admission and cancellation. */
+  decisions?: {
+    model: string;
+    maxQuestions: number;
+    requestDecision: (input: { body: string; signal: AbortSignal }) => Promise<unknown>;
+  };
   /** Hosts can correlate a demo's validation failure with their transport's request ID. */
   reportFailure?: (failure: Error & Pick<GalleryModelError, 'policy'>) => void;
 };

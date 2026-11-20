@@ -23,8 +23,23 @@ export const BrainstormGalleryDemo = () => {
     async (input: { signal: AbortSignal }) => {
       try {
         const connection = await connectGallery!(input);
+        const decisions = connection.decisions;
+        if (!decisions)
+          throw new BrainstormRequestError(
+            'This connection does not provide a Jev judge. Use managed inference or an OpenRouter connection.'
+          );
         return {
           ...connection,
+          decisions: {
+            ...decisions,
+            requestDecision: async (request: { body: string; signal: AbortSignal }) => {
+              try {
+                return await decisions.requestDecision(request);
+              } catch (error) {
+                throw toGameError(error);
+              }
+            },
+          },
           requestCompletion: async (request: { body: string; signal: AbortSignal }) => {
             try {
               return await connection.requestCompletion(request);

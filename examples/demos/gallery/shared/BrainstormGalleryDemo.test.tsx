@@ -6,10 +6,21 @@ import { BrainstormDemo as BrainstormDemoView } from '../../brainstorm-react/src
 import { createBrainstormDemo } from '../../brainstorm-react/src/createBrainstormDemo';
 import { findChallenge } from '../../brainstorm-react/src/challenges';
 
+const decisions = {
+  model: 'typesafe/jev-1.13',
+  maxQuestions: 16,
+  requestDecision: async ({ body }: { body: string }) => ({
+    answers: Object.fromEntries(
+      Object.keys(JSON.parse(body).questions).map(key => [key, { type: 'noul', noul: 0.99 }])
+    ),
+  }),
+};
+
 const defaultConnect = async () => ({
   model: 'test-model',
   maxBodyBytes: 16384,
   maxOutputTokens: 1024,
+  decisions,
   requestCompletion: async () => ({
     choices: [{ finish_reason: 'stop', message: { content: '{"answers":[]}' } }],
   }),
@@ -321,6 +332,7 @@ test('the next round waits for in-flight judging so late answers remain visible'
     model: 'test-model',
     maxBodyBytes: 16384,
     maxOutputTokens: 1024,
+    decisions,
     requestCompletion: () =>
       new Promise(resolve => {
         complete = resolve;
@@ -382,6 +394,7 @@ test('inference source changes abort judging, retain the board, and reconnect on
     model: 'test-model',
     maxBodyBytes: 16384,
     maxOutputTokens: 1024,
+    decisions,
     requestCompletion: request,
   }));
   const stop = vi.fn(async () => {});
@@ -441,6 +454,7 @@ const judge = () => ({
   model: 'test-model',
   maxBodyBytes: 16384,
   maxOutputTokens: 1024,
+  decisions,
   requestCompletion: vi.fn(),
 });
 

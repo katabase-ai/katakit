@@ -43,7 +43,15 @@ microphone and judge. **Cancel setup** cancels preparation; **End round** stops 
 This single action uses the standard gallery header slot, and the header/data-handling badge
 come from gallery metadata. Rounds require microphone input and an inference connection.
 Developer builds use Configure models
-for inference settings; managed hosts use the existing `connectModel` contract. Changing the
+for inference settings; managed hosts use the existing `connectModel` contract. The text model
+extracts answer candidates; Jev judges each candidate with a yes/no probability (initial cutoff
+0.5). Brainstorming requires the connection's optional `decisions` transport alongside chat.
+The reference preview host discovers that capability from the deployed proxy's config and uses
+`/api/alpha/decisions` with the same verified session, allowance, and cancellation as chat.
+OpenRouter BYOK supplies pinned `typesafe/jev-1.13`; custom chat endpoints do not implicitly
+enable decisions or send their keys to OpenRouter. Chat-only hosts continue supporting other
+text-generation demos; brainstorming reports the missing Jev connection before revealing a challenge.
+Changing the
 inference source or preview mode aborts judging and ends the current round while retaining its
 board. The next explicit Start prepares the new connection. **Run locally** offers a pinned copy
 of the standalone example. The named

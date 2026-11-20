@@ -43,33 +43,55 @@ There is no separate microphone Start or judge-connect action.
 
 ## Answer judging
 
-Judging uses a host-supplied model connection. The prompt includes the challenge, judging
-rule, shared rules, existing answers, removed answers, and new finalized transcript. Validated
-responses supply short answer labels and verbatim transcript evidence. The five sample answers
-are examples, not a whitelist for the model.
+Judging uses two stages on a host-supplied connection. A text model extracts candidate labels
+and exact transcript evidence without filtering by category. It includes tentative suggestions
+and question-phrased answers, and uses existing/removed labels to normalize genuine synonyms
+and plurals. Distinct subtypes stay separate. Jev then evaluates each explicit candidate against
+the challenge, judging rule, shared rules, illustrative examples, and original transcript.
+The examples are not a whitelist. Audio stays on the device.
 
-Configure a judging connection before starting a round. The challenge library's examples are
-sent to the judge as guidance; valid answers beyond those examples also count.
+Jev returns a yes/no probability (`noul`) for every candidate. This experiment accepts values
+at or above 0.5; that initial cutoff has not been calibrated against real game recordings.
+Code filters duplicate/removed labels and creates the sticky notes. Both accepted and rejected
+candidate probabilities are retained in the round's event log and `state$.value.judgments` for
+debugging; they clear with the next round. No raw provider response is logged.
+
+Each nonempty extraction batch needs one text-generation call and at least one decision call.
+Decision batches respect the connection's question and byte limits. Both stages share the host's
+allowance and rate limits. Only host-marked transient failures retry automatically, at most twice,
+respecting the host's delay. Cancellation clears the retry timer. Missing, refused, or malformed
+decisions pause the batch for **Retry judging**, without treating them as negative answers or
+advancing the transcript cursor. Valid empty extraction still advances without a Jev call.
 
 For standalone judging, set these values in an ignored `.env.local` in this directory:
 
 ```text
 VITE_BRAINSTORM_ENDPOINT=http://localhost:1234/v1/chat/completions
 VITE_BRAINSTORM_MODEL=your-model-id
+VITE_BRAINSTORM_DECISION_ENDPOINT=http://localhost:1234/api/alpha/decisions
+VITE_BRAINSTORM_DECISION_MODEL=typesafe/jev-1.13
 ```
 
-The endpoint must allow browser requests and support chat completions with strict JSON-schema
-responses and `max_completion_tokens`. Optional `VITE_BRAINSTORM_CREDENTIAL` supplies a bearer
-credential. These Vite values are visible in the browser: use this configuration locally.
-Public hosts provide their own proxy and keep credentials on the server.
+Both endpoints must allow browser requests. The text endpoint must support chat completions
+with strict JSON-schema responses and `max_completion_tokens`; the decision endpoint must support
+text `state`, named `noul` questions, and typed `answers`. Optional `VITE_BRAINSTORM_CREDENTIAL`
+and `VITE_BRAINSTORM_DECISION_CREDENTIAL` supply separate bearer credentials for their respective
+endpoints. Credentials are never copied between endpoints. These Vite values are visible in the
+browser: use this configuration locally. Public hosts provide their own proxy and keep provider
+credentials on the server. Both endpoints/models are required before Start is available.
 
 The gallery uses its existing Configure models screen in developer mode or a host-supplied
-`connectModel` in public mode. Public preview never uses saved developer keys. The lazy
+`connectModel` in public mode. Managed previews use the existing ProtoZoa proxy's pinned
+`typesafe/jev-1.13` decision route with the same verified session as chat. Developer connections
+to OpenRouter use that pinned Jev model with the configured OpenRouter key; the text model setting
+selects the candidate extractor. Custom chat endpoints need an embedding host that also supplies
+the decision transport. Public preview never uses saved developer keys. The lazy
 `brainstormGalleryDemo` export needs no private service imports.
 
 Standalone embedders pass `connect` to `App`. It receives a visit-lifetime `AbortSignal` and returns
 a `BrainstormConnection`: model ID, request-byte limit, output-token allowance, and
-`requestCompletion({ body, signal })`. Respect both signals. Admission happens during **Start round**.
+`requestCompletion({ body, signal })`, and required `decisions: { model, maxQuestions,
+requestDecision({ body, signal }) }`. Respect both signals in each transport. Admission happens during **Start round**.
 Admission failures require another Start; transient judging failures use **Retry judging**.
 `BrainstormRequestError` preserves host terminal/restart policies; terminal allowance failures
 survive round resets.
@@ -88,7 +110,7 @@ also ends the round. Untimed rounds end
 explicitly.
 
 Requests run one at a time and retain pending input in order. Invalid results pause without
-advancing the cursor. **Retry judging** processes the retained text. Removed labels prevent late
+advancing the cursor. **Retry judging** extracts and judges the retained text again. Removed labels prevent late
 results from restoring deleted notes. A new round clears that removal history and aborts old
 requests. Closing or navigating away aborts requests, cancels the clock, and completes state.
 
@@ -105,7 +127,9 @@ pnpm -F @katakit/gallery test:ci
 ```
 
 Controlled tests cover deadlines, untimed play, duplicates, queueing, retries, evidence validation,
-removals, cancellation, unmount, and final capture draining. Real recognition and model quality
+Jev decisions/refusals, bounded batches, retained probabilities, removals, cancellation, unmount,
+and final capture draining. The clothing regression uses simulated extraction and Jev responses:
+it verifies wiring for skirt, pants, and joggers, not real-model accuracy. Real recognition and model quality
 need browser/model playtesting. Production hosts must serve the transcription utility's worker
 assets and cross-origin isolation headers; the Vite plugin handles local dev and preview.
 

@@ -3,6 +3,16 @@ import { createBrainstormDemo } from './createBrainstormDemo';
 import { BrainstormRequestError, type BrainstormConnection } from './brainstormModel';
 import { challengeCategories, challenges, drawChallenge } from './challenges';
 
+const decisions = {
+  model: 'typesafe/jev-1.13',
+  maxQuestions: 16,
+  requestDecision: async ({ body }: { body: string }) => ({
+    answers: Object.fromEntries(
+      Object.keys(JSON.parse(body).questions).map(key => [key, { type: 'noul', noul: 0.99 }])
+    ),
+  }),
+};
+
 const completion = (text: string, evidence = text) => ({
   choices: [
     {
@@ -17,6 +27,7 @@ const connection = (
   model: 'test-model',
   maxBodyBytes: 16384,
   maxOutputTokens: 1024,
+  decisions,
   requestCompletion,
 });
 const games: ReturnType<typeof createBrainstormDemo>[] = [];
@@ -69,7 +80,7 @@ test('the sixty-second clock begins only on explicit start, then drains final sp
   runtime.ingestSegment({ id: 'drain', sourceId: 'mic', text: 'dolphin' });
   runtime.flush();
   runtime.ingestSegment({ id: 'late', sourceId: 'mic', text: 'octopus' });
-  await Promise.resolve();
+  await vi.advanceTimersByTimeAsync(0);
   expect(runtime.state$.value.phase).toBe('finished');
   expect(runtime.state$.value.notes.map(note => note.text)).toEqual(['dolphin']);
   expect(vi.getTimerCount()).toBe(0);
@@ -358,4 +369,107 @@ test('close aborts work, completes the public state, and clears every timer', as
   complete(completion('Seal', 'seal'));
   await Promise.resolve();
   expect(runtime.state$.value.notes).toEqual([]);
+});
+
+test('Jev decides category eligibility for extracted clothing candidates and records every probability', async () => {
+  const runtime = game();
+  runtime.configure({ challengeId: 'clothing-and-accessories-04' });
+  const candidates = ['skirt', 'pants', 'joggers', 'shoe'];
+  const extract = vi.fn<BrainstormConnection['requestCompletion']>(async () => ({
+    choices: [
+      {
+        finish_reason: 'stop',
+        message: {
+          content: JSON.stringify({ answers: candidates.map(text => ({ text, evidence: text })) }),
+        },
+      },
+    ],
+  }));
+  const decide = vi.fn<BrainstormConnection['decisions']['requestDecision']>(async () => ({
+    answers: {
+      candidate_0: { type: 'noul', noul: 0.99 },
+      candidate_1: { type: 'noul', noul: 0.97 },
+      candidate_2: { type: 'noul', noul: 0.94 },
+      candidate_3: { type: 'noul', noul: 0.02 },
+    },
+  }));
+  runtime.connect({ ...connection(extract), decisions: { ...decisions, requestDecision: decide } });
+  runtime.begin();
+  hear(runtime, candidates.join(', '));
+  await vi.waitFor(() => expect(runtime.state$.value.cursor).toBe(1));
+  expect(runtime.state$.value.notes.map(note => note.text)).toEqual(['skirt', 'pants', 'joggers']);
+  expect(
+    runtime.state$.value.judgments.map(({ text, probability }) => [text, probability])
+  ).toEqual([
+    ['skirt', 0.99],
+    ['pants', 0.97],
+    ['joggers', 0.94],
+    ['shoe', 0.02],
+  ]);
+  // Extraction has no category filter; Jev receives the actual challenge and original input.
+  expect(
+    JSON.parse(JSON.parse(extract.mock.calls[0]![0].body).messages[1].content)
+  ).not.toHaveProperty('rule');
+  const body = JSON.parse(decide.mock.calls[0]![0].body);
+  expect(body.model).toBe('typesafe/jev-1.13');
+  expect(JSON.parse(body.state)).toMatchObject({
+    challenge: 'Name garments worn on the lower body.',
+    transcript: 'skirt, pants, joggers, shoe',
+  });
+  expect(Object.keys(body.questions)).toHaveLength(4);
+});
+
+test.each([
+  {},
+  { candidate_0: { type: 'refusal' } },
+  { candidate_0: { type: 'noul', noul: 1.1 } },
+  { candidate_0: { type: 'choice', choice: 'yes' } },
+])('invalid or refused decisions pause without consuming input: %j', async answers => {
+  const runtime = game();
+  const decide = vi
+    .fn()
+    .mockResolvedValueOnce({ answers })
+    .mockResolvedValue({
+      answers: { candidate_0: { type: 'noul', noul: 0.9 } },
+    });
+  runtime.connect({
+    ...connection(async () => completion('skirt')),
+    decisions: { ...decisions, requestDecision: decide },
+  });
+  runtime.configure({ challengeId: 'clothing-and-accessories-04' });
+  runtime.begin();
+  hear(runtime, 'skirt');
+  await vi.waitFor(() => expect(runtime.state$.value.failure?.policy.code).toBe('decision_format'));
+  expect(runtime.state$.value.cursor).toBe(0);
+  expect(runtime.state$.value.notes).toEqual([]);
+  expect(runtime.state$.value.judgments).toEqual([]);
+  runtime.retry();
+  await vi.waitFor(() => expect(runtime.state$.value.cursor).toBe(1));
+  expect(runtime.state$.value.notes.map(note => note.text)).toEqual(['skirt']);
+});
+
+test('a canceled decision cannot score an old round or start a further decision batch', async () => {
+  const runtime = game();
+  let finish!: (value: unknown) => void;
+  let signal!: AbortSignal;
+  const decide = vi.fn(({ signal: current }: { signal: AbortSignal }) => {
+    signal = current;
+    return new Promise(resolve => {
+      finish = resolve;
+    });
+  });
+  runtime.connect({
+    ...connection(async () => completion('skirt')),
+    decisions: { ...decisions, requestDecision: decide },
+  });
+  runtime.begin();
+  hear(runtime, 'skirt');
+  await vi.waitFor(() => expect(decide).toHaveBeenCalledOnce());
+  runtime.disconnect();
+  expect(signal.aborted).toBe(true);
+  finish({ answers: { candidate_0: { type: 'noul', noul: 1 } } });
+  await Promise.resolve();
+  expect(runtime.state$.value.notes).toEqual([]);
+  expect(runtime.state$.value.judgments).toEqual([]);
+  expect(runtime.state$.value.cursor).toBe(0);
 });

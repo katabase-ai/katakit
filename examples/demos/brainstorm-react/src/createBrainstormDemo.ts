@@ -7,12 +7,20 @@ import { answerKey, findChallenge } from './challenges';
 import {
   BrainstormRequestError,
   createBrainstormRequest,
+  judgeBrainstormCandidates,
   parseBrainstormCompletion,
+  qualificationThreshold,
+  requestBrainstormModel,
   type BrainstormConnection,
-  type JudgedAnswer,
+  type BrainstormJudgment,
 } from './brainstormModel';
 
 const NoteSchema = v.object({ id: v.string(), text: v.string(), evidence: v.string() });
+const JudgmentSchema = v.object({
+  text: v.string(),
+  evidence: v.string(),
+  probability: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1)),
+});
 const EventSchema = v.variant('type', [
   v.object({
     type: v.literal('configured'),
@@ -21,7 +29,12 @@ const EventSchema = v.variant('type', [
   }),
   v.object({ type: v.literal('started'), roundId: v.string(), deadline: v.nullable(v.number()) }),
   v.object({ type: v.literal('heard'), id: v.string(), text: v.string() }),
-  v.object({ type: v.literal('judged'), notes: v.array(NoteSchema), cursor: v.number() }),
+  v.object({
+    type: v.literal('judged'),
+    notes: v.array(NoteSchema),
+    judgments: v.array(JudgmentSchema),
+    cursor: v.number(),
+  }),
   v.object({ type: v.literal('removed'), id: v.string() }),
   v.object({ type: v.literal('finishing'), at: v.number() }),
   v.object({ type: v.literal('finished') }),
@@ -36,6 +49,7 @@ type Content = {
   endedAt: number | null;
   phase: 'idle' | 'running' | 'finishing' | 'finished';
   notes: BrainstormNote[];
+  judgments: BrainstormJudgment[];
   removed: string[];
   segments: { id: string; text: string }[];
   cursor: number;
@@ -48,6 +62,7 @@ const initial = (): Content => ({
   endedAt: null,
   phase: 'idle',
   notes: [],
+  judgments: [],
   removed: [],
   segments: [],
   cursor: 0,
@@ -70,7 +85,12 @@ const reduce = (state: Content, event: GameEvent): Content => {
     case 'heard':
       return { ...state, segments: [...state.segments, { id: event.id, text: event.text }] };
     case 'judged':
-      return { ...state, notes: [...state.notes, ...event.notes], cursor: event.cursor };
+      return {
+        ...state,
+        notes: [...state.notes, ...event.notes],
+        judgments: [...state.judgments, ...event.judgments],
+        cursor: event.cursor,
+      };
     case 'removed': {
       const note = state.notes.find(note => note.id === event.id);
       return note
@@ -161,7 +181,8 @@ export const createBrainstormDemo = () => {
     transient.provisional = '';
     emitEvent({ type: 'finished' });
   };
-  const accept = (answers: JudgedAnswer[], cursor: number) => {
+  const accept = (judgments: BrainstormJudgment[], cursor: number) => {
+    const answers = judgments.filter(answer => answer.probability >= qualificationThreshold);
     const keys = new Set(
       [...content.notes.map(note => note.text), ...content.removed].map(answerKey)
     );
@@ -170,14 +191,14 @@ export const createBrainstormDemo = () => {
       const key = answerKey(answer.text);
       if (!key || keys.has(key)) continue;
       keys.add(key);
-      notes.push({ ...answer, id: crypto.randomUUID() });
+      notes.push({ text: answer.text, evidence: answer.evidence, id: crypto.randomUUID() });
     }
     transient.feedback = notes.length
       ? `Added ${notes.length} ${notes.length === 1 ? 'answer' : 'answers'}.`
       : answers.length
         ? 'Already on the board.'
         : 'No new qualifying answers.';
-    emitEvent({ type: 'judged', notes, cursor });
+    emitEvent({ type: 'judged', notes, judgments, cursor });
   };
   const process = async () => {
     if (
@@ -208,21 +229,28 @@ export const createBrainstormDemo = () => {
         }
         const challenge = findChallenge(content.challengeId);
         const body = createBrainstormRequest({
-          challenge,
           existing: content.notes.map(note => note.text),
           removed: content.removed,
           text,
           connection: activeConnection!,
         });
-        const completion = await activeConnection!.requestCompletion({
+        const completion = await requestBrainstormModel(activeConnection.requestCompletion, {
           body,
           signal: abort.signal,
         });
         if (closed || generation !== currentGeneration || abort.signal.aborted) return;
-        const answers = parseBrainstormCompletion(completion, text);
+        const candidates = parseBrainstormCompletion(completion, text);
+        if (closed || generation !== currentGeneration || abort.signal.aborted) return;
+        const judgments = await judgeBrainstormCandidates({
+          candidates,
+          challenge,
+          text,
+          connection: activeConnection,
+          signal: abort.signal,
+        });
         if (closed || generation !== currentGeneration || abort.signal.aborted) return;
         // Read the current board here: the player may have removed a note during the request.
-        accept(answers, end);
+        accept(judgments, end);
       }
     } catch (error) {
       if (closed || generation !== currentGeneration || abort.signal.aborted) return;

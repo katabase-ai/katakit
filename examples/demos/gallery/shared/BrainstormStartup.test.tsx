@@ -9,6 +9,16 @@ import { brainstormDemoDetails } from './galleryDemoDetails';
 import { GalleryConsentProvider } from './GalleryConsentProvider';
 import { App } from '../../brainstorm-react/src/App';
 
+const decisions = {
+  model: 'typesafe/jev-1.13',
+  maxQuestions: 16,
+  requestDecision: async ({ body }: { body: string }) => ({
+    answers: Object.fromEntries(
+      Object.keys(JSON.parse(body).questions).map(key => [key, { type: 'noul', noul: 0.99 }])
+    ),
+  }),
+};
+
 const capture = vi.hoisted(() => ({ create: vi.fn() }));
 vi.mock('@katakit/transcription/browser', async importOriginal => ({
   ...(await importOriginal<typeof import('@katakit/transcription/browser')>()),
@@ -66,6 +76,7 @@ test('the real gallery adapter has one round action, waits for both services, an
     model: string;
     maxBodyBytes: number;
     maxOutputTokens: number;
+    decisions: typeof decisions;
     requestCompletion: ReturnType<typeof vi.fn>;
   }>();
   const request = vi.fn().mockResolvedValue({
@@ -130,6 +141,7 @@ test('the real gallery adapter has one round action, waits for both services, an
       model: 'test',
       maxBodyBytes: 16384,
       maxOutputTokens: 1024,
+      decisions,
       requestCompletion: request,
     });
   });
@@ -151,6 +163,7 @@ test('standalone cancellation disposes pending capture and a late old callback c
     model: 'test',
     maxBodyBytes: 16384,
     maxOutputTokens: 1024,
+    decisions,
     requestCompletion: vi.fn(),
   });
   const view = render(<App connect={connect} />);
@@ -198,6 +211,38 @@ test('the gallery requires a model connection and has no alternative input or ju
   expect(screen.queryByText(/Sample practice|typed answers|sample answers count/)).toBeNull();
   expect(screen.getByRole('timer').textContent).toBe('1:00');
   expect(screen.getByRole('heading', { name: 'Ready when you are.' })).toBeDefined();
+  view.unmount();
+  await act(async () => {});
+});
+
+test('a chat-only host cannot reveal a challenge or spend round time without a Jev judge', async () => {
+  const mic = microphone();
+  mic.ready.resolve();
+  const view = render(
+    <GallerySpeechProvider>
+      <Gallery
+        demos={[brainstormDemoDetails]}
+        activeDemo={brainstormDemoDetails}
+        connectModel={async () => ({
+          model: 'chat-only',
+          maxBodyBytes: 16384,
+          maxOutputTokens: 1024,
+          requestCompletion: vi.fn(),
+        })}
+        renderLink={({ children }) => <a href="#demo">{children}</a>}
+      >
+        <BrainstormGalleryDemo />
+      </Gallery>
+    </GallerySpeechProvider>
+  );
+  fireEvent.click(await screen.findByRole('button', { name: 'Start round' }));
+  expect(await screen.findByRole('alert')).toHaveProperty(
+    'textContent',
+    expect.stringContaining('does not provide a Jev judge')
+  );
+  expect(screen.queryByText('Name ocean animals.')).toBeNull();
+  expect(screen.getByRole('timer').textContent).toBe('1:00');
+  expect(mic.stop).toHaveBeenCalledOnce();
   view.unmount();
   await act(async () => {});
 });
