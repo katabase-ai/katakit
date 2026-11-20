@@ -15,6 +15,39 @@ const openSettings = () => {
   return within(screen.getByRole('dialog', { name: 'Game settings' }));
 };
 
+test('the transcript shows interim and finalized input newest first, keeps rejected words, and resets with the round', async () => {
+  const runtime = createBrainstormDemo();
+  const view = render(<BrainstormDemo runtime={runtime} listening />);
+  const transcript = within(screen.getByRole('complementary', { name: 'Transcript' }));
+  expect(transcript.getByText('Your words will appear here.')).toBeDefined();
+  expect(screen.queryByText('What we heard')).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: 'Start round' }));
+  act(() => runtime.updateProvisional('maybe a dolphin'));
+  expect(transcript.getByRole('article', { name: 'In progress' }).textContent).toContain(
+    'maybe a dolphin'
+  );
+  const original = '  dolphin, and also a bicycle.  ';
+  act(() => runtime.ingestSegment({ id: 'one', sourceId: 'mic', text: original }));
+  expect(transcript.queryByRole('article', { name: 'In progress' })).toBeNull();
+  expect(transcript.getByRole('article', { name: 'Entry 1' }).querySelector('p')?.textContent).toBe(
+    original
+  );
+  act(() => runtime.submitText('I cannot think of anything else.'));
+  expect(transcript.getAllByRole('article').map(entry => entry.getAttribute('aria-label'))).toEqual(
+    ['Entry 2', 'Entry 1']
+  );
+  expect(transcript.getByText('I cannot think of anything else.')).toBeDefined();
+  expect(screen.queryByRole('button', { name: 'Remove bicycle' })).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: 'End round' }));
+  await act(async () => {});
+  expect(transcript.getAllByRole('article')).toHaveLength(2);
+  fireEvent.click(screen.getByRole('button', { name: 'Next round' }));
+  expect(transcript.queryAllByRole('article')).toHaveLength(0);
+  expect(transcript.getByText('Your words will appear here.')).toBeDefined();
+  view.unmount();
+  runtime.close();
+});
+
 test('the challenge, rule and examples are revealed only after Start, including after setup changes', () => {
   const runtime = createBrainstormDemo();
   const view = render(<BrainstormDemo runtime={runtime} />);

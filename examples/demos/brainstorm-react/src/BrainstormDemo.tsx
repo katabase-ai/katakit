@@ -183,180 +183,215 @@ const BrainstormView = ({
       )}
 
       {controls}
-      <BrainstormSettings
-        category={category}
-        seconds={state.seconds}
-        disabled={locked}
-        onApply={(category, seconds) => {
-          setCategory(category);
-          prepareRound(category, seconds);
-        }}
-      />
-
-      <section className="site-notice brainstorm-challenge" aria-labelledby="brainstorm-prompt">
-        <div className="brainstorm-challenge-heading">
-          <span>{revealed ? 'Your challenge' : 'Next round'}</span>
-          <span>
-            {revealed &&
-              challengeCategories.find(category =>
-                category.challenges.some(item => item.id === challenge.id)
-              )?.title}
-          </span>
-        </div>
-        <h2 id="brainstorm-prompt">{revealed ? challenge.prompt : 'Ready when you are.'}</h2>
-        <p>
-          {revealed
-            ? challenge.judgingRule
-            : 'Your challenge will appear when you start the round.'}
-        </p>
-        <div className="brainstorm-round-bar">
-          <div
-            className="brainstorm-clock"
-            data-urgent={
-              state.phase === 'running' && state.remaining !== null && state.remaining <= 10
-            }
-          >
-            <output
-              aria-label={state.remaining === null ? 'Unlimited round' : 'Time remaining'}
-              role="timer"
-            >
-              {state.remaining === null ? 'Unlimited' : timeLabel(state.remaining)}
-            </output>
-            <span>
-              {state.remaining === null
-                ? 'No time limit'
-                : state.phase === 'finished'
-                  ? 'Round complete'
-                  : 'Time remaining'}
-            </span>
-          </div>
-          <div className="brainstorm-score">
-            <strong>{state.notes.length}</strong>
-            <span>{state.notes.length === 1 ? 'answer' : 'answers'}</span>
-          </div>
-          {renderRoundControls ? renderRoundControls(roundControls) : roundControls}
-        </div>
-      </section>
-
-      <div className="brainstorm-board-heading">
-        <h2>The shared board</h2>
-        <p role="status" aria-live="polite">
-          {state.busy
-            ? 'Judging your latest answers…'
-            : state.phase === 'finishing'
-              ? 'Finishing the last words…'
-              : state.phase === 'finished'
-                ? `Round complete. ${state.notes.length} ${state.notes.length === 1 ? 'answer' : 'answers'} collected.`
-                : state.feedback ||
-                  (state.phase === 'running'
-                    ? 'Listening for your ideas…'
-                    : 'One note for every distinct answer.')}
-        </p>
-      </div>
-      <div className="brainstorm-board" aria-label="Collected answers">
-        {!state.notes.length && (
-          <div className="brainstorm-empty">
-            <p>
-              {state.phase === 'running'
-                ? 'Go on. What comes to mind?'
-                : state.phase === 'finished'
-                  ? 'A fresh round is a fresh start.'
-                  : 'Your answers will appear here.'}
-            </p>
-            <span>
-              {state.phase === 'idle'
-                ? 'Choose a category and start your round.'
-                : 'Qualifying answers will appear here as sticky notes.'}
-            </span>
-          </div>
-        )}
-        <ol className="brainstorm-notes" aria-live="polite" aria-relevant="additions removals">
-          {state.notes.map((note, i) => (
-            <li key={note.id} className="brainstorm-note" data-color={i % 4}>
-              <span className="brainstorm-note-number">{String(i + 1).padStart(2, '0')}</span>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label={`Remove ${note.text}`}
-                className="brainstorm-note-remove"
-                onClick={() => runtime.remove(note.id)}
-              >
-                <svg
-                  viewBox="0 0 24 24"
-                  width="16"
-                  height="16"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  aria-hidden="true"
-                >
-                  <path d="m6 6 12 12M6 18 18 6" />
-                </svg>
-              </Button>
-              <p title={`Heard: ${note.evidence}`}>{note.text}</p>
-            </li>
-          ))}
-        </ol>
-      </div>
-
-      <section className="brainstorm-input" aria-label="Round input">
-        {!typed && !listening && (
-          <p>
-            Start round prepares the microphone and judge, then reveals your challenge. You can also
-            use typed answers.
-          </p>
-        )}
-        <label>
-          <input
-            type="checkbox"
-            checked={typed}
+      <div className="brainstorm-layout">
+        <div className="brainstorm-main">
+          <BrainstormSettings
+            category={category}
+            seconds={state.seconds}
             disabled={locked}
-            onChange={event => setTyped(event.target.checked)}
-          />
-          Use typed answers
-        </label>
-        {typed && (
-          <form
-            onSubmit={event => {
-              event.preventDefault();
-              runtime.submitText(text);
-              setText('');
+            onApply={(category, seconds) => {
+              setCategory(category);
+              prepareRound(category, seconds);
             }}
-          >
-            <label htmlFor="brainstorm-answer">Your answers</label>
-            <div>
-              <input
-                className="site-input"
-                id="brainstorm-answer"
-                value={text}
-                maxLength={1000}
-                disabled={state.phase !== 'running'}
-                onChange={event => setText(event.target.value)}
-                placeholder="Enter your answers"
-                autoComplete="off"
-              />
-              <Button type="submit" disabled={state.phase !== 'running' || !text.trim()}>
-                Add answers
-              </Button>
+          />
+
+          <section className="site-notice brainstorm-challenge" aria-labelledby="brainstorm-prompt">
+            <div className="brainstorm-challenge-heading">
+              <span>{revealed ? 'Your challenge' : 'Next round'}</span>
+              <span>
+                {revealed &&
+                  challengeCategories.find(category =>
+                    category.challenges.some(item => item.id === challenge.id)
+                  )?.title}
+              </span>
             </div>
-          </form>
-        )}
-        {state.practice && revealed && (
-          <p className="brainstorm-practice-hint">
-            <strong>Sample practice:</strong> only these examples count:{' '}
-            {challenge.sampleAnswers.join(', ')}.
-          </p>
-        )}
-        {(state.provisional || state.segments.length > 0) && (
-          <details className="brainstorm-transcript">
-            <summary>What we heard</summary>
+            <h2 id="brainstorm-prompt">{revealed ? challenge.prompt : 'Ready when you are.'}</h2>
             <p>
-              {state.segments.map(segment => segment.text).join(' ')} <em>{state.provisional}</em>
+              {revealed
+                ? challenge.judgingRule
+                : 'Your challenge will appear when you start the round.'}
             </p>
-          </details>
-        )}
-      </section>
-      {renderModelControls(modelControls)}
+            <div className="brainstorm-round-bar">
+              <div
+                className="brainstorm-clock"
+                data-urgent={
+                  state.phase === 'running' && state.remaining !== null && state.remaining <= 10
+                }
+              >
+                <output
+                  aria-label={state.remaining === null ? 'Unlimited round' : 'Time remaining'}
+                  role="timer"
+                >
+                  {state.remaining === null ? 'Unlimited' : timeLabel(state.remaining)}
+                </output>
+                <span>
+                  {state.remaining === null
+                    ? 'No time limit'
+                    : state.phase === 'finished'
+                      ? 'Round complete'
+                      : 'Time remaining'}
+                </span>
+              </div>
+              <div className="brainstorm-score">
+                <strong>{state.notes.length}</strong>
+                <span>{state.notes.length === 1 ? 'answer' : 'answers'}</span>
+              </div>
+              {renderRoundControls ? renderRoundControls(roundControls) : roundControls}
+            </div>
+          </section>
+
+          <div className="brainstorm-board-heading">
+            <h2>The shared board</h2>
+            <p role="status" aria-live="polite">
+              {state.busy
+                ? 'Judging your latest answers…'
+                : state.phase === 'finishing'
+                  ? 'Finishing the last words…'
+                  : state.phase === 'finished'
+                    ? `Round complete. ${state.notes.length} ${state.notes.length === 1 ? 'answer' : 'answers'} collected.`
+                    : state.feedback ||
+                      (state.phase === 'running'
+                        ? 'Listening for your ideas…'
+                        : 'One note for every distinct answer.')}
+            </p>
+          </div>
+          <div className="brainstorm-board" aria-label="Collected answers">
+            {!state.notes.length && (
+              <div className="brainstorm-empty">
+                <p>
+                  {state.phase === 'running'
+                    ? 'Go on. What comes to mind?'
+                    : state.phase === 'finished'
+                      ? 'A fresh round is a fresh start.'
+                      : 'Your answers will appear here.'}
+                </p>
+                <span>
+                  {state.phase === 'idle'
+                    ? 'Choose a category and start your round.'
+                    : 'Qualifying answers will appear here as sticky notes.'}
+                </span>
+              </div>
+            )}
+            <ol className="brainstorm-notes" aria-live="polite" aria-relevant="additions removals">
+              {state.notes.map((note, i) => (
+                <li key={note.id} className="brainstorm-note" data-color={i % 4}>
+                  <span className="brainstorm-note-number">{String(i + 1).padStart(2, '0')}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Remove ${note.text}`}
+                    className="brainstorm-note-remove"
+                    onClick={() => runtime.remove(note.id)}
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      width="16"
+                      height="16"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      aria-hidden="true"
+                    >
+                      <path d="m6 6 12 12M6 18 18 6" />
+                    </svg>
+                  </Button>
+                  <p title={`Heard: ${note.evidence}`}>{note.text}</p>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          <section className="brainstorm-input" aria-label="Round input">
+            {!typed && !listening && (
+              <p>
+                Start round prepares the microphone and judge, then reveals your challenge. You can
+                also use typed answers.
+              </p>
+            )}
+            <label>
+              <input
+                type="checkbox"
+                checked={typed}
+                disabled={locked}
+                onChange={event => setTyped(event.target.checked)}
+              />
+              Use typed answers
+            </label>
+            {typed && (
+              <form
+                onSubmit={event => {
+                  event.preventDefault();
+                  runtime.submitText(text);
+                  setText('');
+                }}
+              >
+                <label htmlFor="brainstorm-answer">Your answers</label>
+                <div>
+                  <input
+                    className="site-input"
+                    id="brainstorm-answer"
+                    value={text}
+                    maxLength={1000}
+                    disabled={state.phase !== 'running'}
+                    onChange={event => setText(event.target.value)}
+                    placeholder="Enter your answers"
+                    autoComplete="off"
+                  />
+                  <Button type="submit" disabled={state.phase !== 'running' || !text.trim()}>
+                    Add answers
+                  </Button>
+                </div>
+              </form>
+            )}
+            {state.practice && revealed && (
+              <p className="brainstorm-practice-hint">
+                <strong>Sample practice:</strong> only these examples count:{' '}
+                {challenge.sampleAnswers.join(', ')}.
+              </p>
+            )}
+          </section>
+          {renderModelControls(modelControls)}
+        </div>
+        <aside className="brainstorm-transcript" aria-label="Transcript">
+          <h2>Transcript</h2>
+          <div
+            className="brainstorm-transcript-entries"
+            role="region"
+            aria-label="Round transcript"
+            tabIndex={0}
+            aria-live="polite"
+            aria-relevant="additions text"
+          >
+            {!state.provisional && !state.segments.length && (
+              <p className="brainstorm-transcript-empty">Your words will appear here.</p>
+            )}
+            {state.provisional && (
+              <article
+                className="brainstorm-transcript-entry"
+                data-interim="true"
+                aria-label="In progress"
+              >
+                <span className="brainstorm-transcript-index" aria-hidden="true">
+                  ··
+                </span>
+                <p>{state.provisional}</p>
+              </article>
+            )}
+            {state.segments.toReversed().map((segment, index) => (
+              <article
+                className="brainstorm-transcript-entry"
+                key={segment.id}
+                aria-label={`Entry ${state.segments.length - index}`}
+              >
+                <span className="brainstorm-transcript-index" aria-hidden="true">
+                  {String(state.segments.length - index).padStart(2, '0')}
+                </span>
+                <p>{segment.text}</p>
+              </article>
+            ))}
+          </div>
+        </aside>
+      </div>
     </section>
   );
 };

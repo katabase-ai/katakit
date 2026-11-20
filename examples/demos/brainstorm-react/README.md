@@ -12,6 +12,11 @@ round starts. **Next round** draws a different challenge and prepares capture be
 Remove mistaken answers with the button on each note. Typed answers provide an alternative to
 speech: they skip microphone setup and still wait for the judge. A browser reload starts a fresh game.
 
+The Transcript panel sits to the right of the game, with numbered entries newest first and muted
+interim speech above them. It scrolls independently and stacks below the game on narrow screens.
+It shows the round's original spoken or typed input, including words that do not qualify as
+answers. Ending a round keeps the transcript; preparing a fresh round clears it with the board.
+
 ## Run
 
 From the repository root:

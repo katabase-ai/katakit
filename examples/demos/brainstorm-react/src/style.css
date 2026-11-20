@@ -5,6 +5,16 @@
   font-family: inherit;
   max-width: 1100px;
   margin-inline: auto;
+  container-type: inline-size;
+}
+.brainstorm-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 270px);
+  align-items: start;
+  gap: 32px;
+}
+.brainstorm-main {
+  min-width: 0;
 }
 .brainstorm-game * {
   box-sizing: border-box;
@@ -272,22 +282,60 @@
   font-size: 0.875rem;
 }
 .brainstorm-transcript {
-  margin-top: 20px;
-  color: var(--color-muted, #60646c);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  min-width: 0;
+  height: var(--brainstorm-transcript-height, max(22rem, calc(100dvh - 19rem)));
+  padding-top: 16px;
 }
-.brainstorm-transcript summary {
-  cursor: pointer;
-  padding: 4px 0;
+.brainstorm-game .brainstorm-transcript h2 {
+  margin: 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-rule, #e0e1e6);
+  color: var(--color-ink, inherit);
+  font-size: var(--text-lg, 1.25rem);
+  font-weight: 600;
+  line-height: 1.4;
 }
-.brainstorm-transcript p {
-  line-height: 1.7;
-  max-height: 180px;
+.brainstorm-transcript-entries {
+  flex: 1 1 0;
+  min-height: 0;
   overflow-y: auto;
+  scrollbar-width: thin;
+}
+.brainstorm-transcript-empty {
+  margin: 12px 0;
+  color: var(--color-muted, #60646c);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.brainstorm-transcript-entry {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr);
+  gap: 4px 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-rule, #e0e1e6);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.brainstorm-transcript-entry p {
+  margin: 0;
+  min-width: 0;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
-.brainstorm-transcript em {
-  opacity: 0.65;
+.brainstorm-transcript-index {
+  padding-top: 2px;
+  color: var(--color-muted, #60646c);
+  font-family: var(--font-outlier, ui-monospace, monospace);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+.brainstorm-transcript-entry[data-interim='true'] p {
+  color: var(--color-muted, #60646c);
+  font-style: italic;
 }
 .brainstorm-connection {
   font-size: 0.875rem;
@@ -315,6 +363,17 @@
 @media (prefers-reduced-motion: reduce) {
   .brainstorm-note {
     animation: none;
+  }
+}
+@container (max-width: 720px) {
+  .brainstorm-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 24px;
+  }
+  .brainstorm-transcript {
+    position: static;
+    height: 20rem;
+    padding-top: 0;
   }
 }
 @media (max-width: 600px) {
