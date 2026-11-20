@@ -144,6 +144,10 @@
   margin-left: auto;
   min-width: 120px;
 }
+.brainstorm-setup-status {
+  color: var(--color-muted, #60646c);
+  font-size: 0.875rem;
+}
 .brainstorm-board-heading {
   display: flex;
   flex-wrap: wrap;

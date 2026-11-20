@@ -57,6 +57,7 @@ export const colorClashDemoDetails = {
 export const brainstormDemoDetails = {
   id: 'brainstorm',
   sourcePath: 'examples/demos/brainstorm-react',
+  copyDirectory: 'brainstorming-game',
   title: 'Brainstorming game',
   description: 'Race the clock and collect spoken answers on a shared sticky-note board.',
   capabilities: ['microphone', 'localTranscription', 'remoteModel'],

@@ -38,13 +38,15 @@ that entry when adopting this source revision. This does not remove the website'
 
 The [brainstorming game](../brainstorm-react/README.md) uses the shared microphone with a sticky
 note board, 200 challenges, and 30s, 1min (default), 2min, or unlimited rounds.
-Challenges stay hidden until the round starts. Its capture controls stay inside
-the demo, and its header/data-handling badge come from gallery metadata. Without inference it
-offers explicitly labeled sample-only practice. **Connect judge** starts inference explicitly;
-starting the microphone never admits a model connection. Developer builds use Configure models
+Challenges stay hidden and the clock stays stopped while **Start round** prepares the shared
+microphone and judge. **Cancel setup** cancels preparation; **End round** stops and drains capture.
+This single action uses the standard gallery header slot, and the header/data-handling badge
+come from gallery metadata. Without inference it offers explicitly labeled sample-only practice.
+Typed answers skip microphone setup and still wait for the judge. Developer builds use Configure models
 for inference settings; managed hosts use the existing `connectModel` contract. Changing the
 inference source or preview mode aborts judging and ends the current round while retaining its
-board. Reconnect explicitly before starting another judged round. The named
+board. The next explicit Start prepares the new connection. **Run locally** offers a pinned copy
+of the standalone example. The named
 `brainstormGalleryDemo` export is available to embedding hosts; standalone gallery copies carry
 the game's source and challenge library.
 

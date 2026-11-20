@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { bind, Subscribe } from '@react-rxjs/core';
 import { challengeCategories, drawChallenge, findChallenge } from './challenges';
-import { BrainstormRequestError, type BrainstormConnection } from './brainstormModel';
+import type { BrainstormConnection } from './brainstormModel';
 import type { createBrainstormDemo } from './createBrainstormDemo';
 import { Button } from './controls';
 import { BrainstormSettings } from './BrainstormSettings';
+import { useRoundSetup } from './useRoundSetup';
 import './style.css';
 
 const timeLabel = (seconds: number) =>
@@ -13,12 +14,18 @@ const timeLabel = (seconds: number) =>
 type BrainstormDemoProps = {
   runtime: ReturnType<typeof createBrainstormDemo>;
   listening?: boolean;
+  startListening?: (signal: AbortSignal) => Promise<boolean>;
+  isListening?: () => boolean;
   stopListening?: () => Promise<unknown>;
+  setupMessage?: string;
+  captureDisabled?: boolean;
   connect?: (input: { signal: AbortSignal }) => Promise<BrainstormConnection>;
   controls?: ReactNode;
   connectionHelp?: ReactNode;
   showIntroduction?: boolean;
   renderModelControls?: (controls: ReactNode) => ReactNode;
+  renderRoundControls?: (controls: ReactNode) => ReactNode;
+  roundControlClassName?: string;
 };
 
 // A stable factory binding shares state only among consumers of the same visit's runtime.
@@ -35,62 +42,36 @@ export const BrainstormDemo = (props: BrainstormDemoProps) => (
 const BrainstormView = ({
   runtime,
   listening = false,
+  startListening,
+  isListening,
   stopListening,
+  setupMessage,
+  captureDisabled = false,
   connect,
   controls,
   connectionHelp,
   showIntroduction = true,
   renderModelControls = controls => controls,
+  renderRoundControls,
+  roundControlClassName = 'brainstorm-primary',
 }: BrainstormDemoProps) => {
   const state = useBrainstormState(runtime);
   const [category, setCategory] = useState('');
   const [typed, setTyped] = useState(false);
   const [text, setText] = useState('');
-  const [connecting, setConnecting] = useState(false);
-  const [admissionError, setAdmissionError] = useState<BrainstormRequestError>();
-  const admission = useRef<{ controller: AbortController; started: boolean; pending: boolean }>(
-    undefined
-  );
+  const setup = useRoundSetup({
+    runtime,
+    connect,
+    listening,
+    startListening,
+    isListening,
+    stopListening,
+  });
   const stopping = useRef('');
   const challenge = findChallenge(state.challengeId);
   const active = state.phase === 'running' || state.phase === 'finishing';
   const revealed = state.phase !== 'idle';
-
-  useEffect(() => {
-    const controller = new AbortController();
-    admission.current = { controller, started: false, pending: false };
-    setConnecting(false);
-    setAdmissionError(undefined);
-    runtime.setConnectionMode(!connect);
-    return () => {
-      controller.abort();
-      admission.current = undefined;
-      runtime.disconnect();
-    };
-  }, [runtime, connect]);
-
-  const connectJudge = useCallback(async () => {
-    const current = admission.current;
-    if (!connect || !current || current.pending) return;
-    current.pending = true;
-    current.started = true;
-    setConnecting(true);
-    setAdmissionError(undefined);
-    try {
-      const connection = await connect({ signal: current.controller.signal });
-      if (!current.controller.signal.aborted) runtime.connect(connection);
-    } catch (error) {
-      if (!current.controller.signal.aborted)
-        setAdmissionError(
-          error instanceof BrainstormRequestError
-            ? error
-            : new BrainstormRequestError('The judge could not connect. Try again.')
-        );
-    } finally {
-      current.pending = false;
-      if (!current.controller.signal.aborted) setConnecting(false);
-    }
-  }, [runtime, connect]);
+  const locked = active || !!setup.step;
 
   useEffect(() => {
     if (state.phase !== 'finishing' || stopping.current === state.roundId) return;
@@ -110,45 +91,76 @@ const BrainstormView = ({
     runtime.configure({ challengeId: drawChallenge(categoryId, state.challengeId).id, seconds });
     setText('');
   };
-  const startRound = () => {
-    if (state.phase === 'finished') prepareRound();
-    setText('');
-    runtime.begin();
-  };
-  const failure = state.practice ? undefined : (admissionError ?? state.failure);
+  const startRound = () =>
+    setup.start(typed, () => {
+      if (state.phase === 'finished') prepareRound();
+      setText('');
+    });
+  const failure = setup.error ?? (state.practice ? undefined : state.failure);
+  const roundControls = (
+    <>
+      <Button
+        className={roundControlClassName}
+        aria-disabled={state.phase === 'finishing' || setup.step === 'cancelling' || undefined}
+        disabled={
+          (state.phase === 'finished' && state.busy) ||
+          (!active &&
+            !setup.step &&
+            ((!typed && (captureDisabled || (!startListening && !listening))) ||
+              (!state.practice && state.failure?.policy.terminal && !state.failure.policy.restart)))
+        }
+        onClick={() => {
+          if (state.phase === 'finishing' || setup.step === 'cancelling') return;
+          if (active) runtime.finish();
+          else if (setup.step) setup.cancel();
+          else startRound();
+        }}
+      >
+        {state.phase === 'finishing'
+          ? 'Finishing…'
+          : active
+            ? 'End round'
+            : setup.step === 'cancelling'
+              ? 'Cancelling…'
+              : setup.step
+                ? 'Cancel setup'
+                : state.phase === 'finished'
+                  ? 'Next round'
+                  : 'Start round'}
+      </Button>
+      {setup.step && (
+        <span className="brainstorm-setup-status" role="status">
+          {setup.step === 'judge'
+            ? 'Connecting judge…'
+            : setup.step === 'cancelling'
+              ? 'Cancelling setup…'
+              : (setupMessage ?? 'Preparing microphone…')}
+        </span>
+      )}
+    </>
+  );
   const modelControls = (
     <section className="brainstorm-connection" aria-label="Answer judging">
       <strong>{state.practice ? 'Sample practice' : 'Answer judging'}</strong>
       <p role="status">
         {state.practice
           ? 'Only the five sample answers count.'
-          : connecting
-            ? 'Connecting judge…'
-            : state.connected
-              ? 'Judge connected · transcript text is sent for judging.'
-              : 'Connect a judge to accept answers beyond the examples.'}
+          : state.connected
+            ? 'Judge connected · transcript text is sent for judging.'
+            : 'Starting a round connects the judge before revealing the challenge.'}
       </p>
-      {connect && !state.connected && (
-        <Button onClick={() => void connectJudge()} disabled={connecting}>
-          {admissionError ? 'Retry connection' : 'Connect judge'}
-        </Button>
-      )}
       {!connect && connectionHelp}
       {failure && <p role="alert">{failure.message}</p>}
-      {state.failure && !state.failure.policy.terminal && (
+      {state.failure && !state.failure.policy.terminal && !state.failure.policy.restart && (
         <Button onClick={runtime.retry}>Retry judging</Button>
       )}
-      {state.failure?.policy.restart && (
-        <Button onClick={() => void connectJudge()} disabled={connecting}>
-          Restart judging session
-        </Button>
-      )}
+      {state.failure?.policy.restart && <p>Start a new round to reconnect the judge.</p>}
       {connect && (
         <label className="brainstorm-practice-toggle">
           <input
             type="checkbox"
             checked={state.practice}
-            disabled={active}
+            disabled={locked}
             onChange={event => runtime.setPractice(event.target.checked)}
           />{' '}
           Sample practice
@@ -174,7 +186,7 @@ const BrainstormView = ({
       <BrainstormSettings
         category={category}
         seconds={state.seconds}
-        disabled={active}
+        disabled={locked}
         onApply={(category, seconds) => {
           setCategory(category);
           prepareRound(category, seconds);
@@ -222,27 +234,7 @@ const BrainstormView = ({
             <strong>{state.notes.length}</strong>
             <span>{state.notes.length === 1 ? 'answer' : 'answers'}</span>
           </div>
-          {active ? (
-            <Button
-              className="brainstorm-primary"
-              disabled={state.phase === 'finishing'}
-              onClick={runtime.finish}
-            >
-              {state.phase === 'finishing' ? 'Finishing…' : 'End round'}
-            </Button>
-          ) : (
-            <Button
-              className="brainstorm-primary"
-              disabled={
-                (state.phase === 'finished' && state.busy) ||
-                (!listening && !typed) ||
-                (!state.practice && (!state.connected || state.failure?.policy.terminal))
-              }
-              onClick={startRound}
-            >
-              {state.phase === 'finished' ? 'Next round' : 'Start round'}
-            </Button>
-          )}
+          {renderRoundControls ? renderRoundControls(roundControls) : roundControls}
         </div>
       </section>
 
@@ -309,13 +301,16 @@ const BrainstormView = ({
 
       <section className="brainstorm-input" aria-label="Round input">
         {!typed && !listening && (
-          <p>Start the shared microphone to play, or use typed answers below.</p>
+          <p>
+            Start round prepares the microphone and judge, then reveals your challenge. You can also
+            use typed answers.
+          </p>
         )}
         <label>
           <input
             type="checkbox"
             checked={typed}
-            disabled={active}
+            disabled={locked}
             onChange={event => setTyped(event.target.checked)}
           />
           Use typed answers

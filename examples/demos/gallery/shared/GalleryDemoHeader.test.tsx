@@ -31,7 +31,12 @@ test.each(galleryDemos)(
       })
     ).toBeDefined();
     await screen.findByRole('button', {
-      name: demo.id === 'color-clash' ? 'Play' : 'Start listening',
+      name:
+        demo.id === 'color-clash'
+          ? 'Play'
+          : demo.id === 'brainstorm'
+            ? 'Start round'
+            : 'Start listening',
     });
     expect(screen.getAllByRole('heading', { level: 1 })).toHaveLength(1);
     expect(screen.getByRole('heading', { level: 1 })).toBe(heading);

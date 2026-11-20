@@ -1,7 +1,12 @@
 // @vitest-environment happy-dom
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, expect, test, vi } from 'vitest';
-import { bingoDemoDetails, colorClashDemoDetails, notesDemoDetails } from './galleryDemoDetails';
+import {
+  bingoDemoDetails,
+  colorClashDemoDetails,
+  notesDemoDetails,
+  brainstormDemoDetails,
+} from './galleryDemoDetails';
 import { GalleryEventsContext } from './galleryEvents';
 import { GalleryRunLocally, runLocallyCommand, runLocallyPrompt } from './GalleryRunLocally';
 
@@ -18,6 +23,22 @@ test('the command copies the pinned example directory and starts it', () => {
   );
   expect(runLocallyCommand(bingoDemoDetails)).toMatch(
     /^npx degit katabase-ai\/katakit\/examples\/demos\/bingo-react conversation-bingo\n/
+  );
+});
+
+test('brainstorming offers the pinned standalone copy and its model setup instructions', () => {
+  render(<GalleryRunLocally demo={brainstormDemoDetails} revision="abc123" />);
+  expect(screen.getByText('Run locally')).toBeDefined();
+  expect(runLocallyCommand(brainstormDemoDetails, 'abc123')).toBe(
+    [
+      'npx degit katabase-ai/katakit/examples/demos/brainstorm-react#abc123 brainstorming-game',
+      'cd brainstorming-game',
+      'pnpm install',
+      'pnpm dev',
+    ].join('\n')
+  );
+  expect(runLocallyPrompt(brainstormDemoDetails, 'abc123')).toContain(
+    'Ask me before you read, create, or edit'
   );
 });
 

@@ -4,10 +4,13 @@ Collect spoken answers on a shared sticky-note board using one microphone. Choos
 pre-baked challenges in 20 categories. **Game settings** opens a modal for the category and
 round length: 30s, 1min (the default), 2min, or unlimited play. **Apply** prepares a fresh round
 when settings change; **Cancel** keeps the current board. Settings are locked during a round.
-**Start round** begins the clock after the microphone is listening.
+**Start round** prepares the microphone and connects the judge when configured. The challenge
+stays hidden and the clock stays stopped until both are ready. **Cancel setup** cancels pending
+setup without starting a round or spending round time. Failed setup can be retried with **Start round**.
 **End round** stops early. The challenge, judging rule, and sample answers stay hidden until the
-round starts. **Next round** draws a different challenge and starts immediately. Remove mistaken answers with the button on each note. Typed answers
-provide an alternative to speech. A browser reload starts a fresh game.
+round starts. **Next round** draws a different challenge and prepares capture before starting.
+Remove mistaken answers with the button on each note. Typed answers provide an alternative to
+speech: they skip microphone setup and still wait for the judge. A browser reload starts a fresh game.
 
 ## Run
 
@@ -23,11 +26,12 @@ pnpm -F @katakit/demo-brainstorm dev
 The gallery also includes this example at `/demos/brainstorm`. Run `pnpm -F @katakit/gallery dev`
 and open <http://127.0.0.1:4347/demos/brainstorm>.
 
-Audio transcription runs locally with the existing transcription utility. Full judging starts
-only through **Connect judge**; starting the microphone does not start inference. First use downloads
-the speech model and asks for microphone access. The standalone app owns its microphone; the
-gallery adapter leases the host's shared microphone. Capture and judging controls stay in the
-demo; the gallery supplies its header, privacy badge, and shared setup footer.
+Audio transcription runs locally with the existing transcription utility. Only an explicit
+**Start round** admits a model connection. First use downloads the speech model and asks for
+microphone access. The standalone app owns cancellable capture; the gallery adapter leases the
+host's shared microphone. The gallery shows one Start round / Cancel setup / End round action
+in its standard header controls. Its shared Settings explains missing inference configuration.
+There is no separate microphone Start or judge-connect action.
 
 ## Answer judging
 
@@ -58,7 +62,8 @@ The gallery uses its existing Configure models screen in developer mode or a hos
 
 Standalone embedders pass `connect` to `App`. It receives a visit-lifetime `AbortSignal` and returns
 a `BrainstormConnection`: model ID, request-byte limit, output-token allowance, and
-`requestCompletion({ body, signal })`. Respect both signals. Admission happens only through **Connect judge**. Admission and judging failures require explicit retries.
+`requestCompletion({ body, signal })`. Respect both signals. Admission happens during **Start round**.
+Admission failures require another Start; transient judging failures use **Retry judging**.
 `BrainstormRequestError` preserves host terminal/restart policies; terminal allowance failures
 survive round resets.
 
@@ -102,5 +107,6 @@ then install and build inside that new directory. The manifest uses registry lib
 `pnpm demos:copy-check brainstorm-react` verifies a copy against freshly packed local libraries.
 No sibling demo imports are used.
 
-Changing gallery inference settings or preview mode aborts pending judging and ends the round,
-keeping accepted notes on the board. The new connection requires an explicit **Connect judge**.
+Changing gallery inference settings or preview mode aborts setup and pending judging, ends an
+active round, and keeps accepted notes on the board. **Next round** explicitly prepares the new
+connection before revealing a fresh challenge. Leaving the demo cancels setup and drains capture.
