@@ -181,7 +181,7 @@ describe('latest backpressure', () => {
   });
 });
 
-test('concurrent backpressure starts later handlers without waiting for earlier ones', async () => {
+test('no backpressure starts later handlers without waiting for earlier ones', async () => {
   const source$ = new Subject<number>();
   const firstStarted = Promise.withResolvers<void>();
   const releaseFirst = Promise.withResolvers<void>();
@@ -189,7 +189,7 @@ test('concurrent backpressure starts later handlers without waiting for earlier 
   const firstFinished = Promise.withResolvers<void>();
   const started: number[] = [];
   const finished: number[] = [];
-  subscribeWithBackpressure('concurrent', source$, async value => {
+  subscribeWithBackpressure('none', source$, async value => {
     started.push(value);
     if (value === 1) {
       firstStarted.resolve();
@@ -217,7 +217,7 @@ test('concurrent backpressure starts later handlers without waiting for earlier 
   }
 });
 
-describe.each(['queue', 'latest', 'concurrent'] as const)('%s handler failures', strategy => {
+describe.each(['queue', 'latest', 'none'] as const)('%s handler failures', strategy => {
   test.each(['throw', 'reject'] as const)(
     'reports a handler %s and continues consuming',
     async type => {
