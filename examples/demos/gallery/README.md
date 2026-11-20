@@ -79,7 +79,7 @@ always use neutral configured-service wording, ignoring any host promise. The ga
 verify endpoint security, retention, or model-provider policies.
 
 Entries with their own example directory also declare `copyDirectory`. `Gallery` gives those demos
-a **Get the code** control beside the data-handling badge: a **View example source** link, an `npx degit`
+a **Get the code** control beside the data-handling badge: a **View the source code for this example** link, an `npx degit`
 command that copies the example directory and starts it, and a prompt that asks a coding agent to do the same. For demos with the
 `remoteModel` capability its panel says the copy needs your own model API key. Pass `sourceRevision`
 with the Katakit commit the host's demos come from, so the source link and local copy match the demo

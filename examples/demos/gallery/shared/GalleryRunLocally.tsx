@@ -144,7 +144,7 @@ export const GalleryRunLocally = ({ demo, revision }: { demo: Demo; revision?: s
             target="_blank"
             rel="noopener noreferrer"
           >
-            View example source
+            View the source code for this example
           </a>
         </p>
         <CopyBlock
