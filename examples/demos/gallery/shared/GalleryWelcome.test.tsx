@@ -135,10 +135,29 @@ test('a model download alone leaves Welcome untested and preserves the privacy l
   expect(screen.getByRole('link', { name: 'Privacy Policy' }).getAttribute('href')).toBe(
     'https://katabase.com/privacy'
   );
-  const terms = screen.getByRole('link', { name: 'Terms of Service' });
+  const terms = within(screen.getByRole('region', { name: 'How cloud servers work' })).getByRole(
+    'link',
+    { name: 'Terms of Service' }
+  );
   expect(terms.getAttribute('href')).toBe('https://example.com/terms');
   expect(terms.getAttribute('target')).toBe('_blank');
   expect(terms.getAttribute('rel')).toBe('noopener noreferrer');
+});
+
+test('Welcome shows consent for setup and retesting, and removes it while listening', async () => {
+  fixture();
+  render(<Harness />);
+  await screen.findByRole('button', { name: 'Set up microphone' });
+  const setup = within(screen.getByRole('region', { name: 'Set up your mic' }));
+  expect(setup.getByRole('link', { name: 'Terms of Service' }).getAttribute('href')).toBe(
+    'https://example.com/terms'
+  );
+  await click('Set up microphone');
+  expect(setup.getByRole('button', { name: 'Stop listening' })).toBeDefined();
+  expect(setup.queryByRole('link', { name: 'Terms of Service' })).toBeNull();
+  await click('Stop listening');
+  expect(setup.getByRole('button', { name: 'Test again' })).toBeDefined();
+  expect(setup.getByRole('link', { name: 'Terms of Service' })).toBeDefined();
 });
 
 test('the transcript remains visible before, during, and after a successful test', async () => {
@@ -405,6 +424,7 @@ test('a demo offers Start in its header, then a Pause beside a microphone that f
         demos={[transcriptionDemoDetails]}
         activeDemo={transcriptionDemoDetails}
         renderLink={({ children }) => <a href="/">{children}</a>}
+        termsUrl="/terms"
       >
         <GalleryDemo create={createTranscriptionDemo} render={() => <GalleryCaptureControls />} />
       </Gallery>
@@ -414,10 +434,14 @@ test('a demo offers Start in its header, then a Pause beside a microphone that f
   const start = await header.findByRole('button', { name: 'Start listening' });
   expect(start.textContent).toBe('Start');
   expect(start.className).toContain('site-button--blue');
+  expect(header.getByRole('link', { name: 'Terms of Service' }).getAttribute('href')).toBe(
+    '/terms'
+  );
   await click('Start listening');
   const pause = await header.findByRole('button', { name: 'Pause listening' });
   expect(pause.textContent).toBe('Pause');
   expect(pause.className).toContain('site-button--slate');
+  expect(header.queryByRole('link', { name: 'Terms of Service' })).toBeNull();
   act(() => inputs[0]!.callbacks.onLevel?.(0.64));
   const fill = () =>
     Number(

@@ -114,8 +114,13 @@ the demo views render `GalleryCaptureControls` beside their content. Pass an abs
 to link to the host’s policy in a separate tab (`noopener noreferrer`); independent hosts may omit
 it or supply their own. The local reference host passes `https://katabase.com/privacy`; Katabase’s
 website host should pass the same URL. Its current 404 is tracked in the website integration issue.
-Hosts may also supply `termsUrl` to show Terms of Service beside Privacy Policy on Welcome and public
-Settings. Both URLs belong to the host; each link opens in a separate tab to preserve the current demo.
+Hosts supply `termsUrl` to show Terms of Service beside Privacy Policy on Welcome and public
+Settings, and “By continuing, you agree to our Terms of Service.” below each primary capture
+button. The link opens separately with `noopener noreferrer`. Secondary Pause, Stop, and Cancel
+actions do not show the notice. Embeds outside `Gallery`, such as a homepage game, can wrap their
+content in `GalleryTermsContext` with their own Terms URL; `Gallery` inherits that URL when its
+prop is omitted. No policy link is invented for hosts without a URL. The reference host supplies
+`https://katabase.com/Terms`. Both policy URLs belong to the host.
 Each host owns its URLs, title metadata, not-found/loading/error handling, and router registration.
 Adding an entry here makes it eligible; each consuming website still chooses what to include.
 Examples continue to own their code and never import private website components.

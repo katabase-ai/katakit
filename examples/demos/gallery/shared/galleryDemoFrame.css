@@ -94,10 +94,12 @@
   box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
 }
 .katakit-gallery .gallery-capture-action {
+  --gallery-capture-icon-size: 44px;
+  --gallery-capture-gap: 12px;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  gap: var(--gallery-capture-gap);
 }
 .katakit-gallery .gallery-demo-header-controls .gallery-capture-action {
   max-width: none;
@@ -126,7 +128,8 @@
     height: 36px;
   }
   .katakit-gallery .gallery-capture-action {
-    gap: 8px;
+    --gallery-capture-icon-size: 36px;
+    --gallery-capture-gap: 8px;
   }
 }
 /* One Start style for a demo's button and Color Clash's Play. */

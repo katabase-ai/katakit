@@ -1,7 +1,16 @@
-import { useEffect, useId, useState, type ButtonHTMLAttributes, type ReactNode } from 'react';
+import {
+  useContext,
+  useEffect,
+  useId,
+  useState,
+  type ButtonHTMLAttributes,
+  type ReactNode,
+} from 'react';
 import { GalleryDemoCapture } from './GalleryDemoHeader';
 import { useGallerySpeech } from './GallerySpeechProvider';
 import { GalleryMicrophoneIndicator } from './GalleryMicrophoneIndicator';
+import { GalleryTermsContext } from './GalleryTermsContext';
+import './galleryCaptureControls.css';
 
 type SpeechCaptureProps = {
   label?: string;
@@ -17,13 +26,34 @@ const CaptureButton = ({
   secondary,
   className = '',
   ...button
-}: ButtonHTMLAttributes<HTMLButtonElement> & { secondary?: boolean }) => (
-  <button
-    {...button}
-    type="button"
-    className={`site-button ${secondary ? 'site-button--slate' : 'site-button--blue'} ${className}`.trim()}
-  />
-);
+}: ButtonHTMLAttributes<HTMLButtonElement> & { secondary?: boolean }) => {
+  const termsUrl = useContext(GalleryTermsContext);
+  const consentId = useId();
+  const showConsent = !!termsUrl && !secondary;
+  return (
+    <>
+      <button
+        {...button}
+        type="button"
+        aria-describedby={
+          [button['aria-describedby'], showConsent ? consentId : undefined]
+            .filter(Boolean)
+            .join(' ') || undefined
+        }
+        className={`site-button ${secondary ? 'site-button--slate' : 'site-button--blue'} ${className}`.trim()}
+      />
+      {showConsent && (
+        <span id={consentId} className="gallery-capture-consent">
+          By continuing, you agree to our{' '}
+          <a href={termsUrl} target="_blank" rel="noopener noreferrer">
+            Terms of Service
+          </a>
+          .
+        </span>
+      )}
+    </>
+  );
+};
 
 /**
  * Capture actions belong to the active demo, never the shared setup footer. Listening demos use
