@@ -9,8 +9,11 @@ import {
 } from 'react';
 import type { GalleryModelConnect } from './galleryModel';
 
-/** Latest allowance reported by a host; never predicted from local requests. */
+/** Model calls remaining out of the host's allowed total; never predicted from local requests. */
 export type GalleryAllowance = { remaining: number; total: number };
+
+/** Provider-reported tokens across personal-key requests in this page session. */
+export type GalleryTokenUsage = { total: number; incomplete: boolean };
 
 type Report = {
   source: GalleryModelConnect;
@@ -20,6 +23,8 @@ type Report = {
 const Context = createContext<
   | {
       report?: Report;
+      tokenUsage: GalleryTokenUsage;
+      reportTokenUsage: (tokens?: number) => void;
       reportAllowance: (
         source: GalleryModelConnect,
         signal: AbortSignal,
@@ -29,9 +34,16 @@ const Context = createContext<
   | undefined
 >(undefined);
 
-/** Host-session display state survives demo navigation and clears when its source is invalidated. */
+/** Root-owned usage survives navigation. Only host allowance clears on source invalidation. */
 export const GalleryUsageProvider = ({ children }: { children: ReactNode }) => {
   const [report, setReport] = useState<Report>();
+  const [tokenUsage, setTokenUsage] = useState<GalleryTokenUsage>({ total: 0, incomplete: false });
+  const reportTokenUsage = useCallback((tokens?: number) => {
+    setTokenUsage(current => ({
+      total: current.total + (tokens ?? 0),
+      incomplete: current.incomplete || tokens === undefined,
+    }));
+  }, []);
   const reportAllowance = useCallback(
     (source: GalleryModelConnect, signal: AbortSignal, value: GalleryAllowance) => {
       if (signal.aborted) return;
@@ -60,7 +72,10 @@ export const GalleryUsageProvider = ({ children }: { children: ReactNode }) => {
     report.signal.addEventListener('abort', clear, { once: true });
     return () => report.signal.removeEventListener('abort', clear);
   }, [report?.signal]);
-  const value = useMemo(() => ({ report, reportAllowance }), [report, reportAllowance]);
+  const value = useMemo(
+    () => ({ report, reportAllowance, tokenUsage, reportTokenUsage }),
+    [report, reportAllowance, tokenUsage, reportTokenUsage]
+  );
   return <Context value={value}>{children}</Context>;
 };
 

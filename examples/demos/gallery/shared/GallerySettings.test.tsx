@@ -94,6 +94,7 @@ const Content = ({
         activeDemo={galleryDemoDetails[2]}
         developerPage={page === 'settings' ? undefined : page}
         settingsPage={page === 'settings'}
+        account={{ waitlistUrl: 'https://example.com/waitlist' }}
         onOpenSettings={() => setPage(isDeveloperView ? 'setup' : 'settings')}
         input={<GallerySpeechControls />}
         connectModel={connectModel}
@@ -181,7 +182,7 @@ test('public mode ignores saved developer keys and visitor flags, and uses only 
   await screen.findByText('Public note');
   expect(host).toHaveBeenCalledOnce();
   expect(
-    (screen.getByRole('progressbar', { name: 'Demo allowance used' }) as HTMLProgressElement).value
+    (screen.getByRole('progressbar', { name: 'Model call usage' }) as HTMLProgressElement).value
   ).toBe(20);
   expect(direct).not.toHaveBeenCalled();
   expect(JSON.parse(request.mock.calls[0]![0].body).model).toBe('host/model');
@@ -397,10 +398,66 @@ test('reported usage stays live without restarting inference, survives navigatio
   expect(screen.getByText('80%')).toBeDefined();
   fireEvent.click(screen.getByRole('switch', { name: 'Developer mode' }));
   expect(screen.queryByText('Usage unavailable')).toBeNull();
-  expect(screen.queryByRole('progressbar', { name: 'Demo allowance used' })).toBeNull();
+  expect(screen.queryByRole('progressbar', { name: 'Model call usage' })).toBeNull();
   expect(screen.getByRole('button', { name: 'Settings' })).toBeDefined();
   view.unmount();
   runtime.close();
+});
+
+test('personal-key tokens accumulate without reconnecting, survive navigation/source changes, and reset on reload', async () => {
+  savedKey();
+  const runtime = createNotesDemo();
+  const direct = vi
+    .fn<typeof fetch>()
+    .mockResolvedValueOnce(
+      Response.json({ ...completion('First note'), usage: { total_tokens: 125 } })
+    )
+    .mockResolvedValueOnce(
+      Response.json({ ...completion('Second note'), usage: { total_tokens: 75 } })
+    )
+    .mockResolvedValueOnce(Response.json(completion('Unreported note')));
+  vi.stubGlobal('fetch', direct);
+  const view = render(<View developerMode runtime={runtime} />);
+  await screen.findByText('0 tokens');
+  act(() => turn(runtime, 'First thought.'));
+  fireEvent.click(screen.getByRole('button', { name: 'Start listening' }));
+  await screen.findByText('First note');
+  expect(screen.getByText('125 tokens')).toBeDefined();
+  const firstSignal = direct.mock.calls[0]![1]!.signal!;
+  expect(firstSignal.aborted).toBe(false);
+  act(() => turn(runtime, 'Second thought.'));
+  await screen.findByText('Second note');
+  expect(screen.getByText('200 tokens')).toBeDefined();
+  expect(firstSignal.aborted).toBe(false);
+  fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+  await screen.findByLabelText('API key');
+  expect(firstSignal.aborted).toBe(true);
+  expect(screen.getByText('200 tokens')).toBeDefined();
+  fireEvent.change(screen.getByLabelText('API key'), { target: { value: 'another-test-key' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+  expect(screen.getByText('200 tokens')).toBeDefined();
+  fireEvent.click(screen.getByRole('switch', { name: 'Developer mode' }));
+  expect(screen.queryByText('200 tokens')).toBeNull();
+  fireEvent.click(screen.getByRole('switch', { name: 'Public preview' }));
+  expect(screen.getByText('200 tokens')).toBeDefined();
+  fireEvent.click(
+    within(screen.getByRole('navigation', { name: 'React demos' })).getByRole('link', {
+      name: 'Structured notes',
+    })
+  );
+  fireEvent.click(screen.getByRole('button', { name: 'Start listening' }));
+  act(() => turn(runtime, 'A thought with unreported usage.'));
+  await screen.findByText('Unreported note');
+  expect(screen.getByText('≥200 tokens')).toBeDefined();
+  expect(direct).toHaveBeenCalledTimes(3);
+  view.unmount();
+  runtime.close();
+  const fresh = createNotesDemo();
+  const reloaded = render(<View developerMode runtime={fresh} />);
+  await screen.findByText('0 tokens');
+  expect(direct).toHaveBeenCalledTimes(3);
+  reloaded.unmount();
+  fresh.close();
 });
 
 test('public Settings opens account content, shares allowance with the footer, and aborts the outgoing demo connection', async () => {
@@ -420,12 +477,16 @@ test('public Settings opens account content, shares allowance with the footer, a
   fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
   await screen.findByRole('heading', { name: 'Settings' });
   expect(visitSignal.aborted).toBe(true);
-  expect(screen.getByRole('button', { name: 'Create an account' })).toBeDefined();
+  expect(
+    within(screen.getByRole('article'))
+      .getByRole('link', { name: 'Join the waitlist' })
+      .getAttribute('href')
+  ).toBe('https://example.com/waitlist');
   expect(screen.queryByLabelText('API key')).toBeNull();
   expect(screen.queryByRole('navigation', { name: 'Operation views' })).toBeNull();
   expect(
     screen
-      .getAllByRole('progressbar', { name: 'Demo allowance used' })
+      .getAllByRole('progressbar', { name: 'Model call usage' })
       .map(element => (element as HTMLProgressElement).value)
   ).toEqual([80, 80]);
   fireEvent.click(

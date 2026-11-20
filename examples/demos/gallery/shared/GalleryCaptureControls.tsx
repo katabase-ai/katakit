@@ -1,26 +1,99 @@
-import { useEffect, useId, useState, type ReactNode } from 'react';
+import {
+  useContext,
+  useEffect,
+  useId,
+  useState,
+  type ButtonHTMLAttributes,
+  type ReactNode,
+} from 'react';
 import { GalleryDemoCapture } from './GalleryDemoHeader';
 import { useGallerySpeech } from './GallerySpeechProvider';
 import { GalleryMicrophoneIndicator } from './GalleryMicrophoneIndicator';
+import { GalleryTermsContext } from './GalleryTermsContext';
+import { useGalleryConsent } from './GalleryConsentProvider';
+import './galleryCaptureControls.css';
 
-/**
- * Capture actions belong to the active demo, never the shared setup footer. Under the gallery's
- * header a demo's button sits beside its title: a primary Start, then a secondary Pause. The
- * microphone glyph beside it fills with the level being heard.
- */
-export const GalleryCaptureControls = ({
-  label = 'Start listening',
-  errorHelp,
-  children,
-  presentation = 'default',
-}: {
+type SpeechCaptureProps = {
   label?: string;
   /** Replaces default errors; Welcome presents this guidance beside its action. */
   errorHelp?: ReactNode;
   children?: ReactNode;
   /** Welcome uses a passive mic glyph and keeps capture status accessible without a meter. */
   presentation?: 'default' | 'welcome';
-}) => {
+};
+
+/** One button presentation for shared speech capture and host-owned actions such as timed games. */
+const CaptureButton = ({
+  secondary,
+  className = '',
+  ...button
+}: ButtonHTMLAttributes<HTMLButtonElement> & { secondary?: boolean }) => {
+  const termsUrl = useContext(GalleryTermsContext);
+  const consent = useGalleryConsent();
+  const consentId = useId();
+  const showConsent = !!termsUrl && !secondary && !consent?.accepted;
+  return (
+    <>
+      <button
+        {...button}
+        type="button"
+        onClick={event => {
+          // The primary click accepts the notice even if model/microphone setup later fails.
+          if (showConsent) consent?.accept();
+          button.onClick?.(event);
+        }}
+        aria-describedby={
+          [button['aria-describedby'], showConsent ? consentId : undefined]
+            .filter(Boolean)
+            .join(' ') || undefined
+        }
+        className={`site-button ${secondary ? 'site-button--slate' : 'site-button--blue'} ${className}`.trim()}
+      />
+      {showConsent && (
+        <span id={consentId} className="gallery-capture-consent">
+          By continuing, you agree to our{' '}
+          <a href={termsUrl} target="_blank" rel="noopener noreferrer">
+            Terms of Service
+          </a>
+          .
+        </span>
+      )}
+    </>
+  );
+};
+
+/**
+ * Capture actions belong to the active demo, never the shared setup footer. Listening demos use
+ * the shared speech owner and header placement. A controlled action stays where its host renders
+ * it and leaves setup, cancellation, and game timing with that host; it needs no speech provider.
+ */
+export const GalleryCaptureControls = (
+  props:
+    | SpeechCaptureProps
+    | {
+        action: {
+          label: string;
+          onClick: () => void;
+          disabled?: boolean;
+          'aria-disabled'?: boolean;
+          secondary?: boolean;
+          className?: string;
+        };
+      }
+) => {
+  if ('action' in props) {
+    const { label, ...button } = props.action;
+    return <CaptureButton {...button}>{label}</CaptureButton>;
+  }
+  return <SpeechCaptureControls {...props} />;
+};
+
+const SpeechCaptureControls = ({
+  label = 'Start listening',
+  errorHelp,
+  children,
+  presentation = 'default',
+}: SpeechCaptureProps) => {
   const session = useGallerySpeech();
   const statusId = useId();
   // Raw levels jump between silence and full ten times a second. Rise at once but fall gradually,
@@ -47,9 +120,8 @@ export const GalleryCaptureControls = ({
     return (
       <div className="gallery-capture-controls gallery-welcome-capture-actions">
         <GalleryMicrophoneIndicator recording={recording} level={snapshot.level} />
-        <button
-          type="button"
-          className={`site-button ${preparing || recording ? 'site-button--slate' : 'site-button--blue'}`}
+        <CaptureButton
+          secondary={preparing || recording}
           disabled={disabled}
           aria-describedby={statusId}
           onClick={toggle}
@@ -61,7 +133,7 @@ export const GalleryCaptureControls = ({
             : recording
               ? 'Stop listening'
               : label}
-        </button>
+        </CaptureButton>
         <div className="gallery-welcome-capture-feedback">
           {children}
           {errorHelp}
@@ -93,11 +165,9 @@ export const GalleryCaptureControls = ({
             {status ?? (recording ? 'Listening locally' : 'Microphone off')}
           </p>
           <GalleryMicrophoneIndicator recording={recording} level={shownLevel} />
-          <button
-            type="button"
-            className={`site-button gallery-capture-toggle ${
-              settingUp || recording ? 'site-button--slate' : 'site-button--blue'
-            }`}
+          <CaptureButton
+            className="gallery-capture-toggle"
+            secondary={settingUp || recording}
             disabled={disabled}
             aria-describedby={statusId}
             // The button shows the short verb; its accessible name says what starts and pauses.
@@ -113,7 +183,7 @@ export const GalleryCaptureControls = ({
                   : failure
                     ? 'Try again'
                     : 'Start'}
-          </button>
+          </CaptureButton>
         </div>
       </GalleryDemoCapture>
       {children}

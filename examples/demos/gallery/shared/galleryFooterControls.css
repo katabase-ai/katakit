@@ -100,6 +100,9 @@
     box-shadow: 0 0 0 5px color-mix(in srgb, var(--color-accent) 22%, transparent);
   }
 }
+.katakit-gallery .gallery-waitlist-link {
+  text-decoration: none;
+}
 .katakit-gallery .gallery-usage-meter,
 .katakit-gallery .gallery-usage-error-button {
   display: flex;
@@ -139,6 +142,11 @@
   text-align: right;
   font-variant-numeric: tabular-nums;
   color: var(--gallery-usage-color);
+}
+.katakit-gallery .gallery-usage-tokens {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-ink);
 }
 .katakit-gallery .gallery-usage-unavailable > .gallery-tooltip {
   display: flex;

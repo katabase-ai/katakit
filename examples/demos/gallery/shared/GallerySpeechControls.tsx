@@ -3,14 +3,14 @@ import { useGallerySpeech } from './GallerySpeechProvider';
 import { GalleryModelContext } from './galleryModel';
 import { Settings } from 'lucide-react';
 import { GalleryAccountButton } from './GalleryAccountButton';
-import { GalleryUsageMeter, galleryUsagePercent } from './GalleryUsageMeter';
+import { GalleryTokenCounter, GalleryUsageMeter, galleryUsagePercent } from './GalleryUsageMeter';
 import { GalleryTooltipButton } from './GalleryTooltip';
 import './galleryFooterControls.css';
 
 /** Shared settings, usage, and account display; listening and its indicator stay in the demo. */
 export const GallerySpeechControls = () => {
   const session = useGallerySpeech();
-  const { isDeveloperView, openSettings, settingsNotice, allowance, account } =
+  const { isDeveloperView, openSettings, settingsNotice, allowance, tokenUsage, account } =
     useContext(GalleryModelContext);
   const snapshot = session?.snapshot;
   const percent = galleryUsagePercent(allowance);
@@ -38,8 +38,7 @@ export const GallerySpeechControls = () => {
             defaultOpen={!!settingsNotice}
             aria-label="Settings"
             description={
-              settingsNotice ??
-              (isDeveloperView ? 'Configure models' : 'Account and demo allowance')
+              settingsNotice ?? (isDeveloperView ? 'Configure models' : 'Account and usage')
             }
             onClick={openSettings}
           >
@@ -48,8 +47,11 @@ export const GallerySpeechControls = () => {
         )}
         <GalleryAccountButton />
       </div>
-      {/* The footer has no usage row until an allowance is reported; Settings explains why. */}
-      {percent !== undefined && <GalleryUsageMeter percent={percent} />}
+      {tokenUsage ? (
+        <GalleryTokenCounter usage={tokenUsage} />
+      ) : (
+        percent !== undefined && <GalleryUsageMeter percent={percent} />
+      )}
       {(snapshot?.error || snapshot?.input.error) && (
         <p role="alert">{snapshot.error ?? snapshot.input.error?.message}</p>
       )}

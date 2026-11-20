@@ -6,6 +6,7 @@ import { Gallery } from './Gallery';
 import { GallerySpeechProvider } from './GallerySpeechProvider';
 import { BrainstormGalleryDemo } from './BrainstormGalleryDemo';
 import { brainstormDemoDetails } from './galleryDemoDetails';
+import { GalleryConsentProvider } from './GalleryConsentProvider';
 import { App } from '../../brainstorm-react/src/App';
 
 const capture = vi.hoisted(() => ({ create: vi.fn() }));
@@ -16,6 +17,7 @@ vi.mock('@katakit/transcription/browser', async importOriginal => ({
 afterEach(() => {
   cleanup();
   capture.create.mockReset();
+  window.sessionStorage.clear();
 });
 
 const deferred = <T,>() => {
@@ -76,17 +78,20 @@ test('the real gallery adapter has one round action, waits for both services, an
   });
   const connect = vi.fn(() => admission.promise);
   const view = render(
-    <GallerySpeechProvider>
-      <Gallery
-        demos={[brainstormDemoDetails]}
-        activeDemo={brainstormDemoDetails}
-        connectModel={connect}
-        onOpenSettings={() => {}}
-        renderLink={({ children }) => <a href="#demo">{children}</a>}
-      >
-        <BrainstormGalleryDemo />
-      </Gallery>
-    </GallerySpeechProvider>
+    <GalleryConsentProvider>
+      <GallerySpeechProvider>
+        <Gallery
+          demos={[brainstormDemoDetails]}
+          activeDemo={brainstormDemoDetails}
+          connectModel={connect}
+          termsUrl="https://example.com/terms"
+          onOpenSettings={() => {}}
+          renderLink={({ children }) => <a href="#demo">{children}</a>}
+        >
+          <BrainstormGalleryDemo />
+        </Gallery>
+      </GallerySpeechProvider>
+    </GalleryConsentProvider>
   );
   const start = await screen.findByRole('button', { name: 'Start round' });
   expect(screen.getAllByRole('button', { name: 'Start round' })).toHaveLength(1);
@@ -100,8 +105,13 @@ test('the real gallery adapter has one round action, waits for both services, an
   expect(screen.queryByRole('button', { name: 'Configure inference' })).toBeNull();
   expect(screen.queryByRole('checkbox')).toBeNull();
   expect(screen.queryByRole('textbox')).toBeNull();
-  expect(screen.getByText('Run locally')).toBeDefined();
+  expect(screen.getByText('Get the code')).toBeDefined();
+  expect(screen.getByText(/By continuing, you agree/)).toBeDefined();
+  expect(screen.getByRole('link', { name: 'Terms of Service' }).getAttribute('href')).toBe(
+    'https://example.com/terms'
+  );
   fireEvent.click(start);
+  expect(screen.queryByText(/By continuing, you agree/)).toBeNull();
   await screen.findByText('Downloading speech model… 50%');
   expect(connect).not.toHaveBeenCalled();
   expect(screen.getByRole('timer').textContent).toBe('1:00');

@@ -12,6 +12,7 @@
   grid-template-columns: 44px 10.5rem minmax(0, 1fr);
   align-items: center;
   gap: 1rem;
+  row-gap: 0.5rem;
   min-height: 4rem;
   max-width: none;
 }
@@ -19,6 +20,8 @@
   justify-self: start;
 }
 .katakit-gallery .gallery-welcome-capture-feedback {
+  grid-column: 3;
+  grid-row: 1;
   min-width: 0;
   font-size: 0.875rem;
   color: var(--color-muted);
@@ -79,5 +82,6 @@
   }
   .katakit-gallery .gallery-welcome-capture-feedback {
     grid-column: 2;
+    grid-row: auto;
   }
 }

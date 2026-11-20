@@ -26,18 +26,41 @@ test.each([
     const footer = screen.getByRole('region', { name: 'Operation status' });
     expect(footer.dataset.usagePhase).toBe(phase);
     const progress = screen.getByRole('progressbar', {
-      name: 'Demo allowance used',
+      name: 'Model call usage',
     }) as HTMLProgressElement;
     expect(progress.value).toBe(percent);
     expect(screen.getByText(`${percent}%`)).toBeDefined();
-    fireEvent.focus(screen.getByRole('button', { name: /of your demo allowance/ }));
+    expect(screen.getByText('Usage')).toBeDefined();
+    fireEvent.focus(screen.getByRole('button', { name: /of your allowed model calls/ }));
     expect(screen.getByRole('tooltip').textContent).toContain('on-device transcription does not');
-    fireEvent.keyDown(screen.getByRole('button', { name: /of your demo allowance/ }), {
+    fireEvent.keyDown(screen.getByRole('button', { name: /of your allowed model calls/ }), {
       key: 'Escape',
     });
     expect(screen.queryByRole('tooltip')).toBeNull();
   }
 );
+
+test.each([
+  [{ total: 0, incomplete: false }, '0 tokens'],
+  [{ total: 1234, incomplete: false }, '1,234 tokens'],
+  [{ total: 1234, incomplete: true }, '≥1,234 tokens'],
+  [{ total: 0, incomplete: true }, 'Unavailable'],
+] as const)('personal-key usage %j shows %s without a budget bar', (tokenUsage, value) => {
+  render(
+    <GalleryModelContext value={{ tokenUsage }}>
+      <GallerySpeechControls />
+    </GalleryModelContext>
+  );
+  expect(screen.getByText('Usage')).toBeDefined();
+  expect(screen.getByText(value)).toBeDefined();
+  expect(screen.queryByRole('progressbar')).toBeNull();
+  fireEvent.focus(screen.getByRole('button', { name: `Usage: ${value} this session` }));
+  const tooltip = screen.getByRole('tooltip');
+  expect(tooltip.textContent).toContain('resets on reload');
+  expect(tooltip.textContent?.includes('Some responses did not report')).toBe(
+    tokenUsage.incomplete
+  );
+});
 
 test.each([
   undefined,
@@ -69,7 +92,7 @@ test('both modes expose Settings through the host action', () => {
   fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
   expect(openSettings).toHaveBeenCalledOnce();
   expect(screen.queryByRole('img', { name: /Microphone/ })).toBeNull();
-  expect(screen.getByRole('button', { name: 'Account' })).toBeDefined();
+  expect(screen.queryByRole('button', { name: 'Account' })).toBeNull();
   view.rerender(
     <GalleryModelContext value={{ isDeveloperView: true, openSettings }}>
       <GallerySpeechControls />
@@ -79,28 +102,20 @@ test('both modes expose Settings through the host action', () => {
   expect(openSettings).toHaveBeenCalledTimes(2);
 });
 
-test('guest account actions use the host callbacks and Escape dismisses the panel', () => {
-  const onCreateAccount = vi.fn();
-  const onLogIn = vi.fn();
+test('guests get a direct host waitlist link and a dismissible tooltip', () => {
   render(
-    <GalleryModelContext value={{ account: { onCreateAccount, onLogIn } }}>
+    <GalleryModelContext value={{ account: { waitlistUrl: 'https://example.com/waitlist' } }}>
       <GallerySpeechControls />
     </GalleryModelContext>
   );
-  const avatar = screen.getByRole('button', { name: 'Create a free account or log in' });
-  fireEvent.click(avatar);
-  fireEvent.click(
-    within(screen.getByRole('dialog')).getByRole('button', { name: 'Create account' })
-  );
-  expect(onCreateAccount).toHaveBeenCalledOnce();
+  const footer = within(screen.getByRole('region', { name: 'Operation status' }));
+  const link = footer.getByRole('link', { name: 'Join the waitlist' });
+  expect(link.getAttribute('href')).toBe('https://example.com/waitlist');
+  fireEvent.focus(link);
+  expect(screen.getByRole('tooltip').textContent).toBe('Join the waitlist');
   expect(screen.queryByRole('dialog')).toBeNull();
-  fireEvent.click(avatar);
-  fireEvent.click(screen.getByRole('button', { name: 'Log in' }));
-  expect(onLogIn).toHaveBeenCalledOnce();
-  fireEvent.click(avatar);
   fireEvent.keyDown(document, { key: 'Escape' });
-  expect(screen.queryByRole('dialog')).toBeNull();
-  expect(document.activeElement).toBe(avatar);
+  expect(screen.queryByRole('tooltip')).toBeNull();
 });
 
 test('signed-in identity shows initials and only the real account action', () => {
@@ -123,15 +138,10 @@ test('signed-in identity shows initials and only the real account action', () =>
   expect(onOpenAccount).toHaveBeenCalledOnce();
 });
 
-test('a host without account integration explains availability instead of offering fake auth', () => {
+test('a host without a waitlist destination does not offer fake account access', () => {
   render(<GallerySpeechControls />);
-  fireEvent.click(screen.getByRole('button', { name: 'Account' }));
-  const panel = screen.getByRole('dialog');
-  expect(
-    within(panel).getByText('Account access is not available in this gallery host.')
-  ).toBeDefined();
-  expect(within(panel).queryByRole('button')).toBeNull();
-  fireEvent.pointerDown(document.body);
+  expect(screen.queryByRole('button', { name: 'Account' })).toBeNull();
+  expect(screen.queryByRole('link', { name: 'Join the waitlist' })).toBeNull();
   expect(screen.queryByRole('dialog')).toBeNull();
 });
 

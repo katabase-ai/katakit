@@ -11,7 +11,7 @@ pnpm install
 pnpm dev
 ```
 
-The gallery's **Run locally** control shows the same command and a prompt for a coding agent.
+The gallery's **Get the code** control shows the same command and a prompt for a coding agent.
 
 ## Prepare an independent copy from a checkout
 

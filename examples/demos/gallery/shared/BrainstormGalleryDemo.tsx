@@ -7,6 +7,7 @@ import { GalleryModelError, useGalleryModel } from './galleryModel';
 import { useGallerySpeech } from './GallerySpeechProvider';
 import { GalleryDemoCapture, useGalleryDemoHeader } from './GalleryDemoHeader';
 import { GalleryMicrophoneIndicator } from './GalleryMicrophoneIndicator';
+import { GalleryCaptureControls } from './GalleryCaptureControls';
 
 const toGameError = (error: unknown) =>
   error instanceof GalleryModelError
@@ -100,6 +101,7 @@ export const BrainstormGalleryDemo = () => {
           connectionHelp={!model.settingsNotice && <p>Configure a judging connection to play.</p>}
           renderModelControls={model.renderControls}
           roundControlClassName="gallery-capture-toggle"
+          renderRoundButton={action => <GalleryCaptureControls action={action} />}
           renderRoundControls={controls => (
             <GalleryDemoCapture>
               <div className="gallery-capture-controls gallery-capture-action">

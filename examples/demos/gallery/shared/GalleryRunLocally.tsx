@@ -3,6 +3,7 @@ import { Check, Copy, SquareTerminal } from 'lucide-react';
 import type { galleryDemoDetails } from './galleryDemoDetails';
 import { useGalleryEvents } from './galleryEvents';
 import './galleryRunLocally.css';
+import './galleryTooltip.css';
 
 type Demo = (typeof galleryDemoDetails)[number];
 
@@ -130,9 +131,22 @@ export const GalleryRunLocally = ({ demo, revision }: { demo: Demo; revision?: s
     <details ref={dismissOutside} className="gallery-run-locally">
       <summary>
         <SquareTerminal aria-hidden="true" />
-        Run locally
+        Get the code
       </summary>
-      <div className="gallery-run-locally-panel">
+      <div
+        className="gallery-run-locally-panel gallery-hover-panel"
+        data-side="bottom"
+        data-align="end"
+      >
+        <p>
+          <a
+            href={`https://github.com/katabase-ai/katakit/tree/${revision ?? 'main'}/${demo.sourcePath}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View the source code for this example
+          </a>
+        </p>
         <CopyBlock
           label="Command"
           text={runLocallyCommand(demo, revision)}
@@ -143,10 +157,7 @@ export const GalleryRunLocally = ({ demo, revision }: { demo: Demo; revision?: s
           text={runLocallyPrompt(demo, revision)}
           onCopied={() => events.report({ type: 'runLocallyCopied', content: 'prompt' })}
         />
-        <p>
-          Needs Node.js 24 or newer and pnpm.
-          {needsKey && ' The demo’s README explains connecting your own model API key.'}
-        </p>
+        {needsKey && <p>The demo’s README explains connecting your own model API key.</p>}
       </div>
     </details>
   );

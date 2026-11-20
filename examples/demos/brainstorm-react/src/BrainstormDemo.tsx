@@ -25,7 +25,17 @@ type BrainstormDemoProps = {
   showIntroduction?: boolean;
   renderModelControls?: (controls: ReactNode) => ReactNode;
   renderRoundControls?: (controls: ReactNode) => ReactNode;
+  renderRoundButton?: (button: RoundButton) => ReactNode;
   roundControlClassName?: string;
+};
+
+type RoundButton = {
+  label: string;
+  onClick: () => void;
+  disabled: boolean;
+  secondary: boolean;
+  className?: string;
+  'aria-disabled'?: boolean;
 };
 
 // A stable factory binding shares state only among consumers of the same visit's runtime.
@@ -53,6 +63,7 @@ const BrainstormView = ({
   showIntroduction = true,
   renderModelControls = controls => controls,
   renderRoundControls,
+  renderRoundButton,
   roundControlClassName = 'brainstorm-primary',
 }: BrainstormDemoProps) => {
   const state = useBrainstormState(runtime);
@@ -93,39 +104,51 @@ const BrainstormView = ({
       if (state.phase === 'finished') prepareRound();
     });
   const failure = setup.error ?? state.failure;
+  const roundButton: RoundButton = {
+    label:
+      state.phase === 'finishing'
+        ? 'Finishing…'
+        : active
+          ? 'End round'
+          : setup.step === 'cancelling'
+            ? 'Cancelling…'
+            : setup.step
+              ? 'Cancel setup'
+              : state.phase === 'finished'
+                ? 'Next round'
+                : 'Start round',
+    className: roundControlClassName,
+    secondary: active || !!setup.step,
+    'aria-disabled': state.phase === 'finishing' || setup.step === 'cancelling' || undefined,
+    disabled:
+      (state.phase === 'finished' && state.busy) ||
+      (!active &&
+        !setup.step &&
+        (captureDisabled ||
+          (!startListening && !listening) ||
+          (!connect && !state.connected) ||
+          !!(state.failure?.policy.terminal && !state.failure.policy.restart))),
+    onClick: () => {
+      if (state.phase === 'finishing' || setup.step === 'cancelling') return;
+      if (active) runtime.finish();
+      else if (setup.step) setup.cancel();
+      else startRound();
+    },
+  };
   const roundControls = (
     <>
-      <Button
-        className={roundControlClassName}
-        aria-disabled={state.phase === 'finishing' || setup.step === 'cancelling' || undefined}
-        disabled={
-          (state.phase === 'finished' && state.busy) ||
-          (!active &&
-            !setup.step &&
-            (captureDisabled ||
-              (!startListening && !listening) ||
-              (!connect && !state.connected) ||
-              (state.failure?.policy.terminal && !state.failure.policy.restart)))
-        }
-        onClick={() => {
-          if (state.phase === 'finishing' || setup.step === 'cancelling') return;
-          if (active) runtime.finish();
-          else if (setup.step) setup.cancel();
-          else startRound();
-        }}
-      >
-        {state.phase === 'finishing'
-          ? 'Finishing…'
-          : active
-            ? 'End round'
-            : setup.step === 'cancelling'
-              ? 'Cancelling…'
-              : setup.step
-                ? 'Cancel setup'
-                : state.phase === 'finished'
-                  ? 'Next round'
-                  : 'Start round'}
-      </Button>
+      {renderRoundButton ? (
+        renderRoundButton(roundButton)
+      ) : (
+        <Button
+          className={roundButton.className}
+          aria-disabled={roundButton['aria-disabled']}
+          disabled={roundButton.disabled}
+          onClick={roundButton.onClick}
+        >
+          {roundButton.label}
+        </Button>
+      )}
       {setup.step && (
         <span className="brainstorm-setup-status" role="status">
           {setup.step === 'judge'

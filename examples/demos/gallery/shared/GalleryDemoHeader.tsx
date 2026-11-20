@@ -2,14 +2,14 @@ import { createContext, useContext, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 
 const Header = createContext(false);
-/** Where the active demo's pause/resume button is shown, beside its title. */
+/** Where the active demo's Start/Pause button is shown, below its description. */
 const Capture = createContext<HTMLElement | undefined>(undefined);
 
 /** Adapters suppress the standalone introduction when the gallery supplies its real header. */
 export const useGalleryDemoHeader = () => useContext(Header);
 
 /**
- * Shows the active demo's pause/resume button beside its title. Without a gallery header it
+ * Shows the active demo's Start/Pause button below its description. Without a gallery header it
  * renders where the demo placed it.
  */
 export const GalleryDemoCapture = ({ children }: { children: ReactNode }) => {
