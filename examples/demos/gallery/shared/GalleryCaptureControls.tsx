@@ -10,7 +10,7 @@ import { GalleryDemoCapture } from './GalleryDemoHeader';
 import { useGallerySpeech } from './GallerySpeechProvider';
 import { GalleryMicrophoneIndicator } from './GalleryMicrophoneIndicator';
 import { GalleryTermsContext } from './GalleryTermsContext';
-import { useGalleryConsent } from './GalleryConsentProvider';
+import { galleryTermsNotice, useGalleryConsent } from './GalleryConsentProvider';
 import './galleryCaptureControls.css';
 
 type SpeechCaptureProps = {
@@ -27,7 +27,7 @@ const CaptureButton = ({
   secondary,
   className = '',
   ...button
-}: ButtonHTMLAttributes<HTMLButtonElement> & { secondary?: boolean }) => {
+}: ButtonHTMLAttributes<HTMLButtonElement> & { secondary?: boolean; children: string }) => {
   const termsUrl = useContext(GalleryTermsContext);
   const consent = useGalleryConsent();
   const consentId = useId();
@@ -39,7 +39,12 @@ const CaptureButton = ({
         type="button"
         onClick={event => {
           // The primary click accepts the notice even if model/microphone setup later fails.
-          if (showConsent) consent?.accept();
+          if (showConsent)
+            consent?.accept({
+              buttonLabel: button.children,
+              termsUrl,
+              noticeText: `${galleryTermsNotice.beforeLink}${galleryTermsNotice.linkText}${galleryTermsNotice.afterLink}`,
+            });
           button.onClick?.(event);
         }}
         aria-describedby={
@@ -51,11 +56,11 @@ const CaptureButton = ({
       />
       {showConsent && (
         <span id={consentId} className="gallery-capture-consent">
-          By continuing, you agree to our{' '}
+          {galleryTermsNotice.beforeLink}
           <a href={termsUrl} target="_blank" rel="noopener noreferrer">
-            Terms of Service
+            {galleryTermsNotice.linkText}
           </a>
-          .
+          {galleryTermsNotice.afterLink}
         </span>
       )}
     </>
