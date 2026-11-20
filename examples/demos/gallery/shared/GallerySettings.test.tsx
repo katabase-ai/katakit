@@ -444,9 +444,7 @@ test('a demo without inference says so on the Settings button, which opens Setti
   const runtime = createNotesDemo();
   render(<View runtime={runtime} />);
   const notice = await screen.findByRole('tooltip');
-  expect(notice.textContent).toBe(
-    'Free inference is not available here. You can still transcribe locally.'
-  );
+  expect(notice.textContent).toBe('Free inference is not available here.');
   expect(screen.getByRole('button', { name: 'Settings' }).getAttribute('aria-describedby')).toBe(
     notice.id
   );

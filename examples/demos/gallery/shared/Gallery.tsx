@@ -155,7 +155,9 @@ export const Gallery = ({
     inference &&
     !connect &&
     (activeDemo?.capabilities as readonly string[] | undefined)?.includes('remoteModel')
-      ? `${isDeveloperView ? 'No inference is configured.' : 'Free inference is not available here.'} You can still transcribe locally.`
+      ? isDeveloperView
+        ? 'No inference is configured.'
+        : 'Free inference is not available here.'
       : undefined;
   const model = useMemo(
     () => ({

@@ -98,7 +98,7 @@ phrases into changes on a game board.
 - **Explore a demo:** open the [gallery](https://katabase.com/gallery) to try local transcription,
   conversation bingo, structured notes, and the [brainstorming game](examples/demos/brainstorm-react/README.md).
   Transcription runs locally; structured notes and open-ended answer judging use a model connection.
-  Brainstorming also offers sample-only practice. Each example links to its source and setup.
+  Each example links to its source and setup.
 - **Start an application:** copy the [React web starter](examples/starters/react-web/README.md),
   then follow its install and run instructions. First use downloads a speech model; no paid
   speech account is needed.

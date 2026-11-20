@@ -98,6 +98,8 @@ test('the real gallery adapter has one round action, waits for both services, an
   expect(screen.queryByRole('button', { name: 'Start listening' })).toBeNull();
   expect(screen.queryByRole('button', { name: 'Connect judge' })).toBeNull();
   expect(screen.queryByRole('button', { name: 'Configure inference' })).toBeNull();
+  expect(screen.queryByRole('checkbox')).toBeNull();
+  expect(screen.queryByRole('textbox')).toBeNull();
   expect(screen.getByText('Run locally')).toBeDefined();
   fireEvent.click(start);
   await screen.findByText('Downloading speech model… 50%');
@@ -135,7 +137,13 @@ test('the real gallery adapter has one round action, waits for both services, an
 
 test('standalone cancellation disposes pending capture and a late old callback cannot finish the next round', async () => {
   const old = microphone();
-  const view = render(<App />);
+  const connect = async () => ({
+    model: 'test',
+    maxBodyBytes: 16384,
+    maxOutputTokens: 1024,
+    requestCompletion: vi.fn(),
+  });
+  const view = render(<App connect={connect} />);
   fireEvent.click(await screen.findByRole('button', { name: 'Start round' }));
   await screen.findByText('Downloading speech model… 50%');
   fireEvent.click(screen.getByRole('button', { name: 'Cancel setup' }));
@@ -154,4 +162,32 @@ test('standalone cancellation disposes pending capture and a late old callback c
   view.unmount();
   await act(async () => {});
   expect(next.dispose).toHaveBeenCalledOnce();
+});
+
+test('the gallery requires a model connection and has no alternative input or judging mode', async () => {
+  microphone();
+  const view = render(
+    <GallerySpeechProvider>
+      <Gallery
+        demos={[brainstormDemoDetails]}
+        activeDemo={brainstormDemoDetails}
+        onOpenSettings={() => {}}
+        renderLink={({ children }) => <a href="#demo">{children}</a>}
+      >
+        <BrainstormGalleryDemo />
+      </Gallery>
+    </GallerySpeechProvider>
+  );
+  const start = await screen.findByRole('button', { name: 'Start round' });
+  expect(start.hasAttribute('disabled')).toBe(true);
+  fireEvent.click(start);
+  expect(capture.create).not.toHaveBeenCalled();
+  expect(screen.queryByText(/still transcribe locally/)).toBeNull();
+  expect(screen.queryByRole('textbox')).toBeNull();
+  expect(screen.queryByRole('checkbox')).toBeNull();
+  expect(screen.queryByText(/Sample practice|typed answers|sample answers count/)).toBeNull();
+  expect(screen.getByRole('timer').textContent).toBe('1:00');
+  expect(screen.getByRole('heading', { name: 'Ready when you are.' })).toBeDefined();
+  view.unmount();
+  await act(async () => {});
 });

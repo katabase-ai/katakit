@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import { answerKey, judgingRules, type Challenge } from './challenges';
+import { judgingRules, type Challenge } from './challenges';
 
 /** Admission and transport belong to the host, not the game. */
 export type BrainstormConnection = {
@@ -136,31 +136,4 @@ export const parseBrainstormCompletion = (completion: unknown, text: string): Ju
     text: answer.text.trim(),
     evidence: answer.evidence,
   }));
-};
-
-/** Explicit sample-only practice, available without a paid connection. This is not the live judge. */
-export const matchPracticeAnswers = (challenge: Challenge, text: string): JudgedAnswer[] => {
-  const tokens = text.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [];
-  return challenge.sampleAnswers
-    .flatMap(answer => {
-      const words = answer.toLowerCase().match(/[\p{L}\p{N}]+/gu) ?? [];
-      const start = tokens.findIndex((_, i) =>
-        words.every((word, j) => {
-          const token = tokens[i + j];
-          return token === word || (j === words.length - 1 && token === `${word}s`);
-        })
-      );
-      if (
-        start < 0 ||
-        tokens
-          .slice(Math.max(0, start - 3), start)
-          .some(word => ['not', 'no', 'remove'].includes(word))
-      )
-        return [];
-      return [{ text: answer, evidence: text }];
-    })
-    .filter(
-      (answer, i, answers) =>
-        answers.findIndex(other => answerKey(other.text) === answerKey(answer.text)) === i
-    );
 };

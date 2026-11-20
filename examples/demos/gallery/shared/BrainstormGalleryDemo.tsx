@@ -97,11 +97,7 @@ export const BrainstormGalleryDemo = () => {
               </p>
             )
           }
-          connectionHelp={
-            !model.settingsNotice && (
-              <p>Full judging is unavailable here. Sample practice still works.</p>
-            )
-          }
+          connectionHelp={!model.settingsNotice && <p>Configure a judging connection to play.</p>}
           renderModelControls={model.renderControls}
           roundControlClassName="gallery-capture-toggle"
           renderRoundControls={controls => (

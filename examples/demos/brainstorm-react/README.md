@@ -4,17 +4,17 @@ Collect spoken answers on a shared sticky-note board using one microphone. Choos
 pre-baked challenges in 20 categories. **Game settings** opens a modal for the category and
 round length: 30s, 1min (the default), 2min, or unlimited play. **Apply** prepares a fresh round
 when settings change; **Cancel** keeps the current board. Settings are locked during a round.
-**Start round** prepares the microphone and connects the judge when configured. The challenge
+**Start round** prepares the microphone and connects the required judge. The challenge
 stays hidden and the clock stays stopped until both are ready. **Cancel setup** cancels pending
 setup without starting a round or spending round time. Failed setup can be retried with **Start round**.
-**End round** stops early. The challenge, judging rule, and sample answers stay hidden until the
+**End round** stops early. The challenge and judging rule stay hidden until the
 round starts. **Next round** draws a different challenge and prepares capture before starting.
-Remove mistaken answers with the button on each note. Typed answers provide an alternative to
-speech: they skip microphone setup and still wait for the judge. A browser reload starts a fresh game.
+Remove mistaken answers with the button on each note. Rounds use one shared microphone and
+require a judging connection. A browser reload starts a fresh game.
 
 The Transcript panel sits to the right of the game, with numbered entries newest first and muted
 interim speech above them. It scrolls independently and stacks below the game on narrow screens.
-It shows the round's original spoken or typed input, including words that do not qualify as
+It shows the round's original spoken input, including words that do not qualify as
 answers. Ending a round keeps the transcript; preparing a fresh round clears it with the board.
 
 ## Run
@@ -40,16 +40,15 @@ There is no separate microphone Start or judge-connect action.
 
 ## Answer judging
 
-Full judging uses a host-supplied model connection. The prompt includes the challenge, judging
+Judging uses a host-supplied model connection. The prompt includes the challenge, judging
 rule, shared rules, existing answers, removed answers, and new finalized transcript. Validated
 responses supply short answer labels and verbatim transcript evidence. The five sample answers
 are examples, not a whitelist for the model.
 
-Without a model connection, the demo explicitly uses **Sample practice**. Only the five examples
-displayed below the board count. This lets the round, microphone, notes, and corrections be tried
-without a paid service. It does not demonstrate open-ended judging.
+Configure a judging connection before starting a round. The challenge library's examples are
+sent to the judge as guidance; valid answers beyond those examples also count.
 
-For full standalone judging, set these values in an ignored `.env.local` in this directory:
+For standalone judging, set these values in an ignored `.env.local` in this directory:
 
 ```text
 VITE_BRAINSTORM_ENDPOINT=http://localhost:1234/v1/chat/completions
@@ -82,7 +81,7 @@ one visit. Notes receive stable IDs when accepted.
 Only finalized speech during a round is queued for judging. At expiry the clock stops, and the
 host stops and drains capture. Final recognition results are accepted until `flush` seals input.
 Pending judging can finish afterward; the board shows progress. Stopping the shared microphone
-also ends the round. Typed submissions after the deadline are rejected. Untimed rounds end
+also ends the round. Untimed rounds end
 explicitly.
 
 Requests run one at a time and retain pending input in order. Invalid results pause without

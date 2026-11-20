@@ -7,7 +7,6 @@ import { answerKey, findChallenge } from './challenges';
 import {
   BrainstormRequestError,
   createBrainstormRequest,
-  matchPracticeAnswers,
   parseBrainstormCompletion,
   type BrainstormConnection,
   type JudgedAnswer,
@@ -94,7 +93,6 @@ export type BrainstormSnapshot = Content & {
   provisional: string;
   busy: boolean;
   connected: boolean;
-  practice: boolean;
   feedback: string;
   failure?: BrainstormRequestError;
 };
@@ -117,7 +115,6 @@ export const createBrainstormDemo = () => {
     provisional: '',
     busy: false,
     connected: false,
-    practice: false,
     feedback: '',
   } as Omit<BrainstormSnapshot, keyof Content | 'remaining'>;
   const snapshot = (): BrainstormSnapshot => ({
@@ -179,16 +176,15 @@ export const createBrainstormDemo = () => {
       ? `Added ${notes.length} ${notes.length === 1 ? 'answer' : 'answers'}.`
       : answers.length
         ? 'Already on the board.'
-        : transient.practice
-          ? 'No new sample answers found.'
-          : 'No new qualifying answers.';
+        : 'No new qualifying answers.';
     emitEvent({ type: 'judged', notes, cursor });
   };
   const process = async () => {
     if (
       closed ||
       controller ||
-      (!transient.practice && (transient.failure || !connection)) ||
+      transient.failure ||
+      !connection ||
       content.cursor >= content.segments.length
     )
       return;
@@ -211,23 +207,19 @@ export const createBrainstormDemo = () => {
           text += `${text ? '\n' : ''}${content.segments[end++]!.text}`;
         }
         const challenge = findChallenge(content.challengeId);
-        let answers: JudgedAnswer[];
-        if (transient.practice) answers = matchPracticeAnswers(challenge, text);
-        else {
-          const body = createBrainstormRequest({
-            challenge,
-            existing: content.notes.map(note => note.text),
-            removed: content.removed,
-            text,
-            connection: activeConnection!,
-          });
-          const completion = await activeConnection!.requestCompletion({
-            body,
-            signal: abort.signal,
-          });
-          if (closed || generation !== currentGeneration || abort.signal.aborted) return;
-          answers = parseBrainstormCompletion(completion, text);
-        }
+        const body = createBrainstormRequest({
+          challenge,
+          existing: content.notes.map(note => note.text),
+          removed: content.removed,
+          text,
+          connection: activeConnection!,
+        });
+        const completion = await activeConnection!.requestCompletion({
+          body,
+          signal: abort.signal,
+        });
+        if (closed || generation !== currentGeneration || abort.signal.aborted) return;
+        const answers = parseBrainstormCompletion(completion, text);
         if (closed || generation !== currentGeneration || abort.signal.aborted) return;
         // Read the current board here: the player may have removed a note during the request.
         accept(answers, end);
@@ -251,11 +243,6 @@ export const createBrainstormDemo = () => {
   return {
     state$,
     events$,
-    setConnectionMode: (practice: boolean) => {
-      if (closed) return;
-      transient.practice = practice;
-      publish();
-    },
     configure: ({
       challengeId = content.challengeId,
       seconds = content.seconds,
@@ -273,13 +260,6 @@ export const createBrainstormDemo = () => {
       transient.feedback = '';
       emitEvent({ type: 'configured', challengeId, seconds });
     },
-    setPractice: (practice: boolean) => {
-      if (closed || ['running', 'finishing'].includes(content.phase)) return;
-      cancelWork();
-      transient.practice = practice;
-      transient.feedback = '';
-      emitEvent({ type: 'configured', challengeId: content.challengeId, seconds: content.seconds });
-    },
     connect: (next: BrainstormConnection) => {
       if (closed) return;
       connection = next;
@@ -293,7 +273,8 @@ export const createBrainstormDemo = () => {
         closed ||
         ['running', 'finishing'].includes(content.phase) ||
         (content.phase === 'finished' && transient.busy) ||
-        (!transient.practice && (!connection || transient.failure?.policy.terminal))
+        !connection ||
+        transient.failure?.policy.terminal
       )
         return;
       cancelWork();
@@ -327,15 +308,6 @@ export const createBrainstormDemo = () => {
       if (closed || !accepting) return;
       transient.provisional = text;
       publish();
-    },
-    submitText: (text: string) => {
-      if (closed || content.phase !== 'running' || !accepting || !text.trim()) return;
-      if (content.deadline !== null && Date.now() >= content.deadline) {
-        finish();
-        return;
-      }
-      emitEvent({ type: 'heard', id: crypto.randomUUID(), text });
-      void process();
     },
     remove: (id: string) => {
       if (!closed) emitEvent({ type: 'removed', id });

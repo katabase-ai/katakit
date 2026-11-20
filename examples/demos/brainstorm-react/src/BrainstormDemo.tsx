@@ -57,8 +57,6 @@ const BrainstormView = ({
 }: BrainstormDemoProps) => {
   const state = useBrainstormState(runtime);
   const [category, setCategory] = useState('');
-  const [typed, setTyped] = useState(false);
-  const [text, setText] = useState('');
   const setup = useRoundSetup({
     runtime,
     connect,
@@ -89,14 +87,12 @@ const BrainstormView = ({
 
   const prepareRound = (categoryId = category, seconds = state.seconds) => {
     runtime.configure({ challengeId: drawChallenge(categoryId, state.challengeId).id, seconds });
-    setText('');
   };
   const startRound = () =>
-    setup.start(typed, () => {
+    setup.start(() => {
       if (state.phase === 'finished') prepareRound();
-      setText('');
     });
-  const failure = setup.error ?? (state.practice ? undefined : state.failure);
+  const failure = setup.error ?? state.failure;
   const roundControls = (
     <>
       <Button
@@ -106,8 +102,10 @@ const BrainstormView = ({
           (state.phase === 'finished' && state.busy) ||
           (!active &&
             !setup.step &&
-            ((!typed && (captureDisabled || (!startListening && !listening))) ||
-              (!state.practice && state.failure?.policy.terminal && !state.failure.policy.restart)))
+            (captureDisabled ||
+              (!startListening && !listening) ||
+              (!connect && !state.connected) ||
+              (state.failure?.policy.terminal && !state.failure.policy.restart)))
         }
         onClick={() => {
           if (state.phase === 'finishing' || setup.step === 'cancelling') return;
@@ -141,13 +139,13 @@ const BrainstormView = ({
   );
   const modelControls = (
     <section className="brainstorm-connection" aria-label="Answer judging">
-      <strong>{state.practice ? 'Sample practice' : 'Answer judging'}</strong>
+      <strong>Answer judging</strong>
       <p role="status">
-        {state.practice
-          ? 'Only the five sample answers count.'
-          : state.connected
-            ? 'Judge connected · transcript text is sent for judging.'
-            : 'Starting a round connects the judge before revealing the challenge.'}
+        {state.connected
+          ? 'Judge connected · transcript text is sent for judging.'
+          : connect
+            ? 'Starting a round connects the judge before revealing the challenge.'
+            : 'Set up a judging connection to start a round.'}
       </p>
       {!connect && connectionHelp}
       {failure && <p role="alert">{failure.message}</p>}
@@ -155,17 +153,6 @@ const BrainstormView = ({
         <Button onClick={runtime.retry}>Retry judging</Button>
       )}
       {state.failure?.policy.restart && <p>Start a new round to reconnect the judge.</p>}
-      {connect && (
-        <label className="brainstorm-practice-toggle">
-          <input
-            type="checkbox"
-            checked={state.practice}
-            disabled={locked}
-            onChange={event => runtime.setPractice(event.target.checked)}
-          />{' '}
-          Sample practice
-        </label>
-      )}
     </section>
   );
 
@@ -301,55 +288,6 @@ const BrainstormView = ({
             </ol>
           </div>
 
-          <section className="brainstorm-input" aria-label="Round input">
-            {!typed && !listening && (
-              <p>
-                Start round prepares the microphone and judge, then reveals your challenge. You can
-                also use typed answers.
-              </p>
-            )}
-            <label>
-              <input
-                type="checkbox"
-                checked={typed}
-                disabled={locked}
-                onChange={event => setTyped(event.target.checked)}
-              />
-              Use typed answers
-            </label>
-            {typed && (
-              <form
-                onSubmit={event => {
-                  event.preventDefault();
-                  runtime.submitText(text);
-                  setText('');
-                }}
-              >
-                <label htmlFor="brainstorm-answer">Your answers</label>
-                <div>
-                  <input
-                    className="site-input"
-                    id="brainstorm-answer"
-                    value={text}
-                    maxLength={1000}
-                    disabled={state.phase !== 'running'}
-                    onChange={event => setText(event.target.value)}
-                    placeholder="Enter your answers"
-                    autoComplete="off"
-                  />
-                  <Button type="submit" disabled={state.phase !== 'running' || !text.trim()}>
-                    Add answers
-                  </Button>
-                </div>
-              </form>
-            )}
-            {state.practice && revealed && (
-              <p className="brainstorm-practice-hint">
-                <strong>Sample practice:</strong> only these examples count:{' '}
-                {challenge.sampleAnswers.join(', ')}.
-              </p>
-            )}
-          </section>
           {renderModelControls(modelControls)}
         </div>
         <aside className="brainstorm-transcript" aria-label="Transcript">

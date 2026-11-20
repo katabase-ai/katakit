@@ -43,7 +43,6 @@ export const useRoundSetup = ({
     const current = new AbortController();
     lifetime.current = current;
     setError(undefined);
-    runtime.setConnectionMode(!connect);
     return () => {
       current.abort();
       lifetime.current = undefined;
@@ -53,7 +52,7 @@ export const useRoundSetup = ({
     };
   }, [runtime, connect]);
 
-  const start = (typed: boolean, prepare: () => void) => {
+  const start = (prepare: () => void) => {
     const visit = lifetime.current;
     if (
       !visit ||
@@ -66,23 +65,20 @@ export const useRoundSetup = ({
     setError(undefined);
     prepare();
     let microphoneRequested = false;
-    let preparingMicrophone = !typed;
+    let preparingMicrophone = true;
     let began = false;
     void (async () => {
       try {
-        if (!typed) {
-          setStep('microphone');
-          microphoneRequested = true;
-          const ready = startListening
-            ? await untilAborted(startListening(controller.signal), controller.signal)
-            : listening;
-          if (!ready)
-            throw new BrainstormRequestError('The microphone could not start. Try again.');
-        }
+        setStep('microphone');
+        microphoneRequested = true;
+        const ready = startListening
+          ? await untilAborted(startListening(controller.signal), controller.signal)
+          : listening;
+        if (!ready) throw new BrainstormRequestError('The microphone could not start. Try again.');
         controller.signal.throwIfAborted();
         preparingMicrophone = false;
         const state = runtime.state$.value;
-        if (!state.practice && (!state.connected || state.failure?.policy.restart)) {
+        if (!state.connected || state.failure?.policy.restart) {
           if (!connect) throw new BrainstormRequestError('Answer judging is unavailable.');
           setStep('judge');
           admission.current?.abort();
@@ -94,7 +90,7 @@ export const useRoundSetup = ({
         }
         controller.signal.throwIfAborted();
         if (visit.signal.aborted) return;
-        if (!typed && !(isListening?.() ?? listening))
+        if (!(isListening?.() ?? listening))
           throw new BrainstormRequestError('The microphone stopped during setup. Try again.');
         runtime.begin();
         began = runtime.state$.value.phase === 'running';

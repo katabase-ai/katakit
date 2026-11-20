@@ -1,10 +1,37 @@
 // @vitest-environment happy-dom
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, expect, test, vi } from 'vitest';
-import { BrainstormDemo } from '../../brainstorm-react/src/BrainstormDemo';
+import type { ComponentProps } from 'react';
+import { BrainstormDemo as BrainstormDemoView } from '../../brainstorm-react/src/BrainstormDemo';
 import { createBrainstormDemo } from '../../brainstorm-react/src/createBrainstormDemo';
 import { findChallenge } from '../../brainstorm-react/src/challenges';
 
+const defaultConnect = async () => ({
+  model: 'test-model',
+  maxBodyBytes: 16384,
+  maxOutputTokens: 1024,
+  requestCompletion: async () => ({
+    choices: [{ finish_reason: 'stop', message: { content: '{"answers":[]}' } }],
+  }),
+});
+const dolphinConnect = async () => ({
+  ...(await defaultConnect()),
+  requestCompletion: async () => ({
+    choices: [
+      {
+        finish_reason: 'stop',
+        message: {
+          content: JSON.stringify({ answers: [{ text: 'dolphin', evidence: 'dolphin' }] }),
+        },
+      },
+    ],
+  }),
+});
+const BrainstormDemo = (props: ComponentProps<typeof BrainstormDemoView>) => (
+  <BrainstormDemoView listening connect={defaultConnect} {...props} />
+);
+const hear = (runtime: ReturnType<typeof createBrainstormDemo>, text: string) =>
+  runtime.ingestSegment({ id: crypto.randomUUID(), sourceId: 'test-mic', text });
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
@@ -22,6 +49,7 @@ test('the transcript shows interim and finalized input newest first, keeps rejec
   expect(transcript.getByText('Your words will appear here.')).toBeDefined();
   expect(screen.queryByText('What we heard')).toBeNull();
   fireEvent.click(screen.getByRole('button', { name: 'Start round' }));
+  await act(async () => {});
   act(() => runtime.updateProvisional('maybe a dolphin'));
   expect(transcript.getByRole('article', { name: 'In progress' }).textContent).toContain(
     'maybe a dolphin'
@@ -32,7 +60,7 @@ test('the transcript shows interim and finalized input newest first, keeps rejec
   expect(transcript.getByRole('article', { name: 'Entry 1' }).querySelector('p')?.textContent).toBe(
     original
   );
-  act(() => runtime.submitText('I cannot think of anything else.'));
+  act(() => hear(runtime, 'I cannot think of anything else.'));
   expect(transcript.getAllByRole('article').map(entry => entry.getAttribute('aria-label'))).toEqual(
     ['Entry 2', 'Entry 1']
   );
@@ -42,13 +70,14 @@ test('the transcript shows interim and finalized input newest first, keeps rejec
   await act(async () => {});
   expect(transcript.getAllByRole('article')).toHaveLength(2);
   fireEvent.click(screen.getByRole('button', { name: 'Next round' }));
+  await act(async () => {});
   expect(transcript.queryAllByRole('article')).toHaveLength(0);
   expect(transcript.getByText('Your words will appear here.')).toBeDefined();
   view.unmount();
   runtime.close();
 });
 
-test('the challenge, rule and examples are revealed only after Start, including after setup changes', () => {
+test('the challenge and rule are revealed only after Start, including after setup changes', async () => {
   const runtime = createBrainstormDemo();
   const view = render(<BrainstormDemo runtime={runtime} />);
   const original = findChallenge(runtime.state$.value.challengeId);
@@ -65,19 +94,18 @@ test('the challenge, rule and examples are revealed only after Start, including 
   expect(screen.queryByText(hidden.prompt)).toBeNull();
   expect(screen.queryByText(hidden.judgingRule)).toBeNull();
   expect(screen.queryByText(/only these examples count/)).toBeNull();
-  fireEvent.click(screen.getByLabelText('Use typed answers'));
   fireEvent.click(screen.getByRole('button', { name: 'Start round' }));
+  await act(async () => {});
   expect(screen.getByRole('button', { name: 'Game settings' }).hasAttribute('disabled')).toBe(true);
   expect(screen.getByRole('heading', { name: hidden.prompt })).toBeDefined();
   expect(screen.getByText(hidden.judgingRule)).toBeDefined();
-  expect(screen.getByText(/only these examples count/).textContent).toContain(
-    hidden.sampleAnswers[0]
-  );
+  expect(screen.queryByText(/only these examples count/)).toBeNull();
   act(() => {
     runtime.finish();
     runtime.flush();
   });
   fireEvent.click(screen.getByRole('button', { name: 'Next round' }));
+  await act(async () => {});
   expect(runtime.state$.value.challengeId).not.toBe(hidden.id);
   expect(runtime.state$.value.phase).toBe('running');
   expect(screen.queryByRole('heading', { name: hidden.prompt })).toBeNull();
@@ -103,8 +131,8 @@ test.each([
   ).toEqual(['30s', '1min', '2min', 'Unlimited']);
   fireEvent.change(settings.getByLabelText('Round length'), { target: { value } });
   fireEvent.click(settings.getByRole('button', { name: 'Apply' }));
-  fireEvent.click(screen.getByLabelText('Use typed answers'));
   fireEvent.click(screen.getByRole('button', { name: 'Start round' }));
+  await act(async () => {});
   expect(runtime.state$.value.seconds).toBe(seconds);
   await act(async () => {
     vi.advanceTimersByTime((seconds - 1) * 1000);
@@ -121,17 +149,33 @@ test.each([
   runtime.close();
 });
 
-test('typed practice plays a full round, removes a note, and changes to untimed play', async () => {
+test('spoken answers are judged, corrected, and collected in timed and untimed rounds', async () => {
   const runtime = createBrainstormDemo();
   const stop = vi.fn(async () => {});
-  const view = render(<BrainstormDemo runtime={runtime} stopListening={stop} />);
-  expect(screen.getByRole('button', { name: 'Start round' }).hasAttribute('disabled')).toBe(true);
-  fireEvent.click(screen.getByLabelText('Use typed answers'));
-  fireEvent.click(screen.getByRole('button', { name: 'Start round' }));
-  fireEvent.change(screen.getByLabelText('Your answers'), {
-    target: { value: 'dolphin octopus bicycle' },
+  const connect = async () => ({
+    ...(await defaultConnect()),
+    requestCompletion: async () => ({
+      choices: [
+        {
+          finish_reason: 'stop',
+          message: {
+            content: JSON.stringify({
+              answers: [
+                { text: 'dolphin', evidence: 'dolphin' },
+                { text: 'Octopus', evidence: 'octopus' },
+              ],
+            }),
+          },
+        },
+      ],
+    }),
   });
-  fireEvent.click(screen.getByRole('button', { name: 'Add answers' }));
+  const view = render(<BrainstormDemo runtime={runtime} stopListening={stop} connect={connect} />);
+  fireEvent.click(screen.getByRole('button', { name: 'Start round' }));
+  await act(async () => {});
+  await act(async () => {
+    hear(runtime, 'dolphin octopus bicycle');
+  });
   expect(screen.getByRole('button', { name: 'Remove dolphin' })).toBeDefined();
   expect(screen.getByRole('button', { name: 'Remove Octopus' })).toBeDefined();
   expect(screen.queryByRole('button', { name: 'Remove bicycle' })).toBeNull();
@@ -147,6 +191,7 @@ test('typed practice plays a full round, removes a note, and changes to untimed 
   expect(runtime.state$.value.seconds).toBeNull();
   expect(runtime.state$.value.notes).toEqual([]);
   fireEvent.click(screen.getByRole('button', { name: 'Start round' }));
+  await act(async () => {});
   expect(screen.getByRole('timer').textContent).toBe('Unlimited');
   await act(async () => {
     vi.advanceTimersByTime(300_000);
@@ -159,10 +204,11 @@ test('typed practice plays a full round, removes a note, and changes to untimed 
 
 test('settings drafts can be canceled without clearing the board and applied together', async () => {
   const runtime = createBrainstormDemo();
-  const view = render(<BrainstormDemo runtime={runtime} listening />);
+  const view = render(<BrainstormDemo runtime={runtime} listening connect={dolphinConnect} />);
   fireEvent.click(screen.getByRole('button', { name: 'Start round' }));
+  await act(async () => {});
   act(() => {
-    runtime.submitText('dolphin');
+    hear(runtime, 'dolphin');
     runtime.finish();
   });
   await act(async () => {});
@@ -200,8 +246,11 @@ test('countdown stops the shared microphone once and retains its drained final r
     runtime.ingestSegment({ id: 'last', sourceId: 'mic', text: 'dolphin' });
     runtime.flush();
   });
-  const view = render(<BrainstormDemo runtime={runtime} listening stopListening={stop} />);
+  const view = render(
+    <BrainstormDemo runtime={runtime} listening stopListening={stop} connect={dolphinConnect} />
+  );
   fireEvent.click(screen.getByRole('button', { name: 'Start round' }));
+  await act(async () => {});
   await act(async () => {
     vi.advanceTimersByTime(60_000);
   });
@@ -223,6 +272,7 @@ test('failed setup stays hidden, needs another Start, and unmount aborts admissi
   const view = render(<BrainstormDemo runtime={runtime} listening connect={connect} />);
   expect(connect).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole('button', { name: 'Start round' }));
+  await act(async () => {});
   await screen.findByRole('alert');
   expect(runtime.state$.value.phase).toBe('idle');
   expect(screen.getByRole('timer').textContent).toBe('1:00');
@@ -232,6 +282,7 @@ test('failed setup stays hidden, needs another Start, and unmount aborts admissi
   view.rerender(<BrainstormDemo runtime={runtime} listening connect={connect} />);
   expect(connect).toHaveBeenCalledOnce();
   fireEvent.click(screen.getByRole('button', { name: 'Start round' }));
+  await act(async () => {});
   await act(async () => {});
   expect(connect).toHaveBeenCalledTimes(2);
   view.unmount();
@@ -250,9 +301,11 @@ test('completion of an old microphone stop cannot seal a newly started round', a
   });
   const view = render(<BrainstormDemo runtime={runtime} listening stopListening={stop} />);
   fireEvent.click(screen.getByRole('button', { name: 'Start round' }));
+  await act(async () => {});
   fireEvent.click(screen.getByRole('button', { name: 'End round' }));
   expect(runtime.state$.value.phase).toBe('finished');
   fireEvent.click(screen.getByRole('button', { name: 'Next round' }));
+  await act(async () => {});
   await act(async () => {
     complete();
   });
@@ -276,8 +329,9 @@ test('the next round waits for in-flight judging so late answers remain visible'
   const view = render(<BrainstormDemo runtime={runtime} listening connect={connect} />);
   fireEvent.click(screen.getByRole('button', { name: 'Start round' }));
   await act(async () => {});
+  await act(async () => {});
   act(() => {
-    runtime.submitText('seal');
+    hear(runtime, 'seal');
     runtime.finish();
   });
   await act(async () => {});
@@ -337,19 +391,22 @@ test('inference source changes abort judging, retain the board, and reconnect on
   expect(connect).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole('button', { name: 'Start round' }));
   await act(async () => {});
+  await act(async () => {});
   await act(async () => {
-    runtime.submitText('seal');
+    hear(runtime, 'seal');
   });
   expect(screen.getByRole('button', { name: 'Remove Seal' })).toBeDefined();
   await act(async () => {
-    runtime.submitText('orca');
+    hear(runtime, 'orca');
   });
-  view.rerender(<BrainstormDemo runtime={runtime} listening stopListening={stop} />);
+  view.rerender(
+    <BrainstormDemo runtime={runtime} listening stopListening={stop} connect={undefined} />
+  );
   await act(async () => {});
   expect(requestSignal.aborted).toBe(true);
   expect(runtime.state$.value.connected).toBe(false);
   expect(runtime.state$.value.phase).toBe('finished');
-  expect(runtime.state$.value.practice).toBe(true);
+  expect(screen.getByRole('button', { name: 'Next round' }).hasAttribute('disabled')).toBe(true);
   expect(stop).toHaveBeenCalledOnce();
   await act(async () => {
     complete(result('Orca', 'orca'));
@@ -365,6 +422,7 @@ test('inference source changes abort judging, retain the board, and reconnect on
   );
   expect(runtime.state$.value.notes.map(note => note.text)).toEqual(['Seal']);
   fireEvent.click(screen.getByRole('button', { name: 'Next round' }));
+  await act(async () => {});
   await act(async () => {});
   expect(connect).toHaveBeenCalledTimes(2);
   expect(runtime.state$.value.phase).toBe('running');
@@ -403,6 +461,7 @@ test('one Start waits for microphone and judge readiness without revealing the c
   );
   const challenge = findChallenge(runtime.state$.value.challengeId);
   fireEvent.click(screen.getByRole('button', { name: 'Start round' }));
+  await act(async () => {});
   expect(startListening).toHaveBeenCalledOnce();
   expect(connect).not.toHaveBeenCalled();
   await act(async () => {
@@ -466,6 +525,7 @@ test.each(['microphone', 'judge'] as const)(
     );
     fireEvent.click(screen.getByRole('button', { name: 'Start round' }));
     await act(async () => {});
+    await act(async () => {});
     fireEvent.click(screen.getByRole('button', { name: 'Cancel setup' }));
     await act(async () => {});
     expect(micSignal.aborted).toBe(true);
@@ -483,6 +543,7 @@ test.each(['microphone', 'judge'] as const)(
     connect.mockResolvedValue(judge());
     fireEvent.click(screen.getByRole('button', { name: 'Start round' }));
     await act(async () => {});
+    await act(async () => {});
     expect(runtime.state$.value.phase).toBe('running');
     view.unmount();
     runtime.close();
@@ -496,6 +557,7 @@ test('microphone failure never admits a judge or reveals a challenge', async () 
     <BrainstormDemo runtime={runtime} startListening={async () => false} connect={connect} />
   );
   fireEvent.click(screen.getByRole('button', { name: 'Start round' }));
+  await act(async () => {});
   await act(async () => {});
   expect(connect).not.toHaveBeenCalled();
   expect(screen.getByRole('alert').textContent).toContain('microphone');
@@ -515,6 +577,7 @@ test('a microphone stopped while the judge connects cannot start the clock', asy
     <BrainstormDemo runtime={runtime} listening isListening={() => ready} connect={connect} />
   );
   fireEvent.click(screen.getByRole('button', { name: 'Start round' }));
+  await act(async () => {});
   ready = false;
   await act(async () => {
     admission.resolve(judge());
@@ -525,22 +588,25 @@ test('a microphone stopped while the judge connects cannot start the clock', asy
   runtime.close();
 });
 
-test('typed rounds skip the microphone and still wait for the judge', async () => {
+test('only microphone input with a configured judge is available', async () => {
   const runtime = createBrainstormDemo();
   const startListening = vi.fn();
-  const admission = deferred<ReturnType<typeof judge>>();
-  const connect = vi.fn(() => admission.promise);
   const view = render(
-    <BrainstormDemo runtime={runtime} startListening={startListening} connect={connect} />
+    <BrainstormDemo runtime={runtime} startListening={startListening} connect={undefined} />
   );
-  fireEvent.click(screen.getByLabelText('Use typed answers'));
+  expect(screen.getByRole('button', { name: 'Start round' }).hasAttribute('disabled')).toBe(true);
   fireEvent.click(screen.getByRole('button', { name: 'Start round' }));
+  await act(async () => {});
   expect(startListening).not.toHaveBeenCalled();
   expect(runtime.state$.value.phase).toBe('idle');
-  await act(async () => {
-    admission.resolve(judge());
-  });
-  expect(runtime.state$.value.phase).toBe('running');
+  expect(screen.queryByRole('checkbox')).toBeNull();
+  expect(screen.queryByRole('textbox')).toBeNull();
+  expect(
+    screen.queryByText(/Sample practice|only these examples count|Use typed answers/)
+  ).toBeNull();
+  expect(runtime.state$.value.deadline).toBeNull();
+  view.rerender(<BrainstormDemo runtime={runtime} listening={false} />);
+  expect(screen.getByRole('button', { name: 'Start round' }).hasAttribute('disabled')).toBe(true);
   view.unmount();
   runtime.close();
 });
@@ -570,6 +636,7 @@ test.each(['microphone', 'judge'] as const)(
       />
     );
     fireEvent.click(screen.getByRole('button', { name: 'Start round' }));
+    await act(async () => {});
     await act(async () => {});
     view.unmount();
     await act(async () => {

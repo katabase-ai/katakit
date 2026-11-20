@@ -20,12 +20,18 @@ const connection = (
   requestCompletion,
 });
 const games: ReturnType<typeof createBrainstormDemo>[] = [];
-const game = (practice = true) => {
+const game = () => {
   const runtime = createBrainstormDemo();
   games.push(runtime);
-  runtime.setPractice(practice);
+  runtime.connect(
+    connection(async () => ({
+      choices: [{ finish_reason: 'stop', message: { content: '{"answers":[]}' } }],
+    }))
+  );
   return runtime;
 };
+const hear = (runtime: ReturnType<typeof createBrainstormDemo>, text: string) =>
+  runtime.ingestSegment({ id: crypto.randomUUID(), sourceId: 'test-mic', text });
 afterEach(() => {
   games.forEach(runtime => runtime.close());
   games.length = 0;
@@ -47,9 +53,10 @@ test('the complete library has twenty categories, ten challenges each, and uniqu
   expect(drawChallenge('', 'animals-01', () => 0.999).id).not.toBe('animals-01');
 });
 
-test('the sixty-second clock begins only on explicit start, then drains final speech before sealing input', () => {
+test('the sixty-second clock begins only on explicit start, then drains final speech before sealing input', async () => {
   vi.useFakeTimers();
   const runtime = game();
+  runtime.connect(connection(async () => completion('dolphin')));
   vi.advanceTimersByTime(90_000);
   expect(runtime.state$.value.phase).toBe('idle');
   expect(runtime.state$.value.remaining).toBe(60);
@@ -62,6 +69,7 @@ test('the sixty-second clock begins only on explicit start, then drains final sp
   runtime.ingestSegment({ id: 'drain', sourceId: 'mic', text: 'dolphin' });
   runtime.flush();
   runtime.ingestSegment({ id: 'late', sourceId: 'mic', text: 'octopus' });
+  await Promise.resolve();
   expect(runtime.state$.value.phase).toBe('finished');
   expect(runtime.state$.value.notes.map(note => note.text)).toEqual(['dolphin']);
   expect(vi.getTimerCount()).toBe(0);
@@ -82,32 +90,64 @@ test('untimed rounds remain open until ended, and interim speech is never scored
   expect(runtime.state$.value.provisional).toBe('');
 });
 
-test('practice collects multiple examples, suppresses duplicates, and ignores unrelated or negated speech', () => {
+test('validated model answers are deduplicated and empty judgments still advance the cursor', async () => {
   const runtime = game();
+  const batch = {
+    choices: [
+      {
+        finish_reason: 'stop',
+        message: {
+          content: JSON.stringify({
+            answers: [
+              { text: 'Octopus', evidence: 'Octopus' },
+              { text: 'dolphin', evidence: 'dolphin' },
+            ],
+          }),
+        },
+      },
+    ],
+  };
+  runtime.connect(
+    connection(
+      vi
+        .fn()
+        .mockResolvedValueOnce(batch)
+        .mockResolvedValueOnce(completion('dolphin', 'dolphins'))
+        .mockResolvedValueOnce({
+          choices: [{ finish_reason: 'stop', message: { content: '{"answers":[]}' } }],
+        })
+    )
+  );
   runtime.begin();
-  runtime.submitText('Octopus, dolphin, bicycle.');
-  runtime.submitText('dolphins and octopus');
-  runtime.submitText('not a jellyfish');
+  hear(runtime, 'Octopus, dolphin, bicycle.');
+  await vi.waitFor(() => expect(runtime.state$.value.cursor).toBe(1));
+  hear(runtime, 'dolphins and octopus');
+  await vi.waitFor(() => expect(runtime.state$.value.cursor).toBe(2));
+  hear(runtime, 'not a jellyfish');
+  await vi.waitFor(() => expect(runtime.state$.value.cursor).toBe(3));
   expect(runtime.state$.value.notes.map(note => note.text)).toEqual(['Octopus', 'dolphin']);
   expect(runtime.state$.value.cursor).toBe(3);
 });
 
-test('repeated final segment delivery is idempotent and removed notes stay removed', () => {
+test('repeated final segment delivery is idempotent and removed notes stay removed', async () => {
   const runtime = game();
+  runtime.connect(connection(async () => completion('dolphin')));
   runtime.begin();
   const segment = { id: 'one', sourceId: 'mic', text: 'dolphin' };
   runtime.ingestSegment(segment);
   runtime.ingestSegment(segment);
+  await vi.waitFor(() => expect(runtime.state$.value.notes).toHaveLength(1));
   const id = runtime.state$.value.notes[0]!.id;
   runtime.remove(id);
-  runtime.submitText('dolphin');
+  hear(runtime, 'dolphin');
+  await vi.waitFor(() => expect(runtime.state$.value.cursor).toBe(2));
   expect(runtime.state$.value.segments).toHaveLength(2);
   expect(runtime.state$.value.notes).toEqual([]);
   expect(runtime.state$.value.removed).toEqual(['dolphin']);
 });
 
 test('live judging accepts valid non-example answers and retains arrivals during a single-flight request', async () => {
-  const runtime = game(false);
+  const runtime = game();
   let complete!: (value: unknown) => void;
   const request = vi
     .fn<BrainstormConnection['requestCompletion']>()
@@ -120,8 +160,8 @@ test('live judging accepts valid non-example answers and retains arrivals during
     .mockResolvedValueOnce(completion('Orca', 'orca'));
   runtime.connect(connection(request));
   runtime.begin();
-  runtime.submitText('seal');
-  runtime.submitText('orca');
+  hear(runtime, 'seal');
+  hear(runtime, 'orca');
   expect(request).toHaveBeenCalledTimes(1);
   complete(completion('Seal', 'seal'));
   await vi.waitFor(() => expect(runtime.state$.value.cursor).toBe(2));
@@ -134,7 +174,7 @@ test('live judging accepts valid non-example answers and retains arrivals during
 });
 
 test('a finished round waits for pending judging before starting the next one', async () => {
-  const runtime = game(false);
+  const runtime = game();
   let complete!: (value: unknown) => void;
   runtime.connect(
     connection(
@@ -145,7 +185,7 @@ test('a finished round waits for pending judging before starting the next one', 
     )
   );
   runtime.begin();
-  runtime.submitText('seal');
+  hear(runtime, 'seal');
   runtime.finish();
   runtime.flush();
   expect(runtime.state$.value.busy).toBe(true);
@@ -159,7 +199,7 @@ test('a finished round waits for pending judging before starting the next one', 
 });
 
 test('long finalized utterances preserve answers across character boundaries', async () => {
-  const runtime = game(false);
+  const runtime = game();
   const request = vi
     .fn<BrainstormConnection['requestCompletion']>()
     .mockResolvedValue(completion('Hammerhead shark', 'hammerhead shark'));
@@ -174,16 +214,16 @@ test('long finalized utterances preserve answers across character boundaries', a
 });
 
 test('a malformed batch pauses without advancing its cursor and explicit retry processes every pending segment', async () => {
-  const runtime = game(false);
+  const runtime = game();
   const request = vi
     .fn<BrainstormConnection['requestCompletion']>()
     .mockResolvedValueOnce(completion('Seal', 'not in the transcript'))
     .mockResolvedValueOnce(completion('Seal', 'seal'));
   runtime.connect(connection(request));
   runtime.begin();
-  runtime.submitText('seal');
+  hear(runtime, 'seal');
   await vi.waitFor(() => expect(runtime.state$.value.failure).toBeDefined());
-  runtime.submitText('not a bicycle');
+  hear(runtime, 'not a bicycle');
   expect(runtime.state$.value.cursor).toBe(0);
   expect(request).toHaveBeenCalledTimes(1);
   runtime.retry();
@@ -192,7 +232,7 @@ test('a malformed batch pauses without advancing its cursor and explicit retry p
 });
 
 test('an old response cannot change a new round, even if transport ignores cancellation', async () => {
-  const runtime = game(false);
+  const runtime = game();
   let complete!: (value: unknown) => void;
   let signal!: AbortSignal;
   runtime.connect(
@@ -204,7 +244,7 @@ test('an old response cannot change a new round, even if transport ignores cance
     })
   );
   runtime.begin();
-  runtime.submitText('seal');
+  hear(runtime, 'seal');
   runtime.finish();
   runtime.flush();
   runtime.configure({ challengeId: 'animals-02' });
@@ -218,7 +258,7 @@ test('an old response cannot change a new round, even if transport ignores cance
 });
 
 test('removal while a request is in flight cannot be undone by its stale result', async () => {
-  const runtime = game(false);
+  const runtime = game();
   let complete!: (value: unknown) => void;
   const request = vi
     .fn<BrainstormConnection['requestCompletion']>()
@@ -231,9 +271,9 @@ test('removal while a request is in flight cannot be undone by its stale result'
     );
   runtime.connect(connection(request));
   runtime.begin();
-  runtime.submitText('seal');
+  hear(runtime, 'seal');
   await vi.waitFor(() => expect(runtime.state$.value.notes).toHaveLength(1));
-  runtime.submitText('seal again');
+  hear(runtime, 'seal again');
   runtime.remove(runtime.state$.value.notes[0]!.id);
   complete(completion('Seal', 'seal'));
   await vi.waitFor(() => expect(runtime.state$.value.cursor).toBe(2));
@@ -241,11 +281,11 @@ test('removal while a request is in flight cannot be undone by its stale result'
 });
 
 test('request sizing failure retains input and terminal host failures survive new rounds', async () => {
-  const runtime = game(false);
+  const runtime = game();
   const request = vi.fn<BrainstormConnection['requestCompletion']>();
   runtime.connect({ ...connection(request), maxBodyBytes: 10 });
   runtime.begin();
-  runtime.submitText('seal');
+  hear(runtime, 'seal');
   await vi.waitFor(() => expect(runtime.state$.value.failure?.policy.code).toBe('context_limit'));
   expect(request).not.toHaveBeenCalled();
   expect(runtime.state$.value.cursor).toBe(0);
@@ -259,7 +299,7 @@ test('request sizing failure retains input and terminal host failures survive ne
     })
   );
   runtime.begin();
-  runtime.submitText('seal');
+  hear(runtime, 'seal');
   await vi.waitFor(() => expect(runtime.state$.value.failure?.policy.code).toBe('quota'));
   runtime.finish();
   runtime.flush();
@@ -269,16 +309,9 @@ test('request sizing failure retains input and terminal host failures survive ne
   expect(runtime.state$.value.failure?.message).toBe('Allowance exhausted');
 });
 
-test('typed answers after the deadline are ignored and a manually ended clock stays frozen', () => {
+test('a manually ended clock stays frozen', () => {
   vi.useFakeTimers();
   const runtime = game();
-  runtime.begin();
-  vi.setSystemTime(Date.now() + 60_001);
-  runtime.submitText('octopus');
-  expect(runtime.state$.value.phase).toBe('finishing');
-  expect(runtime.state$.value.notes).toEqual([]);
-  runtime.flush();
-  runtime.configure({});
   runtime.begin();
   vi.advanceTimersByTime(10_000);
   runtime.finish();
@@ -288,9 +321,22 @@ test('typed answers after the deadline are ignored and a manually ended clock st
   expect(runtime.state$.value.remaining).toBe(50);
 });
 
+test('a judging connection is required and finalized speech cannot start a round', () => {
+  const runtime = createBrainstormDemo();
+  games.push(runtime);
+  runtime.begin();
+  hear(runtime, 'dolphin');
+  expect(runtime.state$.value.phase).toBe('idle');
+  expect(runtime.state$.value.deadline).toBeNull();
+  expect(runtime.state$.value.segments).toEqual([]);
+  expect(runtime).not.toHaveProperty('submitText');
+  expect(runtime).not.toHaveProperty('setPractice');
+  expect(runtime.state$.value).not.toHaveProperty('practice');
+});
+
 test('close aborts work, completes the public state, and clears every timer', async () => {
   vi.useFakeTimers();
-  const runtime = game(false);
+  const runtime = game();
   let complete!: (value: unknown) => void;
   let signal!: AbortSignal;
   const completed = vi.fn();
@@ -304,7 +350,7 @@ test('close aborts work, completes the public state, and clears every timer', as
     })
   );
   runtime.begin();
-  runtime.submitText('seal');
+  hear(runtime, 'seal');
   runtime.close();
   expect(signal.aborted).toBe(true);
   expect(completed).toHaveBeenCalledOnce();

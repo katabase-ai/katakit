@@ -247,40 +247,6 @@
 .brainstorm-game .brainstorm-note .brainstorm-note-remove:hover:not(:disabled) {
   background: #0000000d;
 }
-.brainstorm-input {
-  margin-top: 20px;
-}
-.brainstorm-input > p {
-  color: var(--color-muted, #60646c);
-}
-.brainstorm-input > label,
-.brainstorm-practice-toggle {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.brainstorm-input form {
-  margin-top: 16px;
-}
-.brainstorm-input form > label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-.brainstorm-input form > div {
-  display: flex;
-  gap: 8px;
-  margin-top: 8px;
-}
-.brainstorm-input form input {
-  min-width: 0;
-  flex: 1;
-}
-.brainstorm-practice-hint {
-  line-height: 1.6;
-  margin-top: 16px;
-  font-size: 0.875rem;
-}
 .brainstorm-transcript {
   display: flex;
   flex-direction: column;
@@ -346,9 +312,6 @@
 }
 .brainstorm-connection .site-button {
   margin-block: 4px;
-}
-.brainstorm-practice-toggle {
-  margin-top: 12px;
 }
 @keyframes brainstorm-note-in {
   from {

@@ -41,8 +41,8 @@ note board, 200 challenges, and 30s, 1min (default), 2min, or unlimited rounds.
 Challenges stay hidden and the clock stays stopped while **Start round** prepares the shared
 microphone and judge. **Cancel setup** cancels preparation; **End round** stops and drains capture.
 This single action uses the standard gallery header slot, and the header/data-handling badge
-come from gallery metadata. Without inference it offers explicitly labeled sample-only practice.
-Typed answers skip microphone setup and still wait for the judge. Developer builds use Configure models
+come from gallery metadata. Rounds require microphone input and an inference connection.
+Developer builds use Configure models
 for inference settings; managed hosts use the existing `connectModel` contract. Changing the
 inference source or preview mode aborts judging and ends the current round while retaining its
 board. The next explicit Start prepares the new connection. **Run locally** offers a pinned copy
@@ -228,7 +228,8 @@ not affect capture. The local host passes no handler.
 A host passes one `connectModel` to `Gallery` for its model admission/transport; see
 `shared/galleryModel.tsx` for the contract. Every entry with the `remoteModel` capability uses it,
 so a new such demo needs no host code. Without a connection, the footer's Settings button opens a
-notice that inference is unavailable while transcription remains usable; pressing it opens Settings. Public mode never falls back to a saved developer key. Every demo link stays clickable. Hosts throw `GalleryModelError` for failures they
+notice that inference is unavailable; pressing it opens Settings. Each demo determines which
+on-device features remain usable without inference. Public mode never falls back to a saved developer key. Every demo link stays clickable. Hosts throw `GalleryModelError` for failures they
 want shown or retried. Connection controls, browser verification, and errors render
 inside the active demo. Host `onAllowance` reports drive the shared footer usage meter: the percentage
 is consumed allowance, yellow at 80% and red at 100%. On-device transcription does not consume this
