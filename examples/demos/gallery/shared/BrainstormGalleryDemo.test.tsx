@@ -225,6 +225,49 @@ test('completion of an old microphone stop cannot seal a newly started round', a
   runtime.close();
 });
 
+test('the next round waits for in-flight judging so late answers remain visible', async () => {
+  const runtime = createBrainstormDemo();
+  let complete!: (value: unknown) => void;
+  const connect = vi.fn(async () => ({
+    model: 'test-model',
+    maxBodyBytes: 16384,
+    maxOutputTokens: 1024,
+    requestCompletion: () =>
+      new Promise(resolve => {
+        complete = resolve;
+      }),
+  }));
+  const view = render(<BrainstormDemo runtime={runtime} listening connect={connect} />);
+  fireEvent.click(screen.getByRole('button', { name: 'Connect judge' }));
+  await act(async () => {});
+  fireEvent.click(screen.getByRole('button', { name: 'Start round' }));
+  act(() => {
+    runtime.submitText('seal');
+    runtime.finish();
+  });
+  await act(async () => {});
+  expect(runtime.state$.value.phase).toBe('finished');
+  expect((screen.getByRole('button', { name: 'Next round' }) as HTMLButtonElement).disabled).toBe(
+    true
+  );
+  await act(async () => {
+    complete({
+      choices: [
+        {
+          finish_reason: 'stop',
+          message: { content: JSON.stringify({ answers: [{ text: 'Seal', evidence: 'seal' }] }) },
+        },
+      ],
+    });
+  });
+  expect(screen.getByRole('button', { name: 'Remove Seal' })).toBeDefined();
+  expect((screen.getByRole('button', { name: 'Next round' }) as HTMLButtonElement).disabled).toBe(
+    false
+  );
+  view.unmount();
+  runtime.close();
+});
+
 test('inference source changes abort judging, retain the board, and require a new explicit connection', async () => {
   const runtime = createBrainstormDemo();
   const result = (text: string, evidence: string) => ({

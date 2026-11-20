@@ -234,6 +234,7 @@ const BrainstormView = ({
             <Button
               className="brainstorm-primary"
               disabled={
+                (state.phase === 'finished' && state.busy) ||
                 (!listening && !typed) ||
                 (!state.practice && (!state.connected || state.failure?.policy.terminal))
               }

@@ -133,6 +133,31 @@ test('live judging accepts valid non-example answers and retains arrivals during
   expect(context.newTranscript).toBe('orca');
 });
 
+test('a finished round waits for pending judging before starting the next one', async () => {
+  const runtime = game(false);
+  let complete!: (value: unknown) => void;
+  runtime.connect(
+    connection(
+      () =>
+        new Promise(resolve => {
+          complete = resolve;
+        })
+    )
+  );
+  runtime.begin();
+  runtime.submitText('seal');
+  runtime.finish();
+  runtime.flush();
+  expect(runtime.state$.value.busy).toBe(true);
+  runtime.begin();
+  expect(runtime.state$.value.phase).toBe('finished');
+  complete(completion('Seal', 'seal'));
+  await vi.waitFor(() => expect(runtime.state$.value.busy).toBe(false));
+  expect(runtime.state$.value.notes.map(note => note.text)).toEqual(['Seal']);
+  runtime.begin();
+  expect(runtime.state$.value.phase).toBe('running');
+});
+
 test('long finalized utterances preserve answers across character boundaries', async () => {
   const runtime = game(false);
   const request = vi

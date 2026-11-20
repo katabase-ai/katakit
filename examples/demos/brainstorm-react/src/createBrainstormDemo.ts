@@ -292,6 +292,7 @@ export const createBrainstormDemo = () => {
       if (
         closed ||
         ['running', 'finishing'].includes(content.phase) ||
+        (content.phase === 'finished' && transient.busy) ||
         (!transient.practice && (!connection || transient.failure?.policy.terminal))
       )
         return;
