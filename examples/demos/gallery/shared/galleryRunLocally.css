@@ -90,6 +90,7 @@
   overflow: auto;
   border-radius: 8px;
   background: var(--color-paper-3);
+  color: var(--color-ink);
   font-family: var(--font-outlier, ui-monospace, monospace);
   font-size: 13px;
   line-height: 20px;
