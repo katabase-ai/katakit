@@ -10,6 +10,7 @@ import { GalleryDemoCapture } from './GalleryDemoHeader';
 import { useGallerySpeech } from './GallerySpeechProvider';
 import { GalleryMicrophoneIndicator } from './GalleryMicrophoneIndicator';
 import { GalleryTermsContext } from './GalleryTermsContext';
+import { useGalleryConsent } from './GalleryConsentProvider';
 import './galleryCaptureControls.css';
 
 type SpeechCaptureProps = {
@@ -28,13 +29,19 @@ const CaptureButton = ({
   ...button
 }: ButtonHTMLAttributes<HTMLButtonElement> & { secondary?: boolean }) => {
   const termsUrl = useContext(GalleryTermsContext);
+  const consent = useGalleryConsent();
   const consentId = useId();
-  const showConsent = !!termsUrl && !secondary;
+  const showConsent = !!termsUrl && !secondary && !consent?.accepted;
   return (
     <>
       <button
         {...button}
         type="button"
+        onClick={event => {
+          // The primary click accepts the notice even if model/microphone setup later fails.
+          if (showConsent) consent?.accept();
+          button.onClick?.(event);
+        }}
         aria-describedby={
           [button['aria-describedby'], showConsent ? consentId : undefined]
             .filter(Boolean)

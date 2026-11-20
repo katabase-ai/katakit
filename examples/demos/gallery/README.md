@@ -121,6 +121,12 @@ actions do not show the notice. Embeds outside `Gallery`, such as a homepage gam
 content in `GalleryTermsContext` with their own Terms URL; `Gallery` inherits that URL when its
 prop is omitted. No policy link is invented for hosts without a URL. The reference host supplies
 `https://katabase.com/Terms`. Both policy URLs belong to the host.
+Mount `GalleryConsentProvider` once above the route outlet and any standalone embeds. The first
+primary click hides the notice across those views, even if microphone setup fails. Acceptance
+is stored in `sessionStorage` for this tab's visit and survives navigation and reloads. If storage
+is blocked, the mounted provider remembers it until the page reloads. Opening the Terms link,
+secondary actions, and disabled buttons do not accept the notice. Hosts without this provider
+continue to show the notice on every primary action.
 Each host owns its URLs, title metadata, not-found/loading/error handling, and router registration.
 Adding an entry here makes it eligible; each consuming website still chooses what to include.
 Examples continue to own their code and never import private website components.
