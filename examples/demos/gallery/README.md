@@ -79,7 +79,7 @@ always use neutral configured-service wording, ignoring any host promise. The ga
 verify endpoint security, retention, or model-provider policies.
 
 Entries with their own example directory also declare `copyDirectory`. `Gallery` gives those demos
-a **Run locally** control beside the data-handling badge: a **View example source** link, an `npx degit`
+a **Get the code** control beside the data-handling badge: a **View example source** link, an `npx degit`
 command that copies the example directory and starts it, and a prompt that asks a coding agent to do the same. For demos with the
 `remoteModel` capability its panel says the copy needs your own model API key. Pass `sourceRevision`
 with the Katakit commit the host's demos come from, so the source link and local copy match the demo
@@ -188,7 +188,7 @@ Listening belongs to each demo. Its button sits at the left, below the descripti
 body heading: a primary Start, then a secondary Pause, beside a microphone glyph that fills with
 the level being heard. Mouse controls are 36px high; touch controls remain 44px. Setup progress
 follows the button.
-A demo's own controls stay inside the demo. Run locally and the
+A demo's own controls stay inside the demo. Get the code and the
 data-handling badge sit at the header's top right, level with the top of the title.
 Models load only after a visitor action. Standalone controls
 remain independent. Navigation retains the loaded model but stops capture.
@@ -233,14 +233,13 @@ reported here. The count survives demo navigation and key/model/source changes i
 hidden in public preview, and resets on page reload. It is kept in memory, never local storage.
 Neither mode estimates usage or makes a usage request on page load.
 
-The optional `Gallery account` prop supplies `user: { name, avatarUrl? }` and real host callbacks
-`onCreateAccount`, `onLogIn`, and `onOpenAccount`. Guests see a person avatar with a blue plus;
-signed-in users see their image or initials. The plus pulses at 80% consumed and grows at exhaustion,
-remaining blue. Reduced-motion preferences disable the pulse. With no callbacks, the avatar panel
-explains that account access is unavailable. Public Settings displays the signup/sign-in actions and
-explains availability when clicked without a host callback; it never simulates authentication.
-Signed-in visitors see their account summary and Manage account instead of signup. The reference
-host has no signup/login implementation. Pass `settingsPage` to render this shared page, and
+The optional `Gallery account` prop supplies a host-owned `waitlistUrl`, or signed-in identity
+`user: { name, avatarUrl? }` and a real `onOpenAccount` callback. Guests get a direct **Join the
+waitlist** link in the footer and Public Settings when the host supplies a destination. There is
+no guest signup or sign-in menu, and missing destinations do not create placeholder actions.
+Signed-in users see their image or initials and their real account action. Public Settings shows
+their account summary and **Manage account**. The reference host links to
+`https://katabase.com/waitlist`; embedding hosts own their destination. Pass `settingsPage` to render this shared page, and
 `onOpenSettings` for mode-appropriate host navigation; developer operation recovery keeps its
 separate `onConfigureOperation` callback. Neither the public page nor its navigation enables BYOK.
 

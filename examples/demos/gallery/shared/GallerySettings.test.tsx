@@ -94,6 +94,7 @@ const Content = ({
         activeDemo={galleryDemoDetails[2]}
         developerPage={page === 'settings' ? undefined : page}
         settingsPage={page === 'settings'}
+        account={{ waitlistUrl: 'https://example.com/waitlist' }}
         onOpenSettings={() => setPage(isDeveloperView ? 'setup' : 'settings')}
         input={<GallerySpeechControls />}
         connectModel={connectModel}
@@ -469,7 +470,11 @@ test('public Settings opens account content, shares allowance with the footer, a
   fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
   await screen.findByRole('heading', { name: 'Settings' });
   expect(visitSignal.aborted).toBe(true);
-  expect(screen.getByRole('button', { name: 'Create an account' })).toBeDefined();
+  expect(
+    within(screen.getByRole('article'))
+      .getByRole('link', { name: 'Join the waitlist' })
+      .getAttribute('href')
+  ).toBe('https://example.com/waitlist');
   expect(screen.queryByLabelText('API key')).toBeNull();
   expect(screen.queryByRole('navigation', { name: 'Operation views' })).toBeNull();
   expect(

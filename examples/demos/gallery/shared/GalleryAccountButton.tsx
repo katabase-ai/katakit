@@ -1,13 +1,13 @@
 import { useContext, useEffect, useRef, useState } from 'react';
 import { Plus, UserRound } from 'lucide-react';
 import { GalleryModelContext } from './galleryModel';
-import { GalleryTooltipButton } from './GalleryTooltip';
+import { GalleryTooltip, GalleryTooltipButton } from './GalleryTooltip';
 
 /** Identity and account actions belong to the embedding host, never browser inference settings. */
 export type GalleryAccount = {
   user?: { name: string; avatarUrl?: string };
-  onCreateAccount?: () => void;
-  onLogIn?: () => void;
+  /** Host-owned waitlist destination, independent of account authentication. */
+  waitlistUrl?: string;
   onOpenAccount?: () => void;
 };
 
@@ -17,14 +17,8 @@ export const GalleryAccountButton = () => {
   const [failedImage, setFailedImage] = useState<string>();
   const root = useRef<HTMLDivElement>(null);
   const user = account?.user;
-  const supported = user
-    ? !!account?.onOpenAccount
-    : !!(account?.onCreateAccount || account?.onLogIn);
-  const label = user
-    ? `Account${user.name ? `: ${user.name}` : ''}`
-    : supported
-      ? 'Create a free account or log in'
-      : 'Account';
+  const supported = !!account?.onOpenAccount;
+  const label = `Account${user?.name ? `: ${user.name}` : ''}`;
   const words = user?.name.trim().split(/\s+/).filter(Boolean) ?? [];
   const initials = (words.length > 1 ? [words[0], words.at(-1)] : words)
     .map(word => word?.[0] ?? '')
@@ -50,6 +44,30 @@ export const GalleryAccountButton = () => {
     setOpen(false);
     action();
   };
+  if (!user)
+    return account?.waitlistUrl ? (
+      <GalleryTooltip
+        description="Join the waitlist"
+        className="gallery-account-tooltip"
+        dismissOnActivate
+      >
+        {trigger => (
+          <a
+            {...trigger}
+            className="gallery-footer-icon gallery-waitlist-link"
+            href={account.waitlistUrl}
+            aria-label="Join the waitlist"
+          >
+            <span className="gallery-account-avatar" aria-hidden="true">
+              <UserRound />
+              <span className="gallery-account-plus">
+                <Plus />
+              </span>
+            </span>
+          </a>
+        )}
+      </GalleryTooltip>
+    ) : null;
   return (
     <div
       className="gallery-account"
@@ -79,11 +97,6 @@ export const GalleryAccountButton = () => {
           ) : (
             initials || <UserRound />
           )}
-          {!user && (
-            <span className="gallery-account-plus">
-              <Plus />
-            </span>
-          )}
         </span>
       </GalleryTooltipButton>
       {open && (
@@ -92,29 +105,11 @@ export const GalleryAccountButton = () => {
           data-side="top"
           data-align="start"
           role="dialog"
-          aria-label={user ? 'Your account' : 'Free demo account'}
+          aria-label="Your account"
         >
           {supported ? (
             <>
-              <p>{user?.name || 'Create a free account or log in.'}</p>
-              {!user && account?.onCreateAccount && (
-                <button
-                  className="site-button"
-                  type="button"
-                  onClick={() => activate(account.onCreateAccount!)}
-                >
-                  Create account
-                </button>
-              )}
-              {!user && account?.onLogIn && (
-                <button
-                  className="site-button"
-                  type="button"
-                  onClick={() => activate(account.onLogIn!)}
-                >
-                  Log in
-                </button>
-              )}
+              <p>{user.name}</p>
               {user && account?.onOpenAccount && (
                 <button
                   className="site-button"

@@ -100,6 +100,9 @@
     box-shadow: 0 0 0 5px color-mix(in srgb, var(--color-accent) 22%, transparent);
   }
 }
+.katakit-gallery .gallery-waitlist-link {
+  text-decoration: none;
+}
 .katakit-gallery .gallery-usage-meter,
 .katakit-gallery .gallery-usage-error-button {
   display: flex;

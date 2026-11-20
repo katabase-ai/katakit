@@ -3,6 +3,7 @@ import { Check, Copy, SquareTerminal } from 'lucide-react';
 import type { galleryDemoDetails } from './galleryDemoDetails';
 import { useGalleryEvents } from './galleryEvents';
 import './galleryRunLocally.css';
+import './galleryTooltip.css';
 
 type Demo = (typeof galleryDemoDetails)[number];
 
@@ -130,9 +131,13 @@ export const GalleryRunLocally = ({ demo, revision }: { demo: Demo; revision?: s
     <details ref={dismissOutside} className="gallery-run-locally">
       <summary>
         <SquareTerminal aria-hidden="true" />
-        Run locally
+        Get the code
       </summary>
-      <div className="gallery-run-locally-panel">
+      <div
+        className="gallery-run-locally-panel gallery-hover-panel"
+        data-side="bottom"
+        data-align="end"
+      >
         <p>
           <a
             href={`https://github.com/katabase-ai/katakit/tree/${revision ?? 'main'}/${demo.sourcePath}`}

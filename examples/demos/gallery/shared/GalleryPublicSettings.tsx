@@ -55,29 +55,16 @@ export const GalleryPublicSettings = ({
           <>
             <h2 id="gallery-settings-account-title">Take your ideas further with Katabase</h2>
             <p>
-              Create an account to get more model calls for cloud-based demos. We take care of the
-              model setup, so you can focus on exploring and building.
+              A place to understand how your applications behave, learn from real interactions, and
+              make them better as they grow. From experimenting with prompts and models to tracking
+              quality, latency, and cost, Katabase will help you take the next step.
             </p>
             <div className="gallery-settings-account-actions">
-              <button
-                type="button"
-                className="site-button"
-                onClick={() =>
-                  activate(account?.onCreateAccount, 'Account creation isn’t available here yet.')
-                }
-              >
-                Create an account
-              </button>
-              <span>
-                Already have an account?{' '}
-                <button
-                  type="button"
-                  className="gallery-settings-sign-in"
-                  onClick={() => activate(account?.onLogIn, 'Sign-in isn’t available here yet.')}
-                >
-                  Sign in
-                </button>
-              </span>
+              {account?.waitlistUrl && (
+                <a className="site-button" href={account.waitlistUrl}>
+                  Join the waitlist
+                </a>
+              )}
             </div>
           </>
         )}

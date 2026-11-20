@@ -56,7 +56,7 @@
 .katakit-gallery .gallery-demo-header-badge .gallery-run-locally {
   position: relative;
 }
-/* Beside the badge, Run locally is a text button at the badge's type size; the badge keeps its pill. */
+/* Beside the badge, Get the code is a text button at the badge's type size; the badge keeps its pill. */
 .katakit-gallery .gallery-demo-header-badge .gallery-run-locally > summary {
   gap: 6px;
   min-height: 0;
@@ -184,6 +184,8 @@
     justify-self: start;
   }
   .katakit-gallery .gallery-demo-header-badge .gallery-run-locally-panel {
+    --gallery-caret-left: 1rem;
+    --gallery-caret-right: auto;
     inset-inline-start: 0;
     inset-inline-end: auto;
     width: calc(100vw - 2 * var(--gutter, 1rem) - 2 * var(--gallery-gutter));

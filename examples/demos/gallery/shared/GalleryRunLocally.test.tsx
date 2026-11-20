@@ -29,11 +29,11 @@ test('only a demo that calls a model mentions an API key', () => {
   expect(runLocallyPrompt(notesDemoDetails)).toContain('Ask me before you read, create, or edit');
   expect(runLocallyPrompt(bingoDemoDetails)).not.toMatch(/API key/);
   render(<GalleryRunLocally demo={notesDemoDetails} />);
-  expect(screen.getByText('Run locally')).toBeDefined();
+  expect(screen.getByText('Get the code')).toBeDefined();
   expect(screen.getByText(/connecting your own model API key/)).toBeDefined();
   cleanup();
   render(<GalleryRunLocally demo={bingoDemoDetails} />);
-  expect(screen.getByText('Run locally')).toBeDefined();
+  expect(screen.getByText('Get the code')).toBeDefined();
   expect(screen.queryByText(/API key/)).toBeNull();
 });
 
@@ -78,7 +78,7 @@ test('a blocked clipboard asks the visitor to copy by hand', async () => {
 
 test('a press outside or Escape closes the open panel; a press inside keeps it', () => {
   render(<GalleryRunLocally demo={bingoDemoDetails} />);
-  const details = screen.getByText('Run locally').closest('details')!;
+  const details = screen.getByText('Get the code').closest('details')!;
   details.open = true;
   fireEvent.pointerDown(screen.getByText('Command'));
   expect(details.open).toBe(true);

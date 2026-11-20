@@ -14,6 +14,8 @@
   line-height: 1.65;
 }
 .katakit-gallery .gallery-settings-account {
+  -webkit-user-select: text;
+  user-select: text;
   padding: 2rem;
   border: 1px solid color-mix(in srgb, var(--color-accent) 35%, var(--color-rule));
   border-radius: 1rem;
@@ -29,20 +31,8 @@
   flex-wrap: wrap;
   gap: 1rem 1.5rem;
 }
-.katakit-gallery .gallery-settings-account-actions > span {
-  color: var(--color-muted);
-  font-size: 0.875rem;
-}
-.katakit-gallery .gallery-settings-sign-in {
-  min-height: 44px;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--color-link, var(--color-accent));
-  font: inherit;
-  text-decoration: underline;
-  text-underline-offset: 0.2em;
-  cursor: pointer;
+.katakit-gallery .gallery-settings-account-actions > a {
+  text-decoration: none;
 }
 .katakit-gallery .gallery-settings-account > .gallery-settings-account-notice {
   margin: 1rem 0 0;

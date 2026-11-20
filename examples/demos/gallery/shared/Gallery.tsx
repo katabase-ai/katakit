@@ -82,7 +82,7 @@ export const Gallery = ({
   /** The host supplies identity and real account destinations in either mode. */
   account?: GalleryAccount;
   /**
-   * The Katakit commit this host's demos come from. Run locally copies that revision so a copy
+   * The Katakit commit this host's demos come from. Get the code copies that revision so a copy
    * matches the demo the visitor used; without one it copies the default branch.
    */
   sourceRevision?: string;
