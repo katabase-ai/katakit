@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react';
 import { bind, Subscribe } from '@react-rxjs/core';
 import type { ListExtractionRuntime } from './createListExtractionDemo';
 import { formatTime, presets, type ExtractionConnect, type ListRule } from './extractionModel';
@@ -24,6 +24,7 @@ const RuleEditor = ({
   onChange,
   onRemove,
   disabled,
+  addList,
 }: {
   rule: ListRule;
   index: number;
@@ -31,8 +32,9 @@ const RuleEditor = ({
   onChange: (rule: ListRule) => void;
   onRemove: () => void;
   disabled: boolean;
+  addList?: ReactNode;
 }) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(rule.preset === 'Custom');
   return (
     <div className="extraction-rule">
       <div className="extraction-rule-row">
@@ -52,29 +54,20 @@ const RuleEditor = ({
             <option key={preset}>{preset}</option>
           ))}
         </select>
+        {addList}
         <button
           type="button"
           className="extraction-quiet"
+          aria-label={`Options for list ${index + 1}`}
           aria-expanded={open}
           aria-controls={`extraction-options-${rule.id}`}
           onClick={() => setOpen(!open)}
         >
-          Customize
+          Options
         </button>
-        {count > 1 && (
-          <button
-            type="button"
-            className="extraction-quiet"
-            disabled={disabled}
-            onClick={onRemove}
-            aria-label={`Remove list ${index + 1}`}
-          >
-            Remove
-          </button>
-        )}
       </div>
-      <p className="extraction-rule-hint">{presets[rule.preset]}</p>
       <div id={`extraction-options-${rule.id}`} className="extraction-options" hidden={!open}>
+        <p className="extraction-rule-hint">{presets[rule.preset]}</p>
         <label className="extraction-field">
           List name
           <input
@@ -114,6 +107,17 @@ const RuleEditor = ({
             onChange={event => onChange({ ...rule, instructions: event.target.value })}
           />
         </label>
+        {count > 1 && (
+          <button
+            type="button"
+            className="extraction-quiet extraction-remove-list"
+            disabled={disabled}
+            onClick={onRemove}
+            aria-label={`Remove list ${index + 1}`}
+          >
+            Remove list
+          </button>
+        )}
       </div>
     </div>
   );
@@ -140,6 +144,12 @@ const ExtractionView = ({
   const [copyFallback, setCopyFallback] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const [message, setMessage] = useState('');
+  const [editingRules, setEditingRules] = useState(!turns.length);
+  const [setupTouched, setSetupTouched] = useState(false);
+  const editorId = useId();
+  const editor = useRef<HTMLDivElement>(null);
+  const editLists = useRef<HTMLButtonElement>(null);
+  const focusEditor = useRef(false);
   const sampleOnly = turns.length > 0 && turns.every(turn => turn.sourceId === 'sample');
   const active = result?.rules.find(rule => rule.id === selected) ?? result?.rules[0];
   const items = result?.items.filter(item => item.listId === active?.id && !item.hidden) ?? [];
@@ -150,8 +160,21 @@ const ExtractionView = ({
     return () => runtime.cancel();
   }, [runtime, connect]);
   useEffect(() => {
-    if (listening) runtime.cancel();
+    if (listening) {
+      runtime.cancel();
+      setEditingRules(false);
+      setSetupTouched(true);
+    }
   }, [runtime, listening]);
+
+  useEffect(() => {
+    if (editingRules && focusEditor.current) {
+      editor.current?.querySelector('select')?.focus();
+      focusEditor.current = false;
+    } else if (!editingRules && editor.current?.contains(document.activeElement)) {
+      editLists.current?.focus();
+    }
+  }, [editingRules]);
 
   const copy = async () => {
     try {
@@ -169,8 +192,39 @@ const ExtractionView = ({
     setSourceItem(undefined);
     setCopyFallback(false);
     setConfirmClear(false);
+    setEditingRules(true);
+    setSetupTouched(false);
     setMessage('Dictation and lists cleared. Microphone is off.');
   };
+  const changeRules = (next: ListRule[]) => {
+    setSetupTouched(true);
+    runtime.setRules(next);
+  };
+  const addList = (
+    <button
+      type="button"
+      className="extraction-quiet extraction-add"
+      disabled={rules.length >= 6}
+      onClick={() => {
+        const preset =
+          (['Decisions', 'Questions', 'Ideas and proposals', 'Commitments'] as const).find(
+            preset => !rules.some(rule => rule.preset === preset)
+          ) ?? 'Custom';
+        changeRules([
+          ...rules,
+          {
+            id: crypto.randomUUID(),
+            preset,
+            name: preset === 'Custom' ? 'Custom list' : preset,
+            wording: 'clean',
+            instructions: '',
+          },
+        ]);
+      }}
+    >
+      + Add list
+    </button>
+  );
   return (
     <section className="list-extraction" aria-label="List extraction">
       {showIntroduction && (
@@ -179,47 +233,53 @@ const ExtractionView = ({
           <p>Tell it what to keep. Speak freely and collect selective lists.</p>
         </header>
       )}
-      <p className="extraction-hint">
-        Dictation stays on this device. Choose Extract lists to send finalized transcript text to
-        your selected model.
-      </p>
+      <p className="extraction-hint extraction-workflow">Dictate, pause, then extract.</p>
       <section className="extraction-setup" aria-label="Extraction rules">
-        {rules.map((rule, index) => (
-          <RuleEditor
-            key={rule.id}
-            rule={rule}
-            index={index}
-            count={rules.length}
-            disabled={false}
-            onChange={next =>
-              runtime.setRules(rules.map(existing => (existing.id === rule.id ? next : existing)))
-            }
-            onRemove={() => runtime.setRules(rules.filter(existing => existing.id !== rule.id))}
-          />
-        ))}
-        <button
-          type="button"
-          className="extraction-quiet extraction-add"
-          disabled={rules.length >= 6}
-          onClick={() => {
-            const preset =
-              (['Decisions', 'Questions', 'Ideas and proposals', 'Commitments'] as const).find(
-                preset => !rules.some(rule => rule.preset === preset)
-              ) ?? 'Custom';
-            runtime.setRules([
-              ...rules,
-              {
-                id: crypto.randomUUID(),
-                preset,
-                name: preset === 'Custom' ? 'Custom list' : preset,
-                wording: 'clean',
-                instructions: '',
-              },
-            ]);
-          }}
-        >
-          + Add another list
-        </button>
+        {!editingRules && (
+          <div className="extraction-rule-summary">
+            <p>{rules.map(rule => rule.name).join(' · ')}</p>
+            <button
+              type="button"
+              className="extraction-quiet"
+              aria-expanded={false}
+              aria-controls={editorId}
+              ref={editLists}
+              onClick={() => {
+                focusEditor.current = true;
+                setEditingRules(true);
+              }}
+            >
+              Edit lists
+            </button>
+          </div>
+        )}
+        <div id={editorId} ref={editor} hidden={!editingRules}>
+          {rules.map((rule, index) => (
+            <RuleEditor
+              key={rule.id}
+              rule={rule}
+              index={index}
+              count={rules.length}
+              disabled={false}
+              addList={index === 0 ? addList : undefined}
+              onChange={next =>
+                changeRules(rules.map(existing => (existing.id === rule.id ? next : existing)))
+              }
+              onRemove={() => changeRules(rules.filter(existing => existing.id !== rule.id))}
+            />
+          ))}
+          {setupTouched && (
+            <button
+              type="button"
+              className="extraction-quiet extraction-done"
+              aria-expanded={true}
+              aria-controls={editorId}
+              onClick={() => setEditingRules(false)}
+            >
+              Done
+            </button>
+          )}
+        </div>
         {invalidRules && (
           <p className="extraction-hint">
             Add instructions for each custom list before extracting.
@@ -241,91 +301,95 @@ const ExtractionView = ({
           </button>
         </div>
       )}
-      {renderModelControls(
-        <section className="extraction-model" aria-label="Extraction connection">
-          <div className="extraction-actions">
-            <button
-              type="button"
-              className="site-button site-button--blue extraction-primary"
-              disabled={
-                !connect ||
-                !turns.length ||
-                listening ||
-                captureBusy ||
-                busy ||
-                !!request.error?.policy.terminal ||
-                invalidRules
-              }
-              onClick={() => {
-                setRemoved(undefined);
-                setCopyFallback(false);
-                if (connect) void runtime.extract(connect);
-              }}
-            >
-              {request.phase === 'connecting'
-                ? 'Connecting…'
-                : request.phase === 'extracting'
-                  ? 'Extracting…'
-                  : 'Extract lists'}
-            </button>
-            {busy && (
-              <button type="button" className="site-button" onClick={() => runtime.cancel()}>
-                Cancel extraction
-              </button>
-            )}
-            {!busy &&
-              !listening &&
-              !captureBusy &&
-              ((!turns.length && !state.current && !state.provisional) || sampleOnly) && (
-                <button
-                  type="button"
-                  className="extraction-quiet"
-                  onClick={() => {
-                    runtime.loadSample();
-                    setRemoved(undefined);
-                    setMessage(
-                      'Built-in sample results. No transcript was sent to a model. Custom instructions have no sample results.'
-                    );
-                  }}
-                >
-                  {sampleOnly ? 'Refresh sample' : 'Try sample'}
-                </button>
-              )}
-            {!busy && (
-              <span className="extraction-status-hint">
-                {listening || captureBusy
-                  ? 'Stop listening to extract the complete dictation.'
-                  : 'Extraction runs only when you choose it.'}
-              </span>
-            )}
-          </div>
-          {!connect &&
-            (connectionHelp ?? (
-              <p className="extraction-hint">
-                No model connection is configured. You can still dictate locally or try the sample.
-              </p>
-            ))}
-          {request.error && (
-            <p role="alert" className="extraction-error">
-              {request.error.message}
-            </p>
-          )}
-        </section>
-      )}
-
       <div className="extraction-layout">
         <section className="extraction-output" aria-label="Extracted lists">
           <div className="extraction-output-heading">
             <h2>Your lists</h2>
-            <button
-              type="button"
-              className="site-button"
-              disabled={!result}
-              onClick={() => void copy()}
-            >
-              Copy Markdown
-            </button>
+            <div className="extraction-actions">
+              <button
+                type="button"
+                className="site-button site-button--blue extraction-primary"
+                disabled={
+                  !connect ||
+                  !turns.length ||
+                  listening ||
+                  captureBusy ||
+                  busy ||
+                  !!request.error?.policy.terminal ||
+                  invalidRules
+                }
+                onClick={() => {
+                  setRemoved(undefined);
+                  setCopyFallback(false);
+                  setEditingRules(false);
+                  if (connect) void runtime.extract(connect);
+                }}
+              >
+                {request.phase === 'connecting'
+                  ? 'Connecting…'
+                  : request.phase === 'extracting'
+                    ? 'Extracting…'
+                    : 'Extract lists'}
+              </button>
+              {busy && (
+                <button type="button" className="site-button" onClick={() => runtime.cancel()}>
+                  Cancel extraction
+                </button>
+              )}
+              {!busy &&
+                !listening &&
+                !captureBusy &&
+                ((!turns.length && !state.current && !state.provisional) || sampleOnly) && (
+                  <button
+                    type="button"
+                    className="extraction-quiet"
+                    onClick={() => {
+                      runtime.loadSample();
+                      setEditingRules(false);
+                      setSetupTouched(true);
+                      setRemoved(undefined);
+                      setMessage(
+                        'Built-in sample results. No transcript was sent to a model. Custom instructions have no sample results.'
+                      );
+                    }}
+                  >
+                    {sampleOnly ? 'Refresh sample' : 'Try sample'}
+                  </button>
+                )}
+              {result && (
+                <button
+                  type="button"
+                  className="site-button"
+                  aria-label="Copy lists as Markdown"
+                  onClick={() => void copy()}
+                >
+                  Copy
+                </button>
+              )}
+            </div>
           </div>
+          {renderModelControls(
+            <section className="extraction-model" aria-label="Extraction connection">
+              {connect && turns.length > 0 && (
+                <p className="extraction-hint extraction-disclosure">
+                  Transcript text goes to your model; audio stays local.
+                </p>
+              )}
+              {!connect &&
+                (connectionHelp ?? (
+                  <p className="extraction-hint">
+                    No model connection is configured. You can still dictate locally or try the
+                    sample.
+                  </p>
+                ))}
+              {request.error && (
+                <p role="alert" className="extraction-error">
+                  {request.error.message}
+                </p>
+              )}
+            </section>
+          )}
+
           {state.stale && (
             <p className="extraction-hint">
               Setup or dictation has changed. These are the previous results; Extract lists replaces
@@ -355,10 +419,7 @@ const ExtractionView = ({
             </div>
           )}
           {!result ? (
-            <div className="extraction-empty">
-              <p>Only the items you ask for will appear here.</p>
-              <p>Try describing a project, or use the sample to see what gets kept.</p>
-            </div>
+            <p className="extraction-empty">Your extracted items will appear here.</p>
           ) : !items.length ? (
             <p className="extraction-empty">
               No matching items in {active?.name}.{' '}

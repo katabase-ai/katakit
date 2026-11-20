@@ -143,7 +143,7 @@ test('capture and terminal allowance failure cannot start extraction; clearing p
 test('sample supports independent lists, exact sources, editing, removal/undo and Markdown', async () => {
   const runtime = create();
   render(<ListExtractionDemo runtime={runtime} />);
-  fireEvent.click(screen.getByRole('button', { name: '+ Add another list' }));
+  fireEvent.click(screen.getByRole('button', { name: '+ Add list' }));
   fireEvent.click(screen.getByRole('button', { name: 'Try sample' }));
   const output = screen.getByRole('region', { name: 'Extracted lists' });
   fireEvent.click(within(output).getByRole('button', { name: 'Decisions 1' }));
@@ -178,7 +178,7 @@ test('exiting the sample restores the gallery header capture action without star
   );
   const header = screen.getByRole('group', { name: 'Demo controls' });
   await within(header).findByRole('button', { name: 'Start listening' });
-  fireEvent.click(screen.getByRole('button', { name: '+ Add another list' }));
+  fireEvent.click(screen.getByRole('button', { name: '+ Add list' }));
   fireEvent.click(screen.getByRole('button', { name: 'Try sample' }));
   expect(within(header).queryByRole('button', { name: 'Start listening' })).toBeNull();
   expect(
@@ -191,7 +191,7 @@ test('exiting the sample restores the gallery header capture action without star
   expect(
     within(screen.getByRole('complementary', { name: 'Transcript' })).queryAllByRole('article')
   ).toHaveLength(0);
-  expect(screen.getByText('Only the items you ask for will appear here.')).toBeDefined();
+  expect(screen.getByText('Your extracted items will appear here.')).toBeDefined();
   expect(connect).not.toHaveBeenCalled();
 });
 
@@ -215,4 +215,54 @@ test('the transcript shows provisional speech, the current turn and finalized tu
     '02Second finalized turn.Time unavailable',
     '01First finalized turn.Time unavailable',
   ]);
+});
+
+test('options disclose advanced setup and removal without starting inference', () => {
+  const runtime = create();
+  const connect = vi.fn();
+  render(<ListExtractionDemo runtime={runtime} connect={connect} />);
+  const output = screen.getByRole('region', { name: 'Extracted lists' });
+  expect(within(output).getByRole('button', { name: 'Extract lists' })).toBeDefined();
+  expect(screen.queryByRole('button', { name: 'Copy lists as Markdown' })).toBeNull();
+  expect(screen.queryByRole('group', { name: 'Item wording' })).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: '+ Add list' }));
+  expect(screen.queryByRole('button', { name: 'Remove list 2' })).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: 'Options for list 2' }));
+  expect(screen.getByRole('group', { name: 'Item wording' })).toBeDefined();
+  fireEvent.click(screen.getByRole('button', { name: 'Remove list 2' }));
+  expect(runtime.state$.get().rules).toHaveLength(1);
+  expect(connect).not.toHaveBeenCalled();
+});
+
+test('capture collapses setup; editing preserves rules and returns keyboard focus to the summary', () => {
+  const runtime = create();
+  const connect = vi.fn();
+  const view = render(<ListExtractionDemo runtime={runtime} connect={connect} />);
+  fireEvent.change(screen.getByRole('combobox'), { target: { value: 'Custom' } });
+  fireEvent.change(screen.getByLabelText('List name'), { target: { value: 'Launch tasks' } });
+  fireEvent.change(screen.getByLabelText('What to include or leave out'), {
+    target: { value: 'Only tasks for the launch' },
+  });
+  fireEvent.click(screen.getByRole('radio', { name: 'Exact quotes' }));
+  act(() => turn(runtime));
+  view.rerender(<ListExtractionDemo runtime={runtime} connect={connect} listening />);
+  expect(screen.queryByRole('combobox')).toBeNull();
+  expect(screen.getByText('Launch tasks')).toBeDefined();
+  fireEvent.click(screen.getByRole('button', { name: 'Edit lists' }));
+  expect(document.activeElement).toBe(screen.getByRole('combobox'));
+  expect((screen.getByRole('radio', { name: 'Exact quotes' }) as HTMLInputElement).checked).toBe(
+    true
+  );
+  const done = screen.getByRole('button', { name: 'Done' });
+  done.focus();
+  fireEvent.click(done);
+  expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Edit lists' }));
+  view.rerender(<ListExtractionDemo runtime={runtime} connect={connect} />);
+  expect(runtime.state$.get().rules[0]).toMatchObject({
+    name: 'Launch tasks',
+    wording: 'quote',
+    instructions: 'Only tasks for the launch',
+  });
+  expect(runtime.state$.get().turns).toHaveLength(1);
+  expect(connect).not.toHaveBeenCalled();
 });

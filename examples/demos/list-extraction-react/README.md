@@ -51,7 +51,13 @@ Vite installs transcription assets and local COOP/COEP headers through
 English speech models download on first use. Source timestamps are recognition estimates; exact
 quotes are verified transcript excerpts, not a claim of perfect recognition or audio alignment.
 
-The results and transcript sit side by side on desktop. The transcript shows numbered turns,
+List setup starts as a compact preset row. **Options** contains the preset explanation, name,
+wording, instructions, and list removal. When dictation starts, setup collapses to a list-name
+summary; **Edit lists** reopens it without starting inference. **Extract lists** lives beside the
+output heading, with a transcript-sharing notice below. **Copy** appears only after results exist
+and copies Markdown.
+
+The results and transcript sit side by side when there is room for both columns. The transcript shows numbered turns,
 newest first, with estimated timestamps and live provisional text. It scrolls independently while
 lists grow; on narrow screens it stacks below the lists and follows normal page scrolling.
 

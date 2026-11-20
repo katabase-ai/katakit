@@ -2,6 +2,7 @@
   color: inherit;
   font: inherit;
   max-width: 58rem;
+  container: extraction / inline-size;
 }
 .list-extraction [hidden] {
   display: none !important;
@@ -44,8 +45,7 @@
   color: var(--color-accent-ink, #fafbfe);
 }
 .list-extraction .extraction-hint,
-.list-extraction .extraction-rule-hint,
-.list-extraction .extraction-status-hint {
+.list-extraction .extraction-rule-hint {
   font-size: 0.8125rem;
   color: var(--color-muted, inherit);
   line-height: 1.5;
@@ -53,10 +53,29 @@
 .list-extraction .extraction-hint {
   margin: 0.75rem 0;
 }
+.list-extraction .extraction-workflow {
+  margin: 0 0 0.75rem;
+}
 .list-extraction .extraction-setup {
-  margin: 1.5rem 0;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid var(--color-rule, currentColor);
+  margin: 0 0 1.25rem;
+}
+.list-extraction .extraction-rule-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 44px;
+}
+.list-extraction .extraction-rule-summary p {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.875rem;
+}
+.list-extraction .extraction-rule-summary button {
+  flex-shrink: 0;
+}
+.list-extraction .extraction-done {
+  margin-top: 0.5rem;
 }
 .list-extraction .extraction-rule + .extraction-rule {
   margin-top: 1rem;
@@ -86,14 +105,17 @@
 .list-extraction .extraction-rule-hint {
   margin: 0.5rem 0 0;
 }
-.list-extraction .extraction-add {
-  margin-top: 0.5rem;
+.list-extraction .extraction-remove-list {
+  justify-self: start;
 }
 .list-extraction .extraction-options {
   display: grid;
   gap: 1rem;
-  margin: 1rem 0;
+  margin: 0.75rem 0;
+  padding: 1rem;
   max-width: 40rem;
+  background: var(--color-paper-2, transparent);
+  border-radius: 6px;
 }
 .list-extraction .extraction-field {
   display: grid;
@@ -135,14 +157,14 @@
   accent-color: var(--color-accent, auto);
 }
 .list-extraction .extraction-model {
-  margin-top: 1.25rem;
+  margin: 0;
 }
 .list-extraction .extraction-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(220px, 270px);
   align-items: start;
   gap: 2.5rem;
-  margin-top: 2rem;
+  margin-top: 1.25rem;
 }
 .list-extraction .extraction-output {
   min-width: 0;
@@ -164,8 +186,15 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 0.75rem;
+  min-height: 44px;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid var(--color-rule, currentColor);
+}
+.list-extraction .extraction-output-heading .extraction-actions {
+  gap: 0.5rem;
+}
+.list-extraction .extraction-output-heading .extraction-quiet {
+  padding-inline: 0.5rem;
 }
 .list-extraction .extraction-output-heading h2,
 .list-extraction .extraction-transcript h2 {
@@ -182,12 +211,6 @@
 .list-extraction .extraction-empty {
   padding: 1.5rem 0;
   color: var(--color-muted, inherit);
-}
-.list-extraction .extraction-empty p {
-  margin: 0 0 0.5rem;
-}
-.list-extraction .extraction-empty p + p {
-  font-size: 0.8125rem;
 }
 .list-extraction .extraction-tabs {
   display: flex;
@@ -319,7 +342,7 @@
   color: var(--color-error, inherit);
   font-size: 0.875rem;
 }
-@media (max-width: 650px) {
+@container extraction (max-width: 650px) {
   .list-extraction .extraction-layout {
     grid-template-columns: minmax(0, 1fr);
     gap: 1.5rem;
@@ -332,6 +355,8 @@
     flex: auto;
     overflow-y: visible;
   }
+}
+@media (max-width: 650px) {
   .list-extraction .extraction-rule-row select {
     flex: 1;
     min-width: 8rem;
