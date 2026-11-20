@@ -49,6 +49,7 @@ export const Gallery = ({
   children,
   input,
   connectModel,
+  modelConnectionLabel,
   privacyUrl,
   termsUrl,
   cloudPrivacyDescription,
@@ -70,6 +71,8 @@ export const Gallery = ({
   children?: ReactNode;
   input?: ReactNode;
   connectModel?: GalleryModelConnect;
+  /** Name a host-supplied connection without claiming a free allowance. */
+  modelConnectionLabel?: string;
   /** Host privacy URL, opened separately to preserve this conversation. */
   privacyUrl?: string;
   /**
@@ -176,6 +179,7 @@ export const Gallery = ({
     () => ({
       connect,
       hostAvailable: !!connectModel,
+      hostConnectionLabel: modelConnectionLabel,
       isDeveloperView,
       configure: isDeveloperView ? onConfigureOperation : undefined,
       openSettings: onOpenSettings ?? (isDeveloperView ? onConfigureOperation : undefined),
@@ -189,6 +193,7 @@ export const Gallery = ({
     [
       connect,
       connectModel,
+      modelConnectionLabel,
       isDeveloperView,
       onConfigureOperation,
       onOpenSettings,

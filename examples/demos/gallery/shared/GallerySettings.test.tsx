@@ -203,7 +203,7 @@ test('developer setup exposes the model alongside the key, keeps only the endpoi
   fireEvent.change(model, { target: { value: 'custom/model' } });
   fireEvent.change(screen.getByLabelText('API key'), { target: { value: 'test-saved-key' } });
   fireEvent.click(screen.getByRole('button', { name: 'Save' }));
-  await screen.findByText('Inference settings saved. Start listening in a demo when ready.');
+  await screen.findByText('Inference settings saved. Return to a demo when ready.');
   expect(JSON.parse(window.localStorage.getItem(inferenceStorageKey)!)).toMatchObject({
     key: 'test-saved-key',
     model: 'custom/model',
@@ -341,13 +341,21 @@ test('developer operation grid uses catalogue requirements, remains navigable an
   expect(within(table).getAllByRole('link')).toHaveLength(galleryDemoDetails.length);
   expect(
     within(table).getAllByRole('img', { name: 'Transcription: Required · configured' })
-  ).toHaveLength(4);
+  ).toHaveLength(
+    galleryDemoDetails.filter(demo =>
+      demo.capabilities.some(capability => capability === 'localTranscription')
+    ).length
+  );
   const game = within(table).getByRole('row', { name: /Color Clash/ });
   expect(within(game).getByRole('link', { name: 'Color Clash' })).toBeDefined();
   expect(within(game).getByRole('img', { name: 'Text generation: Not used' })).toBeDefined();
   expect(
-    within(table).getByRole('img', { name: 'Text generation: Required · needs a connection' })
-  ).toBeDefined();
+    within(table).getAllByRole('img', { name: 'Text generation: Required · needs a connection' })
+  ).toHaveLength(
+    galleryDemoDetails.filter(demo =>
+      demo.capabilities.some(capability => capability === 'remoteModel')
+    ).length
+  );
   expect(screen.queryByText('Diarization')).toBeNull();
   expect(screen.queryByRole('button', { name: /Sign up/ })).toBeNull();
   fireEvent.click(

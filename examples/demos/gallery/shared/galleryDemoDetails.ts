@@ -55,10 +55,21 @@ export const colorClashDemoDetails = {
   dataHandling: { audio: 'device', transcribedText: 'device' },
 } as const satisfies GalleryDemoMetadata;
 
+export const listExtractionDemoDetails = {
+  id: 'list-extraction',
+  sourcePath: 'examples/demos/list-extraction-react',
+  copyDirectory: 'list-extraction',
+  title: 'List extraction',
+  description: 'Tell it what to keep. Speak freely and collect selective lists.',
+  capabilities: ['microphone', 'localTranscription', 'remoteModel'],
+  dataHandling: { audio: 'device', transcribedText: 'cloud' },
+} as const satisfies GalleryDemoMetadata;
+
 /** Ordered directory for gallery hosts; the named loaders do not depend on these positions. */
 export const galleryDemoDetails = [
   transcriptionDemoDetails,
   bingoDemoDetails,
   notesDemoDetails,
+  listExtractionDemoDetails,
   colorClashDemoDetails,
 ] as const satisfies readonly GalleryDemoMetadata[];

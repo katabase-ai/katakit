@@ -1,7 +1,12 @@
 // @vitest-environment happy-dom
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, expect, test, vi } from 'vitest';
-import { bingoDemoDetails, colorClashDemoDetails, notesDemoDetails } from './galleryDemoDetails';
+import {
+  bingoDemoDetails,
+  colorClashDemoDetails,
+  notesDemoDetails,
+  listExtractionDemoDetails,
+} from './galleryDemoDetails';
 import { GalleryEventsContext } from './galleryEvents';
 import { GalleryRunLocally, runLocallyCommand, runLocallyPrompt } from './GalleryRunLocally';
 
@@ -19,6 +24,12 @@ test('the command copies the pinned example directory and starts it', () => {
       'pnpm install',
       'pnpm dev',
     ].join('\n')
+  );
+  expect(runLocallyCommand(listExtractionDemoDetails, 'abc123')).toContain(
+    'npx degit katabase-ai/katakit/examples/demos/list-extraction-react#abc123 list-extraction'
+  );
+  expect(runLocallyPrompt(listExtractionDemoDetails)).toContain(
+    'Ask me before you read, create, or edit'
   );
   expect(runLocallyCommand(bingoDemoDetails)).toMatch(
     /^npx degit katabase-ai\/katakit\/examples\/demos\/bingo-react conversation-bingo\n/

@@ -24,7 +24,7 @@ pnpm -F @katakit/gallery dev
 ```
 
 Open <http://127.0.0.1:4347>. Welcome is `/`; React demos are at `/demos/transcription`,
-`/demos/bingo`, `/demos/notes`, and `/demos/color-clash`. Color Clash uses local transcription
+`/demos/bingo`, `/demos/notes`, `/demos/list-extraction`, and `/demos/color-clash`. Color Clash uses local transcription
 and its Play button starts capture and a timed round; it needs no inference connection. Notes
 transcription runs locally; generating notes requires
 a host-supplied model connection. Developer mode can instead use your own OpenRouter key. Extension setup pages are outside this catalogue. Direct links and unknown-demo
@@ -35,6 +35,52 @@ lease. The game directory is unchanged. Navigation stops/drains capture and rele
 while the loaded speech model remains ready for the next demo. Named `colorClashGalleryDemo`
 is available from `shared/galleryDemos.tsx`; embedding hosts with an explicit selection must add
 that entry when adopting this source revision. This does not remove the website's homepage embed.
+
+`listExtractionGalleryDemo` adds dictation-only selective extraction. Configure one or more
+lists, use shared Start/Pause listening, then choose **Extract lists** to send the complete
+finalized transcript to the selected model. Audio remains local. The demo supports source excerpts,
+quote mode, item corrections/removal/undo, Markdown copying, and a labeled offline sample.
+Capture and setup changes never start model work. Its numbered Transcript column matches the
+other speech demos, and **Use my own dictation** exits the sample without starting capture.
+The header's **Run locally** panel copies its standalone example. See [the copyable example](../list-extraction-react/README.md).
+Its sources are included in the gallery copy workflow. Hosts with explicit demo selections must
+add the named entry when adopting this revision.
+
+## Local inference from an environment variable
+
+The local Vite dev/preview server can use a server-side OpenRouter key. Put it in
+`examples/demos/gallery/.env.local` (ignored by Git), or export it in the shell that starts Vite:
+
+```dotenv
+OPENROUTER_API_KEY=your-key
+# Optional; these are the defaults:
+OPENROUTER_MODEL=z-ai/glm-5.3
+OPENROUTER_ENDPOINT=https://openrouter.ai/api/v1/chat/completions
+```
+
+Use Developer mode and restart the local server after setting the key. Configure models shows
+**Server environment** as the host connection. It is selected by default; if a browser key was
+previously selected, choose Server environment and Save. No provider request runs until a demo's
+explicit model action: **Extract lists** for list extraction, or **Start listening** for live notes.
+
+The browser receives only availability, model, and request limits. Completion requests go through
+the local server; the server adds the credential. The key is never a `VITE_` variable, client asset,
+or local-storage value. The endpoint accepts only loopback, same-origin requests and bounds request
+size, generation, and duration. Cancellation aborts upstream work; provider errors are sanitized.
+No free allowance is invented. Browser-key configuration remains a separate optional connection.
+
+This middleware exists only in local Vite dev/preview, not the deployed Worker. Normal public mode
+and Public preview ignore the env connection. To use an optimized developer build locally:
+
+```sh
+VITE_GALLERY_DEV_MODE=true pnpm -F @katakit/gallery build
+# Set the key in .env.local or the environment of this command:
+pnpm -F @katakit/gallery preview
+```
+
+Runtime env values do not require rebuilding; the artifact must already have developer mode
+enabled. A normal public build does not gain developer access by setting env variables when
+serving it. The env example is copyable; `.env.local` and credentials are excluded from copies.
 
 ## Build and inspect
 
@@ -74,7 +120,8 @@ outside interaction dismisses it; keyboard users can reach the privacy link with
 the panel. Its right-aligned policy link uses the host's `privacyUrl` and opens separately.
 Hosts may supply `cloudPrivacyDescription` for a verified managed-service promise, for example
 “Transcribed text is processed on secure servers.” The default only describes cloud processing;
-the reference host has no managed service and makes no security claim. Developer key connections
+the reference host describes its managed proxy only on CI preview deployments. Local server-env
+connections use the neutral default description. Developer key connections
 always use neutral configured-service wording, ignoring any host promise. The gallery does not
 verify endpoint security, retention, or model-provider policies.
 
@@ -86,6 +133,11 @@ with the Katakit commit the host's demos come from, so the source link and local
 the visitor used; without it they use the default branch. Hosts should remove their separate source
 link for these demos when adopting this revision. Copying reports `runLocallyCopied` with which
 text was copied. Color Clash lives inside the gallery and has no control.
+
+The reference host passes the build-time `VITE_GALLERY_SOURCE_REVISION` setting through this prop.
+PR builds set it to the PR head commit, so new or changed demos can be copied before merging.
+Set it to a published commit or branch when building a local review artifact; unset copies use
+the default branch.
 
 A host can select metadata and render `shared/Gallery.tsx` without importing recognizers or this
 app's bootstrap. Import `shared/gallery.css` for the scoped presentation. It owns the gallery’s
@@ -273,6 +325,9 @@ starts sending finalized transcript text. There is no separate notes control. St
 reuses the connection. Source changes, saving overrides, and key removal abort remote work and
 retain local content; a demo that is still listening reconnects through the new source. Route exit aborts admission and model work before capture drains.
 See [the notes example](../notes-react/README.md) for the generic contract.
+
+List extraction uses a separate on-demand action: **Extract lists** sends the finalized transcript
+only after dictation stops. Capture, rule edits, and source changes never start extraction.
 
 ## Developer mode and public preview
 
