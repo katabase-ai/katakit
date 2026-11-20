@@ -122,6 +122,49 @@ test('cancellation during admission prevents even sending a late connection requ
   expect(request).not.toHaveBeenCalled();
 });
 
+test('new speech cancels an in-flight extraction and discards its outdated response', async () => {
+  const runtime = create();
+  runtime.loadSample();
+  const before = runtime.state$.get().result;
+  let finish!: (value: unknown) => void;
+  let signal!: AbortSignal;
+  const job = runtime.extract(async () =>
+    connection(input => {
+      signal = input.signal;
+      return new Promise(resolve => {
+        finish = resolve;
+      });
+    })
+  );
+  await Promise.resolve();
+  runtime.ingestSegment({ id: 'new', sourceId: 'mic', text: 'A new decision was made.' });
+  expect(signal.aborted).toBe(true);
+  finish(response(runtime, 'Outdated extraction'));
+  await job;
+  expect(runtime.state$.get().result).toBe(before);
+});
+
+test('provisional speech invalidates pending model work before finalization', async () => {
+  const runtime = create();
+  turn(runtime);
+  let finish!: (value: unknown) => void;
+  let signal!: AbortSignal;
+  const job = runtime.extract(async () =>
+    connection(input => {
+      signal = input.signal;
+      return new Promise(resolve => {
+        finish = resolve;
+      });
+    })
+  );
+  await Promise.resolve();
+  runtime.updateProvisional('A new thought');
+  expect(signal.aborted).toBe(true);
+  finish(response(runtime));
+  await job;
+  expect(runtime.state$.get().result).toBeUndefined();
+});
+
 test('replay restores rules, sources, edits and removal without allocating IDs or making model requests', () => {
   const runtime = create();
   runtime.loadSample();

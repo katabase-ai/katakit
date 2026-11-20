@@ -85,8 +85,16 @@ export const createListExtractionDemo = ({
   return {
     state$,
     events$: kit.getObservables(EventLog).events$,
-    ingestSegment: input.ingestSegment,
-    updateProvisional: input.updateProvisional,
+    ingestSegment: (segment: Parameters<typeof input.ingestSegment>[0]) => {
+      if (closed) return;
+      if (active && segment.text.trim()) cancel();
+      input.ingestSegment(segment);
+    },
+    updateProvisional: (text: string) => {
+      if (closed) return;
+      if (active && text.trim()) cancel();
+      input.updateProvisional(text);
+    },
     flush: input.flush,
     cancel,
     setRules: (next: ListRule[]) => {
