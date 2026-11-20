@@ -65,7 +65,7 @@ jobs:
       - name: Report fork deployment limitation
         if: github.event.pull_request.head.repo.full_name != github.repository
         run: echo 'Fork PRs build both viewers but cannot upload previews without repository credentials.' >> "$GITHUB_STEP_SUMMARY"
-      - name: Upload preview version
+      - name: Deploy preview
         id: upload
         if: github.event.pull_request.head.repo.full_name == github.repository
         env:
