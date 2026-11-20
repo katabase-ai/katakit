@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { previewAliasUrl, updatePreviewComment } from './preview-comment.mjs';
+import { galleryPreviewUrl, previewAliasUrl, updatePreviewComment } from './preview-comment.mjs';
 
 const sha = '1234567890';
 const context = {
@@ -62,4 +62,21 @@ test('an obsolete run cannot change the comment for a newer commit', async () =>
   const { github, writes } = client({ head: 'newer' });
   await updatePreviewComment({ github, context, site: 'Docs', status: 'success', log });
   assert.deepEqual(writes, []);
+});
+
+test('gallery reporting requires the exact branded URL from native Preview JSON', async () => {
+  const url = 'https://pr-42.katakit-preview.katabase.com';
+  const log = JSON.stringify({
+    preview: { urls: ['https://pr-42-worker.example.workers.dev', url] },
+  });
+  assert.equal(galleryPreviewUrl(log, 42), url);
+  assert.throws(() => galleryPreviewUrl(log, 43), /expected branded/);
+  assert.throws(() => galleryPreviewUrl(log, '42.bad'), /Invalid PR/);
+  assert.throws(
+    () => galleryPreviewUrl(JSON.stringify({ preview: { urls: [url + '.evil.test'] } }), 42),
+    /expected branded/
+  );
+  const { github, writes } = client();
+  await updatePreviewComment({ github, context, site: 'Gallery', status: 'success', log });
+  assert.ok(writes[0].body.includes(url));
 });

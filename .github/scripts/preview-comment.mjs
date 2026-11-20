@@ -1,3 +1,13 @@
+/** Native Worker Previews return structured URLs; require the exact branded PR address. */
+export const galleryPreviewUrl = (log, number) => {
+  if (!/^[1-9]\d*$/.test(String(number))) throw new Error('Invalid PR number');
+  const expected = `https://pr-${number}.katakit-preview.katabase.com`;
+  const output = JSON.parse(log);
+  if (!output.preview?.urls?.includes(expected))
+    throw new Error('Upload did not report the expected branded gallery Preview URL.');
+  return expected;
+};
+
 /** Wrangler prints both an immutable version URL and the stable PR alias; report the alias. */
 export const previewAliasUrl = (log, number) => {
   const urls = log.match(/https:\/\/[a-zA-Z0-9.-]+\.workers\.dev\b/g) ?? [];
@@ -19,7 +29,7 @@ export const updatePreviewComment = async ({ github, context, site, status, log 
   const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
   const result =
     status === 'success'
-      ? `[Open ${site.toLowerCase()} preview](${previewAliasUrl(log, pullRequest.number)})`
+      ? `[Open ${site.toLowerCase()} preview](${site === 'Gallery' ? galleryPreviewUrl(log, pullRequest.number) : previewAliasUrl(log, pullRequest.number)})`
       : 'Build or deployment failed';
   const body = `${marker}\n**${site} preview** for ${pullRequest.head.sha.slice(0, 7)}: ${result} — [workflow run](${runUrl})`;
   const params = { ...context.repo, issue_number: pullRequest.number };
