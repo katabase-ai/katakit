@@ -37,9 +37,9 @@ export const GalleryPage = ({
       connectModel={previewConnect ?? localConnect}
       modelConnectionLabel={localConnect ? 'Server environment' : undefined}
       cloudPrivacyDescription={
-        localConnect
-          ? undefined
-          : 'Cloud processing sends transcript text and demo context through Katabase’s demo service to OpenRouter and its model provider. Audio stays on this device.'
+        previewConnect
+          ? 'Cloud processing sends transcript text and demo context through Katabase’s demo service to OpenRouter and its model provider. Audio stays on this device.'
+          : undefined
       }
       developerPage={developerPage}
       settingsPage={settingsPage}

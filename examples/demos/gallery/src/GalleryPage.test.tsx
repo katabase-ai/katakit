@@ -38,11 +38,9 @@ test.each([false, true])(
     expect(props.modelConnectionLabel).toBeUndefined();
     expect(props.cloudPrivacyDescription).toContain('Katabase’s demo service');
     expect(useLocalInference).toHaveBeenLastCalledWith(developerMode);
-    if (developerMode) {
-      fireEvent.click(screen.getByRole('switch'));
-      expect(vi.mocked(Gallery).mock.calls.at(-1)![0].connectModel).toBe(connect);
-      expect(useLocalInference).toHaveBeenLastCalledWith(false);
-    }
+    if (developerMode) fireEvent.click(screen.getByRole('switch'));
+    expect(vi.mocked(Gallery).mock.calls.at(-1)![0].connectModel).toBe(connect);
+    expect(useLocalInference).toHaveBeenLastCalledWith(false);
     expect(connect).not.toHaveBeenCalled();
   }
 );
@@ -66,5 +64,17 @@ test('local developer inference keeps its server label and neutral privacy wordi
   );
   props = vi.mocked(Gallery).mock.calls.at(-1)![0];
   expect(props.connectModel).toBeUndefined();
+  expect(props.cloudPrivacyDescription).toBeUndefined();
   expect(connect).not.toHaveBeenCalled();
+});
+
+test('without an inference connection, the gallery makes no managed-service privacy claim', () => {
+  render(
+    <GalleryModeProvider developerMode={false}>
+      <GalleryPage />
+    </GalleryModeProvider>
+  );
+  const props = vi.mocked(Gallery).mock.calls.at(-1)![0];
+  expect(props.connectModel).toBeUndefined();
+  expect(props.cloudPrivacyDescription).toBeUndefined();
 });
