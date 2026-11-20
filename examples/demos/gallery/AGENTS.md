@@ -15,3 +15,8 @@ Run commands from the Katakit root with `pnpm --filter @katakit/gallery`.
   Operation routes redirect in public builds. Public preview hides those routes within a developer
   build, retaining only its header switch as the way back. `#gallery-build-mode`
 - Generate `src/routeTree.gen.ts` with the Start router plugin; do not edit it by hand.
+
+- CI preview inference belongs in `src/`, not portable shared modules. Require both the public proxy
+  URL and the exact deployed PR origin. Do not tie service availability to the header toggle or
+  enable it on localhost. Keep Turnstile/session credentials transient and provider secrets on the
+  existing proxy. CI's access check makes no session or paid request.
