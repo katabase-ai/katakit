@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useRef, type ReactNode } from 'react';
 import type { GalleryOperation } from './operationDetails';
-import type { GalleryAllowance } from './GalleryUsageProvider';
+import type { GalleryAllowance, GalleryTokenUsage } from './GalleryUsageProvider';
 import type { GalleryAccount } from './GalleryAccountButton';
 
 /** Only failures a host marks retryable are retried automatically; the rest need a click. */
@@ -56,6 +56,7 @@ export const GalleryModelContext = createContext<{
   /** Why the active demo is limited; shown on the Settings button, which leads to the remedy. */
   settingsNotice?: string;
   allowance?: GalleryAllowance;
+  tokenUsage?: GalleryTokenUsage;
   usageUnavailableReason?: string;
   reportAllowance?: (allowance: GalleryAllowance) => void;
   account?: GalleryAccount;

@@ -4,6 +4,7 @@ import { GalleryHeader } from '../GalleryHeader';
 import { GalleryModeProvider } from '../../shared/GalleryModeProvider';
 import { galleryDeveloperBuild } from '../galleryEnvironment';
 import { GallerySpeechProvider } from '../../shared/GallerySpeechProvider';
+import { GalleryConsentProvider } from '../../shared/GalleryConsentProvider';
 
 export const Route = createRootRoute({
   head: () => ({
@@ -26,9 +27,11 @@ export const Route = createRootRoute({
           <GalleryModeProvider developerMode={galleryDeveloperBuild}>
             <div className="gallery-host">
               <GalleryHeader />
-              <main>
-                <Outlet />
-              </main>
+              <GalleryConsentProvider>
+                <main>
+                  <Outlet />
+                </main>
+              </GalleryConsentProvider>
             </div>
           </GalleryModeProvider>
         </GallerySpeechProvider>

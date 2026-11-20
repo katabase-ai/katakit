@@ -6,11 +6,9 @@ import { GalleryModelContext } from './galleryModel';
 
 afterEach(cleanup);
 
-test('signup and sign-in use the host actions without exposing provider configuration', () => {
-  const onCreateAccount = vi.fn();
-  const onLogIn = vi.fn();
+test('the waitlist uses the host destination without offering signup or sign-in', () => {
   render(
-    <GalleryModelContext value={{ account: { onCreateAccount, onLogIn } }}>
+    <GalleryModelContext value={{ account: { waitlistUrl: 'https://example.com/waitlist' } }}>
       <GalleryPublicSettings
         privacyUrl="https://katabase.com/privacy"
         termsUrl="https://example.com/terms"
@@ -21,10 +19,12 @@ test('signup and sign-in use the host actions without exposing provider configur
     screen.getByRole('heading', { name: 'Take your ideas further with Katabase' })
   ).toBeDefined();
   expect(screen.queryByText(/access to developer tools/i)).toBeNull();
-  fireEvent.click(screen.getByRole('button', { name: 'Create an account' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
-  expect(onCreateAccount).toHaveBeenCalledOnce();
-  expect(onLogIn).toHaveBeenCalledOnce();
+  expect(screen.getByRole('link', { name: 'Join the waitlist' }).getAttribute('href')).toBe(
+    'https://example.com/waitlist'
+  );
+  expect(screen.queryByRole('button', { name: 'Create an account' })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Sign in' })).toBeNull();
+  expect(screen.queryByText(/Already have an account/)).toBeNull();
   expect(screen.queryByLabelText('API key')).toBeNull();
   expect(screen.queryByRole('navigation', { name: 'Operation views' })).toBeNull();
   const privacy = screen.getByRole('link', { name: 'Privacy Policy' });
@@ -36,12 +36,11 @@ test('signup and sign-in use the host actions without exposing provider configur
   expect(terms.getAttribute('rel')).toBe('noopener noreferrer');
 });
 
-test('missing account services explain availability without simulating registration or sign-in', () => {
+test('a host without a waitlist destination does not offer fake registration or sign-in', () => {
   render(<GalleryPublicSettings />);
-  fireEvent.click(screen.getByRole('button', { name: 'Create an account' }));
-  expect(screen.getByRole('status').textContent).toBe('Account creation isn’t available here yet.');
-  fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
-  expect(screen.getByRole('status').textContent).toBe('Sign-in isn’t available here yet.');
+  expect(screen.queryByRole('link', { name: 'Join the waitlist' })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Create an account' })).toBeNull();
+  expect(screen.queryByRole('button', { name: 'Sign in' })).toBeNull();
   expect(screen.queryByText(/Signed in as/)).toBeNull();
   expect(screen.queryByRole('link', { name: 'Privacy Policy' })).toBeNull();
   expect(screen.queryByRole('link', { name: 'Terms of Service' })).toBeNull();
@@ -77,7 +76,7 @@ test('allowance summary follows host updates and explains missing data', () => {
     </GalleryModelContext>
   );
   expect(
-    (screen.getByRole('progressbar', { name: 'Demo allowance used' }) as HTMLProgressElement).value
+    (screen.getByRole('progressbar', { name: 'Model call usage' }) as HTMLProgressElement).value
   ).toBe(80);
   view.rerender(
     <GalleryModelContext value={{ allowance: { remaining: 0, total: 5 } }}>

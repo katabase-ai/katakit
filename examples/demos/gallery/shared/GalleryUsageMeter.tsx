@@ -1,6 +1,6 @@
 import { CircleAlert } from 'lucide-react';
 import { GalleryTooltipButton } from './GalleryTooltip';
-import type { GalleryAllowance } from './GalleryUsageProvider';
+import type { GalleryAllowance, GalleryTokenUsage } from './GalleryUsageProvider';
 
 /** Percent used is derived only from a valid host allowance; missing data is never shown as 0%. */
 export const galleryUsagePercent = (allowance?: GalleryAllowance) => {
@@ -38,21 +38,45 @@ export const GalleryUsageMeter = ({
         </GalleryTooltipButton>
       </div>
     );
-  const description = `${percent}% of your demo allowance has been used; ${100 - percent}% remains. Cloud model requests use this allowance; on-device transcription does not.`;
+  const description = `${percent}% of your allowed model calls used; ${100 - percent}% remaining. Usage comes from the model proxy; on-device transcription does not use model calls.`;
   return (
     <GalleryTooltipButton
       className="gallery-usage-meter"
       aria-label={description}
       description={description}
     >
+      <span>Usage</span>
       <progress
-        aria-label="Demo allowance used"
+        aria-label="Model call usage"
         aria-valuetext={`${percent}% used; ${100 - percent}% remaining`}
         max={100}
         value={percent}
       />
       <span className="gallery-usage-percent" aria-live="polite">
         {percent}%
+      </span>
+    </GalleryTooltipButton>
+  );
+};
+
+/** Personal keys have no gallery budget, so show tokens rather than a percentage bar. */
+export const GalleryTokenCounter = ({ usage }: { usage: GalleryTokenUsage }) => {
+  const total = usage.total.toLocaleString('en-US');
+  const value = usage.incomplete
+    ? usage.total > 0
+      ? `≥${total} tokens`
+      : 'Unavailable'
+    : `${total} tokens`;
+  const description = `${usage.incomplete ? 'Some responses did not report token usage. ' : ''}${total} input and output tokens reported for personal-key responses this session. The count includes all keys and models used in this tab and resets on reload. Canceled requests may use tokens that are not reported here.`;
+  return (
+    <GalleryTooltipButton
+      className="gallery-usage-meter"
+      aria-label={`Usage: ${value} this session`}
+      description={description}
+    >
+      <span>Usage</span>
+      <span className="gallery-usage-tokens" aria-live="polite">
+        {value}
       </span>
     </GalleryTooltipButton>
   );
