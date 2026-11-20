@@ -54,6 +54,14 @@ export const colorClashDemoDetails = {
   capabilities: ['microphone', 'localTranscription'],
   dataHandling: { audio: 'device', transcribedText: 'device' },
 } as const satisfies GalleryDemoMetadata;
+export const brainstormDemoDetails = {
+  id: 'brainstorm',
+  sourcePath: 'examples/demos/brainstorm-react',
+  title: 'Brainstorming game',
+  description: 'Race the clock and collect spoken answers on a shared sticky-note board.',
+  capabilities: ['microphone', 'localTranscription', 'remoteModel'],
+  dataHandling: { audio: 'device', transcribedText: 'cloud' },
+} as const satisfies GalleryDemoMetadata;
 
 /** Ordered directory for gallery hosts; the named loaders do not depend on these positions. */
 export const galleryDemoDetails = [
@@ -61,4 +69,5 @@ export const galleryDemoDetails = [
   bingoDemoDetails,
   notesDemoDetails,
   colorClashDemoDetails,
+  brainstormDemoDetails,
 ] as const satisfies readonly GalleryDemoMetadata[];

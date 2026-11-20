@@ -24,7 +24,7 @@ pnpm -F @katakit/gallery dev
 ```
 
 Open <http://127.0.0.1:4347>. Welcome is `/`; React demos are at `/demos/transcription`,
-`/demos/bingo`, `/demos/notes`, and `/demos/color-clash`. Color Clash uses local transcription
+`/demos/bingo`, `/demos/notes`, `/demos/color-clash`, and `/demos/brainstorm`. Color Clash uses local transcription
 and its Play button starts capture and a timed round; it needs no inference connection. Notes
 transcription runs locally; generating notes requires
 a host-supplied model connection. Developer mode can instead use your own OpenRouter key. Extension setup pages are outside this catalogue. Direct links and unknown-demo
@@ -35,6 +35,18 @@ lease. The game directory is unchanged. Navigation stops/drains capture and rele
 while the loaded speech model remains ready for the next demo. Named `colorClashGalleryDemo`
 is available from `shared/galleryDemos.tsx`; embedding hosts with an explicit selection must add
 that entry when adopting this source revision. This does not remove the website's homepage embed.
+
+The [brainstorming game](../brainstorm-react/README.md) uses the shared microphone with a sticky
+note board, 200 challenges, and 30s, 1min (default), 2min, or unlimited rounds.
+Challenges stay hidden until the round starts. Its capture controls stay inside
+the demo, and its header/data-handling badge come from gallery metadata. Without inference it
+offers explicitly labeled sample-only practice. **Connect judge** starts inference explicitly;
+starting the microphone never admits a model connection. Developer builds use Configure models
+for inference settings; managed hosts use the existing `connectModel` contract. Changing the
+inference source or preview mode aborts judging and ends the current round while retaining its
+board. Reconnect explicitly before starting another judged round. The named
+`brainstormGalleryDemo` export is available to embedding hosts; standalone gallery copies carry
+the game's source and challenge library.
 
 ## Build and inspect
 
