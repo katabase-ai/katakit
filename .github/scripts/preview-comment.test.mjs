@@ -70,6 +70,13 @@ test('gallery reporting requires the exact branded URL from native Preview JSON'
     preview: { urls: ['https://pr-42-worker.example.workers.dev', url] },
   });
   assert.equal(galleryPreviewUrl(log, 42), url);
+  assert.equal(
+    galleryPreviewUrl(
+      `Attaching additional modules:\nUploaded 12 assets\n${JSON.stringify(JSON.parse(log), null, 2)}\n`,
+      42
+    ),
+    url
+  );
   assert.throws(() => galleryPreviewUrl(log, 43), /expected branded/);
   assert.throws(() => galleryPreviewUrl(log, '42.bad'), /Invalid PR/);
   assert.throws(

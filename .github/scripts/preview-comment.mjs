@@ -2,7 +2,10 @@
 export const galleryPreviewUrl = (log, number) => {
   if (!/^[1-9]\d*$/.test(String(number))) throw new Error('Invalid PR number');
   const expected = `https://pr-${number}.katakit-preview.katabase.com`;
-  const output = JSON.parse(log);
+  // Wrangler 4.162 emits module/asset progress on stdout even with --json.
+  const jsonStart = log.search(/^\s*\{/m);
+  if (jsonStart === -1) throw new Error('Upload did not report Preview JSON.');
+  const output = JSON.parse(log.slice(jsonStart));
   if (!output.preview?.urls?.includes(expected))
     throw new Error('Upload did not report the expected branded gallery Preview URL.');
   return expected;
