@@ -24,7 +24,7 @@ pnpm -F @katakit/gallery dev
 ```
 
 Open <http://127.0.0.1:4347>. Welcome is `/`; React demos are at `/demos/transcription`,
-`/demos/bingo`, `/demos/notes`, and `/demos/color-clash`. Color Clash uses local transcription
+`/demos/bingo`, `/demos/notes`, `/demos/color-clash`, and `/demos/brainstorm`. Color Clash uses local transcription
 and its Play button starts capture and a timed round; it needs no inference connection. Notes
 transcription runs locally; generating notes requires
 a host-supplied model connection. Developer mode can instead use your own OpenRouter key. Extension setup pages are outside this catalogue. Direct links and unknown-demo
@@ -35,6 +35,28 @@ lease. The game directory is unchanged. Navigation stops/drains capture and rele
 while the loaded speech model remains ready for the next demo. Named `colorClashGalleryDemo`
 is available from `shared/galleryDemos.tsx`; embedding hosts with an explicit selection must add
 that entry when adopting this source revision. This does not remove the website's homepage embed.
+
+The [brainstorming game](../brainstorm-react/README.md) uses the shared microphone with a sticky
+note board, 200 challenges, and 30s, 1min (default), 2min, or unlimited rounds.
+Challenges stay hidden and the clock stays stopped while **Start round** prepares the shared
+microphone and judge. **Cancel setup** cancels preparation; **End round** stops and drains capture.
+This single action uses the standard gallery header slot, and the header/data-handling badge
+come from gallery metadata. Rounds require microphone input and an inference connection.
+Developer builds use Configure models
+for inference settings; managed hosts use the existing `connectModel` contract. The text model
+extracts answer candidates; Jev judges each candidate with a yes/no probability (initial cutoff
+0.5). Brainstorming requires the connection's optional `decisions` transport alongside chat.
+The reference preview host discovers that capability from the deployed proxy's config and uses
+`/api/alpha/decisions` with the same verified session, allowance, and cancellation as chat.
+OpenRouter BYOK supplies pinned `typesafe/jev-1.13`; custom chat endpoints do not implicitly
+enable decisions or send their keys to OpenRouter. Chat-only hosts continue supporting other
+text-generation demos; brainstorming reports the missing Jev connection before revealing a challenge.
+Changing the
+inference source or preview mode aborts judging and ends the current round while retaining its
+board. The next explicit Start prepares the new connection. **Run locally** offers a pinned copy
+of the standalone example. The named
+`brainstormGalleryDemo` export is available to embedding hosts; standalone gallery copies carry
+the game's source and challenge library.
 
 ## Build and inspect
 
@@ -199,12 +221,12 @@ Listening belongs to each demo. Its button sits at the left, below the descripti
 body heading: a primary Start, then a secondary Pause, beside a microphone glyph that fills with
 the level being heard. Mouse controls are 36px high; touch controls remain 44px. Setup progress
 follows the button.
-Welcome, listening demos, and Color Clash all render their primary buttons through
+Welcome, listening demos, Color Clash, and Brainstorm all render their primary buttons through
 `GalleryCaptureControls`. Its default and Welcome presentations use the shared speech owner.
 The controlled `action` variant renders the same button in place using the caller's label,
-disabled state, and click handler; it does not require a speech provider. Color Clash uses this
-variant for Play, Play again, retry, and Cancel setup, keeping its round timing and permission
-guidance inside the game. Its clock starts only after capture is running, and finishing stops capture.
+disabled state, and click handler; it does not require a speech provider. Both games use this
+variant for game actions while keeping round timing and permission guidance inside each game.
+Their clocks start only after capture is running, and finishing stops capture.
 A demo's own controls stay inside the demo. Get the code and the
 data-handling badge sit at the header's top right, level with the top of the title.
 Models load only after a visitor action. Standalone controls
@@ -234,7 +256,8 @@ not affect capture. The local host passes no handler.
 A host passes one `connectModel` to `Gallery` for its model admission/transport; see
 `shared/galleryModel.tsx` for the contract. Every entry with the `remoteModel` capability uses it,
 so a new such demo needs no host code. Without a connection, the footer's Settings button opens a
-notice that inference is unavailable while transcription remains usable; pressing it opens Settings. Public mode never falls back to a saved developer key. Every demo link stays clickable. Hosts throw `GalleryModelError` for failures they
+notice that inference is unavailable; pressing it opens Settings. Each demo determines which
+on-device features remain usable without inference. Public mode never falls back to a saved developer key. Every demo link stays clickable. Hosts throw `GalleryModelError` for failures they
 want shown or retried. Connection controls, browser verification, and errors render
 inside the active demo. Host `onAllowance` reports drive the shared footer’s “Usage” bar: the percentage
 of allowed model calls used, yellow at 80% and red at 100%. On-device transcription does not consume

@@ -185,3 +185,47 @@ test.each([
   }
   expect(onTokenUsage.mock.calls).toEqual([[tokens], [tokens]]);
 });
+
+test('OpenRouter decisions use the configured key, pinned Jev, cancellation, and actual decision token usage', async () => {
+  const result = {
+    answers: { valid: { type: 'noul', noul: 0.99 } },
+    usage: { input_tokens: 100, output_tokens: 12 },
+  };
+  const request = vi.fn<typeof fetch>(async () => Response.json(result));
+  const onTokenUsage = vi.fn();
+  const source = new AbortController();
+  const connected = await connectWithKey(settings, source.signal, { request, onTokenUsage })(
+    input()
+  );
+  expect(connected.decisions).toMatchObject({ model: 'typesafe/jev-1.13', maxQuestions: 16 });
+  const body = JSON.stringify({ model: connected.decisions!.model, state: 'skirt', questions: {} });
+  await expect(
+    connected.decisions!.requestDecision({ body, signal: new AbortController().signal })
+  ).resolves.toEqual(result);
+  expect(request).toHaveBeenCalledWith(
+    'https://openrouter.ai/api/alpha/decisions',
+    expect.objectContaining({
+      body,
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-visitor-key' },
+      credentials: 'omit',
+      redirect: 'error',
+    })
+  );
+  expect(onTokenUsage).toHaveBeenCalledWith(112);
+  source.abort();
+  await expect(
+    connected.decisions!.requestDecision({ body, signal: new AbortController().signal })
+  ).rejects.toMatchObject({ name: 'AbortError' });
+  expect(request).toHaveBeenCalledOnce();
+});
+
+test('custom chat endpoints never receive Jev requests or send their credentials to OpenRouter', async () => {
+  const request = vi.fn<typeof fetch>();
+  const connected = await connectWithKey(
+    { ...settings, endpoint: 'http://localhost:8080/v1/chat/completions' },
+    new AbortController().signal,
+    { request }
+  )(input());
+  expect(connected.decisions).toBeUndefined();
+  expect(request).not.toHaveBeenCalled();
+});

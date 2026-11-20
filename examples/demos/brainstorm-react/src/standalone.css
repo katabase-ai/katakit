@@ -1,0 +1,29 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, sans-serif;
+  color: light-dark(#1c2024, #edeef0);
+  background: light-dark(#fcfcfd, #111113);
+}
+body {
+  margin: 0;
+}
+.brainstorm-standalone {
+  margin: 0 auto;
+  padding: 40px 24px;
+  max-width: 1100px;
+}
+.brainstorm-standalone-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.brainstorm-standalone-controls span {
+  font-size: 0.8125rem;
+}
+@media (max-width: 600px) {
+  .brainstorm-standalone {
+    padding: 24px 16px;
+  }
+}

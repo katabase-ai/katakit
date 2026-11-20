@@ -11,6 +11,10 @@ const configSchema = v.object({
   action: v.literal('demo_session'),
   enabled: v.boolean(),
   defaultModel: v.literal('z-ai/glm-5.3'),
+  defaultDecisionModel: v.optional(v.literal('typesafe/jev-1.13')),
+  decisionLimits: v.optional(
+    v.object({ maxQuestions: v.pipe(v.number(), v.integer(), v.minValue(1)) })
+  ),
   limits: v.object({
     MAX_BODY_BYTES: v.pipe(v.number(), v.integer(), v.minValue(1)),
     MAX_OUTPUT_TOKENS: v.pipe(v.number(), v.integer(), v.minValue(1)),
@@ -148,6 +152,71 @@ export const createDemoProxyConnection =
       });
     }
     let requestId: string | undefined;
+    const requestModel = async (
+      path: string,
+      { body, signal: requestSignal }: { body: string; signal: AbortSignal }
+    ) => {
+      signal.throwIfAborted();
+      requestSignal.throwIfAborted();
+      requestId = undefined;
+      if (Date.now() >= Date.parse(session.expiresAt)) {
+        sessionStorage.removeItem(storageKey);
+        throw new GalleryModelError('Your demo session has expired.', {
+          restart: true,
+        });
+      }
+      let response: Response;
+      let completion: unknown;
+      try {
+        response = await fetch(endpoint(path), {
+          method: 'POST',
+          credentials: 'omit',
+          redirect: 'error',
+          body,
+          signal: AbortSignal.any([
+            signal,
+            requestSignal,
+            AbortSignal.timeout(config.limits.DEADLINE_MS + 5000),
+          ]),
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${credential}`,
+          },
+        });
+        requestId = response.headers.get('X-Request-Id') ?? undefined;
+        const remaining = response.headers.get('X-Demo-Session-Calls-Remaining');
+        const count = remaining === null ? NaN : Number(remaining);
+        if (
+          remaining !== null &&
+          /^\d+$/.test(remaining) &&
+          Number.isSafeInteger(count) &&
+          count <= total
+        ) {
+          if (!signal.aborted && !requestSignal.aborted) onAllowance({ remaining: count, total });
+        }
+        // Headers report the charge even if reading the completion body is interrupted.
+        if (response.ok) completion = await response.json();
+      } catch (error) {
+        if (signal.aborted || requestSignal.aborted) throw error;
+        if (error instanceof SyntaxError)
+          throw new GalleryModelError('The model returned an unreadable response. Try again.', {
+            code: 'response_format',
+          });
+        throw new GalleryModelError('The model is delayed. Try again.', {
+          code: 'transport_failed',
+          retryAfterMs: 1500,
+          retryLimit: 1,
+        });
+      }
+      if (!response.ok) {
+        if (response.status === 401) sessionStorage.removeItem(storageKey);
+        const error = await demoProxyError(response);
+        throw error;
+      }
+      signal.throwIfAborted();
+      requestSignal.throwIfAborted();
+      return completion;
+    };
     return {
       model: config.defaultModel,
       maxBodyBytes: config.limits.MAX_BODY_BYTES,
@@ -162,65 +231,14 @@ export const createDemoProxyConnection =
           })
         );
       },
-      requestCompletion: async ({ body, signal: requestSignal }) => {
-        requestId = undefined;
-        if (Date.now() >= Date.parse(session.expiresAt)) {
-          sessionStorage.removeItem(storageKey);
-          throw new GalleryModelError('Your demo session has expired.', {
-            restart: true,
-          });
-        }
-        let response: Response;
-        let completion: unknown;
-        try {
-          response = await fetch(endpoint('/v1/chat/completions'), {
-            method: 'POST',
-            credentials: 'omit',
-            redirect: 'error',
-            body,
-            signal: AbortSignal.any([
-              signal,
-              requestSignal,
-              AbortSignal.timeout(config.limits.DEADLINE_MS + 5000),
-            ]),
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${credential}`,
-            },
-          });
-          requestId = response.headers.get('X-Request-Id') ?? undefined;
-          const remaining = response.headers.get('X-Demo-Session-Calls-Remaining');
-          const count = remaining === null ? NaN : Number(remaining);
-          if (
-            remaining !== null &&
-            /^\d+$/.test(remaining) &&
-            Number.isSafeInteger(count) &&
-            count <= total
-          ) {
-            if (!signal.aborted && !requestSignal.aborted) onAllowance({ remaining: count, total });
-          }
-          // Headers report the charge even if reading the completion body is interrupted.
-          if (response.ok) completion = await response.json();
-        } catch (error) {
-          if (signal.aborted || requestSignal.aborted) throw error;
-          if (error instanceof SyntaxError)
-            throw new GalleryModelError('The model returned an unreadable response. Try again.', {
-              code: 'response_format',
-            });
-          throw new GalleryModelError('The model is delayed. Try again.', {
-            code: 'transport_failed',
-            retryAfterMs: 1500,
-            retryLimit: 1,
-          });
-        }
-        if (!response.ok) {
-          if (response.status === 401) sessionStorage.removeItem(storageKey);
-          const error = await demoProxyError(response);
-          throw error;
-        }
-        signal.throwIfAborted();
-        requestSignal.throwIfAborted();
-        return completion;
-      },
+      requestCompletion: input => requestModel('/v1/chat/completions', input),
+      decisions:
+        config.defaultDecisionModel && config.decisionLimits
+          ? {
+              model: config.defaultDecisionModel,
+              maxQuestions: config.decisionLimits.maxQuestions,
+              requestDecision: input => requestModel('/api/alpha/decisions', input),
+            }
+          : undefined,
     } satisfies GalleryModelConnection;
   };
