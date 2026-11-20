@@ -188,6 +188,12 @@ Listening belongs to each demo. Its button sits at the left, below the descripti
 body heading: a primary Start, then a secondary Pause, beside a microphone glyph that fills with
 the level being heard. Mouse controls are 36px high; touch controls remain 44px. Setup progress
 follows the button.
+Welcome, listening demos, and Color Clash all render their primary buttons through
+`GalleryCaptureControls`. Its default and Welcome presentations use the shared speech owner.
+The controlled `action` variant renders the same button in place using the caller's label,
+disabled state, and click handler; it does not require a speech provider. Color Clash uses this
+variant for Play, Play again, retry, and Cancel setup, keeping its round timing and permission
+guidance inside the game. Its clock starts only after capture is running, and finishing stops capture.
 A demo's own controls stay inside the demo. Get the code and the
 data-handling badge sit at the header's top right, level with the top of the title.
 Models load only after a visitor action. Standalone controls
