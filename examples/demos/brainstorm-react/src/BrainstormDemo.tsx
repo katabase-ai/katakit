@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { bind, Subscribe } from '@react-rxjs/core';
-import { challengeCategories, drawChallenge, findChallenge } from './challenges';
+import { drawChallenge, findChallenge } from './challenges';
 import type { BrainstormConnection } from './brainstormModel';
 import type { createBrainstormDemo } from './createBrainstormDemo';
 import { Button } from './controls';
@@ -162,15 +162,10 @@ const BrainstormView = ({
   );
   const modelControls = (
     <section className="brainstorm-connection" aria-label="Answer judging">
-      <strong>Answer judging</strong>
-      <p role="status">
-        {state.connected
-          ? 'Judge connected · transcript text is sent for judging.'
-          : connect
-            ? 'Starting a round connects the judge before revealing the challenge.'
-            : 'Set up a judging connection to start a round.'}
-      </p>
-      {!connect && connectionHelp}
+      {state.connected && !failure && <p role="status">Judge connected.</p>}
+      {!connect &&
+        !state.connected &&
+        (connectionHelp ?? <p>Set up a judging connection to start a round.</p>)}
       {failure && <p role="alert">{failure.message}</p>}
       {state.failure && !state.failure.policy.terminal && !state.failure.policy.restart && (
         <Button onClick={runtime.retry}>Retry judging</Button>
@@ -206,21 +201,10 @@ const BrainstormView = ({
           />
 
           <section className="site-notice brainstorm-challenge" aria-labelledby="brainstorm-prompt">
-            <div className="brainstorm-challenge-heading">
-              <span>{revealed ? 'Your challenge' : 'Next round'}</span>
-              <span>
-                {revealed &&
-                  challengeCategories.find(category =>
-                    category.challenges.some(item => item.id === challenge.id)
-                  )?.title}
-              </span>
+            <div className="brainstorm-challenge-copy">
+              <h2 id="brainstorm-prompt">{revealed ? challenge.prompt : 'Ready when you are.'}</h2>
+              <p>{revealed ? challenge.judgingRule : 'Start round to reveal the challenge.'}</p>
             </div>
-            <h2 id="brainstorm-prompt">{revealed ? challenge.prompt : 'Ready when you are.'}</h2>
-            <p>
-              {revealed
-                ? challenge.judgingRule
-                : 'Your challenge will appear when you start the round.'}
-            </p>
             <div className="brainstorm-round-bar">
               <div
                 className="brainstorm-clock"
@@ -234,20 +218,17 @@ const BrainstormView = ({
                 >
                   {state.remaining === null ? 'Unlimited' : timeLabel(state.remaining)}
                 </output>
-                <span>
-                  {state.remaining === null
-                    ? 'No time limit'
-                    : state.phase === 'finished'
-                      ? 'Round complete'
-                      : 'Time remaining'}
-                </span>
               </div>
               <div className="brainstorm-score">
                 <strong>{state.notes.length}</strong>
                 <span>{state.notes.length === 1 ? 'answer' : 'answers'}</span>
               </div>
-              {renderRoundControls ? renderRoundControls(roundControls) : roundControls}
             </div>
+            {renderRoundControls ? (
+              renderRoundControls(roundControls)
+            ) : (
+              <div className="brainstorm-round-controls">{roundControls}</div>
+            )}
           </section>
 
           <div className="brainstorm-board-heading">
@@ -260,26 +241,13 @@ const BrainstormView = ({
                   : state.phase === 'finished'
                     ? `Round complete. ${state.notes.length} ${state.notes.length === 1 ? 'answer' : 'answers'} collected.`
                     : state.feedback ||
-                      (state.phase === 'running'
-                        ? 'Listening for your ideas…'
-                        : 'One note for every distinct answer.')}
+                      (state.phase === 'running' ? 'Listening for your ideas…' : '')}
             </p>
           </div>
           <div className="brainstorm-board" aria-label="Collected answers">
             {!state.notes.length && (
               <div className="brainstorm-empty">
-                <p>
-                  {state.phase === 'running'
-                    ? 'Go on. What comes to mind?'
-                    : state.phase === 'finished'
-                      ? 'A fresh round is a fresh start.'
-                      : 'Your answers will appear here.'}
-                </p>
-                <span>
-                  {state.phase === 'idle'
-                    ? 'Choose a category and start your round.'
-                    : 'Qualifying answers will appear here as sticky notes.'}
-                </span>
+                <p>Your answers will appear here.</p>
               </div>
             )}
             <ol className="brainstorm-notes" aria-live="polite" aria-relevant="additions removals">

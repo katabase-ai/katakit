@@ -12,6 +12,9 @@ round starts. **Next round** draws a different challenge and prepares capture be
 Remove mistaken answers with the button on each note. Rounds use one shared microphone and
 require a judging connection. A browser reload starts a fresh game.
 
+The prompt and judging rule share a compact card with the remaining time and answer count.
+The board has one empty-state hint and expands on taller desktop screens to leave more room for notes.
+
 The Transcript panel sits to the right of the game, with numbered entries newest first and muted
 interim speech above them. It scrolls independently and stacks below the game on narrow screens.
 It shows the round's original spoken input, including words that do not qualify as
