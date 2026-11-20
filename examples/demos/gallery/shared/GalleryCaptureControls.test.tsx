@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, expect, test, vi } from 'vitest';
 import { GalleryCaptureControls } from './GalleryCaptureControls';
 import { GalleryTermsContext } from './GalleryTermsContext';
-import { GalleryConsentProvider } from './GalleryConsentProvider';
+import { GalleryConsentProvider, type GalleryTermsAcceptance } from './GalleryConsentProvider';
 
 afterEach(() => {
   cleanup();
@@ -11,8 +11,18 @@ afterEach(() => {
   window.sessionStorage.clear();
 });
 
-const Harness = ({ disabled = false, onClick = vi.fn() }) => (
-  <GalleryConsentProvider>
+const Harness = ({
+  disabled = false,
+  onClick = vi.fn(),
+  onAccept,
+  acceptanceKey,
+}: {
+  disabled?: boolean;
+  onClick?: () => void;
+  onAccept?: (acceptance: GalleryTermsAcceptance) => void | Promise<void>;
+  acceptanceKey?: string;
+}) => (
+  <GalleryConsentProvider onAccept={onAccept} acceptanceKey={acceptanceKey}>
     <GalleryTermsContext value="https://example.com/terms">
       <GalleryCaptureControls action={{ label: 'Play', disabled, onClick }} />
       <GalleryCaptureControls action={{ label: 'Start', onClick }} />
@@ -113,3 +123,50 @@ test('secondary actions and hosts without Terms do not present a consent notice'
   view.rerender(<GalleryCaptureControls action={{ label: 'Play', onClick: vi.fn() }} />);
   expect(screen.queryByRole('link', { name: 'Terms of Service' })).toBeNull();
 });
+
+test('reports the noticed first click exactly once and never invents a click on restoration', () => {
+  const onAccept = vi.fn();
+  const view = render(<Harness onAccept={onAccept} acceptanceKey="terms-v1" />);
+  fireEvent.click(screen.getAllByRole('link', { name: 'Terms of Service' })[0]!);
+  expect(onAccept).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('button', { name: 'Play' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Start' }));
+  expect(onAccept).toHaveBeenCalledExactlyOnceWith({
+    buttonLabel: 'Play',
+    termsUrl: 'https://example.com/terms',
+    noticeText: 'By continuing, you agree to our Terms of Service.',
+  });
+  view.unmount();
+  render(<Harness onAccept={onAccept} acceptanceKey="terms-v1" />);
+  expect(screen.queryByRole('link', { name: 'Terms of Service' })).toBeNull();
+  expect(onAccept).toHaveBeenCalledOnce();
+});
+
+test('legacy flags and another policy revision cannot hide a new notice', () => {
+  window.sessionStorage.setItem('katakit-demo-terms-accepted', 'true');
+  window.sessionStorage.setItem('katakit-demo-terms-accepted:terms-v1', 'true');
+  const onAccept = vi.fn();
+  render(<Harness onAccept={onAccept} acceptanceKey="terms-v2" />);
+  expect(screen.getAllByRole('link', { name: 'Terms of Service' })).toHaveLength(2);
+  expect(onAccept).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole('button', { name: 'Start' }));
+  expect(onAccept).toHaveBeenCalledOnce();
+});
+
+test.each(['pending', 'throws', 'rejects'])(
+  'a host callback that %s cannot block the action',
+  async failure => {
+    const onClick = vi.fn();
+    const onAccept = vi.fn(() => {
+      if (failure === 'throws') throw new Error('Recording unavailable');
+      if (failure === 'rejects') return Promise.reject(new Error('Recording unavailable'));
+      return new Promise<void>(() => {});
+    });
+    render(<Harness onClick={onClick} onAccept={onAccept} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Play' }));
+    expect(onClick).toHaveBeenCalledOnce();
+    expect(onAccept).toHaveBeenCalledOnce();
+    expect(screen.queryByRole('link', { name: 'Terms of Service' })).toBeNull();
+    await Promise.resolve();
+  }
+);
