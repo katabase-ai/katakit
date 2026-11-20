@@ -99,6 +99,30 @@ test('reconnecting reuses the tab credential without another challenge or new al
   expect(request.mock.calls[1]![1].headers).toEqual({ Authorization: 'Bearer saved-session' });
 });
 
+test('malformed completion allowance headers never replace the authoritative session count', async () => {
+  for (const remaining of ['', '-1', '0.5', '61', '1e2']) {
+    sessionStorage.setItem(storageKey, 'saved-session');
+    vi.stubGlobal(
+      'fetch',
+      vi
+        .fn()
+        .mockResolvedValueOnce(Response.json(config))
+        .mockResolvedValueOnce(Response.json(session()))
+        .mockResolvedValueOnce(
+          Response.json(
+            { choices: [] },
+            { headers: { 'X-Demo-Session-Calls-Remaining': remaining } }
+          )
+        )
+    );
+    const { connection, onAllowance } = admit();
+    const connected = await connection;
+    await connected.requestCompletion({ body: '{}', signal: new AbortController().signal });
+    expect(onAllowance).toHaveBeenCalledTimes(1);
+    expect(onAllowance).toHaveBeenCalledWith({ remaining: 59, total: 60 });
+  }
+});
+
 test('an expired credential requires fresh verification; exhausted sessions remain exhausted', async () => {
   sessionStorage.setItem(storageKey, 'expired-session');
   vi.stubGlobal(

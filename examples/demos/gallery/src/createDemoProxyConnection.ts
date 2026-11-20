@@ -190,9 +190,14 @@ export const createDemoProxyConnection =
           });
           requestId = response.headers.get('X-Request-Id') ?? undefined;
           const remaining = response.headers.get('X-Demo-Session-Calls-Remaining');
-          if (remaining !== null && Number.isFinite(Number(remaining))) {
-            if (!signal.aborted && !requestSignal.aborted)
-              onAllowance({ remaining: Number(remaining), total });
+          const count = remaining === null ? NaN : Number(remaining);
+          if (
+            remaining !== null &&
+            /^\d+$/.test(remaining) &&
+            Number.isSafeInteger(count) &&
+            count <= total
+          ) {
+            if (!signal.aborted && !requestSignal.aborted) onAllowance({ remaining: count, total });
           }
           // Headers report the charge even if reading the completion body is interrupted.
           if (response.ok) completion = await response.json();
