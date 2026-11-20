@@ -6,6 +6,7 @@ import { galleryDemos } from '../shared/galleryDemos';
 import { useGalleryMode } from '../shared/GalleryModeProvider';
 import type { GalleryDeveloperPage, GalleryOperation } from '../shared/operationDetails';
 import { useLocalInference } from './localInference';
+import { usePreviewInference } from './previewInference';
 
 /** Browser demos are mounted only after hydration, never by the SSR Worker. */
 export const GalleryPage = ({
@@ -19,6 +20,7 @@ export const GalleryPage = ({
 }) => {
   const { isDeveloperView } = useGalleryMode();
   const localConnect = useLocalInference(isDeveloperView);
+  const previewConnect = usePreviewInference();
   const navigate = useNavigate();
   const configure = useCallback(
     (operation?: GalleryOperation) => {
@@ -32,8 +34,13 @@ export const GalleryPage = ({
     <Gallery
       demos={galleryDemos}
       sourceRevision={import.meta.env.VITE_GALLERY_SOURCE_REVISION}
-      connectModel={localConnect}
+      connectModel={previewConnect ?? localConnect}
       modelConnectionLabel={localConnect ? 'Server environment' : undefined}
+      cloudPrivacyDescription={
+        localConnect
+          ? undefined
+          : 'Cloud processing sends transcript text and demo context through Katabase’s demo service to OpenRouter and its model provider. Audio stays on this device.'
+      }
       developerPage={developerPage}
       settingsPage={settingsPage}
       onConfigureOperation={configure}

@@ -20,3 +20,8 @@ Run commands from the Katakit root with `pnpm --filter @katakit/gallery`.
   `src/localInference.ts` discovers nonsecret metadata and connects only in developer mode on
   loopback. Public mode and public preview must not use this developer credential. Retain origin,
   loopback, request-size and cancellation checks; do not turn this into a deployed open proxy.
+
+- CI preview inference belongs in `src/`, not portable shared modules. Require both the public proxy
+  URL and the exact deployed PR origin. Do not tie service availability to the header toggle or
+  enable it on localhost. Keep Turnstile/session credentials transient and provider secrets on the
+  existing proxy. CI's access check makes no session or paid request.
