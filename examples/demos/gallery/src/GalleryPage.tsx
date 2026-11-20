@@ -31,6 +31,7 @@ export const GalleryPage = ({
   return (
     <Gallery
       demos={galleryDemos}
+      sourceRevision={import.meta.env.VITE_GALLERY_SOURCE_REVISION}
       connectModel={localConnect}
       modelConnectionLabel={localConnect ? 'Server environment' : undefined}
       developerPage={developerPage}

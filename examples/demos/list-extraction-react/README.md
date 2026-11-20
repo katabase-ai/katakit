@@ -19,13 +19,25 @@ pnpm build
 pnpm dev
 ```
 
+You can also copy the public example directly, without a checkout:
+
+```sh
+npx degit katabase-ai/katakit/examples/demos/list-extraction-react list-extraction
+cd list-extraction
+pnpm install
+pnpm dev
+```
+
+The gallery's **Run locally** panel pins this command to the host's source revision when supplied.
 The copy contains its own source, runtime configuration, and registry dependencies.
 No gallery, sibling example, private package, or outside source alias is required.
 
 **Try sample** loads an explicitly labeled transcript fixture and preset results without a
 microphone, admission, or model request. Custom instructions have no fixture results. The sample
-does not overwrite real dictation. **New dictation** confirms before clearing the visible session;
-the microphone remains off until **Start listening**. Content is in memory and lost on reload.
+does not overwrite real dictation. **Use my own dictation** beside the sample notice clears the
+fixture and restores capture controls without starting the microphone or inference. For real speech,
+**New dictation** confirms before clearing the visible session; the microphone remains off until
+**Start listening**. Content is in memory and lost on reload.
 
 For the local standalone host, set `VITE_EXTRACTION_ENDPOINT` and `VITE_EXTRACTION_CREDENTIAL`
 in an ignored `.env.local`. The endpoint must support browser CORS, chat completions, and JSON
@@ -38,6 +50,10 @@ Vite installs transcription assets and local COOP/COEP headers through
 `same-origin`, document/worker COEP `require-corp`, and the generated `transcription-assets/`.
 English speech models download on first use. Source timestamps are recognition estimates; exact
 quotes are verified transcript excerpts, not a claim of perfect recognition or audio alignment.
+
+The results and transcript sit side by side on desktop. The transcript shows numbered turns,
+newest first, with estimated timestamps and live provisional text. It scrolls independently while
+lists grow; on narrow screens it stacks below the lists and follows normal page scrolling.
 
 ## Behavior and ownership
 

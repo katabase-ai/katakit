@@ -40,7 +40,9 @@ that entry when adopting this source revision. This does not remove the website'
 lists, use shared Start/Pause listening, then choose **Extract lists** to send the complete
 finalized transcript to the selected model. Audio remains local. The demo supports source excerpts,
 quote mode, item corrections/removal/undo, Markdown copying, and a labeled offline sample.
-Capture and setup changes never start model work. See [the copyable example](../list-extraction-react/README.md).
+Capture and setup changes never start model work. Its numbered Transcript column matches the
+other speech demos, and **Use my own dictation** exits the sample without starting capture.
+The header's **Run locally** panel copies its standalone example. See [the copyable example](../list-extraction-react/README.md).
 Its sources are included in the gallery copy workflow. Hosts with explicit demo selections must
 add the named entry when adopting this revision.
 
@@ -129,6 +131,11 @@ directory and starts it, and a prompt that asks a coding agent to do the same. F
 with the Katakit commit the host's demos come from, so a copy matches the demo the visitor used;
 without it the command copies the default branch. Copying reports `runLocallyCopied` with which
 text was copied. Color Clash lives inside the gallery and has no control.
+
+The reference host passes the build-time `VITE_GALLERY_SOURCE_REVISION` setting through this prop.
+PR builds set it to the PR head commit, so new or changed demos can be copied before merging.
+Set it to a published commit or branch when building a local review artifact; unset copies use
+the default branch.
 
 A host can select metadata and render `shared/Gallery.tsx` without importing recognizers or this
 app's bootstrap. Import `shared/gallery.css` for the scoped presentation. It owns the gallery’s

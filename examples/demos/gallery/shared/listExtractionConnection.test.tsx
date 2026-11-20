@@ -12,6 +12,10 @@ import {
   type ExtractionConnection,
   type ExtractionConnect,
 } from '../../list-extraction-react/src/extractionModel';
+import { GalleryDemoHeader } from './GalleryDemoHeader';
+import { GallerySpeechProvider } from './GallerySpeechProvider';
+import { GalleryModelContext } from './galleryModel';
+import { ListExtractionGalleryDemo } from './ListExtractionGalleryDemo';
 
 const runtimes: ListExtractionRuntime[] = [];
 const create = () => {
@@ -159,4 +163,56 @@ test('sample supports independent lists, exact sources, editing, removal/undo an
   fireEvent.click(within(output).getByRole('button', { name: 'Undo removal' }));
   expect(runtime.state$.get().markdown).toContain('Ship dictation first');
   expect(screen.queryByRole('button', { name: /upload/i })).toBeNull();
+});
+
+test('exiting the sample restores the gallery header capture action without starting inference', async () => {
+  const connect = vi.fn();
+  render(
+    <GallerySpeechProvider>
+      <GalleryModelContext value={{ connect }}>
+        <GalleryDemoHeader demo={{ title: 'List extraction' }}>
+          <ListExtractionGalleryDemo />
+        </GalleryDemoHeader>
+      </GalleryModelContext>
+    </GallerySpeechProvider>
+  );
+  const header = screen.getByRole('group', { name: 'Demo controls' });
+  await within(header).findByRole('button', { name: 'Start listening' });
+  fireEvent.click(screen.getByRole('button', { name: '+ Add another list' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Try sample' }));
+  expect(within(header).queryByRole('button', { name: 'Start listening' })).toBeNull();
+  expect(
+    within(screen.getByRole('complementary', { name: 'Transcript' })).getAllByRole('article')
+  ).toHaveLength(6);
+  fireEvent.click(screen.getByRole('button', { name: 'Use my own dictation' }));
+  await within(header).findByRole('button', { name: 'Start listening' });
+  expect(screen.queryByRole('button', { name: 'Use my own dictation' })).toBeNull();
+  expect(screen.getAllByRole('combobox')).toHaveLength(2);
+  expect(
+    within(screen.getByRole('complementary', { name: 'Transcript' })).queryAllByRole('article')
+  ).toHaveLength(0);
+  expect(screen.getByText('Only the items you ask for will appear here.')).toBeDefined();
+  expect(connect).not.toHaveBeenCalled();
+});
+
+test('the transcript shows provisional speech, the current turn and finalized turns newest first', () => {
+  const runtime = create();
+  render(<ListExtractionDemo runtime={runtime} />);
+  act(() => {
+    turn(runtime, 'First finalized turn.');
+    turn(runtime, 'Second finalized turn.');
+    runtime.ingestSegment({ id: 'current', sourceId: 'mic', text: 'Still speaking.' });
+    runtime.updateProvisional('Provisional words');
+  });
+  const transcript = screen.getByRole('complementary', { name: 'Transcript' });
+  expect(
+    within(transcript)
+      .getAllByRole('article')
+      .map(node => node.textContent)
+  ).toEqual([
+    '··Provisional words',
+    '03Still speaking.Time unavailable',
+    '02Second finalized turn.Time unavailable',
+    '01First finalized turn.Time unavailable',
+  ]);
 });

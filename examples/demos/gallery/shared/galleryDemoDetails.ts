@@ -58,6 +58,7 @@ export const colorClashDemoDetails = {
 export const listExtractionDemoDetails = {
   id: 'list-extraction',
   sourcePath: 'examples/demos/list-extraction-react',
+  copyDirectory: 'list-extraction',
   title: 'List extraction',
   description: 'Tell it what to keep. Speak freely and collect selective lists.',
   capabilities: ['microphone', 'localTranscription', 'remoteModel'],

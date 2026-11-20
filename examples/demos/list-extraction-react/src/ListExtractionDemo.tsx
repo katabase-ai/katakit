@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { bind, Subscribe } from '@react-rxjs/core';
 import type { ListExtractionRuntime } from './createListExtractionDemo';
 import { formatTime, presets, type ExtractionConnect, type ListRule } from './extractionModel';
+import { TranscriptTurns } from './TranscriptTurns';
 import './style.css';
 
 type ViewState = ReturnType<ListExtractionRuntime['state$']['get']>;
@@ -228,9 +229,17 @@ const ExtractionView = ({
 
       {!sampleOnly && controls}
       {sampleOnly && (
-        <p className="extraction-hint">
-          You’re reviewing the built-in sample. Choose New dictation to use your own speech.
-        </p>
+        <div className="extraction-sample-notice">
+          <p className="extraction-hint">You’re reviewing the built-in sample.</p>
+          <button
+            type="button"
+            className="site-button"
+            disabled={listening || captureBusy}
+            onClick={reset}
+          >
+            Use my own dictation
+          </button>
+        </div>
       )}
       {renderModelControls(
         <section className="extraction-model" aria-label="Extraction connection">
@@ -304,183 +313,166 @@ const ExtractionView = ({
         </section>
       )}
 
-      <section className="extraction-output" aria-label="Extracted lists">
-        <div className="extraction-output-heading">
-          <h2>Your lists</h2>
-          <button
-            type="button"
-            className="site-button"
-            disabled={!result}
-            onClick={() => void copy()}
-          >
-            Copy Markdown
-          </button>
-        </div>
-        {state.stale && (
-          <p className="extraction-hint">
-            Setup or dictation has changed. These are the previous results; Extract lists replaces
-            them using the current setup.
-          </p>
-        )}
-        {result?.sample && (
-          <p className="extraction-hint">
-            Sample results. Unrelated speech about headphones was left out.
-          </p>
-        )}
-        {!!result && result.rules.length > 1 && (
-          <div className="extraction-tabs" aria-label="Extracted list selection">
-            {result.rules.map(rule => (
-              <button
-                type="button"
-                key={rule.id}
-                aria-pressed={active?.id === rule.id}
-                onClick={() => setSelected(rule.id)}
-              >
-                {rule.name}{' '}
-                <span>
-                  {result.items.filter(item => item.listId === rule.id && !item.hidden).length}
-                </span>
-              </button>
-            ))}
+      <div className="extraction-layout">
+        <section className="extraction-output" aria-label="Extracted lists">
+          <div className="extraction-output-heading">
+            <h2>Your lists</h2>
+            <button
+              type="button"
+              className="site-button"
+              disabled={!result}
+              onClick={() => void copy()}
+            >
+              Copy Markdown
+            </button>
           </div>
-        )}
-        {!result ? (
-          <div className="extraction-empty">
-            <p>Only the items you ask for will appear here.</p>
-            <p>Try describing a project, or use the sample to see what gets kept.</p>
-          </div>
-        ) : !items.length ? (
-          <p className="extraction-empty">
-            No matching items in {active?.name}.{' '}
-            {result.sample && 'The sample covers built-in presets without custom instructions.'}
-          </p>
-        ) : (
-          items.map(item => (
-            <article className="extraction-item" key={item.id}>
-              {editing?.id === item.id ? (
-                <form
-                  onSubmit={event => {
-                    event.preventDefault();
-                    if (!editing.text.trim()) return;
-                    runtime.edit(item.id, editing.text.trim());
-                    setEditing(undefined);
-                  }}
-                >
-                  <label className="extraction-field">
-                    Item text
-                    <textarea
-                      value={editing.text}
-                      maxLength={2000}
-                      rows={2}
-                      onChange={event => setEditing({ id: item.id, text: event.target.value })}
-                    />
-                  </label>
-                  <div className="extraction-actions">
-                    <button type="submit" disabled={!editing.text.trim()}>
-                      Save
-                    </button>
-                    <button type="button" onClick={() => setEditing(undefined)}>
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <p className="extraction-item-text">{item.text}</p>
-              )}
-              <p className="extraction-item-meta">
-                {[item.kind, item.owner, item.deadline].filter(Boolean).join(' / ')}
-              </p>
-              <div className="extraction-item-actions">
+          {state.stale && (
+            <p className="extraction-hint">
+              Setup or dictation has changed. These are the previous results; Extract lists replaces
+              them using the current setup.
+            </p>
+          )}
+          {result?.sample && (
+            <p className="extraction-hint">
+              Sample results. Unrelated speech about headphones was left out.
+            </p>
+          )}
+          {!!result && result.rules.length > 1 && (
+            <div className="extraction-tabs" aria-label="Extracted list selection">
+              {result.rules.map(rule => (
                 <button
                   type="button"
-                  className="extraction-quiet"
-                  aria-expanded={sourceItem === item.id}
-                  onClick={() => setSourceItem(sourceItem === item.id ? undefined : item.id)}
+                  key={rule.id}
+                  aria-pressed={active?.id === rule.id}
+                  onClick={() => setSelected(rule.id)}
                 >
-                  {sourceItem === item.id ? 'Hide source' : 'Show source'}
+                  {rule.name}{' '}
+                  <span>
+                    {result.items.filter(item => item.listId === rule.id && !item.hidden).length}
+                  </span>
                 </button>
-                <button
-                  type="button"
-                  className="extraction-quiet"
-                  onClick={() => setEditing({ id: item.id, text: item.text })}
-                >
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  className="extraction-quiet"
-                  onClick={() => {
-                    runtime.setHidden(item.id, true);
-                    setRemoved(item.id);
-                  }}
-                >
-                  Remove
-                </button>
-              </div>
-              {sourceItem === item.id && (
-                <div className="extraction-evidence">
-                  {item.sources.map((source, index) => {
-                    const turn = turns.find(turn => turn.id === source.turnId);
-                    return (
-                      <div key={index}>
-                        <time>
-                          {formatTime(turn?.startMs)}
-                          {turn?.endMs === undefined ? '' : ` to ${formatTime(turn.endMs)}`}
-                        </time>
-                        {turn?.speaker && <p>{turn.speaker}</p>}
-                        <blockquote>{source.quote}</blockquote>
-                      </div>
-                    );
-                  })}
+              ))}
+            </div>
+          )}
+          {!result ? (
+            <div className="extraction-empty">
+              <p>Only the items you ask for will appear here.</p>
+              <p>Try describing a project, or use the sample to see what gets kept.</p>
+            </div>
+          ) : !items.length ? (
+            <p className="extraction-empty">
+              No matching items in {active?.name}.{' '}
+              {result.sample && 'The sample covers built-in presets without custom instructions.'}
+            </p>
+          ) : (
+            items.map(item => (
+              <article className="extraction-item" key={item.id}>
+                {editing?.id === item.id ? (
+                  <form
+                    onSubmit={event => {
+                      event.preventDefault();
+                      if (!editing.text.trim()) return;
+                      runtime.edit(item.id, editing.text.trim());
+                      setEditing(undefined);
+                    }}
+                  >
+                    <label className="extraction-field">
+                      Item text
+                      <textarea
+                        value={editing.text}
+                        maxLength={2000}
+                        rows={2}
+                        onChange={event => setEditing({ id: item.id, text: event.target.value })}
+                      />
+                    </label>
+                    <div className="extraction-actions">
+                      <button type="submit" disabled={!editing.text.trim()}>
+                        Save
+                      </button>
+                      <button type="button" onClick={() => setEditing(undefined)}>
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <p className="extraction-item-text">{item.text}</p>
+                )}
+                <p className="extraction-item-meta">
+                  {[item.kind, item.owner, item.deadline].filter(Boolean).join(' / ')}
+                </p>
+                <div className="extraction-item-actions">
+                  <button
+                    type="button"
+                    className="extraction-quiet"
+                    aria-expanded={sourceItem === item.id}
+                    onClick={() => setSourceItem(sourceItem === item.id ? undefined : item.id)}
+                  >
+                    {sourceItem === item.id ? 'Hide source' : 'Show source'}
+                  </button>
+                  <button
+                    type="button"
+                    className="extraction-quiet"
+                    onClick={() => setEditing({ id: item.id, text: item.text })}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    className="extraction-quiet"
+                    onClick={() => {
+                      runtime.setHidden(item.id, true);
+                      setRemoved(item.id);
+                    }}
+                  >
+                    Remove
+                  </button>
                 </div>
-              )}
-            </article>
-          ))
-        )}
-        {removed && result?.items.some(item => item.id === removed && item.hidden) && (
-          <button
-            type="button"
-            className="extraction-quiet"
-            onClick={() => {
-              runtime.setHidden(removed, false);
-              setRemoved(undefined);
-            }}
-          >
-            Undo removal
-          </button>
-        )}
-        {copyFallback && (
-          <label className="extraction-field extraction-copy">
-            Markdown
-            <textarea
-              readOnly
-              rows={8}
-              value={state.markdown}
-              onFocus={event => event.currentTarget.select()}
-            />
-          </label>
-        )}
-      </section>
-      <section className="extraction-transcript" aria-label="Dictation transcript">
-        <h2>What you’re saying</h2>
-        <p>
-          {state.provisional ||
-            state.current?.text ||
-            turns.at(-1)?.text ||
-            'Your latest words appear here.'}
-        </p>
-        {!!turns.length && (
-          <details>
-            <summary>Source transcript ({turns.length} turns)</summary>
-            {turns.map(turn => (
-              <div className="extraction-transcript-turn" key={turn.id}>
-                <time>{formatTime(turn.startMs)}</time>
-                <p>{turn.text}</p>
-              </div>
-            ))}
-          </details>
-        )}
-      </section>
+                {sourceItem === item.id && (
+                  <div className="extraction-evidence">
+                    {item.sources.map((source, index) => {
+                      const turn = turns.find(turn => turn.id === source.turnId);
+                      return (
+                        <div key={index}>
+                          <time>
+                            {formatTime(turn?.startMs)}
+                            {turn?.endMs === undefined ? '' : ` to ${formatTime(turn.endMs)}`}
+                          </time>
+                          {turn?.speaker && <p>{turn.speaker}</p>}
+                          <blockquote>{source.quote}</blockquote>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </article>
+            ))
+          )}
+          {removed && result?.items.some(item => item.id === removed && item.hidden) && (
+            <button
+              type="button"
+              className="extraction-quiet"
+              onClick={() => {
+                runtime.setHidden(removed, false);
+                setRemoved(undefined);
+              }}
+            >
+              Undo removal
+            </button>
+          )}
+          {copyFallback && (
+            <label className="extraction-field extraction-copy">
+              Markdown
+              <textarea
+                readOnly
+                rows={8}
+                value={state.markdown}
+                onFocus={event => event.currentTarget.select()}
+              />
+            </label>
+          )}
+        </section>
+        <TranscriptTurns turns={turns} current={state.current} provisional={state.provisional} />
+      </div>
       <p className="extraction-message" role="status" aria-live="polite">
         {busy
           ? request.phase === 'connecting'
@@ -488,7 +480,7 @@ const ExtractionView = ({
             : 'Extracting the requested lists…'
           : message}
       </p>
-      {(!!turns.length || !!state.current || !!state.provisional) && (
+      {!sampleOnly && (!!turns.length || !!state.current || !!state.provisional) && (
         <div className="extraction-new">
           {confirmClear ? (
             <>

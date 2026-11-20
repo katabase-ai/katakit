@@ -53,6 +53,7 @@ jobs:
         # Scope this opt-in to PR builds; ordinary production builds remain public.
         env:
           VITE_GALLERY_DEV_MODE: ${{ matrix.site == 'Gallery' && 'true' || 'false' }}
+          VITE_GALLERY_SOURCE_REVISION: ${{ matrix.site == 'Gallery' && github.event.pull_request.head.sha || '' }}
         run: pnpm --filter '${{ matrix.package }}' build
       - name: Report fork deployment limitation
         if: github.event.pull_request.head.repo.full_name != github.repository

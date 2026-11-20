@@ -28,7 +28,7 @@
   cursor: default;
   opacity: 0.55;
 }
-.list-extraction :is(button, input, select, textarea, summary):focus-visible {
+.list-extraction :is(button, input, select, textarea):focus-visible {
   outline: 2px solid var(--color-focus, currentColor);
   outline-offset: 4px;
 }
@@ -137,8 +137,26 @@
 .list-extraction .extraction-model {
   margin-top: 1.25rem;
 }
-.list-extraction .extraction-output {
+.list-extraction .extraction-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 270px);
+  align-items: start;
+  gap: 2.5rem;
   margin-top: 2rem;
+}
+.list-extraction .extraction-output {
+  min-width: 0;
+  min-height: 12rem;
+}
+.list-extraction .extraction-sample-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.list-extraction .extraction-sample-notice .extraction-hint {
+  margin: 0;
 }
 .list-extraction .extraction-output-heading {
   display: flex;
@@ -149,10 +167,14 @@
   padding-bottom: 0.75rem;
   border-bottom: 1px solid var(--color-rule, currentColor);
 }
-.list-extraction .extraction-output-heading h2 {
+.list-extraction .extraction-output-heading h2,
+.list-extraction .extraction-transcript h2 {
   margin: 0;
-  font-size: 1.125rem;
+  color: var(--color-ink, inherit);
+  font-size: var(--text-lg, 1.25rem);
+  font-weight: 600;
   line-height: 1.4;
+  letter-spacing: normal;
 }
 .list-extraction .extraction-output-heading button {
   font-size: 0.8125rem;
@@ -227,30 +249,57 @@
   line-height: 1.6;
 }
 .list-extraction .extraction-transcript {
-  margin-top: 2rem;
-  color: var(--color-muted, inherit);
-  font-size: 0.875rem;
-  overflow-wrap: anywhere;
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: var(--transcript-column-height, calc(100dvh - 14rem));
 }
 .list-extraction .extraction-transcript h2 {
-  margin: 0 0 0.75rem;
+  box-sizing: content-box;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-height: 44px;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-rule, currentColor);
+}
+.list-extraction .extraction-transcript-list {
+  flex: 1 1 0;
+  min-height: 6rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.list-extraction .extraction-transcript-turn {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr);
+  gap: 0.25rem 0.5rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--color-rule, currentColor);
   font-size: 0.875rem;
   line-height: 1.5;
 }
-.list-extraction .extraction-transcript p {
-  margin: 0.5rem 0;
+.list-extraction .extraction-transcript-turn p {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
-.list-extraction details {
-  margin-top: 1rem;
+.list-extraction .extraction-transcript-index {
+  padding-top: 0.15rem;
+  color: var(--color-muted, inherit);
+  font-family: var(--font-outlier, ui-monospace, monospace);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
 }
-.list-extraction summary {
-  cursor: pointer;
-  color: var(--color-link, inherit);
-  font-size: 0.8125rem;
+.list-extraction .extraction-transcript-turn time {
+  grid-column: 2;
+  justify-self: end;
 }
-.list-extraction .extraction-transcript-turn {
-  padding: 0.75rem 0;
-  border-bottom: 1px solid var(--color-rule, currentColor);
+.list-extraction .extraction-transcript-turn[data-interim='true'] p {
+  color: var(--color-muted, inherit);
+  font-style: italic;
 }
 .list-extraction .extraction-copy {
   margin-top: 1rem;
@@ -271,6 +320,18 @@
   font-size: 0.875rem;
 }
 @media (max-width: 650px) {
+  .list-extraction .extraction-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+  .list-extraction .extraction-transcript {
+    position: static;
+    height: auto;
+  }
+  .list-extraction .extraction-transcript-list {
+    flex: auto;
+    overflow-y: visible;
+  }
   .list-extraction .extraction-rule-row select {
     flex: 1;
     min-width: 8rem;
