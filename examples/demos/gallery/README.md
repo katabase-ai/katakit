@@ -239,8 +239,9 @@ want shown or retried. Connection controls, browser verification, and errors ren
 inside the active demo. Host `onAllowance` reports drive the shared footer’s “Usage” bar: the percentage
 of allowed model calls used, yellow at 80% and red at 100%. On-device transcription does not consume
 model calls. The reported value survives demo navigation under `GallerySpeechProvider`, but source/configuration
-and mode changes clear it. Without valid host data the footer shows no usage row, and Settings shows
-“Usage unavailable” with an explanation. The reference host has no managed allowance service.
+and mode changes clear it. Without valid data the footer shows no usage row, and Settings shows “Usage unavailable” with an explanation;
+there is no sample or predicted usage. Without CI preview deployment configuration, the reference host has no managed allowance service, and
+developer-key providers do not report a demo allowance. No usage request is made on page load.
 
 With a personal key selected, “Usage” shows the session’s input and output token total instead of a
 bar. It sums `usage.total_tokens` from received chat-completions responses, including responses a demo
@@ -364,11 +365,26 @@ one React runtime. Gallery-only source updates do not require a library release.
 
 ## Hosted PR previews
 
-GitHub Actions builds this same Start app and uploads its generated Worker configuration at
+GitHub Actions builds this same Start app and deploys its generated Worker configuration at
 `dist/server/wrangler.json`, including `dist/client/` and `transcription-assets/`. Direct demo
 links and unknown routes are handled by Start rather than an HTML fallback. `public/_headers`
 supplies document and runtime isolation headers. The workflow sets `VITE_GALLERY_DEV_MODE=true`
 only for the gallery PR build, so reviewers can use developer tools and the header's Preview toggle
-to inspect the public experience. This does not add managed inference to the standalone host.
+to inspect the public experience. The CI deployment can supply managed inference through the existing ProtoZoa demo proxy; see the preview setup below.
 Normal production builds remain public. See the repository's
 [preview setup](../../../.github/PREVIEWS.md).
+
+### Managed inference in CI deployments
+
+Same-repository gallery PR builds receive `VITE_GALLERY_DEMO_PROXY_URL` and an exact
+`VITE_GALLERY_PREVIEW_ORIGIN`. The host offers the managed connection only on that deployed origin,
+in both developer and public views. Neither the header toggle nor visitor storage enables it.
+Ordinary local and production builds omit this configuration. Sessions, verification, cancellation,
+server-reported allowance and errors follow the website's anonymous demo flow; the existing proxy
+and website budget are shared. No account sign-in or provider key is required from the reviewer.
+See [the one-time Cloudflare setup](../../../.github/PREVIEWS.md#managed-inference-for-every-gallery-pr-preview).
+
+Gallery CI deploys a native Worker Preview named `pr-<number>`, served at
+`https://pr-<number>.katakit-preview.katabase.com`, and removes it when the PR closes. The
+parent custom domain is enabled for Preview traffic only. Local builds do not create or
+configure domains. Docs previews retain their workers.dev version aliases.
