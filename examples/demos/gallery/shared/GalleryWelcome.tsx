@@ -5,7 +5,13 @@ import { useGalleryDemoReady } from './GalleryDemoFrame';
 import { galleryWelcomeDetails } from './galleryWelcomeDetails';
 import './galleryWelcome.css';
 
-export const GalleryWelcome = ({ privacyUrl }: { privacyUrl?: string }) => {
+export const GalleryWelcome = ({
+  privacyUrl,
+  termsUrl,
+}: {
+  privacyUrl?: string;
+  termsUrl?: string;
+}) => {
   const hasHeader = useGalleryDemoHeader();
   // Page readiness follows code/hydration, not microphone permission or model downloads.
   useGalleryDemoReady(true);
@@ -24,7 +30,7 @@ export const GalleryWelcome = ({ privacyUrl }: { privacyUrl?: string }) => {
           <li>
             Demos marked with{' '}
             <GalleryPrivacyPill dataHandling={{ audio: 'device', transcribedText: 'device' }} />{' '}
-            keep all your data on your device.
+            keep microphone audio and transcript text on your device.
           </li>
           <li>
             Demos marked with{' '}
@@ -32,13 +38,19 @@ export const GalleryWelcome = ({ privacyUrl }: { privacyUrl?: string }) => {
             cloud-based models to process transcript text. Your audio still stays on your device.
           </li>
         </ul>
-        {privacyUrl && (
+        {(privacyUrl || termsUrl) && (
           <p className="gallery-welcome-privacy">
-            See{' '}
-            <a href={privacyUrl} target="_blank" rel="noopener noreferrer">
-              {privacyUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')}
-            </a>{' '}
-            for more information.
+            {privacyUrl && (
+              <a href={privacyUrl} target="_blank" rel="noopener noreferrer">
+                Privacy Policy
+              </a>
+            )}
+            {privacyUrl && termsUrl && ' and '}
+            {termsUrl && (
+              <a href={termsUrl} target="_blank" rel="noopener noreferrer">
+                Terms of Service
+              </a>
+            )}
           </p>
         )}
       </section>

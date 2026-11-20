@@ -163,7 +163,7 @@ describe('published packages', () => {
         events$.next({ text: 'bypass' });
         const shutdown: Promise<void> = runtime.getMethods(PersistencePlugin).kill();
         makeEffect({
-          on: events$, backpressure: 'queue',
+          on: events$, backpressure: 'none',
           handler: event => {
             const text: string = event.text;
             // @ts-expect-error Effect inputs must retain the observable value type.

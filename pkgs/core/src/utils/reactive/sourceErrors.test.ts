@@ -70,7 +70,7 @@ describe('observable error boundaries', () => {
     return result;
   };
 
-  test.each(['queue', 'latest', 'concurrent'] as const)(
+  test.each(['queue', 'latest', 'none'] as const)(
     '%s accepts a live value and completes without an unhandled error',
     strategy => {
       const result = runProbe(`
@@ -94,7 +94,7 @@ describe('observable error boundaries', () => {
   );
 
   // TODO: Re-enable when the backpressure tasks catch and report source errors.
-  test.skip.each(['queue', 'latest', 'concurrent'] as const)(
+  test.skip.each(['queue', 'latest', 'none'] as const)(
     '%s reports observable failures without an unhandled rejection',
     strategy => {
       const result = runProbe(`

@@ -11,7 +11,10 @@ test('signup and sign-in use the host actions without exposing provider configur
   const onLogIn = vi.fn();
   render(
     <GalleryModelContext value={{ account: { onCreateAccount, onLogIn } }}>
-      <GalleryPublicSettings privacyUrl="https://katabase.com/privacy" />
+      <GalleryPublicSettings
+        privacyUrl="https://katabase.com/privacy"
+        termsUrl="https://example.com/terms"
+      />
     </GalleryModelContext>
   );
   expect(
@@ -24,9 +27,13 @@ test('signup and sign-in use the host actions without exposing provider configur
   expect(onLogIn).toHaveBeenCalledOnce();
   expect(screen.queryByLabelText('API key')).toBeNull();
   expect(screen.queryByRole('navigation', { name: 'Operation views' })).toBeNull();
-  const privacy = screen.getByRole('link', { name: 'katabase.com/privacy' });
+  const privacy = screen.getByRole('link', { name: 'Privacy Policy' });
   expect(privacy.getAttribute('href')).toBe('https://katabase.com/privacy');
   expect(privacy.getAttribute('rel')).toBe('noopener noreferrer');
+  const terms = screen.getByRole('link', { name: 'Terms of Service' });
+  expect(terms.getAttribute('href')).toBe('https://example.com/terms');
+  expect(terms.getAttribute('target')).toBe('_blank');
+  expect(terms.getAttribute('rel')).toBe('noopener noreferrer');
 });
 
 test('missing account services explain availability without simulating registration or sign-in', () => {
@@ -36,7 +43,8 @@ test('missing account services explain availability without simulating registrat
   fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
   expect(screen.getByRole('status').textContent).toBe('Sign-in isn’t available here yet.');
   expect(screen.queryByText(/Signed in as/)).toBeNull();
-  expect(screen.queryByRole('link', { name: 'katabase.com/privacy' })).toBeNull();
+  expect(screen.queryByRole('link', { name: 'Privacy Policy' })).toBeNull();
+  expect(screen.queryByRole('link', { name: 'Terms of Service' })).toBeNull();
 });
 
 test('signed-in users see account management instead of signup', () => {

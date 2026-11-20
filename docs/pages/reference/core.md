@@ -66,7 +66,7 @@ Choose how the effect handles values that arrive while a handler is busy:
 
 - `queue`: handle every value in arrival order, one at a time.
 - `latest`: finish the active handler, then handle only the newest pending value. It does not cancel the active handler.
-- `concurrent`: start each handler without waiting for earlier handlers.
+- `none`: start each handler without waiting for earlier handlers. Use this for a one-shot effect or when handler runs may overlap.
 
 Handlers' errors are logged rather than propagated to the caller of `start()`. To avoid repeating external work during history reconstruction, use `skipReplay()` on an effect's event-log input. Keep the full history available to projections.
 

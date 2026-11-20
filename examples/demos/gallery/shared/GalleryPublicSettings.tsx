@@ -5,7 +5,13 @@ import './galleryFooterControls.css';
 import './galleryPublicSettings.css';
 
 /** Public account presentation; the host owns real identity, authentication, and allowance. */
-export const GalleryPublicSettings = ({ privacyUrl }: { privacyUrl?: string }) => {
+export const GalleryPublicSettings = ({
+  privacyUrl,
+  termsUrl,
+}: {
+  privacyUrl?: string;
+  termsUrl?: string;
+}) => {
   const { account, allowance, tokenUsage, usageUnavailableReason } =
     useContext(GalleryModelContext);
   const [notice, setNotice] = useState('');
@@ -99,13 +105,19 @@ export const GalleryPublicSettings = ({ privacyUrl }: { privacyUrl?: string }) =
           </>
         )}
       </section>
-      {privacyUrl && (
+      {(privacyUrl || termsUrl) && (
         <p className="gallery-settings-privacy">
-          See{' '}
-          <a href={privacyUrl} target="_blank" rel="noopener noreferrer">
-            {privacyUrl.replace(/^https?:\/\//, '').replace(/\/$/, '')}
-          </a>{' '}
-          for more information.
+          {privacyUrl && (
+            <a href={privacyUrl} target="_blank" rel="noopener noreferrer">
+              Privacy Policy
+            </a>
+          )}
+          {privacyUrl && termsUrl && ' and '}
+          {termsUrl && (
+            <a href={termsUrl} target="_blank" rel="noopener noreferrer">
+              Terms of Service
+            </a>
+          )}
         </p>
       )}
     </article>
