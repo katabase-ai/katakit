@@ -3,7 +3,21 @@ import { originalPositionFor, TraceMap } from '@jridgewell/trace-mapping';
 const location = /(https?:\/\/[^\s()]+):(\d+):(\d+)(\)?)$/;
 const internal =
   /(?:[/\\]rxjs[/\\]|[/\\](?:@katakit|pkgs)[/\\]react[/\\](?:src[/\\]dev-tools[./\\]|dist[/\\]index\.js)|\/\.vite\/deps\/(?:rxjs|@katakit_react)[._])/i;
-export const isInternalFrame = (frame: string) => internal.test(frame);
+export const isInternalFrame = (frame: string) =>
+  internal.test(frame) ||
+  /[/\\](?:node_modules|\.vite[/\\]deps|@vite|@react-refresh)[/\\?]/.test(frame) ||
+  /(?:^|\s)(?:react_stack_bottom_frame|executeDispatch|dispatchDiscreteEvent)\b/.test(frame);
+
+export const describeFrame = (frame: string) => {
+  const match = frame.match(/^(?:at\s+)?(?:(.*?)\s+\(|(.*?)@)?(.*?):(\d+):(\d+)\)?$/);
+  if (!match) return { name: frame.replace(/^at /, ''), file: '', path: frame };
+  const path = match[3]!.split('?')[0]!;
+  return {
+    name: match[1] || match[2] || 'Anonymous function',
+    file: `${path.split(/[/\\]/).at(-1)}:${match[4]}`,
+    path: `${path}:${match[4]}:${match[5]}`,
+  };
+};
 export const stackFrames = (stack: string) =>
   stack
     .split('\n')

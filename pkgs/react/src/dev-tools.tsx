@@ -5,6 +5,7 @@ import { useCapture } from './dev-tools/capture';
 import { stylesheet, ui } from './dev-tools/theme.generated';
 import { ToolButton } from './dev-tools/ui';
 import { Timeline } from './dev-tools/timeline';
+import { Inspector } from './dev-tools/inspector';
 import type { Delivery } from './dev-tools/deliveries';
 
 /** Render the observable timeline alongside the application in development. */
@@ -36,8 +37,8 @@ export const KatakitDevTools = () => {
                         <span className={ui.activity} />
                       </span>
                       <div>
+                        <p className={ui.caption}>Katakit / Devtools</p>
                         <h2 className={ui.title}>Observable timeline</h2>
-                        <p className={ui.hint}>Katakit devtools</p>
                       </div>
                     </div>
                     <div className={ui.row}>
@@ -52,6 +53,12 @@ export const KatakitDevTools = () => {
                     selected={pinned ?? preview}
                     onPreview={setPreview}
                     onPin={setPinned}
+                  />
+                  <Inspector
+                    event={pinned ?? preview}
+                    pinned={!!pinned}
+                    release={() => setPinned(undefined)}
+                    origin={events[0]?.time ?? 0}
                   />
                   <footer className={ui.footer}>
                     <span>EVENT STREAM</span>

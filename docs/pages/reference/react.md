@@ -5,14 +5,17 @@ Applications render their own runtime state with [React-RxJS bindings](#react-rx
 
 ## Observable timeline
 
-Open the panel in the development entry point **before creating the runtime**:
+Render the component alongside your app before the runtime creates its observable collections:
 
-```ts
-if (import.meta.env.DEV) {
-  const { openKatakitDevtools } = await import('@katakit/react');
-  const close = openKatakitDevtools();
-  import.meta.hot?.dispose(close);
-}
+```tsx
+import { KatakitDevTools } from '@katakit/react';
+
+export const App = () => (
+  <>
+    {import.meta.env.DEV && <KatakitDevTools />}
+    <MyApplication />
+  </>
+);
 ```
 
 Expand **Katakit devtools** and hover, tap, or keyboard-focus a dot. Each lane is
@@ -24,7 +27,13 @@ Subscriptions made inside a plugin before it returns its observables are not obs
 away. Same-origin source maps are resolved on inspection. For replayed values the
 stack may show the subscription; for scheduled work it may show the scheduler.
 The panel keeps the last 500 deliveries, even while collapsed. Object previews
-read current fields. Call `close()` to stop recording without stopping the runtime.
+read current fields. Unmounting the component stops recording without stopping the runtime.
+
+Drag or scroll horizontally to pan; Ctrl/Cmd-wheel zooms under the pointer. **Fit**
+shows the full recording, and **Follow** keeps the latest deliveries in view.
+Click a marker to pin it; numbered markers cycle through nearby deliveries.
+Use **Lanes** to search and toggle observable visibility without changing capture.
+The package ships its compiled UnoCSS theme inside an isolated shadow root.
 
 ## Developer workbench
 
