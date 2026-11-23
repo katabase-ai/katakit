@@ -79,34 +79,36 @@ export const Inspector = ({
             }
           }}
         >
-          <div className="flex shrink-0 items-center justify-between gap-2">
-            <h3 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
-              Value
-            </h3>
+          <div
+            role="region"
+            aria-label="Delivery value"
+            className="relative flex min-h-0 flex-1 flex-col rounded-md border border-zinc-800 bg-[#141518]"
+          >
+            <div className="absolute right-1 top-1 z-1">
+              <ToolButton
+                label={expanded ? 'Restore value' : 'Expand value'}
+                onClick={() => setExpanded(!expanded)}
+              >
+                {expanded ? (
+                  <span
+                    aria-hidden="true"
+                    className="inline-block size-4 shrink-0 i-lucide-minimize-2"
+                  />
+                ) : (
+                  <span
+                    aria-hidden="true"
+                    className="inline-block size-4 shrink-0 i-lucide-maximize-2"
+                  />
+                )}
+              </ToolButton>
+            </div>
             {expanded && (
-              <span className="text-xs text-zinc-400">
+              <span className="pl-3 pr-12 pt-2 text-xs text-zinc-400">
                 {splitLane(event.lane).name} · Message {event.messageNumber}
               </span>
             )}
-            <ToolButton
-              label={expanded ? 'Restore value' : 'Expand value'}
-              pressed={expanded}
-              onClick={() => setExpanded(!expanded)}
-            >
-              {expanded ? (
-                <span
-                  aria-hidden="true"
-                  className="inline-block size-4 shrink-0 i-lucide-minimize-2"
-                />
-              ) : (
-                <span
-                  aria-hidden="true"
-                  className="inline-block size-4 shrink-0 i-lucide-maximize-2"
-                />
-              )}
-            </ToolButton>
+            <ValuePreview key={`${event.lane}:${event.messageNumber}`} value={event.value} />
           </div>
-          <ValuePreview key={`${event.lane}:${event.messageNumber}`} value={event.value} />
         </div>
         <div className="min-w-0 overflow-auto">
           <h3 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">

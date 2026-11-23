@@ -83,7 +83,7 @@ const ValueNode = ({
   if (length === undefined) return <div>{prefix}[unavailable]</div>;
   return (
     <Collapsible.Root defaultOpen={!ancestors.length}>
-      <Collapsible.Trigger className="cursor-pointer rounded-sm text-left text-teal-200 hover:text-white focus-visible:ring-2 focus-visible:ring-teal-300 [&[aria-expanded=true]>span]:rotate-90">
+      <Collapsible.Trigger className="cursor-pointer rounded-sm text-left text-zinc-100 hover:text-white focus-visible:ring-2 focus-visible:ring-zinc-300 [&[aria-expanded=true]>span]:rotate-90">
         <span
           aria-hidden="true"
           className="inline-block size-3 align-middle i-lucide-chevron-right"
@@ -100,10 +100,8 @@ const ValueNode = ({
 
 export const ValuePreview = ({ value }: { value: unknown }) => (
   <div
-    aria-label="Delivery value"
-    role="region"
     tabIndex={0}
-    className="mt-2 flex-1 overflow-auto whitespace-pre-wrap break-words rounded-md border border-zinc-800 bg-[#141518] px-3 py-2 font-mono text-[11px] leading-relaxed text-teal-200"
+    className="flex-1 overflow-auto whitespace-pre-wrap break-words pl-3 pr-11 py-2 font-mono text-[11px] leading-relaxed text-zinc-200"
   >
     <ValueNode value={value} ancestors={[]} />
   </div>
