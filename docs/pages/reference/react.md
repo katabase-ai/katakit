@@ -32,7 +32,9 @@ Subscriptions made inside a plugin before it returns its observables are not obs
 away. Same-origin source maps are resolved on inspection. For replayed values the
 stack may show the subscription; for scheduled work it may show the scheduler.
 The panel keeps the last 500 deliveries, even while collapsed. Object previews
-read current fields rather than taking a deep snapshot. Mounted panels share a
+read current fields rather than taking a deep snapshot. In **Value**, open an object
+or array to explore its children. Large collections show 32 fields per page;
+accessor properties are labeled rather than invoked. Mounted panels share a
 recording. After the last panel unmounts, the recording is discarded without
 stopping the runtime. A later mount records newly created observable collections;
 it does not reconnect to collections cached by an earlier recording.

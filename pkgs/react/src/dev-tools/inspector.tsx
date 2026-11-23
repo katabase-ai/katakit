@@ -3,7 +3,7 @@ import { describeFrame, isInternalFrame, makeFrameResolver, stackFrames } from '
 import type { Delivery } from './deliveries';
 import { splitLane, stamp } from './time';
 import { ToolButton } from './ui';
-import { valueText } from './value-preview';
+import { ValuePreview } from './value-preview';
 
 export const Inspector = ({
   event,
@@ -106,12 +106,7 @@ export const Inspector = ({
               )}
             </ToolButton>
           </div>
-          <pre
-            className="mt-2 flex-1 overflow-auto whitespace-pre-wrap break-words rounded-md border border-zinc-800 bg-[#141518] px-3 py-2 font-mono text-[11px] leading-relaxed text-teal-200"
-            tabIndex={0}
-          >
-            {valueText(event.value)}
-          </pre>
+          <ValuePreview key={`${event.lane}:${event.messageNumber}`} value={event.value} />
         </div>
         <div className="min-w-0 overflow-auto">
           <h3 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
