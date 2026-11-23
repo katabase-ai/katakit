@@ -21,7 +21,6 @@ const portable = path => path.split(sep).join('/');
 const relative = (from, to) => portable(relativePath(from, to));
 const packages = [
   'core',
-  'devtools',
   'event-log',
   'persistence',
   'transcript-ingestion',

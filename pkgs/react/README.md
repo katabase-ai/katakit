@@ -1,7 +1,7 @@
 # @katakit/react
 
-A placeholder for future Katakit-specific React APIs. The package currently exports an
-empty ESM module and TypeScript declaration; React bindings and DevTools are not implemented.
+Import `openKatakitDevtools` from `@katakit/react/dev-tools` in a development entry
+point before creating the runtime. See the [observable timeline guide](../../docs/pages/reference/react.md#observable-timeline).
 
 For observable subscriptions in a React application, use `@react-rxjs/core`.
 The optional microphone lifecycle hook is available from `@katakit/transcription/react`

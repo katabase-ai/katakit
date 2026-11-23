@@ -30,7 +30,7 @@ consumer separately generates HTML for individual documentation pages.
 
 ## Package coverage
 
-Generated API reference covers `@katakit/core`, `@katakit/devtools`, `@katakit/event-log`,
+Generated API reference covers `@katakit/core`, `@katakit/event-log`,
 `@katakit/persistence`, `@katakit/transcript-ingestion`, `@katakit/transcription`,
 and `@katakit/react`. The package list is explicit in
 [`exportDocs.mjs`](../internal/pkgs/docs-export/exportDocs.mjs), not discovered from every
@@ -47,8 +47,8 @@ entry points. JSON metadata exports are recorded separately in `nonCodeExports`.
 
 `internal/pkgs/docs-export` owns API extraction with TypeDoc 0.28.20, its Markdown plugin 4.14.1,
 and supported TypeScript 6.0.3. Application checking remains on TypeScript 7. Export validates
-actual public package entry points and guide links, and fails conversion errors. React currently
-has no public symbols; the manifest reports that without inventing an API page.
+actual public package entry points and guide links, and fails conversion errors.
+React devtools are covered by the `@katakit/react/dev-tools` entry point.
 
 ## Bundle contract
 

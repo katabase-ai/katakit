@@ -69,10 +69,6 @@
         "slug": "reference/core"
       },
       {
-        "label": "@katakit/devtools",
-        "slug": "reference/devtools"
-      },
-      {
         "label": "@katakit/event-log",
         "slug": "reference/plugins/event-log"
       },

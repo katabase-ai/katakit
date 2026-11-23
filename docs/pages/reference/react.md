@@ -1,17 +1,38 @@
 # @katakit/react
 
-`@katakit/react` is the home of Katakit's optional developer workbench: a panel for inspecting
-a running application's plugins, observable state, and execution. Applications render their own
-runtime state with [React-RxJS bindings](#react-rxjs-bindings), described below.
+`@katakit/react/dev-tools` provides a browser timeline for inspecting observable deliveries.
+Applications render their own runtime state with [React-RxJS bindings](#react-rxjs-bindings).
+
+## Observable timeline
+
+Open the panel in the development entry point **before creating the runtime**:
+
+```ts
+if (import.meta.env.DEV) {
+  const { openKatakitDevtools } = await import('@katakit/react/dev-tools');
+  const close = openKatakitDevtools();
+  import.meta.hot?.dispose(close);
+}
+```
+
+Expand **Katakit devtools** and hover, tap, or keyboard-focus a dot. Each lane is
+a named observable in one runtime. Each dot is one `next` delivery to an existing
+subscriber; two subscribers get two dots. The panel does not subscribe to sources.
+Subscriptions made inside a plugin before it returns its observables are not observed.
+
+**Stack at delivery** shows application frames first, with the full stack one click
+away. Same-origin source maps are resolved on inspection. For replayed values the
+stack may show the subscription; for scheduled work it may show the scheduler.
+The panel keeps the last 500 deliveries, even while collapsed. Object previews
+read current fields. Call `close()` to stop recording without stopping the runtime.
+
+## Developer workbench
 
 **Workbench availability — November 17, 2026:** [PR #27](https://github.com/katabase-ai/katakit/pull/27)
 implemented the workbench and merged into the tracing branch. Its parent
 [PR #38](https://github.com/katabase-ai/katakit/pull/38) has not merged into `main`.
-The developer-tool examples below require the compatible Core and React packages from that branch;
-the `dev-tools` entry points do not exist in `main`. React-RxJS bindings and the transcription
-hook work independently of those changes.
-
-## Developer workbench
+The richer workbench examples in this section require that branch's Core and React
+packages. They are separate from the observable timeline above.
 
 The workbench starts collapsed below the application. Capture continues while it is collapsed
 or showing another view. It provides:

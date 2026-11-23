@@ -20,7 +20,6 @@ linkWorkspacePackages: true
 # Standalone example copies have their own settings and do not inherit these overrides.
 overrides:
   '@katakit/core': 'workspace:*'
-  '@katakit/devtools': 'workspace:*'
   '@katakit/event-log': 'workspace:*'
   '@katakit/persistence': 'workspace:*'
   '@katakit/react': 'workspace:*'

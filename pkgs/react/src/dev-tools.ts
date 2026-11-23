@@ -1,5 +1,5 @@
-import { installRecorder } from './deliveries';
-import { makePanel } from './panel';
+import { installRecorder } from './dev-tools/deliveries';
+import { makePanel } from './dev-tools/panel';
 
 /**
  * Mount the browser's observable timeline before constructing any Katakit runtimes.

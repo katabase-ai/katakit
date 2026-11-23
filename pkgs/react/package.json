@@ -1,7 +1,7 @@
 {
   "name": "@katakit/react",
   "version": "0.1.0",
-  "description": "Placeholder for future Katakit-specific React APIs.",
+  "description": "Katakit developer tools for React applications.",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -21,6 +21,11 @@
       "source": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./dev-tools": {
+      "source": "./src/dev-tools.ts",
+      "types": "./dist/dev-tools.d.ts",
+      "default": "./dist/dev-tools.js"
     }
   },
   "publishConfig": {
@@ -28,6 +33,10 @@
       ".": {
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
+      },
+      "./dev-tools": {
+        "types": "./dist/dev-tools.d.ts",
+        "default": "./dist/dev-tools.js"
       }
     },
     "access": "public"
@@ -38,6 +47,10 @@
     "prepack": "pnpm build",
     "test": "vitest",
     "test:ci": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@jridgewell/trace-mapping": "^0.3.31",
+    "rxjs": "^7.8.2"
   },
   "devDependencies": {
     "@katakit/core": "workspace:*",
