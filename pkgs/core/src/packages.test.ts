@@ -227,7 +227,7 @@ describe('published packages', () => {
     const local = JSON.parse(
       await readFile(join(repository, 'pkgs', name, 'package.json'), 'utf8')
     );
-    expect(local.exports['.'].source).toBe('./src/index.ts');
+    expect(local.exports['.'].source).toBe(name === 'react' ? undefined : './src/index.ts');
   });
 
   test.each([

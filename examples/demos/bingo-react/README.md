@@ -47,6 +47,7 @@ Inside the repository, build the utility before starting the example:
 ```sh
 pnpm install
 pnpm -F @katakit/transcription build
+pnpm -F @katakit/react build
 pnpm -F @katakit/demo-bingo-react dev
 ```
 

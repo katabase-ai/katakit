@@ -2,12 +2,15 @@ import { Button } from '@base-ui/react/button';
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useCapture } from './dev-tools/capture';
-import { monoFont, stylesheet, ui } from './dev-tools/theme.generated';
+import css from 'virtual:uno.css?inline';
+import fontUrl from '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2?url';
 import { ToolButton } from './dev-tools/ui';
 import { Timeline } from './dev-tools/timeline';
 import { Inspector } from './dev-tools/inspector';
 import { ResizablePanel } from './dev-tools/resizable-panel';
 import type { Delivery } from './dev-tools/deliveries';
+
+const stylesheet = `data:text/css;base64,${btoa(css)}`;
 
 /** Render the observable timeline alongside the application in development. */
 export const KatakitDevTools = () => {
@@ -16,7 +19,7 @@ export const KatakitDevTools = () => {
   useEffect(() => {
     if (!root) return;
     const fonts = root.ownerDocument.fonts;
-    const face = new FontFace('Katakit JetBrains Mono', monoFont, {
+    const face = new FontFace('Katakit JetBrains Mono', `url(${fontUrl})`, {
       weight: '100 800',
       display: 'swap',
     });
@@ -46,27 +49,40 @@ export const KatakitDevTools = () => {
         createPortal(
           <>
             <link rel="stylesheet" href={stylesheet} />
-            <aside className={ui.shell} aria-label="Katakit devtools">
+            <aside
+              className="fixed z-[2147483646] bottom-3 right-3 left-3 sm:(left-auto bottom-5 right-5) font-mono text-[13px] leading-normal text-zinc-100 antialiased"
+              aria-label="Katakit devtools"
+            >
               {!open ? (
-                <Button className={ui.launch} onClick={() => setOpen(true)}>
-                  <span className={ui.activity} /> Katakit devtools
+                <Button
+                  className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md font-medium text-xs cursor-pointer outline-none transition-colors focus-visible:ring-2 focus-visible:ring-teal-300 disabled:opacity-40 disabled:cursor-default ml-auto flex h-10 border border-zinc-700 bg-zinc-950 px-3 shadow-lg hover:bg-zinc-800"
+                  onClick={() => setOpen(true)}
+                >
+                  <span className="inline-block size-4 shrink-0 i-lucide-audio-lines" /> Katakit
+                  devtools
                 </Button>
               ) : (
                 <ResizablePanel size={size} onResize={setSize}>
-                  <header className={ui.header}>
-                    <div className={ui.row}>
-                      <span className={ui.brand}>
-                        <span className={ui.activity} />
+                  <header className="flex items-center justify-between gap-3 border-b border-zinc-800 px-4 py-3">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="grid size-8 shrink-0 place-items-center rounded-lg border border-teal-300/30 bg-teal-400/10 text-teal-300">
+                        <span className="inline-block size-4 shrink-0 i-lucide-audio-lines" />
                       </span>
                       <div>
-                        <p className={ui.caption}>Katakit / Devtools</p>
-                        <h2 className={ui.title}>Observable timeline</h2>
+                        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+                          Katakit / Devtools
+                        </p>
+                        <h2 className="text-lg font-semibold tracking-tight text-zinc-50">
+                          Observable timeline
+                        </h2>
                       </div>
                     </div>
-                    <div className={ui.row}>
-                      <span className={ui.tag}>Recording</span>
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="rounded-full border border-teal-400/25 bg-teal-400/10 px-2 py-0.5 font-mono text-[10px] text-teal-300">
+                        Recording
+                      </span>
                       <ToolButton label="Collapse devtools" onClick={() => setOpen(false)}>
-                        <span className={ui.collapse} />
+                        <span className="inline-block size-4 shrink-0 i-lucide-chevron-down" />
                       </ToolButton>
                     </div>
                   </header>
@@ -85,7 +101,7 @@ export const KatakitDevTools = () => {
                     release={() => setPinned(undefined)}
                     origin={events[0]?.time ?? 0}
                   />
-                  <footer className={ui.footer}>
+                  <footer className="flex items-center justify-between gap-2 border-t border-zinc-800 px-4 py-2 font-mono text-[10px] text-zinc-400">
                     <span>EVENT STREAM</span>
                     <span>{events.length} retained deliveries</span>
                   </footer>

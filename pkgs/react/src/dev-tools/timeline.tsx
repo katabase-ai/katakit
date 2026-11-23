@@ -1,7 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Delivery } from './deliveries';
 import { clamp, cluster, palette, rulerTicks, splitLane, stamp } from './time';
-import { ui } from './theme.generated';
 import { ToolButton } from './ui';
 import { LanePicker } from './lane-picker';
 
@@ -91,27 +90,30 @@ export const Timeline = ({
   const drag = useRef<{ start: number; left: number } | null>(null);
   return (
     <>
-      <div className={ui.toolbar}>
-        <div className={ui.group}>
+      <div className="flex flex-wrap items-center justify-between gap-1 border-b border-zinc-800 px-3 py-1.5 bg-zinc-900">
+        <div className="flex items-center gap-0.5">
           <ToolButton
             label="Choose observable lanes"
             pressed={filter}
             onClick={() => setFilter(!filter)}
           >
-            <span className={ui.eye} /> Lanes <span className={ui.count}>{visible.length}</span>
+            <span className="inline-block size-4 shrink-0 i-lucide-list-filter" /> Lanes{' '}
+            <span className="min-w-5 rounded bg-zinc-800 px-1 text-center font-mono text-[10px] text-zinc-300">
+              {visible.length}
+            </span>
           </ToolButton>
-          <span className={ui.divider} />
+          <span className="mx-1 h-4 border-l border-zinc-700" />
           <ToolButton
             label="Follow latest delivery"
             pressed={follow}
             onClick={() => setFollow(!follow)}
           >
-            <span className={ui.follow} /> Follow
+            <span className="inline-block size-4 shrink-0 i-lucide-scan-line" /> Follow
           </ToolButton>
         </div>
-        <div className={ui.group}>
+        <div className="flex items-center gap-0.5">
           <ToolButton label="Zoom out" onClick={() => zoom(0.5)}>
-            <span className={ui.minus} />
+            <span className="inline-block size-4 shrink-0 i-lucide-zoom-out" />
           </ToolButton>
           <ToolButton
             label="Fit recording"
@@ -121,16 +123,16 @@ export const Timeline = ({
               setFollow(true);
             }}
           >
-            <span className={ui.fit} /> Fit
+            <span className="inline-block size-4 shrink-0 i-lucide-scan" /> Fit
           </ToolButton>
           <ToolButton label="Zoom in" onClick={() => zoom(2)}>
-            <span className={ui.plus} />
+            <span className="inline-block size-4 shrink-0 i-lucide-zoom-in" />
           </ToolButton>
         </div>
       </div>
       {filter && <LanePicker lanes={names} hidden={hidden} toggle={toggleLane} />}
       <div
-        className={ui.viewport}
+        className="relative flex-initial min-h-16 overflow-auto overscroll-contain bg-[#131417]"
         ref={viewport}
         aria-label="Scrollable delivery timeline"
         tabIndex={0}
@@ -152,15 +154,31 @@ export const Timeline = ({
           drag.current = null;
         }}
       >
-        <div className={ui.ruler}>
-          <div ref={heading} className={ui.laneHead}>
-            <span className={ui.caption}>Observables</span>
+        <div className="sticky top-0 z-20 flex w-max items-stretch bg-[#1d1e22]">
+          <div
+            ref={heading}
+            className="sticky left-0 z-10 flex w-[132px] shrink-0 items-center justify-between gap-2 border-r border-b border-zinc-800 bg-[#202125] px-3 sm:w-[208px]"
+          >
+            <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+              Observables
+            </span>
           </div>
-          <svg className={ui.svg} width={length} height={30} aria-hidden="true">
+          <svg
+            className="block shrink-0 border-b border-zinc-800"
+            width={length}
+            height={30}
+            aria-hidden="true"
+          >
             {ticks.map(t => (
               <g key={t}>
-                <line className={ui.gridline} x1={pad + t * px} x2={pad + t * px} y1="21" y2="30" />
-                <text className={ui.tick} x={pad + t * px} y="15">
+                <line
+                  className="stroke-zinc-800"
+                  x1={pad + t * px}
+                  x2={pad + t * px}
+                  y1="21"
+                  y2="30"
+                />
+                <text className="fill-zinc-400 font-mono text-[10px]" x={pad + t * px} y="15">
                   {t < 1000 ? `${+t.toFixed(1)}ms` : `${+(t / 1000).toFixed(2)}s`}
                 </text>
               </g>
@@ -171,21 +189,31 @@ export const Timeline = ({
           const color = palette[names.indexOf(name) % palette.length];
           const lane = splitLane(name);
           return (
-            <div key={name} className={ui.strip}>
-              <div className={ui.lane} title={name}>
+            <div key={name} className="flex w-max items-stretch">
+              <div
+                className="sticky left-0 z-10 flex w-[132px] shrink-0 items-center gap-2 border-r border-b border-zinc-800 bg-[#1b1c20] px-3 sm:w-[208px]"
+                title={name}
+              >
                 <svg width="7" height="7" aria-hidden="true">
                   <circle cx="3.5" cy="3.5" r="3.5" fill={color} />
                 </svg>
-                <div className={ui.laneText}>
-                  <p className={ui.laneName}>{lane.name}</p>
-                  <p className={ui.laneGroup}>{lane.group}</p>
+                <div className="min-w-0 leading-tight">
+                  <p className="truncate font-mono text-xs font-medium text-zinc-100">
+                    {lane.name}
+                  </p>
+                  <p className="mt-0.5 truncate text-[10px] text-zinc-400">{lane.group}</p>
                 </div>
               </div>
-              <svg className={ui.svg} width={length} height={43} aria-label={name}>
+              <svg
+                className="block shrink-0 border-b border-zinc-800"
+                width={length}
+                height={43}
+                aria-label={name}
+              >
                 {ticks.map(t => (
                   <line
                     key={t}
-                    className={ui.gridline}
+                    className="stroke-zinc-800"
                     x1={pad + t * px}
                     x2={pad + t * px}
                     y1="0"
@@ -194,7 +222,7 @@ export const Timeline = ({
                 ))}
                 {selected && (
                   <line
-                    className={ui.needle}
+                    className="stroke-teal-300"
                     x1={x(selected)}
                     x2={x(selected)}
                     y1="0"
@@ -212,7 +240,7 @@ export const Timeline = ({
                       key={event.messageNumber}
                       role="button"
                       tabIndex={0}
-                      className={ui.mark}
+                      className="cursor-pointer outline-none focus-visible:(stroke-white stroke-2)"
                       aria-label={`${lane.name}, ${stamp(event.time - zero)}, ${n} ${n === 1 ? 'delivery' : 'deliveries; click to cycle'}`}
                       transform={`translate(${group.x},21)`}
                       onPointerEnter={() => onPreview(event)}
@@ -239,7 +267,7 @@ export const Timeline = ({
                             fill={color}
                           />
                           <text
-                            className={ui.markCount}
+                            className="pointer-events-none fill-zinc-950 font-mono text-[9px] font-bold"
                             x={n > 9 ? 4 : 1.5}
                             y="3"
                             textAnchor="middle"
@@ -256,7 +284,7 @@ export const Timeline = ({
           );
         })}
         {!visible.length && (
-          <p className={ui.empty}>
+          <p className="flex flex-col items-center gap-2 py-6 text-center text-xs text-zinc-400">
             {names.length
               ? 'All lanes are hidden. Choose Lanes to restore them.'
               : 'Waiting for the first observable delivery…'}

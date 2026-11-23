@@ -90,12 +90,14 @@ export const exportDocs = async ({ output }) => {
         nonCodeExports.push({ package: manifest.name, subpath, target: conditions });
         continue;
       }
-      if (!conditions.source) throw new Error(`${manifest.name} ${subpath} has no source export`);
-      entryPoints.push(portable(join(packageRoot, conditions.source)));
+      // The React entry needs its JSX styles compiled before it can be consumed.
+      const source = conditions.source ?? (name === 'react' && subpath === '.' ? './src/index.ts' : undefined);
+      if (!source) throw new Error(`${manifest.name} ${subpath} has no source export`);
+      entryPoints.push(portable(join(packageRoot, source)));
       coverage.push({
         package: manifest.name,
         subpath,
-        sourcePath: relative(root, join(packageRoot, conditions.source)),
+        sourcePath: relative(root, join(packageRoot, source)),
       });
     }
   }

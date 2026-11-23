@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { describeFrame, isInternalFrame, makeFrameResolver, stackFrames } from './frames';
 import type { Delivery } from './deliveries';
-import { ui } from './theme.generated';
 import { splitLane, stamp } from './time';
 import { ToolButton } from './ui';
 
@@ -66,33 +65,38 @@ export const Inspector = ({
   }, [event, resolver]);
   if (!event)
     return (
-      <div className={ui.quiet}>
-        <span className={ui.crosshair} />
+      <div className="flex flex-1 min-h-32 items-center justify-center gap-3 border-t border-zinc-800 px-4 py-4 text-xs text-zinc-400">
+        <span className="inline-block size-4 shrink-0 i-lucide-mouse-pointer-2" />
         Hover a delivery to inspect it. Click to pin its stack.
       </div>
     );
   const lines = mapped?.event === event ? mapped.lines : stackFrames(event.stack);
   const frames = lines.filter(line => !isInternalFrame(line)).map(describeFrame);
   return (
-    <section className={ui.inspection} aria-label="Delivery inspector">
-      <header className={ui.detailTop}>
-        <div className={ui.row}>
-          <span className={ui.trace} />
+    <section
+      className="flex flex-1 min-h-32 flex-col border-t border-zinc-700 bg-[#1b1c1f]"
+      aria-label="Delivery inspector"
+    >
+      <header className="flex shrink-0 flex-wrap items-center justify-between gap-2 px-4 pt-3 pb-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="inline-block size-4 shrink-0 i-lucide-route" />
           <strong>{splitLane(event.lane).name}</strong>
-          <span className={ui.count}>{stamp(event.time - origin)}</span>
+          <span className="min-w-5 rounded bg-zinc-800 px-1 text-center font-mono text-[10px] text-zinc-300">
+            {stamp(event.time - origin)}
+          </span>
         </div>
-        <div className={ui.row}>
-          <span className={ui.hint}>Message {event.messageNumber}</span>
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="text-xs text-zinc-400">Message {event.messageNumber}</span>
           {pinned && (
             <ToolButton label="Unpin delivery" onClick={release}>
-              <span className={ui.pin} /> Unpin
+              <span className="inline-block size-4 shrink-0 i-lucide-pin-off" /> Unpin
             </ToolButton>
           )}
         </div>
       </header>
-      <div className={ui.detailBody}>
+      <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)] grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] gap-3 px-4 pb-3 sm:(gap-5 grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)])">
         <div
-          className={ui.valueColumn}
+          className="flex min-w-0 flex-col data-[expanded-value]:(visible absolute inset-0 z-20 rounded-xl bg-[#1b1c1f] p-4)"
           data-expanded-value={expanded || undefined}
           onKeyDown={e => {
             if (expanded && e.key === 'Escape') {
@@ -102,10 +106,12 @@ export const Inspector = ({
             }
           }}
         >
-          <div className={ui.valueHeading}>
-            <h3 className={ui.caption}>Value</h3>
+          <div className="flex shrink-0 items-center justify-between gap-2">
+            <h3 className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+              Value
+            </h3>
             {expanded && (
-              <span className={ui.hint}>
+              <span className="text-xs text-zinc-400">
                 {splitLane(event.lane).name} · Message {event.messageNumber}
               </span>
             )}
@@ -114,28 +120,53 @@ export const Inspector = ({
               pressed={expanded}
               onClick={() => setExpanded(!expanded)}
             >
-              <span aria-hidden="true" className={expanded ? ui.restore : ui.expand} />
+              {expanded ? (
+                <span
+                  aria-hidden="true"
+                  className="inline-block size-4 shrink-0 i-lucide-minimize-2"
+                />
+              ) : (
+                <span
+                  aria-hidden="true"
+                  className="inline-block size-4 shrink-0 i-lucide-maximize-2"
+                />
+              )}
             </ToolButton>
           </div>
-          <pre className={ui.payload} tabIndex={0}>
+          <pre
+            className="mt-2 flex-1 overflow-auto whitespace-pre-wrap break-words rounded-md border border-zinc-800 bg-[#141518] px-3 py-2 font-mono text-[11px] leading-relaxed text-teal-200"
+            tabIndex={0}
+          >
             {valueText(event.value)}
           </pre>
         </div>
-        <div className={ui.stackColumn}>
-          <h3 className={ui.caption}>Stack at delivery</h3>
-          <ol className={ui.frameList}>
+        <div className="min-w-0 overflow-auto">
+          <h3 className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+            Stack at delivery
+          </h3>
+          <ol className="mt-1">
             {frames.map((f, i) => (
-              <li key={`${i}:${f.path}`} className={ui.frame} title={f.path}>
-                <span className={ui.frameName}>{f.name}</span>
-                <span className={ui.file}>{f.file}</span>
+              <li
+                key={`${i}:${f.path}`}
+                className="flex min-w-0 items-baseline justify-between gap-3 border-b border-zinc-800 py-1 font-mono text-[11px]"
+                title={f.path}
+              >
+                <span className="truncate text-zinc-200">{f.name}</span>
+                <span className="shrink-0 text-zinc-400">{f.file}</span>
               </li>
             ))}
           </ol>
-          {!frames.length && <p className={ui.hint}>No application frame at this delivery.</p>}
+          {!frames.length && (
+            <p className="text-xs text-zinc-400">No application frame at this delivery.</p>
+          )}
           {lines.length > 0 && (
             <details key={event.time}>
-              <summary className={ui.reveal}>Full stack · {lines.length} frames</summary>
-              <pre className={ui.raw}>{lines.join('\n')}</pre>
+              <summary className="mt-1 cursor-pointer text-[11px] text-zinc-400 hover:text-white">
+                Full stack · {lines.length} frames
+              </summary>
+              <pre className="whitespace-pre-wrap break-all py-2 font-mono text-[10px] text-zinc-400">
+                {lines.join('\n')}
+              </pre>
             </details>
           )}
         </div>
