@@ -1,7 +1,19 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { isInternalFrame, makeFrameResolver } from './frames';
+import { describeFrame, isInternalFrame, makeFrameResolver } from './frames';
 
 afterEach(() => vi.unstubAllGlobals());
+
+test('shows the enclosing name for Firefox anonymous frames without changing their location', () => {
+  const location = 'https://app.example/src/microphone.ts:42:7';
+  expect(describeFrame(`useMicrophoneTranscriber/<@${location}`)).toEqual({
+    name: 'useMicrophoneTranscriber',
+    file: 'microphone.ts:42',
+    path: location,
+  });
+  expect(describeFrame(`build/</<@${location}`).name).toBe('build');
+  expect(describeFrame(`<@${location}`).name).toBe('Anonymous function');
+  expect(describeFrame(`at Object.next (${location})`).name).toBe('Object.next');
+});
 
 test('maps a generated delivery frame before filtering, and shares the lookup between inspections', async () => {
   const origin = 'https://app.example';

@@ -12,8 +12,10 @@ export const describeFrame = (frame: string) => {
   const match = frame.match(/^(?:at\s+)?(?:(.*?)\s+\(|(.*?)@)?(.*?):(\d+):(\d+)\)?$/);
   if (!match) return { name: frame.replace(/^at /, ''), file: '', path: frame };
   const path = match[3]!.split('?')[0]!;
+  // Firefox names an anonymous function inside a named scope `scope/<`.
+  const name = match[1] ?? match[2]?.replace(/(?:\/<)+$/, '');
   return {
-    name: match[1] || match[2] || 'Anonymous function',
+    name: name && name !== '<' ? name : 'Anonymous function',
     file: `${path.split(/[/\\]/).at(-1)}:${match[4]}`,
     path: `${path}:${match[4]}:${match[5]}`,
   };
