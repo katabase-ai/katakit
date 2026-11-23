@@ -24,8 +24,13 @@ export const makeGetObservables = ({
     if (cached) return cached as TObservables;
 
     const observables = found.observables({ getObservables });
-    observablesByPlugin.set(found, observables);
-    return observables;
+    // A devtools host can decorate the named streams before any runtime consumer sees them.
+    const inspect = Reflect.get(globalThis, Symbol.for('katakit.devtools.observables.v1')) as
+      | ((runtime: object, plugin: string, streams: ObservablesObj) => ObservablesObj)
+      | undefined;
+    const exposed = inspect?.(observablesByPlugin, found.type, observables) ?? observables;
+    observablesByPlugin.set(found, exposed);
+    return exposed as TObservables;
   };
   return getObservables;
 };

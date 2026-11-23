@@ -40,6 +40,8 @@ pnpm dev
 
 Open the localhost URL printed by Vite. `pnpm build` creates `dist/`;
 `pnpm tsc` checks types and `pnpm test:ci` runs the tests.
+In development, expand **Katakit devtools** and hover or focus a timeline dot
+to inspect the stack for that observable delivery.
 Inside the repository, build the utility before starting the example:
 
 ```sh

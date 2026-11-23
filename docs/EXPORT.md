@@ -30,7 +30,7 @@ consumer separately generates HTML for individual documentation pages.
 
 ## Package coverage
 
-Generated API reference covers `@katakit/core`, `@katakit/event-log`,
+Generated API reference covers `@katakit/core`, `@katakit/devtools`, `@katakit/event-log`,
 `@katakit/persistence`, `@katakit/transcript-ingestion`, `@katakit/transcription`,
 and `@katakit/react`. The package list is explicit in
 [`exportDocs.mjs`](../internal/pkgs/docs-export/exportDocs.mjs), not discovered from every

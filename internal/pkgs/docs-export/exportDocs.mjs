@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { dirname, join, posix, relative, resolve } from 'node:path';
+import { dirname, join, posix, relative as relativePath, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { performance } from 'node:perf_hooks';
@@ -17,8 +17,11 @@ import { renderPluginReference } from './renderPluginReference.mjs';
 
 const directory = dirname(fileURLToPath(import.meta.url));
 const root = resolve(directory, '../../..');
+const portable = path => path.split(sep).join('/');
+const relative = (from, to) => portable(relativePath(from, to));
 const packages = [
   'core',
+  'devtools',
   'event-log',
   'persistence',
   'transcript-ingestion',
@@ -89,7 +92,7 @@ export const exportDocs = async ({ output }) => {
         continue;
       }
       if (!conditions.source) throw new Error(`${manifest.name} ${subpath} has no source export`);
-      entryPoints.push(join(packageRoot, conditions.source));
+      entryPoints.push(portable(join(packageRoot, conditions.source)));
       coverage.push({
         package: manifest.name,
         subpath,

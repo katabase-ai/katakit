@@ -6,6 +6,7 @@ settings:
 
 overrides:
   '@katakit/core': workspace:*
+  '@katakit/devtools': workspace:*
   '@katakit/event-log': workspace:*
   '@katakit/persistence': workspace:*
   '@katakit/react': workspace:*
@@ -163,6 +164,9 @@ importers:
         specifier: ^7.8.2
         version: 7.8.2
     devDependencies:
+      '@katakit/devtools':
+        specifier: workspace:*
+        version: link:../../../pkgs/devtools
       '@types/node':
         specifier: 24.13.3
         version: 24.13.3
@@ -421,6 +425,19 @@ importers:
       rxjs-for-await:
         specifier: ^1.0.0
         version: 1.0.0(rxjs@7.8.2)
+
+  pkgs/devtools:
+    dependencies:
+      '@jridgewell/trace-mapping':
+        specifier: ^0.3.31
+        version: 0.3.31
+      rxjs:
+        specifier: ^7.8.2
+        version: 7.8.2
+    devDependencies:
+      '@katakit/core':
+        specifier: workspace:*
+        version: link:../core
 
   pkgs/event-log:
     dependencies:
