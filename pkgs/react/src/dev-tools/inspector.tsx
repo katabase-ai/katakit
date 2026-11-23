@@ -81,7 +81,7 @@ export const Inspector = ({
           <span className={ui.count}>{stamp(event.time - origin)}</span>
         </div>
         <div className={ui.row}>
-          <span className={ui.hint}>Subscription {event.subscription}</span>
+          <span className={ui.hint}>Message {event.messageNumber}</span>
           {pinned && (
             <ToolButton label="Unpin delivery" onClick={release}>
               <span className={ui.pin} /> Unpin

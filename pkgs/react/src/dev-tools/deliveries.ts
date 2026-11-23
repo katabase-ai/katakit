@@ -1,8 +1,8 @@
-import { defer, Observable, tap } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 
 export type Delivery = {
   lane: string;
-  subscription: number;
+  messageNumber: number;
   time: number;
   value: unknown;
   stack: string;
@@ -26,11 +26,8 @@ const traceDeliveries = (
   source: Observable<unknown>,
   notify: (id: number, value: unknown) => void
 ) => {
-  let subscriptions = 0;
-  const traced = defer(() => {
-    const id = ++subscriptions;
-    return source.pipe(tap(value => notify(id, value)));
-  });
+  let messageNumber = 0;
+  const traced = source.pipe(tap(value => notify(++messageNumber, value)));
   const subscribe = traced.subscribe.bind(traced);
   // Keep Subjects writable and preserve property.get(), eager.getAll(), and
   // custom accessors. RxJS composition must subscribe through the decorated view.
@@ -63,12 +60,12 @@ export const installRecorder = (onDelivery: (delivery: Delivery) => void) => {
         const lane = `#${runtimeId} ${plugin}.${name}`;
         return [
           name,
-          traceDeliveries(stream, (subscription, value) => {
+          traceDeliveries(stream, (messageNumber, value) => {
             // Diagnostics must not turn a successful delivery into a stream error.
             try {
               record?.({
                 lane,
-                subscription,
+                messageNumber,
                 time: performance.now(),
                 value,
                 stack: deliveryStack(),

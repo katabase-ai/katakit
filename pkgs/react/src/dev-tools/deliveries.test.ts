@@ -27,18 +27,18 @@ test('records real subscriptions, including replay, without changing source exec
     publishFromApplication();
     expect(count$.get()).toBe(2);
     expect(count$.value).toBe(2);
-    expect(history.map(e => [e.subscription, e.value])).toEqual([
+    expect(history.map(e => [e.messageNumber, e.value])).toEqual([
       [1, 1],
       [2, 1],
-      [1, 2],
-      [2, 2],
+      [3, 2],
+      [4, 2],
     ]);
     expect(history[2]!.stack).toContain('publishFromApplication');
     second.unsubscribe();
     cold$.pipe(take(1)).subscribe();
     expect(subscribe).toHaveBeenCalledOnce();
     expect(teardown).toHaveBeenCalledOnce();
-    expect(history.at(-1)?.lane).toBe('#1 Counter.cold$');
+    expect(history.at(-1)).toMatchObject({ lane: '#1 Counter.cold$', messageNumber: 1 });
     stop();
     publishFromApplication();
     expect(count$.get()).toBe(2);

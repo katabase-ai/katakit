@@ -209,7 +209,7 @@ export const Timeline = ({
                     onPin(group.events[(group.events.indexOf(pinned!) + 1) % n]!);
                   return (
                     <g
-                      key={`${event.time}:${event.subscription}:${tracks.get(name)!.indexOf(event)}`}
+                      key={event.messageNumber}
                       role="button"
                       tabIndex={0}
                       className={ui.mark}
