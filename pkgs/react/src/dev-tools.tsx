@@ -2,15 +2,13 @@ import { Button } from '@base-ui/react/button';
 import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useCapture } from './dev-tools/capture';
-import css from 'virtual:uno.css?inline';
-import fontUrl from '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2?url';
+import stylesheet from 'virtual:katakit-stylesheet';
+import fontUrl from '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2';
 import { ToolButton } from './dev-tools/ui';
 import { Timeline } from './dev-tools/timeline';
 import { Inspector } from './dev-tools/inspector';
 import { ResizablePanel } from './dev-tools/resizable-panel';
 import type { Delivery } from './dev-tools/deliveries';
-
-const stylesheet = `data:text/css;base64,${btoa(css)}`;
 
 /** Render the observable timeline alongside the application in development. */
 export const KatakitDevTools = () => {

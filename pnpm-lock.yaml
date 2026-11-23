@@ -507,10 +507,7 @@ importers:
         version: 19.3.1(react@19.3.1)
       unocss:
         specifier: 66.13.0
-        version: 66.13.0(@oxc-project/types@0.156.0)(cac@7.1.0)(rolldown@1.2.19)(rollup@4.68.2)(srvx@1.0.8)(vite@6.4.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.33.0)(yaml@2.9.1))
-      vite:
-        specifier: ^6.4.6
-        version: 6.4.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.33.0)(yaml@2.9.1)
+        version: 66.13.0(@oxc-project/types@0.156.0)(cac@7.1.0)(rolldown@1.2.19)(rollup@4.68.2)(srvx@1.0.8)(vite@8.2.2(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
 
   pkgs/transcript-ingestion:
     dependencies:
@@ -6185,7 +6182,7 @@ snapshots:
     dependencies:
       '@unocss/core': 66.13.0
 
-  '@unocss/inspector@66.13.0(cac@7.1.0)(srvx@1.0.8)(vite@6.4.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.33.0)(yaml@2.9.1))':
+  '@unocss/inspector@66.13.0(cac@7.1.0)(srvx@1.0.8)(vite@8.2.2(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))':
     dependencies:
       '@jridgewell/remapping': 2.3.5
       '@unocss/autocomplete': 66.13.0
@@ -6198,7 +6195,7 @@ snapshots:
       tinyglobby: 0.2.17
       unplugin-utils: 0.3.2
     optionalDependencies:
-      vite: 6.4.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.33.0)(yaml@2.9.1)
+      vite: 8.2.2(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
     transitivePeerDependencies:
       - '@devframes/agentic'
       - cac
@@ -6302,18 +6299,18 @@ snapshots:
     dependencies:
       '@unocss/core': 66.13.0
 
-  '@unocss/vite@66.13.0(cac@7.1.0)(srvx@1.0.8)(vite@6.4.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.33.0)(yaml@2.9.1))':
+  '@unocss/vite@66.13.0(cac@7.1.0)(srvx@1.0.8)(vite@8.2.2(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))':
     dependencies:
       '@jridgewell/remapping': 2.3.5
       '@unocss/config': 66.13.0
       '@unocss/core': 66.13.0
-      '@unocss/inspector': 66.13.0(cac@7.1.0)(srvx@1.0.8)(vite@6.4.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.33.0)(yaml@2.9.1))
+      '@unocss/inspector': 66.13.0(cac@7.1.0)(srvx@1.0.8)(vite@8.2.2(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
       chokidar: 5.0.0
       magic-string: 1.4.5
       pathe: 2.0.3
       tinyglobby: 0.2.17
       unplugin-utils: 0.3.2
-      vite: 6.4.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.33.0)(yaml@2.9.1)
+      vite: 8.2.2(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)
     transitivePeerDependencies:
       - '@devframes/agentic'
       - cac
@@ -8492,7 +8489,7 @@ snapshots:
       unist-util-is: 6.0.1
       unist-util-visit-parents: 6.1.0
 
-  unocss@66.13.0(@oxc-project/types@0.156.0)(cac@7.1.0)(rolldown@1.2.19)(rollup@4.68.2)(srvx@1.0.8)(vite@6.4.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.33.0)(yaml@2.9.1)):
+  unocss@66.13.0(@oxc-project/types@0.156.0)(cac@7.1.0)(rolldown@1.2.19)(rollup@4.68.2)(srvx@1.0.8)(vite@8.2.2(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1)):
     dependencies:
       '@unocss/cli': 66.13.0
       '@unocss/core': 66.13.0
@@ -8511,7 +8508,7 @@ snapshots:
       '@unocss/transformer-compile-class': 66.13.0
       '@unocss/transformer-directives': 66.13.0
       '@unocss/transformer-variant-group': 66.13.0
-      '@unocss/vite': 66.13.0(cac@7.1.0)(srvx@1.0.8)(vite@6.4.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.33.0)(yaml@2.9.1))
+      '@unocss/vite': 66.13.0(cac@7.1.0)(srvx@1.0.8)(vite@8.2.2(@types/node@24.13.3)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.1))
     transitivePeerDependencies:
       - '@devframes/agentic'
       - '@oxc-project/types'

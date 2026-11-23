@@ -6,7 +6,7 @@
     "build": "pnpm build:pkgs && pnpm --filter \"!./pkgs/*\" -r build",
     "build:pkgs": "pnpm --filter \"./pkgs/*\" -r build",
     "publint": "pnpm --filter \"./pkgs/*\" -r exec publint --pack pnpm --strict",
-    "tsc": "pnpm -r tsc",
+    "tsc": "pnpm -F @katakit/react build && pnpm -r tsc",
     "lint": "oxlint --deny-warnings && pnpm bingo:check-copy && pnpm structure:check",
     "licenses:check": "node scripts/check-licenses.mjs",
     "lint:fix": "oxlint --fix",
