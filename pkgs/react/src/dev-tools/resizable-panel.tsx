@@ -34,7 +34,7 @@ export const ResizablePanel = ({
   const width = Math.min(available.width, size.width);
   const height = Math.min(available.height, size.height);
   return (
-    <div className={ui.bounds} ref={bounds}>
+    <div className={ui.bounds} ref={bounds} data-resizing={activeEdge ? true : undefined}>
       <Resizable
         width={width}
         height={height}
@@ -64,6 +64,7 @@ export const ResizablePanel = ({
           <section className={ui.panel}>{children}</section>
         </Frame>
       </Resizable>
+      {activeEdge && <div aria-hidden="true" className={ui.dragSurface} data-edge={activeEdge} />}
     </div>
   );
 };

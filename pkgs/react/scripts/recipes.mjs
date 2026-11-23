@@ -6,7 +6,8 @@ export const recipes = {
   shell:
     'fixed z-[2147483646] bottom-3 right-3 left-3 sm:(left-auto bottom-5 right-5) font-sans text-[13px] leading-normal text-zinc-100 antialiased',
   launch: `${button} ml-auto flex h-10 border border-zinc-700 bg-zinc-950 px-3 shadow-lg hover:bg-zinc-800`,
-  bounds: 'fixed inset-3 sm:inset-5 pointer-events-none flex items-end justify-end',
+  bounds: 'fixed inset-3 sm:inset-5 pointer-events-none flex items-end justify-end data-[resizing]:[scrollbar-color:transparent_transparent]',
+  dragSurface: 'fixed inset-0 z-40 pointer-events-auto select-none data-[edge=n]:cursor-ns-resize data-[edge=w]:cursor-ew-resize data-[edge=nw]:cursor-nwse-resize',
   frameBox: 'relative pointer-events-auto max-h-full max-w-full',
   sizer: 'block invisible max-w-full max-h-full',
   north: `${grip} inset-x-2 -top-1 h-2 cursor-ns-resize rounded`,
