@@ -1,8 +1,8 @@
 import { Button } from '@base-ui/react/button';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useCapture } from './dev-tools/capture';
-import { stylesheet, ui } from './dev-tools/theme.generated';
+import { monoFont, stylesheet, ui } from './dev-tools/theme.generated';
 import { ToolButton } from './dev-tools/ui';
 import { Timeline } from './dev-tools/timeline';
 import { Inspector } from './dev-tools/inspector';
@@ -13,6 +13,18 @@ import type { Delivery } from './dev-tools/deliveries';
 export const KatakitDevTools = () => {
   const events = useCapture();
   const [root, setRoot] = useState<ShadowRoot | null>(null);
+  useEffect(() => {
+    if (!root) return;
+    const fonts = root.ownerDocument.fonts;
+    const face = new FontFace('Katakit JetBrains Mono', monoFont, {
+      weight: '100 800',
+      display: 'swap',
+    });
+    fonts.add(face);
+    return () => {
+      fonts.delete(face);
+    };
+  }, [root]);
   const host = useCallback((node: HTMLDivElement | null) => {
     if (node) setRoot(node.shadowRoot ?? node.attachShadow({ mode: 'open' }));
   }, []);

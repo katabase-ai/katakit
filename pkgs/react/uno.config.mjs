@@ -13,7 +13,7 @@ export const config = defineConfig({
     // Chromium doesn't register @property inside shadow trees. Emit the preset's
     // ordinary custom-property defaults in this isolated stylesheet as well.
     presetWind4({ preflights: { property: { parent: false } } }),
-    presetWebFonts({ provider: 'none', fonts: { sans: 'Geist', mono: 'Geist Mono' } }),
+    presetWebFonts({ provider: 'none', fonts: { mono: 'Katakit JetBrains Mono' } }),
     presetIcons({ collections: { lucide: icons } }),
   ],
   transformers: [

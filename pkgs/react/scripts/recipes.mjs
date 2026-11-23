@@ -4,7 +4,7 @@ const icon = 'inline-block size-4 shrink-0';
 const grip = 'absolute z-30 touch-none select-none hover:bg-teal-300/30 data-[resizing]:bg-teal-300/30';
 export const recipes = {
   shell:
-    'fixed z-[2147483646] bottom-3 right-3 left-3 sm:(left-auto bottom-5 right-5) font-sans text-[13px] leading-normal text-zinc-100 antialiased',
+    'fixed z-[2147483646] bottom-3 right-3 left-3 sm:(left-auto bottom-5 right-5) font-mono text-[13px] leading-normal text-zinc-100 antialiased',
   launch: `${button} ml-auto flex h-10 border border-zinc-700 bg-zinc-950 px-3 shadow-lg hover:bg-zinc-800`,
   bounds: 'fixed inset-3 sm:inset-5 pointer-events-none flex items-end justify-end data-[resizing]:[scrollbar-color:transparent_transparent]',
   dragSurface: 'fixed inset-0 z-40 pointer-events-auto select-none data-[edge=n]:cursor-ns-resize data-[edge=w]:cursor-ew-resize data-[edge=nw]:cursor-nwse-resize',
