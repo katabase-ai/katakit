@@ -3,15 +3,27 @@ import type { Delivery } from './deliveries';
 import { clamp, cluster, palette, rulerTicks, splitLane, stamp } from './time';
 import { ui } from './theme.generated';
 import { ToolButton } from './ui';
+import { LanePicker } from './lane-picker';
 
 type Props = {
   events: readonly Delivery[];
   selected?: Delivery;
+  pinned?: Delivery;
+  hidden: ReadonlySet<string>;
+  toggleLane: (name: string) => void;
   onPreview: (event: Delivery) => void;
   onPin: (event: Delivery) => void;
 };
 
-export const Timeline = ({ events, selected, onPreview, onPin }: Props) => {
+export const Timeline = ({
+  events,
+  selected,
+  pinned,
+  hidden,
+  toggleLane,
+  onPreview,
+  onPin,
+}: Props) => {
   const viewport = useRef<HTMLDivElement>(null);
   const heading = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(500);
@@ -19,13 +31,7 @@ export const Timeline = ({ events, selected, onPreview, onPin }: Props) => {
   const [scale, setScale] = useState<number | null>(null);
   const [follow, setFollow] = useState(true);
   const [filter, setFilter] = useState(false);
-  const [query, setQuery] = useState('');
-  const [hidden, setHidden] = useState(new Set<string>());
-  const origin = useRef(events[0]?.time);
-  useLayoutEffect(() => {
-    origin.current ??= events[0]?.time;
-  }, [events]);
-  const zero = origin.current ?? events[0]?.time ?? 0;
+  const zero = events[0]?.time ?? 0;
   const last = (events.at(-1)?.time ?? zero) - zero;
   const pad = 14;
   const fit = (width - 2 * pad) / Math.max(100, last);
@@ -82,13 +88,6 @@ export const Timeline = ({ events, selected, onPreview, onPin }: Props) => {
   const names = [...tracks.keys()];
   const visible = names.filter(name => !hidden.has(name));
   const ticks = rulerTicks(offset, width, px);
-  const toggle = (name: string) =>
-    setHidden(previous => {
-      const next = new Set(previous);
-      if (next.has(name)) next.delete(name);
-      else next.add(name);
-      return next;
-    });
   const drag = useRef<{ start: number; left: number } | null>(null);
   return (
     <>
@@ -129,32 +128,7 @@ export const Timeline = ({ events, selected, onPreview, onPin }: Props) => {
           </ToolButton>
         </div>
       </div>
-      {filter && (
-        <section aria-label="Lane visibility" className={ui.filters}>
-          <input
-            className={ui.search}
-            aria-label="Search observables"
-            placeholder="Find an observable…"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-          />
-          <div className={ui.choices}>
-            {names
-              .filter(name => name.toLowerCase().includes(query.toLowerCase()))
-              .map(name => (
-                <label className={ui.choice} key={name}>
-                  <input
-                    type="checkbox"
-                    className={ui.checkbox}
-                    checked={!hidden.has(name)}
-                    onChange={() => toggle(name)}
-                  />
-                  {name}
-                </label>
-              ))}
-          </div>
-        </section>
-      )}
+      {filter && <LanePicker lanes={names} hidden={hidden} toggle={toggleLane} />}
       <div
         className={ui.viewport}
         ref={viewport}
@@ -232,7 +206,7 @@ export const Timeline = ({ events, selected, onPreview, onPin }: Props) => {
                   const event = group.events[0]!;
                   const n = group.events.length;
                   const choose = () =>
-                    onPin(group.events[(group.events.indexOf(selected!) + 1) % n]!);
+                    onPin(group.events[(group.events.indexOf(pinned!) + 1) % n]!);
                   return (
                     <g
                       key={`${event.time}:${event.subscription}:${tracks.get(name)!.indexOf(event)}`}

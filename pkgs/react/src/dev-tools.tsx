@@ -18,6 +18,14 @@ export const KatakitDevTools = () => {
   const [open, setOpen] = useState(false);
   const [preview, setPreview] = useState<Delivery>();
   const [pinned, setPinned] = useState<Delivery>();
+  const [hidden, setHidden] = useState(new Set<string>());
+  const toggleLane = (name: string) =>
+    setHidden(previous => {
+      const next = new Set(previous);
+      if (next.has(name)) next.delete(name);
+      else next.add(name);
+      return next;
+    });
   return (
     <div ref={host} data-katakit-devtools="">
       {root &&
@@ -51,6 +59,9 @@ export const KatakitDevTools = () => {
                   <Timeline
                     events={events}
                     selected={pinned ?? preview}
+                    pinned={pinned}
+                    hidden={hidden}
+                    toggleLane={toggleLane}
                     onPreview={setPreview}
                     onPin={setPinned}
                   />

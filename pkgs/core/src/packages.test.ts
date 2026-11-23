@@ -76,6 +76,8 @@ describe('published packages', () => {
       for (const dependency of Object.keys({
         ...packed.dependencies,
         ...packed.peerDependencies,
+        // The fixture is a TypeScript React consumer; provide its normal JSX declarations.
+        ...(name === 'react' ? { '@types/react': true } : {}),
       })) {
         if (dependency.startsWith('@katakit/')) continue;
         const target = join(fixture.consumer, 'node_modules', dependency);

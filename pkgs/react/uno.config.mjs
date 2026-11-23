@@ -1,10 +1,18 @@
 import { icons } from '@iconify-json/lucide';
 import compileClass from '@unocss/transformer-compile-class';
-import { defineConfig, presetIcons, presetWebFonts, presetWind4, transformerVariantGroup } from 'unocss';
+import {
+  defineConfig,
+  presetIcons,
+  presetWebFonts,
+  presetWind4,
+  transformerVariantGroup,
+} from 'unocss';
 
-export default defineConfig({
+export const config = defineConfig({
   presets: [
-    presetWind4(),
+    // Chromium doesn't register @property inside shadow trees. Emit the preset's
+    // ordinary custom-property defaults in this isolated stylesheet as well.
+    presetWind4({ preflights: { property: { parent: false } } }),
     presetWebFonts({ provider: 'none', fonts: { sans: 'Geist', mono: 'Geist Mono' } }),
     presetIcons({ collections: { lucide: icons } }),
   ],
