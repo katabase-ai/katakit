@@ -4,6 +4,8 @@ import { createPortal } from 'react-dom';
 import { useCapture } from './dev-tools/capture';
 import { stylesheet, ui } from './dev-tools/theme.generated';
 import { ToolButton } from './dev-tools/ui';
+import { Timeline } from './dev-tools/timeline';
+import type { Delivery } from './dev-tools/deliveries';
 
 /** Render the observable timeline alongside the application in development. */
 export const KatakitDevTools = () => {
@@ -13,6 +15,8 @@ export const KatakitDevTools = () => {
     if (node) setRoot(node.shadowRoot ?? node.attachShadow({ mode: 'open' }));
   }, []);
   const [open, setOpen] = useState(false);
+  const [preview, setPreview] = useState<Delivery>();
+  const [pinned, setPinned] = useState<Delivery>();
   return (
     <div ref={host} data-katakit-devtools="">
       {root &&
@@ -43,7 +47,16 @@ export const KatakitDevTools = () => {
                       </ToolButton>
                     </div>
                   </header>
-                  <p className={ui.hint}>{events.length} retained deliveries</p>
+                  <Timeline
+                    events={events}
+                    selected={pinned ?? preview}
+                    onPreview={setPreview}
+                    onPin={setPinned}
+                  />
+                  <footer className={ui.footer}>
+                    <span>EVENT STREAM</span>
+                    <span>{events.length} retained deliveries</span>
+                  </footer>
                 </section>
               )}
             </aside>
