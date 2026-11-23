@@ -33,6 +33,8 @@ Drag or scroll horizontally to pan; Ctrl/Cmd-wheel zooms under the pointer. **Fi
 shows the full recording, and **Follow** keeps the latest deliveries in view.
 Click a marker to pin it; numbered markers cycle through nearby deliveries.
 Use **Lanes** to search and toggle observable visibility without changing capture.
+Drag the top or left edge (or the top-left corner) to resize the panel. Its minimum is
+360 × 320 px, capped by the available viewport. Collapsing and reopening preserves the size.
 The package ships its compiled UnoCSS theme inside an isolated shadow root.
 
 ## Developer workbench

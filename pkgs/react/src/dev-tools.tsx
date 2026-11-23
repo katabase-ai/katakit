@@ -6,6 +6,7 @@ import { stylesheet, ui } from './dev-tools/theme.generated';
 import { ToolButton } from './dev-tools/ui';
 import { Timeline } from './dev-tools/timeline';
 import { Inspector } from './dev-tools/inspector';
+import { ResizablePanel } from './dev-tools/resizable-panel';
 import type { Delivery } from './dev-tools/deliveries';
 
 /** Render the observable timeline alongside the application in development. */
@@ -16,6 +17,7 @@ export const KatakitDevTools = () => {
     if (node) setRoot(node.shadowRoot ?? node.attachShadow({ mode: 'open' }));
   }, []);
   const [open, setOpen] = useState(false);
+  const [size, setSize] = useState({ width: 900, height: 530 });
   const [preview, setPreview] = useState<Delivery>();
   const [pinned, setPinned] = useState<Delivery>();
   const [hidden, setHidden] = useState(new Set<string>());
@@ -38,7 +40,7 @@ export const KatakitDevTools = () => {
                   <span className={ui.activity} /> Katakit devtools
                 </Button>
               ) : (
-                <section className={ui.panel}>
+                <ResizablePanel size={size} onResize={setSize}>
                   <header className={ui.header}>
                     <div className={ui.row}>
                       <span className={ui.brand}>
@@ -75,7 +77,7 @@ export const KatakitDevTools = () => {
                     <span>EVENT STREAM</span>
                     <span>{events.length} retained deliveries</span>
                   </footer>
-                </section>
+                </ResizablePanel>
               )}
             </aside>
           </>,

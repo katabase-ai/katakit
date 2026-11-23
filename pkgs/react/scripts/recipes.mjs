@@ -5,8 +5,13 @@ export const recipes = {
   shell:
     'fixed z-[2147483646] bottom-3 right-3 left-3 sm:(left-auto bottom-5 right-5) font-sans text-[13px] leading-normal text-zinc-100 antialiased',
   launch: `${button} ml-auto flex h-10 border border-zinc-700 bg-zinc-950 px-3 shadow-lg hover:bg-zinc-800`,
-  panel:
-    'relative ml-auto w-full max-h-[85dvh] sm:w-[min(900px,calc(100vw-2.5rem))] overflow-auto overscroll-contain rounded-xl border border-zinc-700 bg-[#18191c] shadow-2xl',
+  bounds: 'fixed inset-3 sm:inset-5 pointer-events-none flex items-end justify-end',
+  frameBox: 'relative pointer-events-auto max-h-full max-w-full',
+  sizer: 'block invisible max-w-full max-h-full',
+  north: 'absolute z-30 inset-x-2 -top-1 h-2 cursor-ns-resize touch-none select-none rounded hover:bg-teal-300/30',
+  west: 'absolute z-30 inset-y-2 -left-1 w-2 cursor-ew-resize touch-none select-none rounded hover:bg-teal-300/30',
+  corner: 'absolute z-30 -left-1 -top-1 size-4 cursor-nwse-resize touch-none select-none rounded-tl-lg hover:bg-teal-300/30',
+  panel: 'absolute inset-0 flex flex-col overflow-auto overscroll-contain rounded-xl border border-zinc-700 bg-[#18191c] shadow-2xl',
   header: 'flex items-center justify-between gap-3 border-b border-zinc-800 px-4 py-3',
   row: 'flex min-w-0 items-center gap-2',
   brand:
@@ -37,7 +42,7 @@ export const recipes = {
     'flex items-center gap-2 rounded px-1 py-1 font-mono text-xs text-zinc-300 hover:bg-zinc-800',
   checkbox: 'size-3.5 accent-teal-400',
   viewport:
-    'relative max-h-[min(32vh,280px)] min-h-24 overflow-auto overscroll-contain bg-[#131417]',
+    'relative flex-1 min-h-24 overflow-auto overscroll-contain bg-[#131417]',
   strip: 'flex w-max items-stretch',
   ruler: 'sticky top-0 z-20 flex w-max items-stretch bg-[#1d1e22]',
   laneHead:
