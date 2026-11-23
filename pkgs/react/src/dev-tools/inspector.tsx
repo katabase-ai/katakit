@@ -44,6 +44,7 @@ export const Inspector = ({
   release: () => void;
   origin: number;
 }) => {
+  const [expanded, setExpanded] = useState(false);
   const [resolver, setResolver] = useState<ReturnType<typeof makeFrameResolver>>();
   useEffect(() => {
     const controller = new AbortController();
@@ -90,9 +91,35 @@ export const Inspector = ({
         </div>
       </header>
       <div className={ui.detailBody}>
-        <div className={ui.valueColumn}>
-          <h3 className={ui.caption}>Value</h3>
-          <pre className={ui.payload}>{valueText(event.value)}</pre>
+        <div
+          className={ui.valueColumn}
+          data-expanded-value={expanded || undefined}
+          onKeyDown={e => {
+            if (expanded && e.key === 'Escape') {
+              e.stopPropagation();
+              setExpanded(false);
+              e.currentTarget.querySelector('button')?.focus();
+            }
+          }}
+        >
+          <div className={ui.valueHeading}>
+            <h3 className={ui.caption}>Value</h3>
+            {expanded && (
+              <span className={ui.hint}>
+                {splitLane(event.lane).name} · Message {event.messageNumber}
+              </span>
+            )}
+            <ToolButton
+              label={expanded ? 'Restore value' : 'Expand value'}
+              pressed={expanded}
+              onClick={() => setExpanded(!expanded)}
+            >
+              <span aria-hidden="true" className={expanded ? ui.restore : ui.expand} />
+            </ToolButton>
+          </div>
+          <pre className={ui.payload} tabIndex={0}>
+            {valueText(event.value)}
+          </pre>
         </div>
         <div className={ui.stackColumn}>
           <h3 className={ui.caption}>Stack at delivery</h3>

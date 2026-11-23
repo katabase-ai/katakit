@@ -13,7 +13,7 @@ export const recipes = {
   north: `${grip} inset-x-2 -top-1 h-2 cursor-ns-resize rounded`,
   west: `${grip} inset-y-2 -left-1 w-2 cursor-ew-resize rounded`,
   corner: `${grip} -left-1 -top-1 size-4 cursor-nwse-resize rounded-tl-lg`,
-  panel: 'absolute inset-0 flex flex-col overflow-auto overscroll-contain rounded-xl border border-zinc-700 bg-[#18191c] shadow-2xl',
+  panel: 'absolute inset-0 flex flex-col overflow-auto overscroll-contain rounded-xl border border-zinc-700 bg-[#18191c] shadow-2xl has-[[data-expanded-value]]:(invisible overflow-clip)',
   header: 'flex items-center justify-between gap-3 border-b border-zinc-800 px-4 py-3',
   row: 'flex min-w-0 items-center gap-2',
   brand:
@@ -71,7 +71,10 @@ export const recipes = {
   detailTop: 'flex shrink-0 flex-wrap items-center justify-between gap-2 px-4 pt-3 pb-2',
   detailBody:
     'grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)] grid-cols-[minmax(0,0.7fr)_minmax(0,1.3fr)] gap-3 px-4 pb-3 sm:(gap-5 grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)])',
-  valueColumn: 'flex min-w-0 flex-col',
+  valueColumn: 'flex min-w-0 flex-col data-[expanded-value]:(visible absolute inset-0 z-20 rounded-xl bg-[#1b1c1f] p-4)',
+  valueHeading: 'flex shrink-0 items-center justify-between gap-2',
+  expand: `${icon} i-lucide-maximize-2`,
+  restore: `${icon} i-lucide-minimize-2`,
   stackColumn: 'min-w-0 overflow-auto',
   payload:
     'mt-2 flex-1 overflow-auto whitespace-pre-wrap break-words rounded-md border border-zinc-800 bg-[#141518] px-3 py-2 font-mono text-[11px] leading-relaxed text-teal-200',
