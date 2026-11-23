@@ -1,6 +1,6 @@
 # @katakit/react
 
-Import `openKatakitDevtools` from `@katakit/react/dev-tools` in a development entry
+Import `openKatakitDevtools` from `@katakit/react` in a development entry
 point before creating the runtime. See the [observable timeline guide](../../docs/pages/reference/react.md#observable-timeline).
 
 For observable subscriptions in a React application, use `@react-rxjs/core`.

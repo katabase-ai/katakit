@@ -1,6 +1,6 @@
 # React-specific APIs
 
-The `dev-tools` entry point owns the observable timeline.
+Re-export the observable timeline from the package's `src/index.ts` barrel.
 
 - Applications use `@react-rxjs/core` for observable subscriptions today; this is an
   existing third-party binding, not an API exported by `@katakit/react`. Do not add a competing subscription hook.

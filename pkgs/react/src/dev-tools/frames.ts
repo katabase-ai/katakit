@@ -2,7 +2,7 @@ import { originalPositionFor, TraceMap } from '@jridgewell/trace-mapping';
 
 const location = /(https?:\/\/[^\s()]+):(\d+):(\d+)(\)?)$/;
 const internal =
-  /(?:[/\\]rxjs[/\\]|[/\\](?:@katakit|pkgs)[/\\]react[/\\](?:src|dist)[/\\]dev-tools[./\\]|\/\.vite\/deps\/(?:rxjs|@katakit_react_dev-tools)[._])/i;
+  /(?:[/\\]rxjs[/\\]|[/\\](?:@katakit|pkgs)[/\\]react[/\\](?:src[/\\]dev-tools[./\\]|dist[/\\]index\.js)|\/\.vite\/deps\/(?:rxjs|@katakit_react)[._])/i;
 export const isInternalFrame = (frame: string) => internal.test(frame);
 export const stackFrames = (stack: string) =>
   stack

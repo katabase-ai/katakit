@@ -21,11 +21,6 @@
       "source": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    },
-    "./dev-tools": {
-      "source": "./src/dev-tools.ts",
-      "types": "./dist/dev-tools.d.ts",
-      "default": "./dist/dev-tools.js"
     }
   },
   "publishConfig": {
@@ -33,10 +28,6 @@
       ".": {
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
-      },
-      "./dev-tools": {
-        "types": "./dist/dev-tools.d.ts",
-        "default": "./dist/dev-tools.js"
       }
     },
     "access": "public"

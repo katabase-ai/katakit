@@ -2,7 +2,7 @@ import { defineConfig } from 'tsdown';
 
 // Keep React and the core package external so consumers own their instances.
 export default defineConfig({
-  entry: ['src/index.ts', 'src/dev-tools.ts'],
+  entry: ['src/index.ts'],
   format: 'esm',
   platform: 'neutral',
   target: 'es2022',

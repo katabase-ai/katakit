@@ -1,6 +1,6 @@
 # @katakit/react
 
-`@katakit/react/dev-tools` provides a browser timeline for inspecting observable deliveries.
+`@katakit/react` provides a browser timeline for inspecting observable deliveries.
 Applications render their own runtime state with [React-RxJS bindings](#react-rxjs-bindings).
 
 ## Observable timeline
@@ -9,7 +9,7 @@ Open the panel in the development entry point **before creating the runtime**:
 
 ```ts
 if (import.meta.env.DEV) {
-  const { openKatakitDevtools } = await import('@katakit/react/dev-tools');
+  const { openKatakitDevtools } = await import('@katakit/react');
   const close = openKatakitDevtools();
   import.meta.hot?.dispose(close);
 }
