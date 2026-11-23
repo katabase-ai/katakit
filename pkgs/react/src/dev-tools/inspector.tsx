@@ -90,11 +90,11 @@ export const Inspector = ({
         </div>
       </header>
       <div className={ui.detailBody}>
-        <div className={ui.laneText}>
+        <div className={ui.valueColumn}>
           <h3 className={ui.caption}>Value</h3>
           <pre className={ui.payload}>{valueText(event.value)}</pre>
         </div>
-        <div className={ui.laneText}>
+        <div className={ui.stackColumn}>
           <h3 className={ui.caption}>Stack at delivery</h3>
           <ol className={ui.frameList}>
             {frames.map((f, i) => (

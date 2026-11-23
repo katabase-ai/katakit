@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
-import { Resizable } from 'react-resizable';
+import { Resizable, type ResizeHandleAxis } from 'react-resizable';
 import { ui } from './theme.generated';
 
 type PanelSize = { width: number; height: number };
@@ -22,6 +22,7 @@ export const ResizablePanel = ({
 }) => {
   const bounds = useRef<HTMLDivElement>(null);
   const [available, setAvailable] = useState(size);
+  const [activeEdge, setActiveEdge] = useState<ResizeHandleAxis>();
   useLayoutEffect(() => {
     const el = bounds.current!;
     const measure = () => setAvailable({ width: el.clientWidth, height: el.clientHeight });
@@ -44,11 +45,14 @@ export const ResizablePanel = ({
         ]}
         maxConstraints={[available.width, available.height]}
         draggableOpts={{ enableUserSelectHack: false }}
+        onResizeStart={(_, { handle }) => setActiveEdge(handle)}
         onResize={(_, data) => onResize(data.size)}
+        onResizeStop={() => setActiveEdge(undefined)}
         handle={(edge, ref) => (
           <span
             ref={ref}
             data-resize-edge={edge}
+            data-resizing={edge === activeEdge || undefined}
             aria-hidden="true"
             title={edge === 'n' ? 'Resize height' : edge === 'w' ? 'Resize width' : 'Resize panel'}
             className={edge === 'n' ? ui.north : edge === 'w' ? ui.west : ui.corner}
