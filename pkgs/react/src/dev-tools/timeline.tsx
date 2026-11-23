@@ -37,6 +37,7 @@ export const Timeline = ({
   const px = scale ?? fit;
   const length = Math.max(width, Math.ceil(last * px) + 2 * pad);
   const anchor = useRef<number | null>(null);
+  const wheelTarget = useRef<number | null>(null);
   const x = (event: Delivery) => pad + (event.time - zero) * px;
   useLayoutEffect(() => {
     const el = viewport.current!;
@@ -56,6 +57,7 @@ export const Timeline = ({
     setOffset(el.scrollLeft);
   }, [length, width, px, follow]);
   const zoom = (factor: number, at = width / 2) => {
+    wheelTarget.current = null;
     const next = clamp(
       px * factor,
       Math.min(fit, 0.0001),
@@ -77,7 +79,10 @@ export const Timeline = ({
         return;
       }
       // Leave horizontal trackpad gestures and Shift-wheel to the browser.
-      if (e.shiftKey || e.deltaX || el.scrollWidth <= el.clientWidth) return;
+      if (e.shiftKey || e.deltaX || el.scrollWidth <= el.clientWidth) {
+        wheelTarget.current = null;
+        return;
+      }
       const unit =
         e.deltaMode === WheelEvent.DOM_DELTA_LINE
           ? 16
@@ -86,10 +91,26 @@ export const Timeline = ({
             : 1;
       if (!e.deltaY) return;
       e.preventDefault();
-      el.scrollLeft += e.deltaY * unit;
+      // Accumulate wheel ticks while the browser animates toward the destination.
+      const delta = e.deltaY * unit;
+      const current = el.scrollLeft;
+      const target = wheelTarget.current ?? current;
+      const start = (target - current) * delta < 0 ? current : target;
+      wheelTarget.current = clamp(start + delta, 0, el.scrollWidth - el.clientWidth);
+      el.scrollTo({
+        left: wheelTarget.current,
+        behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+      });
     };
+    const resetWheelTarget = () => {
+      wheelTarget.current = null;
+    };
+    el.addEventListener('scrollend', resetWheelTarget);
     el.addEventListener('wheel', wheel, { passive: false });
-    return () => el.removeEventListener('wheel', wheel);
+    return () => {
+      el.removeEventListener('scrollend', resetWheelTarget);
+      el.removeEventListener('wheel', wheel);
+    };
   });
   const tracks = new Map<string, Delivery[]>();
   for (const e of events) {
@@ -149,12 +170,16 @@ export const Timeline = ({
         ref={viewport}
         aria-label="Scrollable delivery timeline"
         tabIndex={0}
+        onKeyDown={() => {
+          wheelTarget.current = null;
+        }}
         onScroll={e => {
           const left = e.currentTarget.scrollLeft;
           setOffset(left);
           if (left + width < length - 2) setFollow(false);
         }}
         onPointerDown={e => {
+          wheelTarget.current = null;
           if (e.button || (e.target as Element).closest('[role=button]')) return;
           drag.current = { start: e.clientX, left: e.currentTarget.scrollLeft };
           e.currentTarget.setPointerCapture(e.pointerId);
