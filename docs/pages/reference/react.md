@@ -29,7 +29,8 @@ stack may show the subscription; for scheduled work it may show the scheduler.
 The panel keeps the last 500 deliveries, even while collapsed. Object previews
 read current fields. Unmounting the component stops recording without stopping the runtime.
 
-Drag or scroll horizontally to pan; Ctrl/Cmd-wheel zooms under the pointer. **Fit**
+When zoomed in, scroll the wheel down to pan right or up to pan left; no Shift key
+is needed. Dragging and horizontal trackpad scrolling also pan. Ctrl/Cmd-wheel zooms under the pointer. **Fit**
 shows the full recording, and **Follow** keeps the latest deliveries in view.
 Click a marker to pin it; numbered markers cycle through nearby deliveries.
 Use **Lanes** to search and toggle observable visibility without changing capture.

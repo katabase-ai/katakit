@@ -68,12 +68,25 @@ export const Timeline = ({
   useEffect(() => {
     const el = viewport.current!;
     const wheel = (e: WheelEvent) => {
-      if (!e.ctrlKey && !e.metaKey) return;
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        zoom(
+          Math.exp(-clamp(e.deltaY, -300, 300) / 400),
+          clamp(e.clientX - heading.current!.getBoundingClientRect().right, 0, width)
+        );
+        return;
+      }
+      // Leave horizontal trackpad gestures and Shift-wheel to the browser.
+      if (e.shiftKey || e.deltaX || el.scrollWidth <= el.clientWidth) return;
+      const unit =
+        e.deltaMode === WheelEvent.DOM_DELTA_LINE
+          ? 16
+          : e.deltaMode === WheelEvent.DOM_DELTA_PAGE
+            ? width
+            : 1;
+      if (!e.deltaY) return;
       e.preventDefault();
-      zoom(
-        Math.exp(-clamp(e.deltaY, -300, 300) / 400),
-        clamp(e.clientX - heading.current!.getBoundingClientRect().right, 0, width)
-      );
+      el.scrollLeft += e.deltaY * unit;
     };
     el.addEventListener('wheel', wheel, { passive: false });
     return () => el.removeEventListener('wheel', wheel);
