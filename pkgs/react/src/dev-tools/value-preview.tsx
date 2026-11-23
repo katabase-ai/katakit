@@ -1,7 +1,7 @@
 import { Collapsible } from '@base-ui/react/collapsible';
 import { useMemo, useState } from 'react';
 import { fieldIndex, fieldValue, indexedLength, leafText } from './value-fields';
-import { ToolButton } from './ui';
+import { buttonClasses, ToolButton } from './ui';
 
 const pageSize = 32;
 
@@ -83,7 +83,7 @@ const ValueNode = ({
   if (length === undefined) return <div>{prefix}[unavailable]</div>;
   return (
     <Collapsible.Root defaultOpen={!ancestors.length}>
-      <Collapsible.Trigger className="cursor-pointer rounded-sm text-left text-zinc-100 hover:text-white focus-visible:ring-2 focus-visible:ring-zinc-300 [&[aria-expanded=true]>span]:rotate-90">
+      <Collapsible.Trigger className={buttonClasses({ variant: 'disclosure' })}>
         <span
           aria-hidden="true"
           className="inline-block size-3 align-middle i-lucide-chevron-right"

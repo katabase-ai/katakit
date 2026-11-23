@@ -61,8 +61,8 @@ export const Inspector = ({
         <div className="flex min-w-0 items-center gap-2">
           <span className="text-xs text-zinc-400">Message {event.messageNumber}</span>
           {pinned && (
-            <ToolButton label="Unpin delivery" onClick={release}>
-              <span className="inline-block size-4 shrink-0 i-lucide-pin-off" /> Unpin
+            <ToolButton label="Unpin delivery" icon="unpin" onClick={release}>
+              Unpin
             </ToolButton>
           )}
         </div>
@@ -87,20 +87,9 @@ export const Inspector = ({
             <div className="absolute right-1 top-1 z-1">
               <ToolButton
                 label={expanded ? 'Restore value' : 'Expand value'}
+                icon={expanded ? 'restore' : 'expand'}
                 onClick={() => setExpanded(!expanded)}
-              >
-                {expanded ? (
-                  <span
-                    aria-hidden="true"
-                    className="inline-block size-4 shrink-0 i-lucide-minimize-2"
-                  />
-                ) : (
-                  <span
-                    aria-hidden="true"
-                    className="inline-block size-4 shrink-0 i-lucide-maximize-2"
-                  />
-                )}
-              </ToolButton>
+              />
             </div>
             {expanded && (
               <span className="pl-3 pr-12 pt-2 text-xs text-zinc-400">

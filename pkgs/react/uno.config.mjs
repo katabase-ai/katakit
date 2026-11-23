@@ -11,6 +11,11 @@ import {
 // oxlint-disable-next-line import/no-default-export -- UnoCSS loads the default export.
 export default defineConfig({
   extractorDefault: false,
+  shortcuts: {
+    'tool-button-chrome':
+      'shrink-0 items-center justify-center gap-1.5 rounded-md font-medium text-xs cursor-pointer outline-none transition-colors focus-visible:ring-2 focus-visible:ring-teal-300 disabled:opacity-40 disabled:cursor-default',
+    'tool-button-icon': 'inline-block size-4 shrink-0',
+  },
   presets: [
     // Chromium doesn't register @property inside shadow trees. Emit the preset's
     // ordinary custom-property defaults in this isolated stylesheet as well.
@@ -27,6 +32,10 @@ export default defineConfig({
   ],
   transformers: [
     transformerVariantGroup(),
-    compileClass({ classPrefix: 'kk-', trigger: /(?<=\bclassName\s*=\s*)(["'])([\s\S]*?)\1/g }),
+    // Compile JSX className literals and explicit :uno: strings in button variants.
+    compileClass({
+      classPrefix: 'kk-',
+      trigger: /(["'])(?:(?<=\bclassName\s*=\s*["'])|:uno:\s+)([\s\S]*?)\1/g,
+    }),
   ],
 });

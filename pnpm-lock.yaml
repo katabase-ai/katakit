@@ -474,6 +474,9 @@ importers:
       rxjs:
         specifier: ^7.8.2
         version: 7.8.2
+      tailwind-variants:
+        specifier: ^4.0.2
+        version: 4.0.2
     devDependencies:
       '@iconify-json/lucide':
         specifier: ^1.2.158
@@ -4212,6 +4215,10 @@ packages:
   supports-color@10.2.2:
     resolution: {integrity: sha512-SS+jx45GF1QjgEXQx4NJZV9ImqmO2NPz5FNsIHrsDjh2YsHnawpan7SNQ1o8NuhrbHZy9AZhIoCUiCeaW/C80g==}
     engines: {node: '>=18'}
+
+  tailwind-variants@4.0.2:
+    resolution: {integrity: sha512-sZvOFkfe5LlYG/crRX5IvP3oUHmJPu+7WmrLQFvF0kCRq51C+lurlzFMm/jURG/5keT7VOJ/it0N3jkzYux85w==}
+    engines: {node: '>=16.9.x', pnpm: '>=7.x'}
 
   tar-fs@2.1.5:
     resolution: {integrity: sha512-OboTd8mmMhZDNPV+UjQcK9yKAatXu2aJ+r1w4im1Otd4M4fl2hwvdoXUxIYHFTHWK/3y3FarBP70v3vwmGlOxw==}
@@ -8266,6 +8273,8 @@ snapshots:
       inline-style-parser: 0.2.9
 
   supports-color@10.2.2: {}
+
+  tailwind-variants@4.0.2: {}
 
   tar-fs@2.1.5:
     dependencies:

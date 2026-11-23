@@ -1,4 +1,3 @@
-import { Button } from '@base-ui/react/button';
 import { useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useCapture } from './dev-tools/capture';
@@ -43,13 +42,14 @@ export const KatakitDevTools = () => {
               aria-label="Katakit devtools"
             >
               {!open ? (
-                <Button
-                  className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-md font-medium text-xs cursor-pointer outline-none transition-colors focus-visible:ring-2 focus-visible:ring-teal-300 disabled:opacity-40 disabled:cursor-default ml-auto flex h-10 border border-zinc-700 bg-zinc-950 px-3 shadow-lg hover:bg-zinc-800"
+                <ToolButton
+                  label="Katakit devtools"
+                  variant="launcher"
+                  icon="launcher"
                   onClick={() => setOpen(true)}
                 >
-                  <span className="inline-block size-4 shrink-0 i-lucide-audio-lines" /> Katakit
-                  devtools
-                </Button>
+                  Katakit devtools
+                </ToolButton>
               ) : (
                 <ResizablePanel size={size} onResize={setSize}>
                   <header className="flex items-center justify-between gap-3 border-b border-zinc-800 px-4 py-3">
@@ -70,9 +70,11 @@ export const KatakitDevTools = () => {
                       <span className="rounded-full border border-teal-400/25 bg-teal-400/10 px-2 py-0.5 text-[10px] text-teal-300">
                         Recording
                       </span>
-                      <ToolButton label="Collapse devtools" onClick={() => setOpen(false)}>
-                        <span className="inline-block size-4 shrink-0 i-lucide-chevron-down" />
-                      </ToolButton>
+                      <ToolButton
+                        label="Collapse devtools"
+                        icon="collapse"
+                        onClick={() => setOpen(false)}
+                      />
                     </div>
                   </header>
                   <Timeline

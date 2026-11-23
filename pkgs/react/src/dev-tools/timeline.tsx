@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import type { Delivery } from './deliveries';
 import { cluster, palette, rulerTicks, splitLane, stamp } from './time';
 import { timelinePadding as pad, useTimelineViewport } from './use-timeline-viewport';
-import { ToolButton } from './ui';
+import { buttonClasses, ToolButton } from './ui';
 import { LanePicker } from './lane-picker';
 
 type Props = {
@@ -62,10 +62,11 @@ export const Timeline = ({
         <div className="flex items-center gap-0.5">
           <ToolButton
             label="Choose observable lanes"
+            icon="lanes"
             pressed={filter}
             onClick={() => setFilter(!filter)}
           >
-            <span className="inline-block size-4 shrink-0 i-lucide-list-filter" /> Lanes{' '}
+            Lanes
             <span className="min-w-5 rounded bg-zinc-800 px-1 text-center font-mono text-[10px] text-zinc-300">
               {visible.length}
             </span>
@@ -73,22 +74,19 @@ export const Timeline = ({
           <span className="mx-1 h-4 border-l border-zinc-700" />
           <ToolButton
             label="Follow latest delivery"
+            icon="follow"
             pressed={follow}
             onClick={() => setFollow(!follow)}
           >
-            <span className="inline-block size-4 shrink-0 i-lucide-scan-line" /> Follow
+            Follow
           </ToolButton>
         </div>
         <div className="flex items-center gap-0.5">
-          <ToolButton label="Zoom out" onClick={() => zoom(0.5)}>
-            <span className="inline-block size-4 shrink-0 i-lucide-zoom-out" />
+          <ToolButton label="Zoom out" icon="zoomOut" onClick={() => zoom(0.5)} />
+          <ToolButton label="Fit recording" icon="fit" onClick={fitRecording}>
+            Fit
           </ToolButton>
-          <ToolButton label="Fit recording" onClick={fitRecording}>
-            <span className="inline-block size-4 shrink-0 i-lucide-scan" /> Fit
-          </ToolButton>
-          <ToolButton label="Zoom in" onClick={() => zoom(2)}>
-            <span className="inline-block size-4 shrink-0 i-lucide-zoom-in" />
-          </ToolButton>
+          <ToolButton label="Zoom in" icon="zoomIn" onClick={() => zoom(2)} />
         </div>
       </div>
       {filter && (
@@ -186,7 +184,7 @@ export const Timeline = ({
                       key={event.messageNumber}
                       role="button"
                       tabIndex={0}
-                      className="cursor-pointer outline-none focus-visible:(stroke-white stroke-2)"
+                      className={buttonClasses({ variant: 'marker' })}
                       aria-label={`${lane.name}, ${stamp(event.time - zero)}, ${n} ${n === 1 ? 'delivery' : 'deliveries; click to cycle'}`}
                       transform={`translate(${group.x},21)`}
                       onPointerEnter={() => onPreview(event)}
