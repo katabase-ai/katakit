@@ -1,1 +1,1 @@
-export { openKatakitDevtools } from './dev-tools';
+export { KatakitDevTools } from './dev-tools';

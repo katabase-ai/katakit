@@ -103,7 +103,7 @@ describe('published packages', () => {
         import { makeKatakit } from '@katakit/core';
         import { makeEventLogPlugin } from '@katakit/event-log';
         import { makeEventPersistencePlugin, makeLocalStorageEventPersistencePlugin } from '@katakit/persistence';
-        import { openKatakitDevtools } from '@katakit/react';
+        import { KatakitDevTools } from '@katakit/react';
         const EventLogPlugin = makeEventLogPlugin({
           validateEvent: {
             '~standard': { version: 1, vendor: 'smoke-test', validate: value => ({ value }) },
@@ -124,7 +124,7 @@ describe('published packages', () => {
         assert.deepEqual(saved, [2]);
         assert.deepEqual(runtime.getObservables(EventLogPlugin).events$.getAll(), [1, 2]);
         assert.equal(typeof makeLocalStorageEventPersistencePlugin, 'function');
-        assert.equal(typeof openKatakitDevtools, 'function');
+        assert.equal(typeof KatakitDevTools, 'function');
       `
     );
     await writeFile(
@@ -133,9 +133,9 @@ describe('published packages', () => {
         import { makeEffect, makeKatakit, makeKatakitPlugin, type Effect } from '@katakit/core';
         import { makeEventLogPlugin } from '@katakit/event-log';
         import { makeEventPersistencePlugin, makeLocalStorageEventPersistencePlugin } from '@katakit/persistence';
-        import { openKatakitDevtools } from '@katakit/react';
+        import { KatakitDevTools } from '@katakit/react';
         import { of, type Observable } from 'rxjs';
-        const mount: () => () => void = openKatakitDevtools;
+        const component = KatakitDevTools;
         const EventLogPlugin = makeEventLogPlugin<{ text: string }>({
           validateEvent: {
             '~standard': {

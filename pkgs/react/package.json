@@ -33,27 +33,34 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsdown",
+    "theme": "node scripts/compile-theme.mjs",
+    "build": "pnpm theme && tsdown",
     "tsc": "tsc --project tsconfig.json",
     "prepack": "pnpm build",
     "test": "vitest",
     "test:ci": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@base-ui/react": "^1.9.0",
     "@jridgewell/trace-mapping": "^0.3.31",
     "rxjs": "^7.8.2"
   },
   "devDependencies": {
+    "@iconify-json/lucide": "^1.2.158",
     "@katakit/core": "workspace:*",
     "@testing-library/react": "^16.1.0",
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
+    "@unocss/transformer-compile-class": "66.13.0",
     "happy-dom": "^18.0.1",
+    "magic-string": "^1.4.5",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "unocss": "66.13.0"
   },
   "peerDependencies": {
     "@katakit/core": "workspace:^",
-    "react": "^19.0.0"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   }
 }
