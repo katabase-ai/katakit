@@ -9,7 +9,10 @@ import { Inspector } from './dev-tools/inspector';
 import { ResizablePanel } from './dev-tools/resizable-panel';
 import type { Delivery } from './dev-tools/deliveries';
 
-/** Render the observable timeline alongside the application in development. */
+/**
+ * Displays deliveries from observable collections first accessed after the panel mounts.
+ * Mount behind the host's development flag. Panels share capture until the last one unmounts.
+ */
 export const KatakitDevTools = () => {
   const events = useCapture();
   const [root, setRoot] = useState<ShadowRoot | null>(null);

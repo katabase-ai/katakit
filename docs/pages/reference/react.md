@@ -5,7 +5,7 @@ Applications render their own runtime state with [React-RxJS bindings](#react-rx
 
 ## Observable timeline
 
-Render the component alongside your app before the runtime creates its observable collections:
+Gate the component with your bundler’s development flag (shown here for Vite):
 
 ```tsx
 import { KatakitDevTools } from '@katakit/react';
@@ -18,6 +18,11 @@ export const App = () => (
 );
 ```
 
+Capture starts in the component’s layout effect. Create the runtime’s observable
+collections after that point, for example in an application effect or an event
+handler. Placing the panel first in JSX does not capture collections created at
+module scope or during render: the runtime caches each collection on first access.
+
 Expand **Katakit devtools** and hover, tap, or keyboard-focus a dot. Each lane is
 a named observable in one runtime. Each dot is one `next` delivery to an existing
 subscriber; two subscribers get two dots. The panel does not subscribe to sources.
@@ -27,7 +32,10 @@ Subscriptions made inside a plugin before it returns its observables are not obs
 away. Same-origin source maps are resolved on inspection. For replayed values the
 stack may show the subscription; for scheduled work it may show the scheduler.
 The panel keeps the last 500 deliveries, even while collapsed. Object previews
-read current fields. Unmounting the component stops recording without stopping the runtime.
+read current fields rather than taking a deep snapshot. Mounted panels share a
+recording. After the last panel unmounts, the recording is discarded without
+stopping the runtime. A later mount records newly created observable collections;
+it does not reconnect to collections cached by an earlier recording.
 
 When zoomed in, scroll the wheel down to pan right or up to pan left; no Shift key
 is needed. Dragging and horizontal trackpad scrolling also pan. Ctrl/Cmd-wheel zooms under the pointer. **Fit**

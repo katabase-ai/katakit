@@ -10,6 +10,24 @@ test('an empty runtime starts once without requiring any plugins', () => {
   expect(() => runtime.start()).toThrow(/already started/i);
 });
 
+test('a failing devtools hook cannot interrupt or repeat observable construction', () => {
+  const hook = Symbol.for('katakit.devtools.observables.v1');
+  const streams = { value$: new Subject<number>() };
+  const observables = vi.fn(() => streams);
+  const plugin = makeKatakitPlugin({ type: 'Counter', configure: () => ({}), observables });
+  const runtime = makeKatakit({ plugins: [plugin.configure({})] });
+  vi.stubGlobal(hook, () => {
+    throw new Error('recorder unavailable');
+  });
+  try {
+    expect(runtime.getObservables(plugin)).toBe(streams);
+    expect(runtime.start().getObservables(plugin)).toBe(streams);
+    expect(observables).toHaveBeenCalledOnce();
+  } finally {
+    vi.unstubAllGlobals();
+  }
+});
+
 test('observable-only access is lazy and never starts methods or effects', () => {
   const constructObservables = vi.fn(() => ({ value$: new BehaviorSubject(1) }));
   const constructMethods = vi.fn(() => ({ read: () => 1 }));

@@ -3,34 +3,7 @@ import { describeFrame, isInternalFrame, makeFrameResolver, stackFrames } from '
 import type { Delivery } from './deliveries';
 import { splitLane, stamp } from './time';
 import { ToolButton } from './ui';
-
-// Read bounded own data fields, never invoke getters or serialize a whole stream payload.
-const preview = (value: unknown, depth = 0): unknown => {
-  if (!value || typeof value !== 'object')
-    return typeof value === 'string'
-      ? value.slice(0, 160)
-      : typeof value === 'bigint'
-        ? String(value)
-        : value;
-  if (depth === 2) return Array.isArray(value) ? `Array(${value.length})` : '{…}';
-  const entries = Object.keys(value)
-    .slice(0, 6)
-    .map(key => {
-      const field = Object.getOwnPropertyDescriptor(value, key);
-      return [
-        key,
-        field && 'value' in field ? preview(field.value, depth + 1) : '[accessor]',
-      ] as const;
-    });
-  return Array.isArray(value) ? entries.map(([, v]) => v) : Object.fromEntries(entries);
-};
-const valueText = (value: unknown) => {
-  try {
-    return JSON.stringify(preview(value), null, 2) ?? String(value);
-  } catch {
-    return '[unavailable]';
-  }
-};
+import { valueText } from './value-preview';
 
 export const Inspector = ({
   event,

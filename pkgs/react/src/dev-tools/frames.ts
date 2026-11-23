@@ -32,17 +32,20 @@ export const makeFrameResolver = (signal: AbortSignal) => {
   const maps = new Map<string, Promise<TraceMap | undefined>>();
   const load = async (file: string) => {
     if (new URL(file).origin !== window.location.origin) return;
-    const script = await fetch(file, { signal });
+    // Enforce the origin restriction on redirects as well as the initial URLs.
+    const script = await fetch(file, { signal, mode: 'same-origin' });
     if (!script.ok) return;
     const ref =
       script.headers.get('SourceMap') ??
       (await script.text()).match(/\/\/[#@]\s*sourceMappingURL=(\S+)\s*$/m)?.[1];
     if (!ref) return;
-    const url = new URL(ref, file);
+    const scriptUrl = script.url || file;
+    const url = new URL(ref, scriptUrl);
     const inline = url.protocol === 'data:';
     if (!inline && url.origin !== window.location.origin) return;
-    const response = await fetch(url, { signal });
-    if (response.ok) return new TraceMap(await response.json(), inline ? file : url.href);
+    const response = await fetch(url, { signal, mode: inline ? 'cors' : 'same-origin' });
+    if (response.ok)
+      return new TraceMap(await response.json(), inline ? scriptUrl : response.url || url.href);
   };
   return async (frame: string) => {
     const match = frame.match(location);
