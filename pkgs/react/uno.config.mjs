@@ -18,7 +18,14 @@ export default defineConfig({
     // Chromium doesn't register @property inside shadow trees. Emit the preset's
     // ordinary custom-property defaults in this isolated stylesheet as well.
     presetWind4({ preflights: { property: { parent: false } } }),
-    presetWebFonts({ provider: 'none', fonts: { mono: 'Katakit JetBrains Mono' } }),
+    presetWebFonts({
+      provider: 'google',
+      inlineImports: false,
+      fonts: {
+        sans: { name: 'Inter', weights: ['400..700'] },
+        mono: { name: 'JetBrains Mono', weights: ['400..700'] },
+      },
+    }),
     presetIcons({ collections: { lucide: icons } }),
   ],
   transformers: [

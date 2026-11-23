@@ -36,6 +36,8 @@ Use **Lanes** to search and toggle observable visibility without changing captur
 Drag the top or left edge (or the top-left corner) to resize the panel. Its minimum is
 360 × 320 px, capped by the available viewport. Collapsing and reopening preserves the size.
 The package ships its compiled UnoCSS theme inside an isolated shadow root.
+The panel loads Inter for interface text and JetBrains Mono for code and values
+from Google Fonts. If the provider is unavailable, it uses system fallbacks.
 
 ## Developer workbench
 

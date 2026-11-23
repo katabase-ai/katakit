@@ -35,7 +35,7 @@ export const LanePicker = ({
       <div className="mt-2 grid max-h-28 grid-cols-1 gap-1 overflow-y-auto sm:grid-cols-2">
         {[...groups].map(([group, names]) => (
           <fieldset key={group}>
-            <legend className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+            <legend className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
               {group}
             </legend>
             {names.map(lane => (

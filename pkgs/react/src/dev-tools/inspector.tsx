@@ -80,7 +80,7 @@ export const Inspector = ({
       <header className="flex shrink-0 flex-wrap items-center justify-between gap-2 px-4 pt-3 pb-2">
         <div className="flex min-w-0 items-center gap-2">
           <span className="inline-block size-4 shrink-0 i-lucide-route" />
-          <strong>{splitLane(event.lane).name}</strong>
+          <strong className="font-mono">{splitLane(event.lane).name}</strong>
           <span className="min-w-5 rounded bg-zinc-800 px-1 text-center font-mono text-[10px] text-zinc-300">
             {stamp(event.time - origin)}
           </span>
@@ -107,7 +107,7 @@ export const Inspector = ({
           }}
         >
           <div className="flex shrink-0 items-center justify-between gap-2">
-            <h3 className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+            <h3 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
               Value
             </h3>
             {expanded && (
@@ -141,7 +141,7 @@ export const Inspector = ({
           </pre>
         </div>
         <div className="min-w-0 overflow-auto">
-          <h3 className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+          <h3 className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
             Stack at delivery
           </h3>
           <ol className="mt-1">

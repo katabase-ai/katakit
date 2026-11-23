@@ -1,9 +1,8 @@
 import { Button } from '@base-ui/react/button';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useCapture } from './dev-tools/capture';
-import stylesheet from 'virtual:katakit-stylesheet';
-import fontUrl from '@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2';
+import stylesheet, { fontStylesheet } from 'virtual:katakit-stylesheet';
 import { ToolButton } from './dev-tools/ui';
 import { Timeline } from './dev-tools/timeline';
 import { Inspector } from './dev-tools/inspector';
@@ -14,18 +13,6 @@ import type { Delivery } from './dev-tools/deliveries';
 export const KatakitDevTools = () => {
   const events = useCapture();
   const [root, setRoot] = useState<ShadowRoot | null>(null);
-  useEffect(() => {
-    if (!root) return;
-    const fonts = root.ownerDocument.fonts;
-    const face = new FontFace('Katakit JetBrains Mono', `url(${fontUrl})`, {
-      weight: '100 800',
-      display: 'swap',
-    });
-    fonts.add(face);
-    return () => {
-      fonts.delete(face);
-    };
-  }, [root]);
   const host = useCallback((node: HTMLDivElement | null) => {
     if (node) setRoot(node.shadowRoot ?? node.attachShadow({ mode: 'open' }));
   }, []);
@@ -46,9 +33,10 @@ export const KatakitDevTools = () => {
       {root &&
         createPortal(
           <>
+            {createPortal(<link rel="stylesheet" href={fontStylesheet} />, root.ownerDocument.head)}
             <link rel="stylesheet" href={stylesheet} />
             <aside
-              className="fixed z-[2147483646] bottom-3 right-3 left-3 sm:(left-auto bottom-5 right-5) font-mono text-[13px] leading-normal text-zinc-100 antialiased"
+              className="fixed z-[2147483646] bottom-3 right-3 left-3 sm:(left-auto bottom-5 right-5) font-sans text-[13px] leading-normal text-zinc-100 antialiased"
               aria-label="Katakit devtools"
             >
               {!open ? (
@@ -67,7 +55,7 @@ export const KatakitDevTools = () => {
                         <span className="inline-block size-4 shrink-0 i-lucide-audio-lines" />
                       </span>
                       <div>
-                        <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
                           Katakit / Devtools
                         </p>
                         <h2 className="text-lg font-semibold tracking-tight text-zinc-50">
@@ -76,7 +64,7 @@ export const KatakitDevTools = () => {
                       </div>
                     </div>
                     <div className="flex min-w-0 items-center gap-2">
-                      <span className="rounded-full border border-teal-400/25 bg-teal-400/10 px-2 py-0.5 font-mono text-[10px] text-teal-300">
+                      <span className="rounded-full border border-teal-400/25 bg-teal-400/10 px-2 py-0.5 text-[10px] text-teal-300">
                         Recording
                       </span>
                       <ToolButton label="Collapse devtools" onClick={() => setOpen(false)}>

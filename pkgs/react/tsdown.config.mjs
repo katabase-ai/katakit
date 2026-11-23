@@ -1,5 +1,7 @@
 import { defineConfig } from 'tsdown';
+import { createGenerator, LAYER_IMPORTS } from 'unocss';
 import UnoCSS from 'unocss/rolldown';
+import config from './uno.config.mjs';
 
 const stylesheetId = 'virtual:katakit-stylesheet';
 const marker = '__KATAKIT_UNO_STYLESHEET_URL__';
@@ -11,8 +13,15 @@ const embedStylesheet = {
   resolveId(id) {
     if (id === stylesheetId) return `\0${id}`;
   },
-  load(id) {
-    if (id === `\0${stylesheetId}`) return `import 'uno.css'; export default '${marker}'`;
+  async load(id) {
+    if (id !== `\0${stylesheetId}`) return;
+    // Rolldown omits Uno's imports layer. Mount only its provider stylesheet
+    // at document scope so the shadow tree can use the registered font faces.
+    const uno = await createGenerator(config);
+    const imports = (await uno.generate('', { minify: true })).getLayer(LAYER_IMPORTS);
+    const fontUrl = imports.match(/^@import url\('([^']+)'\);$/)?.[1];
+    if (!fontUrl) this.error('Expected a web font provider stylesheet from UnoCSS');
+    return `import 'uno.css'; export default '${marker}'; export const fontStylesheet = ${JSON.stringify(fontUrl)}`;
   },
   generateBundle: {
     order: 'post',
@@ -41,7 +50,5 @@ export default defineConfig({
   // Link the JS map in the adapter; the declarations have no map.
   sourcemap: 'hidden',
   clean: true,
-  loader: { '.woff2': 'dataurl' },
-  deps: { onlyBundle: ['@fontsource-variable/jetbrains-mono'] },
   plugins: [UnoCSS(), embedStylesheet],
 });

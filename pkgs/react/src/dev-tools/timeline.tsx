@@ -159,7 +159,7 @@ export const Timeline = ({
             ref={heading}
             className="sticky left-0 z-10 flex w-[132px] shrink-0 items-center justify-between gap-2 border-r border-b border-zinc-800 bg-[#202125] px-3 sm:w-[208px]"
           >
-            <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
               Observables
             </span>
           </div>
