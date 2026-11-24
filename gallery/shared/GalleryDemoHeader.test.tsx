@@ -4,6 +4,7 @@ import { afterEach, expect, test } from 'vitest';
 import { Gallery } from './Gallery';
 import { GallerySpeechProvider } from './GallerySpeechProvider';
 import { galleryDemos } from './galleryDemos';
+import { galleryDataHandling } from './galleryDemoDetails';
 
 afterEach(cleanup);
 
@@ -27,7 +28,10 @@ test.each(galleryDemos)(
     expect(heading.textContent).toBe(demo.title);
     expect(
       screen.getByRole('button', {
-        name: demo.dataHandling.transcribedText === 'cloud' ? 'Cloud-assisted' : 'On-device',
+        name:
+          galleryDataHandling(demo.requiredCapabilities).transcribedText === 'cloud'
+            ? 'Cloud-assisted'
+            : 'On-device',
       })
     ).toBeDefined();
     await screen.findByRole('button', {

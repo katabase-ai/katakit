@@ -8,7 +8,7 @@ import { GallerySpeechProvider } from './GallerySpeechProvider';
 import { GallerySpeechControls } from './GallerySpeechControls';
 import { GalleryModeProvider, GalleryPreviewToggle, useGalleryMode } from './GalleryModeProvider';
 import type { GalleryDeveloperPage } from './operationDetails';
-import { galleryDemoDetails } from './galleryDemoDetails';
+import { galleryDemoDetails, requiresGalleryCapability } from './galleryDemoDetails';
 import { GalleryModelError, useGalleryModel, type GalleryModelConnect } from './galleryModel';
 import { defaultInference, inferenceStorageKey } from './galleryInference';
 import { NotesDemo } from '../../examples/demos/notes-react/src/NotesDemo';
@@ -346,7 +346,7 @@ test('developer operation grid uses catalogue requirements, remains navigable an
     within(table).getAllByRole('img', { name: 'Transcription: Required · configured' })
   ).toHaveLength(
     galleryDemoDetails.filter(demo =>
-      demo.capabilities.some(capability => capability === 'localTranscription')
+      requiresGalleryCapability(demo.requiredCapabilities, 'localTranscription')
     ).length
   );
   const game = within(table).getByRole('row', { name: /Color Clash/ });
@@ -356,7 +356,7 @@ test('developer operation grid uses catalogue requirements, remains navigable an
     within(table).getAllByRole('img', { name: 'Text generation: Required · needs a connection' })
   ).toHaveLength(
     galleryDemoDetails.filter(demo =>
-      demo.capabilities.some(capability => capability === 'remoteModel')
+      requiresGalleryCapability(demo.requiredCapabilities, 'remoteModel')
     ).length
   );
   const brainstorm = within(table).getByRole('row', { name: /Brainstorming game/ });

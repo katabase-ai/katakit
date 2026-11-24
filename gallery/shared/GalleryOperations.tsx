@@ -5,6 +5,7 @@ import { useGalleryInference } from './GalleryInferenceProvider';
 import { useGalleryMode } from './GalleryModeProvider';
 import { GalleryModelContext } from './galleryModel';
 import { galleryOperations } from './operationDetails';
+import { requiresGalleryCapability } from './galleryDemoDetails';
 import type { Gallery } from './Gallery';
 
 /** Developer configuration is scoped to implemented operations; no account/unsupported-model placeholders. */
@@ -280,7 +281,8 @@ export const GalleryOperationGrid = ({
               <tr key={demo.id}>
                 <th scope="row">{renderLink({ demo, children: demo.title, current: false })}</th>
                 {galleryOperations.map(operation => {
-                  const required = (demo.capabilities as readonly string[]).includes(
+                  const required = requiresGalleryCapability(
+                    demo.requiredCapabilities,
                     operation.capability
                   );
                   const configured = operation.id === 'transcription' || !!connect;
