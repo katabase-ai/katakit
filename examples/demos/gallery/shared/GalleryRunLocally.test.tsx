@@ -6,6 +6,7 @@ import {
   colorClashDemoDetails,
   notesDemoDetails,
   listExtractionDemoDetails,
+  brainstormDemoDetails,
 } from './galleryDemoDetails';
 import { GalleryEventsContext } from './galleryEvents';
 import { GalleryRunLocally, runLocallyCommand, runLocallyPrompt } from './GalleryRunLocally';
@@ -13,6 +14,10 @@ import { GalleryRunLocally, runLocallyCommand, runLocallyPrompt } from './Galler
 afterEach(cleanup);
 
 test('the command copies the pinned example directory and starts it', () => {
+  render(<GalleryRunLocally demo={notesDemoDetails} revision="abc123" />);
+  expect(
+    screen.getByRole('link', { name: 'View the source code for this example' }).getAttribute('href')
+  ).toBe('https://github.com/katabase-ai/katakit/tree/abc123/examples/demos/notes-react');
   expect(runLocallyCommand(notesDemoDetails, 'abc123')).toBe(
     [
       'npx degit katabase-ai/katakit/examples/demos/notes-react#abc123 structured-notes',
@@ -32,15 +37,31 @@ test('the command copies the pinned example directory and starts it', () => {
   );
 });
 
+test('brainstorming offers the pinned standalone copy and its model setup instructions', () => {
+  render(<GalleryRunLocally demo={brainstormDemoDetails} revision="abc123" />);
+  expect(screen.getByText('Get the code')).toBeDefined();
+  expect(runLocallyCommand(brainstormDemoDetails, 'abc123')).toBe(
+    [
+      'npx degit katabase-ai/katakit/examples/demos/brainstorm-react#abc123 brainstorming-game',
+      'cd brainstorming-game',
+      'pnpm install',
+      'pnpm dev',
+    ].join('\n')
+  );
+  expect(runLocallyPrompt(brainstormDemoDetails, 'abc123')).toContain(
+    'Ask me before you read, create, or edit'
+  );
+});
+
 test('only a demo that calls a model mentions an API key', () => {
   expect(runLocallyPrompt(notesDemoDetails)).toContain('Ask me before you read, create, or edit');
   expect(runLocallyPrompt(bingoDemoDetails)).not.toMatch(/API key/);
   render(<GalleryRunLocally demo={notesDemoDetails} />);
-  expect(screen.getByText('Run locally')).toBeDefined();
+  expect(screen.getByText('Get the code')).toBeDefined();
   expect(screen.getByText(/connecting your own model API key/)).toBeDefined();
   cleanup();
   render(<GalleryRunLocally demo={bingoDemoDetails} />);
-  expect(screen.getByText('Run locally')).toBeDefined();
+  expect(screen.getByText('Get the code')).toBeDefined();
   expect(screen.queryByText(/API key/)).toBeNull();
 });
 
@@ -85,7 +106,7 @@ test('a blocked clipboard asks the visitor to copy by hand', async () => {
 
 test('a press outside or Escape closes the open panel; a press inside keeps it', () => {
   render(<GalleryRunLocally demo={bingoDemoDetails} />);
-  const details = screen.getByText('Run locally').closest('details')!;
+  const details = screen.getByText('Get the code').closest('details')!;
   details.open = true;
   fireEvent.pointerDown(screen.getByText('Command'));
   expect(details.open).toBe(true);

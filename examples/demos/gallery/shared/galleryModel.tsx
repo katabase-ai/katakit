@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useRef, type ReactNode } from 'react';
 import type { GalleryOperation } from './operationDetails';
-import type { GalleryAllowance } from './GalleryUsageProvider';
+import type { GalleryAllowance, GalleryTokenUsage } from './GalleryUsageProvider';
 import type { GalleryAccount } from './GalleryAccountButton';
 
 /** Only failures a host marks retryable are retried automatically; the rest need a click. */
@@ -32,6 +32,12 @@ export type GalleryModelConnection = {
   maxOutputTokens: number;
   /** Send a chat-completions request body and resolve with the parsed response body. */
   requestCompletion: (input: { body: string; signal: AbortSignal }) => Promise<unknown>;
+  /** Optional typed decision transport, sharing this visit's admission and cancellation. */
+  decisions?: {
+    model: string;
+    maxQuestions: number;
+    requestDecision: (input: { body: string; signal: AbortSignal }) => Promise<unknown>;
+  };
   /** Hosts can correlate a demo's validation failure with their transport's request ID. */
   reportFailure?: (failure: Error & Pick<GalleryModelError, 'policy'>) => void;
 };
@@ -57,6 +63,7 @@ export const GalleryModelContext = createContext<{
   /** Why the active demo is limited; shown on the Settings button, which leads to the remedy. */
   settingsNotice?: string;
   allowance?: GalleryAllowance;
+  tokenUsage?: GalleryTokenUsage;
   usageUnavailableReason?: string;
   reportAllowance?: (allowance: GalleryAllowance) => void;
   account?: GalleryAccount;

@@ -56,6 +56,8 @@ export const GalleryPage = ({
         </Link>
       )}
       privacyUrl="https://katabase.com/privacy"
+      termsUrl="https://katabase.com/Terms"
+      account={{ waitlistUrl: 'https://katabase.com/waitlist' }}
       activeDemo={demo}
       input={<GallerySpeechControls />}
       renderLink={({ demo: entry, children, current }) =>

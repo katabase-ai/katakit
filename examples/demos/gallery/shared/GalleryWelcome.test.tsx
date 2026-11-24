@@ -10,6 +10,7 @@ import {
 import { createTranscriptionDemo } from '../../transcription-react/src/createTranscriptionDemo';
 import { GallerySpeechProvider, useGallerySpeech } from './GallerySpeechProvider';
 import { GalleryCaptureControls } from './GalleryCaptureControls';
+import { GalleryConsentProvider } from './GalleryConsentProvider';
 import { GalleryDemo } from './GalleryDemo';
 import { Gallery } from './Gallery';
 import { transcriptionDemoDetails } from './galleryDemoDetails';
@@ -23,6 +24,7 @@ vi.mock('@katakit/transcription/browser', async importOriginal => ({
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  window.sessionStorage.clear();
 });
 
 const fixture = ({ pending }: { pending?: 'loading' | 'starting' } = {}) => {
@@ -98,21 +100,23 @@ const Harness = ({
 }) => {
   const [welcome, setWelcome] = useState(initialWelcome);
   return (
-    <GallerySpeechProvider>
-      <SpeechActions />
-      {showFooter && <GallerySpeechControls />}
-      <button onClick={() => setWelcome(current => !current)}>Navigate</button>
-      {welcome ? (
-        <Gallery
-          demos={[]}
-          renderLink={({ children }) => <a href="/">{children}</a>}
-          privacyUrl="https://katabase.com/privacy"
-          termsUrl="https://example.com/terms"
-        />
-      ) : (
-        <GalleryDemo create={createTranscriptionDemo} render={() => <GalleryCaptureControls />} />
-      )}
-    </GallerySpeechProvider>
+    <GalleryConsentProvider>
+      <GallerySpeechProvider>
+        <SpeechActions />
+        {showFooter && <GallerySpeechControls />}
+        <button onClick={() => setWelcome(current => !current)}>Navigate</button>
+        {welcome ? (
+          <Gallery
+            demos={[]}
+            renderLink={({ children }) => <a href="/">{children}</a>}
+            privacyUrl="https://katabase.com/privacy"
+            termsUrl="https://example.com/terms"
+          />
+        ) : (
+          <GalleryDemo create={createTranscriptionDemo} render={() => <GalleryCaptureControls />} />
+        )}
+      </GallerySpeechProvider>
+    </GalleryConsentProvider>
   );
 };
 
@@ -135,10 +139,39 @@ test('a model download alone leaves Welcome untested and preserves the privacy l
   expect(screen.getByRole('link', { name: 'Privacy Policy' }).getAttribute('href')).toBe(
     'https://katabase.com/privacy'
   );
-  const terms = screen.getByRole('link', { name: 'Terms of Service' });
+  const terms = within(screen.getByRole('region', { name: 'How cloud servers work' })).getByRole(
+    'link',
+    { name: 'Terms of Service' }
+  );
   expect(terms.getAttribute('href')).toBe('https://example.com/terms');
   expect(terms.getAttribute('target')).toBe('_blank');
   expect(terms.getAttribute('rel')).toBe('noopener noreferrer');
+});
+
+test('Welcome shows consent for setup once per visit and keeps it hidden when retesting', async () => {
+  fixture();
+  render(<Harness />);
+  await screen.findByRole('button', { name: 'Set up microphone' });
+  const setup = within(screen.getByRole('region', { name: 'Set up your mic' }));
+  expect(setup.getByRole('link', { name: 'Terms of Service' }).getAttribute('href')).toBe(
+    'https://example.com/terms'
+  );
+  await click('Set up microphone');
+  expect(setup.getByRole('button', { name: 'Stop listening' })).toBeDefined();
+  expect(setup.queryByRole('link', { name: 'Terms of Service' })).toBeNull();
+  await click('Stop listening');
+  expect(setup.getByRole('button', { name: 'Test again' })).toBeDefined();
+  expect(setup.queryByRole('link', { name: 'Terms of Service' })).toBeNull();
+});
+
+test('failed microphone setup still remembers the primary consent click', async () => {
+  const { fail } = fixture();
+  fail('microphone-permission-denied');
+  render(<Harness />);
+  await click('Set up microphone');
+  const setup = within(screen.getByRole('region', { name: 'Set up your mic' }));
+  expect(setup.getByRole('button', { name: 'Try microphone again' })).toBeDefined();
+  expect(setup.queryByRole('link', { name: 'Terms of Service' })).toBeNull();
 });
 
 test('the transcript remains visible before, during, and after a successful test', async () => {
@@ -397,7 +430,7 @@ test('Welcome retains readiness from another demo across navigation while captur
   expect(inputs[0]!.start).toHaveBeenCalledTimes(2);
 });
 
-test('a demo offers Start beside its title, then a Pause beside a microphone that fills with the level', async () => {
+test('a demo offers Start in its header, then a Pause beside a microphone that fills with the level', async () => {
   const { inputs } = fixture();
   render(
     <GallerySpeechProvider>
@@ -405,6 +438,7 @@ test('a demo offers Start beside its title, then a Pause beside a microphone tha
         demos={[transcriptionDemoDetails]}
         activeDemo={transcriptionDemoDetails}
         renderLink={({ children }) => <a href="/">{children}</a>}
+        termsUrl="/terms"
       >
         <GalleryDemo create={createTranscriptionDemo} render={() => <GalleryCaptureControls />} />
       </Gallery>
@@ -414,10 +448,14 @@ test('a demo offers Start beside its title, then a Pause beside a microphone tha
   const start = await header.findByRole('button', { name: 'Start listening' });
   expect(start.textContent).toBe('Start');
   expect(start.className).toContain('site-button--blue');
+  expect(header.getByRole('link', { name: 'Terms of Service' }).getAttribute('href')).toBe(
+    '/terms'
+  );
   await click('Start listening');
   const pause = await header.findByRole('button', { name: 'Pause listening' });
   expect(pause.textContent).toBe('Pause');
   expect(pause.className).toContain('site-button--slate');
+  expect(header.queryByRole('link', { name: 'Terms of Service' })).toBeNull();
   act(() => inputs[0]!.callbacks.onLevel?.(0.64));
   const fill = () =>
     Number(

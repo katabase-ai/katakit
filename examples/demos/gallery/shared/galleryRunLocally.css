@@ -34,14 +34,16 @@
   flex: 0 0 16px;
 }
 .katakit-gallery .gallery-run-locally-panel {
+  --gallery-panel-background: var(--color-paper-2);
+  position: relative;
   display: grid;
   gap: 16px;
   max-width: 48rem;
   margin-top: 12px;
   padding: 16px;
-  border: 1px solid var(--color-rule);
+  border: 1px solid var(--color-rule-2);
   border-radius: 12px;
-  background: var(--color-paper-2);
+  background: var(--gallery-panel-background);
 }
 .katakit-gallery .gallery-run-locally-panel > p {
   margin: 0;
@@ -88,6 +90,7 @@
   overflow: auto;
   border-radius: 8px;
   background: var(--color-paper-3);
+  color: var(--color-ink);
   font-family: var(--font-outlier, ui-monospace, monospace);
   font-size: 13px;
   line-height: 20px;

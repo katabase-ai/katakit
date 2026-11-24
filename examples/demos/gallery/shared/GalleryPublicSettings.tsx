@@ -1,6 +1,6 @@
 import { useContext, useState } from 'react';
 import { GalleryModelContext } from './galleryModel';
-import { GalleryUsageMeter, galleryUsagePercent } from './GalleryUsageMeter';
+import { GalleryTokenCounter, GalleryUsageMeter, galleryUsagePercent } from './GalleryUsageMeter';
 import './galleryFooterControls.css';
 import './galleryPublicSettings.css';
 
@@ -12,7 +12,8 @@ export const GalleryPublicSettings = ({
   privacyUrl?: string;
   termsUrl?: string;
 }) => {
-  const { account, allowance, usageUnavailableReason } = useContext(GalleryModelContext);
+  const { account, allowance, tokenUsage, usageUnavailableReason } =
+    useContext(GalleryModelContext);
   const [notice, setNotice] = useState('');
   const percent = galleryUsagePercent(allowance);
   const phase =
@@ -54,29 +55,16 @@ export const GalleryPublicSettings = ({
           <>
             <h2 id="gallery-settings-account-title">Take your ideas further with Katabase</h2>
             <p>
-              Create an account to get more tokens for cloud-based models. We take care of the model
-              setup, so you can focus on exploring and building.
+              A place to understand how your applications behave, learn from real interactions, and
+              make them better as they grow. From experimenting with prompts and models to tracking
+              quality, latency, and cost, Katabase will help you take the next step.
             </p>
             <div className="gallery-settings-account-actions">
-              <button
-                type="button"
-                className="site-button"
-                onClick={() =>
-                  activate(account?.onCreateAccount, 'Account creation isn’t available here yet.')
-                }
-              >
-                Create an account
-              </button>
-              <span>
-                Already have an account?{' '}
-                <button
-                  type="button"
-                  className="gallery-settings-sign-in"
-                  onClick={() => activate(account?.onLogIn, 'Sign-in isn’t available here yet.')}
-                >
-                  Sign in
-                </button>
-              </span>
+              {account?.waitlistUrl && (
+                <a className="site-button" href={account.waitlistUrl}>
+                  Join the waitlist
+                </a>
+              )}
             </div>
           </>
         )}
@@ -89,9 +77,20 @@ export const GalleryPublicSettings = ({
         data-usage-phase={phase}
         aria-labelledby="gallery-settings-allowance-title"
       >
-        <h2 id="gallery-settings-allowance-title">Your demo allowance</h2>
-        <GalleryUsageMeter percent={percent} unavailableReason={usageUnavailableReason} />
-        <p>Cloud-based demos use this allowance. On-device transcription doesn’t.</p>
+        <h2 id="gallery-settings-allowance-title">Usage</h2>
+        {tokenUsage ? (
+          <>
+            <GalleryTokenCounter usage={tokenUsage} />
+            <p>Personal-key tokens used this session. Reloading starts a new count.</p>
+          </>
+        ) : (
+          <>
+            <GalleryUsageMeter percent={percent} unavailableReason={usageUnavailableReason} />
+            <p>
+              The percentage of allowed model calls used. On-device transcription doesn’t count.
+            </p>
+          </>
+        )}
       </section>
       {(privacyUrl || termsUrl) && (
         <p className="gallery-settings-privacy">

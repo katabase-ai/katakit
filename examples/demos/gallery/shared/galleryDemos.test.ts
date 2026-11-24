@@ -8,6 +8,7 @@ import {
   notesDemoDetails,
   colorClashDemoDetails,
   listExtractionDemoDetails,
+  brainstormDemoDetails,
 } from './galleryDemoDetails';
 import {
   transcriptionGalleryDemo,
@@ -15,6 +16,7 @@ import {
   notesGalleryDemo,
   colorClashGalleryDemo,
   listExtractionGalleryDemo,
+  brainstormGalleryDemo,
 } from './galleryDemos';
 
 afterEach(() => vi.useRealTimers());
@@ -26,6 +28,7 @@ test('each named loader carries its matching metadata independent of catalogue p
     [notesGalleryDemo, notesDemoDetails],
     [colorClashGalleryDemo, colorClashDemoDetails],
     [listExtractionGalleryDemo, listExtractionDemoDetails],
+    [brainstormGalleryDemo, brainstormDemoDetails],
   ] as const) {
     expect(entry).toMatchObject(details);
   }

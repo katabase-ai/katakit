@@ -24,7 +24,8 @@ pnpm -F @katakit/gallery dev
 ```
 
 Open <http://127.0.0.1:4347>. Welcome is `/`; React demos are at `/demos/transcription`,
-`/demos/bingo`, `/demos/notes`, `/demos/list-extraction`, and `/demos/color-clash`. Color Clash uses local transcription
+`/demos/bingo`, `/demos/notes`, `/demos/list-extraction`, `/demos/color-clash`, and
+`/demos/brainstorm`. Color Clash uses local transcription
 and its Play button starts capture and a timed round; it needs no inference connection. Notes
 transcription runs locally; generating notes requires
 a host-supplied model connection. Developer mode can instead use your own OpenRouter key. Extension setup pages are outside this catalogue. Direct links and unknown-demo
@@ -45,6 +46,28 @@ other speech demos, and **Use my own dictation** exits the sample without starti
 The header's **Run locally** panel copies its standalone example. See [the copyable example](../list-extraction-react/README.md).
 Its sources are included in the gallery copy workflow. Hosts with explicit demo selections must
 add the named entry when adopting this revision.
+
+The [brainstorming game](../brainstorm-react/README.md) uses the shared microphone with a sticky
+note board, 200 challenges, and 30s, 1min (default), 2min, or unlimited rounds.
+Challenges stay hidden and the clock stays stopped while **Start round** prepares the shared
+microphone and judge. **Cancel setup** cancels preparation; **End round** stops and drains capture.
+This single action uses the standard gallery header slot, and the header/data-handling badge
+come from gallery metadata. Rounds require microphone input and an inference connection.
+Developer builds use Configure models
+for inference settings; managed hosts use the existing `connectModel` contract. The text model
+extracts answer candidates; Jev judges each candidate with a yes/no probability (initial cutoff
+0.5). Brainstorming requires the connection's optional `decisions` transport alongside chat.
+The reference preview host discovers that capability from the deployed proxy's config and uses
+`/api/alpha/decisions` with the same verified session, allowance, and cancellation as chat.
+OpenRouter BYOK supplies pinned `typesafe/jev-1.13`; custom chat endpoints do not implicitly
+enable decisions or send their keys to OpenRouter. Chat-only hosts continue supporting other
+text-generation demos; brainstorming reports the missing Jev connection before revealing a challenge.
+Changing the
+inference source or preview mode aborts judging and ends the current round while retaining its
+board. The next explicit Start prepares the new connection. **Run locally** offers a pinned copy
+of the standalone example. The named
+`brainstormGalleryDemo` export is available to embedding hosts; standalone gallery copies carry
+the game's source and challenge library.
 
 ## Local inference from an environment variable
 
@@ -126,11 +149,12 @@ always use neutral configured-service wording, ignoring any host promise. The ga
 verify endpoint security, retention, or model-provider policies.
 
 Entries with their own example directory also declare `copyDirectory`. `Gallery` gives those demos
-a **Run locally** control beside the data-handling badge: an `npx degit` command that copies the example
-directory and starts it, and a prompt that asks a coding agent to do the same. For demos with the
+a **Get the code** control beside the data-handling badge: a **View the source code for this example** link, an `npx degit`
+command that copies the example directory and starts it, and a prompt that asks a coding agent to do the same. For demos with the
 `remoteModel` capability its panel says the copy needs your own model API key. Pass `sourceRevision`
-with the Katakit commit the host's demos come from, so a copy matches the demo the visitor used;
-without it the command copies the default branch. Copying reports `runLocallyCopied` with which
+with the Katakit commit the host's demos come from, so the source link and local copy match the demo
+the visitor used; without it they use the default branch. Hosts should remove their separate source
+link for these demos when adopting this revision. Copying reports `runLocallyCopied` with which
 text was copied. Color Clash lives inside the gallery and has no control.
 
 The reference host passes the build-time `VITE_GALLERY_SOURCE_REVISION` setting through this prop.
@@ -165,8 +189,19 @@ the demo views render `GalleryCaptureControls` beside their content. Pass an abs
 to link to the host’s policy in a separate tab (`noopener noreferrer`); independent hosts may omit
 it or supply their own. The local reference host passes `https://katabase.com/privacy`; Katabase’s
 website host should pass the same URL. Its current 404 is tracked in the website integration issue.
-Hosts may also supply `termsUrl` to show Terms of Service beside Privacy Policy on Welcome and public
-Settings. Both URLs belong to the host; each link opens in a separate tab to preserve the current demo.
+Hosts supply `termsUrl` to show Terms of Service beside Privacy Policy on Welcome and public
+Settings, and “By continuing, you agree to our Terms of Service.” below each primary capture
+button. The link opens separately with `noopener noreferrer`. Secondary Pause, Stop, and Cancel
+actions do not show the notice. Embeds outside `Gallery`, such as a homepage game, can wrap their
+content in `GalleryTermsContext` with their own Terms URL; `Gallery` inherits that URL when its
+prop is omitted. No policy link is invented for hosts without a URL. The reference host supplies
+`https://katabase.com/Terms`. Both policy URLs belong to the host.
+Mount `GalleryConsentProvider` once above the route outlet and any standalone embeds. The first
+primary click hides the notice across those views, even if microphone setup fails. Acceptance
+is stored in `sessionStorage` for this tab's visit and survives navigation and reloads. If storage
+is blocked, the mounted provider remembers it until the page reloads. Opening the Terms link,
+secondary actions, and disabled buttons do not accept the notice. Hosts without this provider
+continue to show the notice on every primary action.
 Each host owns its URLs, title metadata, not-found/loading/error handling, and router registration.
 Adding an entry here makes it eligible; each consuming website still chooses what to include.
 Examples continue to own their code and never import private website components.
@@ -235,9 +270,17 @@ cancellation, testing, and stopping. Stopping capture retains readiness for this
 Setup progress and recovery guidance appear beside the action button. A download confirmation
 remains visible after loading, including during permission setup and after stopping; selecting a
 different model resets that confirmation. The transcript field stays visible throughout setup.
-Listening belongs to each demo. Its button sits beside the demo's title: a primary Start, then a
-secondary Pause, beside a microphone glyph that fills with the level being heard. Setup progress shows beside the button.
-A demo's own controls stay inside the demo. Run locally and the
+Listening belongs to each demo. Its button sits at the left, below the description and above the
+body heading: a primary Start, then a secondary Pause, beside a microphone glyph that fills with
+the level being heard. Mouse controls are 36px high; touch controls remain 44px. Setup progress
+follows the button.
+Welcome, listening demos, Color Clash, and Brainstorm all render their primary buttons through
+`GalleryCaptureControls`. Its default and Welcome presentations use the shared speech owner.
+The controlled `action` variant renders the same button in place using the caller's label,
+disabled state, and click handler; it does not require a speech provider. Both games use this
+variant for game actions while keeping round timing and permission guidance inside each game.
+Their clocks start only after capture is running, and finishing stops capture.
+A demo's own controls stay inside the demo. Get the code and the
 data-handling badge sit at the header's top right, level with the top of the title.
 Models load only after a visitor action. Standalone controls
 remain independent. Navigation retains the loaded model but stops capture.
@@ -266,23 +309,31 @@ not affect capture. The local host passes no handler.
 A host passes one `connectModel` to `Gallery` for its model admission/transport; see
 `shared/galleryModel.tsx` for the contract. Every entry with the `remoteModel` capability uses it,
 so a new such demo needs no host code. Without a connection, the footer's Settings button opens a
-notice that inference is unavailable while transcription remains usable; pressing it opens Settings. Public mode never falls back to a saved developer key. Every demo link stays clickable. Hosts throw `GalleryModelError` for failures they
+notice that inference is unavailable; pressing it opens Settings. Each demo determines which
+on-device features remain usable without inference. Public mode never falls back to a saved developer key. Every demo link stays clickable. Hosts throw `GalleryModelError` for failures they
 want shown or retried. Connection controls, browser verification, and errors render
-inside the active demo. Host `onAllowance` reports drive the shared footer usage meter: the percentage
-is consumed allowance, yellow at 80% and red at 100%. On-device transcription does not consume this
-allowance. The reported value survives demo navigation under `GallerySpeechProvider`, but source/configuration
+inside the active demo. Host `onAllowance` reports drive the shared footer’s “Usage” bar: the percentage
+of allowed model calls used, yellow at 80% and red at 100%. On-device transcription does not consume
+model calls. The reported value survives demo navigation under `GallerySpeechProvider`, but source/configuration
 and mode changes clear it. Without valid data the footer shows no usage row, and Settings shows “Usage unavailable” with an explanation;
 there is no sample or predicted usage. Without CI preview deployment configuration, the reference host has no managed allowance service, and
 developer-key providers do not report a demo allowance. No usage request is made on page load.
 
-The optional `Gallery account` prop supplies `user: { name, avatarUrl? }` and real host callbacks
-`onCreateAccount`, `onLogIn`, and `onOpenAccount`. Guests see a person avatar with a blue plus;
-signed-in users see their image or initials. The plus pulses at 80% consumed and grows at exhaustion,
-remaining blue. Reduced-motion preferences disable the pulse. With no callbacks, the avatar panel
-explains that account access is unavailable. Public Settings displays the signup/sign-in actions and
-explains availability when clicked without a host callback; it never simulates authentication.
-Signed-in visitors see their account summary and Manage account instead of signup. The reference
-host has no signup/login implementation. Pass `settingsPage` to render this shared page, and
+With a personal key selected, “Usage” shows the session’s input and output token total instead of a
+bar. It sums `usage.total_tokens` from received chat-completions responses, including responses a demo
+rejects and retries. Missing or invalid totals mark the count as incomplete, shown as “≥” or
+“Unavailable” when no tokens have been reported. Canceled requests can consume tokens that are not
+reported here. The count survives demo navigation and key/model/source changes in this tab, stays
+hidden in public preview, and resets on page reload. It is kept in memory, never local storage.
+Neither mode estimates usage or makes a usage request on page load.
+
+The optional `Gallery account` prop supplies a host-owned `waitlistUrl`, or signed-in identity
+`user: { name, avatarUrl? }` and a real `onOpenAccount` callback. Guests get a direct **Join the
+waitlist** link in the footer and Public Settings when the host supplies a destination. There is
+no guest signup or sign-in menu, and missing destinations do not create placeholder actions.
+Signed-in users see their image or initials and their real account action. Public Settings shows
+their account summary and **Manage account**. The reference host links to
+`https://katabase.com/waitlist`; embedding hosts own their destination. Pass `settingsPage` to render this shared page, and
 `onOpenSettings` for mode-appropriate host navigation; developer operation recovery keeps its
 separate `onConfigureOperation` callback. Neither the public page nor its navigation enables BYOK.
 

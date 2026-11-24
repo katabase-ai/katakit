@@ -35,7 +35,7 @@ recursive ordering can miss local dependency edges when registry pins differ fro
 No example source or asset may be a symlink. A feature demo or starter must not import sibling
 examples or files elsewhere in the repository.
 
-The gallery is an explicit composition exception: it imports the feature demos' `src/`
+The gallery is an explicit composition exception: it imports feature demos' `src/`
 directories and plain internal CSS. Its copy workflow carries those inputs as regular files and
 rewrites the copied imports. When adding another gallery source input, update the gallery's
 own dependencies, the copy inputs in `scripts/copy-example.mjs`, and the corresponding narrow

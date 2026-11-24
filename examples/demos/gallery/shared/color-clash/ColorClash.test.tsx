@@ -73,6 +73,46 @@ test('retains a distinct retry for failures unrelated to microphone permission',
   runtime.close();
 });
 
+test('cancelling pending setup leaves the round ready even when Play completes later', async () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(0);
+  const runtime = createColorClash({ now: Date.now });
+  const cancelled = vi.fn();
+  let finishStart!: () => void;
+  const Host = () => {
+    const [input, setInput] = useState<TranscriptionState>({ phase: 'ready' });
+    return (
+      <ColorClash
+        runtime={runtime}
+        input={input}
+        disabled={false}
+        onPlay={async () => {
+          setInput({ phase: 'loading' });
+          await new Promise<void>(resolve => {
+            finishStart = resolve;
+          });
+          return true;
+        }}
+        onCancel={() => {
+          cancelled();
+          setInput({ phase: 'ready' });
+        }}
+        onStop={() => undefined}
+      />
+    );
+  };
+  render(<Host />);
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Play' })));
+  expect(runtime.getSnapshot().phase).toBe('ready');
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel setup' }));
+  expect(cancelled).toHaveBeenCalledOnce();
+  await act(async () => finishStart());
+  act(() => vi.advanceTimersByTime(30000));
+  expect((screen.getByRole('button', { name: 'Play' }) as HTMLButtonElement).disabled).toBe(false);
+  expect(runtime.getSnapshot()).toMatchObject({ phase: 'ready', remainingMs: 20000 });
+  runtime.close();
+});
+
 test('a host error takes priority over an earlier microphone permission error', () => {
   const runtime = createColorClash();
   render(

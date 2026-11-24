@@ -23,7 +23,7 @@
   padding: 2rem 1.5rem;
 }
 .gallery-host .katakit-gallery {
-  margin-top: var(--space-xl);
+  margin-top: 16px;
 }
 
 .gallery-theme-toggle {

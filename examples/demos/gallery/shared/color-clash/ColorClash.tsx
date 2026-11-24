@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type { TranscriptionState } from '@katakit/transcription';
 import type { createColorClash } from './createColorClash';
+import { GalleryCaptureControls } from '../GalleryCaptureControls';
 import './colorClash.css';
 
 /** The host owns microphone/model setup; this view starts its clock only once capture is running. */
@@ -132,13 +133,14 @@ export const ColorClash = ({
                 {input.phase === 'loading' && (
                   <progress aria-label="Speech model download" max={1} value={input.progress} />
                 )}
-                <button
-                  type="button"
-                  className="site-button site-button--slate color-clash-play"
-                  onClick={cancel}
-                >
-                  Cancel setup
-                </button>
+                <GalleryCaptureControls
+                  action={{
+                    label: 'Cancel setup',
+                    secondary: true,
+                    className: 'color-clash-play',
+                    onClick: cancel,
+                  }}
+                />
               </>
             ) : (
               <>
@@ -158,24 +160,23 @@ export const ColorClash = ({
                     {inputError}
                   </p>
                 ) : undefined}
-                <button
-                  type="button"
-                  className="site-button site-button--blue gallery-capture-start color-clash-play"
-                  disabled={
-                    disabled ||
-                    requested ||
-                    (state.phase === 'finished' && (listening || input.phase === 'stopping'))
-                  }
-                  onClick={() => void play()}
-                >
-                  {permissionDenied
-                    ? 'Try microphone again'
-                    : inputError
-                      ? 'Try again'
-                      : state.phase === 'finished'
-                        ? 'Play again'
-                        : 'Play'}
-                </button>
+                <GalleryCaptureControls
+                  action={{
+                    label: permissionDenied
+                      ? 'Try microphone again'
+                      : inputError
+                        ? 'Try again'
+                        : state.phase === 'finished'
+                          ? 'Play again'
+                          : 'Play',
+                    className: 'gallery-capture-start color-clash-play',
+                    disabled:
+                      disabled ||
+                      requested ||
+                      (state.phase === 'finished' && (listening || input.phase === 'stopping')),
+                    onClick: () => void play(),
+                  }}
+                />
                 {permissionDenied && (
                   <details className="color-clash-permission-help">
                     <summary>How to enable it</summary>

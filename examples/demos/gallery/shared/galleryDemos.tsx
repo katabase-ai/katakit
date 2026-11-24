@@ -5,6 +5,7 @@ import {
   notesDemoDetails,
   colorClashDemoDetails,
   listExtractionDemoDetails,
+  brainstormDemoDetails,
 } from './galleryDemoDetails';
 import { GalleryCaptureControls } from './GalleryCaptureControls';
 import { GalleryDemo } from './GalleryDemo';
@@ -84,10 +85,17 @@ export const listExtractionGalleryDemo = {
     default: (await import('./ListExtractionGalleryDemo')).ListExtractionGalleryDemo,
   })),
 };
+export const brainstormGalleryDemo = {
+  ...brainstormDemoDetails,
+  component: /* @__PURE__ */ lazy(async () => ({
+    default: (await import('./BrainstormGalleryDemo')).BrainstormGalleryDemo,
+  })),
+};
 export const galleryDemos = [
   transcriptionGalleryDemo,
   bingoGalleryDemo,
   notesGalleryDemo,
   listExtractionGalleryDemo,
   colorClashGalleryDemo,
+  brainstormGalleryDemo,
 ];

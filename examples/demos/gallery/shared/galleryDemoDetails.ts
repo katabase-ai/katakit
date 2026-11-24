@@ -54,6 +54,15 @@ export const colorClashDemoDetails = {
   capabilities: ['microphone', 'localTranscription'],
   dataHandling: { audio: 'device', transcribedText: 'device' },
 } as const satisfies GalleryDemoMetadata;
+export const brainstormDemoDetails = {
+  id: 'brainstorm',
+  sourcePath: 'examples/demos/brainstorm-react',
+  copyDirectory: 'brainstorming-game',
+  title: 'Brainstorming game',
+  description: 'Race the clock and collect spoken answers on a shared sticky-note board.',
+  capabilities: ['microphone', 'localTranscription', 'remoteModel'],
+  dataHandling: { audio: 'device', transcribedText: 'cloud' },
+} as const satisfies GalleryDemoMetadata;
 
 export const listExtractionDemoDetails = {
   id: 'list-extraction',
@@ -72,4 +81,5 @@ export const galleryDemoDetails = [
   notesDemoDetails,
   listExtractionDemoDetails,
   colorClashDemoDetails,
+  brainstormDemoDetails,
 ] as const satisfies readonly GalleryDemoMetadata[];

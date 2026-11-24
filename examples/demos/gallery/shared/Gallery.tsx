@@ -1,4 +1,13 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react';
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  type ReactNode,
+} from 'react';
 import type { galleryDemoDetails } from './galleryDemoDetails';
 import { GalleryModelContext, type GalleryModelConnect } from './galleryModel';
 import { useGalleryInference } from './GalleryInferenceProvider';
@@ -14,6 +23,7 @@ import { useGalleryUsage, type GalleryAllowance } from './GalleryUsageProvider';
 import type { GalleryAccount } from './GalleryAccountButton';
 import { useGalleryEvents } from './galleryEvents';
 import { GalleryRunLocally } from './GalleryRunLocally';
+import { GalleryTermsContext } from './GalleryTermsContext';
 
 const OperationSetup = lazy(async () => ({
   default: (await import('./GalleryOperations')).GalleryOperationSetup,
@@ -66,7 +76,8 @@ export const Gallery = ({
   /** Host privacy URL, opened separately to preserve this conversation. */
   privacyUrl?: string;
   /**
-   * Host terms URL, opened separately so reading it does not leave the demo.
+   * Host Terms URL for policy links and the primary-action consent notice. Opens separately
+   * so reading it does not leave the demo; inherits GalleryTermsContext when omitted.
    */
   termsUrl?: string;
   /** Verified managed-service privacy wording. Never used for developer key connections. */
@@ -85,11 +96,13 @@ export const Gallery = ({
   /** The host supplies identity and real account destinations in either mode. */
   account?: GalleryAccount;
   /**
-   * The Katakit commit this host's demos come from. Run locally copies that revision so a copy
+   * The Katakit commit this host's demos come from. Get the code copies that revision so a copy
    * matches the demo the visitor used; without one it copies the default branch.
    */
   sourceRevision?: string;
 }) => {
+  const inheritedTermsUrl = useContext(GalleryTermsContext);
+  const effectiveTermsUrl = termsUrl ?? inheritedTermsUrl;
   const inference = useGalleryInference();
   const { isDeveloperView } = useGalleryMode();
   const usage = useGalleryUsage();
@@ -107,6 +120,8 @@ export const Gallery = ({
   const sourceSignal = inference?.owner.getSignal();
   const usesDeveloperKey = isDeveloperView && inference?.settings.source === 'key';
   const recordAllowance = usage?.reportAllowance;
+  const reportTokenUsage = usage?.reportTokenUsage;
+  const tokenUsage = usesDeveloperKey ? usage?.tokenUsage : undefined;
   const reportAllowance = useCallback(
     (value: GalleryAllowance) => {
       if (!usesDeveloperKey && connectModel && sourceSignal)
@@ -134,7 +149,7 @@ export const Gallery = ({
     if (!inference) return undefined;
     const sourceSignal = inference.owner.getSignal();
     if (isDeveloperView && inference.settings.source === 'key')
-      return connectWithKey(inference.settings, sourceSignal);
+      return connectWithKey(inference.settings, sourceSignal, { onTokenUsage: reportTokenUsage });
     if (!connectModel) return undefined;
     return async input => {
       const signal = AbortSignal.any([input.signal, sourceSignal]);
@@ -152,13 +167,15 @@ export const Gallery = ({
         },
       };
     };
-  }, [connectModel, inference, isDeveloperView]);
+  }, [connectModel, inference, isDeveloperView, reportTokenUsage]);
   // Named only once browser settings have loaded, so it never appears and then vanishes.
   const settingsNotice =
     inference &&
     !connect &&
     (activeDemo?.capabilities as readonly string[] | undefined)?.includes('remoteModel')
-      ? `${isDeveloperView ? 'No inference is configured.' : 'Free inference is not available here.'} You can still transcribe locally.`
+      ? isDeveloperView
+        ? 'No inference is configured.'
+        : 'Free inference is not available here.'
       : undefined;
   const model = useMemo(
     () => ({
@@ -170,6 +187,7 @@ export const Gallery = ({
       openSettings: onOpenSettings ?? (isDeveloperView ? onConfigureOperation : undefined),
       settingsNotice,
       allowance,
+      tokenUsage,
       usageUnavailableReason,
       reportAllowance,
       account,
@@ -183,88 +201,96 @@ export const Gallery = ({
       onOpenSettings,
       settingsNotice,
       allowance,
+      tokenUsage,
       usageUnavailableReason,
       reportAllowance,
       account,
     ]
   );
   return (
-    <GalleryModelContext value={model}>
-      <div className="katakit-gallery">
-        <aside className="gallery-sidebar">
-          <nav className="gallery-nav" aria-label="React demos">
-            {renderLink({
-              children: 'Welcome',
-              current: !activeDemo && !developerPage && !settingsPage,
-            })}
-            {demos.map(demo => (
-              <span key={demo.id}>
-                {renderLink({
-                  demo,
-                  children: demo.title,
-                  current: !developerPage && !settingsPage && activeDemo?.id === demo.id,
-                })}
-              </span>
-            ))}
-          </nav>
-          <GalleryFooter>{input}</GalleryFooter>
-        </aside>
-        <div ref={content} className="gallery-content">
-          {settingsPage ? (
-            <Suspense fallback={<p role="status">Loading Settings…</p>}>
-              <PublicSettings privacyUrl={privacyUrl} termsUrl={termsUrl} />
-            </Suspense>
-          ) : isDeveloperView && developerPage ? (
-            <>
-              <nav className="gallery-operation-tabs" aria-label="Operation views">
-                {(['setup', 'grid'] as const).map(page => (
-                  <span key={page}>
-                    {renderDeveloperLink?.({
-                      page,
-                      children: page === 'setup' ? 'Configuration' : 'Grid',
-                      current: developerPage === page,
-                    })}
-                  </span>
-                ))}
-              </nav>
-              <Suspense fallback={<p role="status">Loading operations…</p>}>
-                {developerPage === 'setup' ? (
-                  <OperationSetup />
-                ) : (
-                  <OperationGrid demos={demos} renderLink={renderLink} />
-                )}
+    <GalleryTermsContext value={effectiveTermsUrl}>
+      <GalleryModelContext value={model}>
+        <div className="katakit-gallery">
+          <aside className="gallery-sidebar">
+            <nav className="gallery-nav" aria-label="React demos">
+              {renderLink({
+                children: 'Welcome',
+                current: !activeDemo && !developerPage && !settingsPage,
+              })}
+              {demos.map(demo => (
+                <span key={demo.id}>
+                  {renderLink({
+                    demo,
+                    children: demo.title,
+                    current: !developerPage && !settingsPage && activeDemo?.id === demo.id,
+                  })}
+                </span>
+              ))}
+            </nav>
+            <GalleryFooter>{input}</GalleryFooter>
+          </aside>
+          <div ref={content} className="gallery-content">
+            {settingsPage ? (
+              <Suspense fallback={<p role="status">Loading Settings…</p>}>
+                <PublicSettings privacyUrl={privacyUrl} termsUrl={effectiveTermsUrl} />
               </Suspense>
-            </>
-          ) : (
-            <GalleryDemoHeader
-              demo={activeDemo ?? galleryWelcomeDetails}
-              badge={
-                activeDemo && (
-                  <>
-                    <GalleryRunLocally demo={activeDemo} revision={sourceRevision} />
-                    <GalleryPrivacyBadge
-                      key={activeDemo.id}
-                      dataHandling={activeDemo.dataHandling}
-                      privacyUrl={privacyUrl}
-                      developerEndpoint={isDeveloperView && inference?.settings.source === 'key'}
-                      cloudPrivacyDescription={
-                        connectModel && (!isDeveloperView || inference?.settings.source === 'free')
-                          ? cloudPrivacyDescription
-                          : undefined
-                      }
-                    />
-                  </>
-                )
-              }
-            >
-              <GalleryDemoFrame demo={activeDemo ?? galleryWelcomeDetails}>
-                {activeDemo ? children : <Welcome privacyUrl={privacyUrl} termsUrl={termsUrl} />}
-              </GalleryDemoFrame>
-              {!activeDemo && children}
-            </GalleryDemoHeader>
-          )}
+            ) : isDeveloperView && developerPage ? (
+              <>
+                <nav className="gallery-operation-tabs" aria-label="Operation views">
+                  {(['setup', 'grid'] as const).map(page => (
+                    <span key={page}>
+                      {renderDeveloperLink?.({
+                        page,
+                        children: page === 'setup' ? 'Configuration' : 'Grid',
+                        current: developerPage === page,
+                      })}
+                    </span>
+                  ))}
+                </nav>
+                <Suspense fallback={<p role="status">Loading operations…</p>}>
+                  {developerPage === 'setup' ? (
+                    <OperationSetup />
+                  ) : (
+                    <OperationGrid demos={demos} renderLink={renderLink} />
+                  )}
+                </Suspense>
+              </>
+            ) : (
+              <GalleryDemoHeader
+                demo={activeDemo ?? galleryWelcomeDetails}
+                badge={
+                  activeDemo && (
+                    <>
+                      <GalleryRunLocally demo={activeDemo} revision={sourceRevision} />
+                      <GalleryPrivacyBadge
+                        key={activeDemo.id}
+                        dataHandling={activeDemo.dataHandling}
+                        privacyUrl={privacyUrl}
+                        developerEndpoint={isDeveloperView && inference?.settings.source === 'key'}
+                        cloudPrivacyDescription={
+                          connectModel &&
+                          (!isDeveloperView || inference?.settings.source === 'free')
+                            ? cloudPrivacyDescription
+                            : undefined
+                        }
+                      />
+                    </>
+                  )
+                }
+              >
+                <GalleryDemoFrame demo={activeDemo ?? galleryWelcomeDetails}>
+                  {activeDemo ? (
+                    children
+                  ) : (
+                    <Welcome privacyUrl={privacyUrl} termsUrl={effectiveTermsUrl} />
+                  )}
+                </GalleryDemoFrame>
+                {!activeDemo && children}
+              </GalleryDemoHeader>
+            )}
+          </div>
         </div>
-      </div>
-    </GalleryModelContext>
+      </GalleryModelContext>
+    </GalleryTermsContext>
   );
 };

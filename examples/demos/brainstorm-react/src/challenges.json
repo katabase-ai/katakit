@@ -1,0 +1,1411 @@
+{
+  "title": "Brainstorming game challenge library",
+  "status": "draft",
+  "defaultDurationSeconds": 60,
+  "supportsUntimed": true,
+  "microphones": 1,
+  "board": "shared",
+  "language": "English",
+  "globalJudgingRules": [
+    "Count each answer once per round. Singulars, plurals, obvious inflections, synonyms, and alternate names for the same answer count once.",
+    "Sample answers are illustrative, not an exhaustive whitelist. Accept other answers that satisfy the challenge rule.",
+    "Use established English names and conventional English spellings for letter and spelling constraints. Do not add arbitrary adjectives to manufacture qualifying names.",
+    "Count named types at familiar levels of specificity: for example, shark and hammerhead shark may each count; two names for the same type do not. Apply any narrower challenge rule first.",
+    "Where real places, works, or characters share a name, request enough context to identify the answer when needed. A repeated ambiguous name does not earn another point.",
+    "Interpret each answer under the displayed challenge and its judging rule. Do not extract conversational filler, incidental mentions, or explicit negations as proposed answers."
+  ],
+  "categories": [
+    {
+      "id": "animals",
+      "title": "Animals",
+      "challenges": [
+        {
+          "id": "animals-01",
+          "prompt": "Name ocean animals.",
+          "judgingRule": "Accept real animals that naturally live in the ocean for at least part of their lives; exclude freshwater-only animals.",
+          "sampleAnswers": ["Octopus", "dolphin", "jellyfish", "sea turtle", "hammerhead shark"]
+        },
+        {
+          "id": "animals-02",
+          "prompt": "Name mammals.",
+          "judgingRule": "Accept real mammals, including marine mammals; exclude birds, reptiles, and fictional creatures.",
+          "sampleAnswers": ["Elephant", "tiger", "bat", "dolphin", "kangaroo"]
+        },
+        {
+          "id": "animals-03",
+          "prompt": "Name reptiles.",
+          "judgingRule": "Accept living reptile groups or species; exclude amphibians and prehistoric animals.",
+          "sampleAnswers": ["Crocodile", "iguana", "gecko", "cobra", "tortoise"]
+        },
+        {
+          "id": "animals-04",
+          "prompt": "Name birds.",
+          "judgingRule": "Accept living bird groups or species, including flightless birds.",
+          "sampleAnswers": ["Sparrow", "eagle", "penguin", "ostrich", "flamingo"]
+        },
+        {
+          "id": "animals-05",
+          "prompt": "Name insects.",
+          "judgingRule": "Accept insects at any life stage; spiders, worms, and centipedes do not qualify.",
+          "sampleAnswers": ["Ant", "butterfly", "beetle", "mosquito", "dragonfly"]
+        },
+        {
+          "id": "animals-06",
+          "prompt": "Name animals with hooves.",
+          "judgingRule": "Accept animals that naturally have hooves; exclude paws and claws.",
+          "sampleAnswers": ["Horse", "cow", "goat", "deer", "zebra"]
+        },
+        {
+          "id": "animals-07",
+          "prompt": "Name animals with shells.",
+          "judgingRule": "Accept animals with a hard external shell or carapace; exclude animals with only an internal skeleton.",
+          "sampleAnswers": ["Snail", "clam", "oyster", "tortoise", "hermit crab"]
+        },
+        {
+          "id": "animals-08",
+          "prompt": "Name animals that begin with B.",
+          "judgingRule": "Use an ordinary English animal name beginning with B; do not add a descriptive adjective just to meet the letter.",
+          "sampleAnswers": ["Bear", "beaver", "bison", "butterfly", "baboon"]
+        },
+        {
+          "id": "animals-09",
+          "prompt": "Name animals that begin with S.",
+          "judgingRule": "Use an ordinary English animal name beginning with S; established compound names count.",
+          "sampleAnswers": ["Shark", "snake", "seal", "squirrel", "seahorse"]
+        },
+        {
+          "id": "animals-10",
+          "prompt": "Name animals that can fly.",
+          "judgingRule": "Accept animals capable of powered flight in a normal adult life stage; gliding alone does not qualify.",
+          "sampleAnswers": ["Bat", "eagle", "butterfly", "bee", "dragonfly"]
+        }
+      ]
+    },
+    {
+      "id": "plants-and-gardening",
+      "title": "Plants and gardening",
+      "challenges": [
+        {
+          "id": "plants-and-gardening-01",
+          "prompt": "Name trees.",
+          "judgingRule": "Accept real tree types, using common names; fruits alone count only when they also name the tree.",
+          "sampleAnswers": ["Oak", "maple", "birch", "pine", "willow"]
+        },
+        {
+          "id": "plants-and-gardening-02",
+          "prompt": "Name flowering plants grown in gardens.",
+          "judgingRule": "Accept named plants grown for flowers; exclude color words and invented varieties.",
+          "sampleAnswers": ["Rose", "tulip", "daffodil", "sunflower", "marigold"]
+        },
+        {
+          "id": "plants-and-gardening-03",
+          "prompt": "Name culinary herbs.",
+          "judgingRule": "Accept plants whose leaves or tender stems are used to flavor food; exclude spice-only seeds and bark.",
+          "sampleAnswers": ["Basil", "parsley", "thyme", "mint", "rosemary"]
+        },
+        {
+          "id": "plants-and-gardening-04",
+          "prompt": "Name gardening tools.",
+          "judgingRule": "Accept physical hand tools or powered tools used to cultivate or maintain plants.",
+          "sampleAnswers": ["Trowel", "rake", "hoe", "pruning shears", "watering can"]
+        },
+        {
+          "id": "plants-and-gardening-05",
+          "prompt": "Name parts of a flowering plant.",
+          "judgingRule": "Accept standard plant structures; synonyms for the same structure count once.",
+          "sampleAnswers": ["Root", "stem", "leaf", "petal", "stamen"]
+        },
+        {
+          "id": "plants-and-gardening-06",
+          "prompt": "Name conifer trees.",
+          "judgingRule": "Accept cone-bearing tree types; exclude broadleaf trees.",
+          "sampleAnswers": ["Pine", "spruce", "fir", "cedar", "cypress"]
+        },
+        {
+          "id": "plants-and-gardening-07",
+          "prompt": "Name plants that grow as vines or climbers.",
+          "judgingRule": "Accept plants that naturally climb or trail; exclude plants merely tied to a support.",
+          "sampleAnswers": ["Grape", "ivy", "wisteria", "clematis", "honeysuckle"]
+        },
+        {
+          "id": "plants-and-gardening-08",
+          "prompt": "Name plants grown from bulbs.",
+          "judgingRule": "Accept plants with true bulbs; exclude plants that grow only from tubers, corms, or rhizomes.",
+          "sampleAnswers": ["Tulip", "daffodil", "hyacinth", "onion", "garlic"]
+        },
+        {
+          "id": "plants-and-gardening-09",
+          "prompt": "Name gardening supplies that are not tools.",
+          "judgingRule": "Accept consumable materials or containers used in growing plants; exclude living plants and tools.",
+          "sampleAnswers": ["Potting soil", "compost", "mulch", "fertilizer", "flowerpot"]
+        },
+        {
+          "id": "plants-and-gardening-10",
+          "prompt": "Name plants that begin with L.",
+          "judgingRule": "Use an established common English plant name beginning with L.",
+          "sampleAnswers": ["Lavender", "lily", "lilac", "lettuce", "lemon tree"]
+        }
+      ]
+    },
+    {
+      "id": "fruits-and-vegetables",
+      "title": "Fruits and vegetables",
+      "challenges": [
+        {
+          "id": "fruits-and-vegetables-01",
+          "prompt": "Name culinary fruits.",
+          "judgingRule": "Accept edible fruits conventionally served as fruit; exclude nuts and foods primarily treated as vegetables.",
+          "sampleAnswers": ["Apple", "banana", "mango", "peach", "pineapple"]
+        },
+        {
+          "id": "fruits-and-vegetables-02",
+          "prompt": "Name culinary vegetables.",
+          "judgingRule": "Accept foods conventionally prepared as vegetables, even if botanically fruits.",
+          "sampleAnswers": ["Carrot", "broccoli", "spinach", "zucchini", "eggplant"]
+        },
+        {
+          "id": "fruits-and-vegetables-03",
+          "prompt": "Name citrus fruits.",
+          "judgingRule": "Accept named citrus fruits and established hybrids; exclude citrus-flavored products.",
+          "sampleAnswers": ["Orange", "lemon", "lime", "grapefruit", "mandarin"]
+        },
+        {
+          "id": "fruits-and-vegetables-04",
+          "prompt": "Name stone fruits.",
+          "judgingRule": "Accept fruits with a single hard stone around the seed; exclude fruits with only small seeds.",
+          "sampleAnswers": ["Peach", "plum", "cherry", "apricot", "nectarine"]
+        },
+        {
+          "id": "fruits-and-vegetables-05",
+          "prompt": "Name leafy vegetables.",
+          "judgingRule": "Accept plants whose leaves are eaten as vegetables; culinary herbs alone do not qualify.",
+          "sampleAnswers": ["Spinach", "kale", "lettuce", "cabbage", "Swiss chard"]
+        },
+        {
+          "id": "fruits-and-vegetables-06",
+          "prompt": "Name edible roots, tubers, or bulbs.",
+          "judgingRule": "Accept foods where the named edible portion is a root, tuber, or bulb; exclude aboveground fruits.",
+          "sampleAnswers": ["Carrot", "potato", "beet", "turnip", "onion"]
+        },
+        {
+          "id": "fruits-and-vegetables-07",
+          "prompt": "Name fruits or vegetables beginning with C.",
+          "judgingRule": "Use a conventional English produce name beginning with C; culinary definitions apply.",
+          "sampleAnswers": ["Carrot", "cabbage", "cherry", "cucumber", "cauliflower"]
+        },
+        {
+          "id": "fruits-and-vegetables-08",
+          "prompt": "Name fruits or vegetables beginning with P.",
+          "judgingRule": "Use a conventional English produce name beginning with P; exclude prepared dishes.",
+          "sampleAnswers": ["Peach", "pear", "pea", "potato", "pumpkin"]
+        },
+        {
+          "id": "fruits-and-vegetables-09",
+          "prompt": "Name fruits commonly dried and sold as dried fruit.",
+          "judgingRule": "Accept named fruits with an established dried-food form; fresh and dried names for the same fruit count once.",
+          "sampleAnswers": ["Grape", "apricot", "date", "fig", "plum"]
+        },
+        {
+          "id": "fruits-and-vegetables-10",
+          "prompt": "Name legumes eaten as food.",
+          "judgingRule": "Accept edible beans, peas, lentils, and other legume seeds; exclude cereal grains.",
+          "sampleAnswers": ["Chickpea", "lentil", "kidney bean", "pea", "peanut"]
+        }
+      ]
+    },
+    {
+      "id": "food-and-cooking",
+      "title": "Food and cooking",
+      "challenges": [
+        {
+          "id": "food-and-cooking-01",
+          "prompt": "Name pasta shapes.",
+          "judgingRule": "Accept established pasta shape names; sauces and complete dishes do not count.",
+          "sampleAnswers": ["Penne", "fusilli", "rigatoni", "farfalle", "spaghetti"]
+        },
+        {
+          "id": "food-and-cooking-02",
+          "prompt": "Name cheeses.",
+          "judgingRule": "Accept named cheese types; exclude brands unless the name also identifies a cheese type.",
+          "sampleAnswers": ["Cheddar", "brie", "gouda", "mozzarella", "feta"]
+        },
+        {
+          "id": "food-and-cooking-03",
+          "prompt": "Name breads.",
+          "judgingRule": "Accept recognized bread types, including flatbreads; exclude sandwiches and cakes.",
+          "sampleAnswers": ["Baguette", "sourdough", "pita", "naan", "rye bread"]
+        },
+        {
+          "id": "food-and-cooking-04",
+          "prompt": "Name soups.",
+          "judgingRule": "Accept recognized soup varieties; count alternate names for the same variety once.",
+          "sampleAnswers": ["Minestrone", "gazpacho", "miso soup", "lentil soup", "clam chowder"]
+        },
+        {
+          "id": "food-and-cooking-05",
+          "prompt": "Name desserts.",
+          "judgingRule": "Accept recognized sweet dishes, baked goods, or confections served as dessert.",
+          "sampleAnswers": ["Brownie", "cheesecake", "tiramisu", "ice cream", "apple pie"]
+        },
+        {
+          "id": "food-and-cooking-06",
+          "prompt": "Name cooking methods.",
+          "judgingRule": "Accept named techniques for preparing food; equipment and ingredients alone do not count.",
+          "sampleAnswers": ["Roasting", "steaming", "frying", "poaching", "grilling"]
+        },
+        {
+          "id": "food-and-cooking-07",
+          "prompt": "Name kitchen utensils.",
+          "judgingRule": "Accept handheld implements used to prepare, cook, or serve food; exclude powered appliances.",
+          "sampleAnswers": ["Whisk", "spatula", "ladle", "peeler", "rolling pin"]
+        },
+        {
+          "id": "food-and-cooking-08",
+          "prompt": "Name spices.",
+          "judgingRule": "Accept named dried plant parts used mainly for seasoning; mixtures are excluded for this challenge.",
+          "sampleAnswers": ["Cinnamon", "cumin", "turmeric", "clove", "nutmeg"]
+        },
+        {
+          "id": "food-and-cooking-09",
+          "prompt": "Name condiments or sauces.",
+          "judgingRule": "Accept established edible sauces, spreads, or seasonings added to food; brands alone do not count.",
+          "sampleAnswers": ["Ketchup", "mustard", "mayonnaise", "soy sauce", "hot sauce"]
+        },
+        {
+          "id": "food-and-cooking-10",
+          "prompt": "Name foods beginning with S.",
+          "judgingRule": "Use an established food or dish name beginning with S; arbitrary adjectives do not create new answers.",
+          "sampleAnswers": ["Sushi", "spaghetti", "samosa", "sandwich", "spinach"]
+        }
+      ]
+    },
+    {
+      "id": "clothing-and-accessories",
+      "title": "Clothing and accessories",
+      "challenges": [
+        {
+          "id": "clothing-and-accessories-01",
+          "prompt": "Name types of footwear.",
+          "judgingRule": "Accept recognized footwear types; brands and colors do not create separate answers.",
+          "sampleAnswers": ["Boot", "sandal", "sneaker", "loafer", "slipper"]
+        },
+        {
+          "id": "clothing-and-accessories-02",
+          "prompt": "Name types of hats.",
+          "judgingRule": "Accept recognized hat styles or head coverings worn as hats; exclude hairstyles.",
+          "sampleAnswers": ["Fedora", "beret", "beanie", "sombrero", "baseball cap"]
+        },
+        {
+          "id": "clothing-and-accessories-03",
+          "prompt": "Name garments worn on the upper body.",
+          "judgingRule": "Accept clothing that covers some of the torso; underwear and outerwear may count.",
+          "sampleAnswers": ["Shirt", "sweater", "jacket", "vest", "blouse"]
+        },
+        {
+          "id": "clothing-and-accessories-04",
+          "prompt": "Name garments worn on the lower body.",
+          "judgingRule": "Accept garments primarily worn below the waist; exclude footwear and accessories.",
+          "sampleAnswers": ["Trousers", "shorts", "skirt", "leggings", "kilt"]
+        },
+        {
+          "id": "clothing-and-accessories-05",
+          "prompt": "Name clothing fasteners.",
+          "judgingRule": "Accept devices or mechanisms that secure clothing; synonyms count once.",
+          "sampleAnswers": ["Button", "zipper", "snap", "buckle", "hook and eye"]
+        },
+        {
+          "id": "clothing-and-accessories-06",
+          "prompt": "Name fabrics used in clothing.",
+          "judgingRule": "Accept established fabric or textile names; exclude colors, prints, and brand names.",
+          "sampleAnswers": ["Denim", "velvet", "satin", "fleece", "corduroy"]
+        },
+        {
+          "id": "clothing-and-accessories-07",
+          "prompt": "Name items of jewelry.",
+          "judgingRule": "Accept recognized jewelry types; material or color changes do not create new items.",
+          "sampleAnswers": ["Ring", "necklace", "bracelet", "earring", "brooch"]
+        },
+        {
+          "id": "clothing-and-accessories-08",
+          "prompt": "Name wearable protective equipment.",
+          "judgingRule": "Accept items worn on the body to reduce injury or exposure; exclude handheld equipment.",
+          "sampleAnswers": ["Helmet", "goggles", "earplugs", "knee pads", "safety vest"]
+        },
+        {
+          "id": "clothing-and-accessories-09",
+          "prompt": "Name clothing or accessories beginning with S.",
+          "judgingRule": "Use established English names beginning with S; do not prepend colors or other adjectives.",
+          "sampleAnswers": ["Scarf", "sock", "sandal", "sweater", "skirt"]
+        },
+        {
+          "id": "clothing-and-accessories-10",
+          "prompt": "Name clothing with sleeves.",
+          "judgingRule": "Accept garment types normally made with sleeves; do not count sleeveless variants.",
+          "sampleAnswers": ["Shirt", "sweater", "coat", "cardigan", "bathrobe"]
+        }
+      ]
+    },
+    {
+      "id": "home-and-household",
+      "title": "Home and household",
+      "challenges": [
+        {
+          "id": "home-and-household-01",
+          "prompt": "Name types of furniture.",
+          "judgingRule": "Accept recognized furniture types; colors, materials, and room prefixes alone do not create new answers.",
+          "sampleAnswers": ["Sofa", "table", "chair", "wardrobe", "bookcase"]
+        },
+        {
+          "id": "home-and-household-02",
+          "prompt": "Name household appliances powered by electricity.",
+          "judgingRule": "Accept named domestic appliances that use electricity; exclude furniture and passive utensils.",
+          "sampleAnswers": [
+            "Refrigerator",
+            "washing machine",
+            "dishwasher",
+            "toaster",
+            "vacuum cleaner"
+          ]
+        },
+        {
+          "id": "home-and-household-03",
+          "prompt": "Name items of bedding.",
+          "judgingRule": "Accept items placed on or over a bed for sleeping; exclude the bed frame and bedroom furniture.",
+          "sampleAnswers": ["Sheet", "pillow", "duvet", "blanket", "mattress protector"]
+        },
+        {
+          "id": "home-and-household-04",
+          "prompt": "Name things used to clean a home.",
+          "judgingRule": "Accept tools, equipment, or cleaning substances with a direct household cleaning use.",
+          "sampleAnswers": ["Broom", "mop", "sponge", "detergent", "dustpan"]
+        },
+        {
+          "id": "home-and-household-05",
+          "prompt": "Name bathroom fixtures.",
+          "judgingRule": "Accept installed bathroom fittings; exclude loose toiletries and cleaning products.",
+          "sampleAnswers": ["Sink", "toilet", "bathtub", "shower", "towel rail"]
+        },
+        {
+          "id": "home-and-household-06",
+          "prompt": "Name household storage containers.",
+          "judgingRule": "Accept container types used to hold belongings; exclude rooms and storage furniture.",
+          "sampleAnswers": ["Box", "basket", "jar", "trunk", "bin"]
+        },
+        {
+          "id": "home-and-household-07",
+          "prompt": "Name types of household lighting.",
+          "judgingRule": "Accept recognized electric light fixture or lamp types; bulb colors do not create new answers.",
+          "sampleAnswers": [
+            "Table lamp",
+            "floor lamp",
+            "chandelier",
+            "pendant light",
+            "wall sconce"
+          ]
+        },
+        {
+          "id": "home-and-household-08",
+          "prompt": "Name parts or fittings of a house.",
+          "judgingRule": "Accept structural parts or installed building fittings; loose furniture and appliances do not count.",
+          "sampleAnswers": ["Roof", "door", "window", "staircase", "gutter"]
+        },
+        {
+          "id": "home-and-household-09",
+          "prompt": "Name household items made primarily of paper.",
+          "judgingRule": "Accept familiar paper-based household products; exclude items whose paper component is only packaging.",
+          "sampleAnswers": ["Tissue", "paper towel", "toilet paper", "napkin", "envelope"]
+        },
+        {
+          "id": "home-and-household-10",
+          "prompt": "Name objects with wheels used inside a home.",
+          "judgingRule": "Accept familiar household objects that roll on attached wheels or casters; exclude toy vehicles.",
+          "sampleAnswers": [
+            "Office chair",
+            "vacuum cleaner",
+            "rolling suitcase",
+            "serving cart",
+            "clothes rack"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tools-and-hardware",
+      "title": "Tools and hardware",
+      "challenges": [
+        {
+          "id": "tools-and-hardware-01",
+          "prompt": "Name hand tools.",
+          "judgingRule": "Accept tools operated directly by hand without a motor; different sizes do not count separately.",
+          "sampleAnswers": ["Hammer", "screwdriver", "wrench", "chisel", "pliers"]
+        },
+        {
+          "id": "tools-and-hardware-02",
+          "prompt": "Name power tools.",
+          "judgingRule": "Accept portable workshop or construction tools driven by a motor; exclude kitchen appliances.",
+          "sampleAnswers": ["Drill", "circular saw", "jigsaw", "orbital sander", "angle grinder"]
+        },
+        {
+          "id": "tools-and-hardware-03",
+          "prompt": "Name tools that cut.",
+          "judgingRule": "Accept tools with a cutting blade or edge; specific tool types count, sizes do not.",
+          "sampleAnswers": ["Hacksaw", "scissors", "utility knife", "bolt cutters", "chisel"]
+        },
+        {
+          "id": "tools-and-hardware-04",
+          "prompt": "Name measuring instruments.",
+          "judgingRule": "Accept devices used to measure a quantity; units of measurement do not count.",
+          "sampleAnswers": ["Ruler", "tape measure", "thermometer", "scale", "caliper"]
+        },
+        {
+          "id": "tools-and-hardware-05",
+          "prompt": "Name fasteners used to join materials.",
+          "judgingRule": "Accept physical hardware or joining materials that secure objects together; actions alone do not count.",
+          "sampleAnswers": ["Screw", "nail", "bolt", "rivet", "staple"]
+        },
+        {
+          "id": "tools-and-hardware-06",
+          "prompt": "Name tools used to grip or hold workpieces.",
+          "judgingRule": "Accept recognized holding or gripping tools; exclude ordinary furniture.",
+          "sampleAnswers": ["Pliers", "vise", "C-clamp", "locking pliers", "spring clamp"]
+        },
+        {
+          "id": "tools-and-hardware-07",
+          "prompt": "Name painting and decorating tools.",
+          "judgingRule": "Accept tools directly used to apply, prepare, or remove paint or wallpaper; paint itself does not count.",
+          "sampleAnswers": ["Paintbrush", "paint roller", "scraper", "putty knife", "paint sprayer"]
+        },
+        {
+          "id": "tools-and-hardware-08",
+          "prompt": "Name abrasive tools or materials.",
+          "judgingRule": "Accept tools or materials whose working surface removes material by abrasion.",
+          "sampleAnswers": ["Sandpaper", "sanding block", "file", "emery board", "grinding wheel"]
+        },
+        {
+          "id": "tools-and-hardware-09",
+          "prompt": "Name workshop or construction safety equipment.",
+          "judgingRule": "Accept equipment used to prevent or respond to injuries during building or workshop work; generic hand tools do not count.",
+          "sampleAnswers": [
+            "Safety goggles",
+            "ear defenders",
+            "hard hat",
+            "dust mask",
+            "fire extinguisher"
+          ]
+        },
+        {
+          "id": "tools-and-hardware-10",
+          "prompt": "Name materials sold as building supplies.",
+          "judgingRule": "Accept construction materials; specific building components and tools do not count.",
+          "sampleAnswers": ["Brick", "concrete", "plywood", "lumber", "drywall"]
+        }
+      ]
+    },
+    {
+      "id": "school-and-office",
+      "title": "School and office",
+      "challenges": [
+        {
+          "id": "school-and-office-01",
+          "prompt": "Name writing or drawing implements.",
+          "judgingRule": "Accept handheld implements that make marks; stationery that only holds marks does not count.",
+          "sampleAnswers": ["Pencil", "ballpoint pen", "marker", "crayon", "chalk"]
+        },
+        {
+          "id": "school-and-office-02",
+          "prompt": "Name office stationery.",
+          "judgingRule": "Accept physical consumable supplies for writing, organizing, or handling documents; exclude electronic devices.",
+          "sampleAnswers": ["Envelope", "sticky note", "paper clip", "index card", "binder"]
+        },
+        {
+          "id": "school-and-office-03",
+          "prompt": "Name classroom subjects.",
+          "judgingRule": "Accept recognized academic subjects; synonyms for the same subject count once.",
+          "sampleAnswers": ["Mathematics", "history", "geography", "biology", "literature"]
+        },
+        {
+          "id": "school-and-office-04",
+          "prompt": "Name items used to organize paper documents.",
+          "judgingRule": "Accept physical organizers or binding supplies; exclude digital software.",
+          "sampleAnswers": ["Folder", "binder", "filing cabinet", "paper clip", "document tray"]
+        },
+        {
+          "id": "school-and-office-05",
+          "prompt": "Name types of reference books.",
+          "judgingRule": "Accept recognized reference-book categories; individual titles do not count.",
+          "sampleAnswers": ["Dictionary", "encyclopedia", "atlas", "thesaurus", "almanac"]
+        },
+        {
+          "id": "school-and-office-06",
+          "prompt": "Name geometric shapes with straight sides.",
+          "judgingRule": "Accept standard two-dimensional polygon names; circles and solids do not count.",
+          "sampleAnswers": ["Triangle", "square", "rectangle", "pentagon", "hexagon"]
+        },
+        {
+          "id": "school-and-office-07",
+          "prompt": "Name three-dimensional geometric solids.",
+          "judgingRule": "Accept standard solid shapes; two-dimensional shapes do not count.",
+          "sampleAnswers": ["Cube", "sphere", "cone", "cylinder", "pyramid"]
+        },
+        {
+          "id": "school-and-office-08",
+          "prompt": "Name school or office devices powered by electricity.",
+          "judgingRule": "Accept equipment with an established school or office use; exclude household-only appliances.",
+          "sampleAnswers": ["Printer", "scanner", "projector", "calculator", "shredder"]
+        },
+        {
+          "id": "school-and-office-09",
+          "prompt": "Name parts of a printed book.",
+          "judgingRule": "Accept named physical or editorial book components; chapter numbers are not separate answers.",
+          "sampleAnswers": ["Cover", "spine", "title page", "index", "table of contents"]
+        },
+        {
+          "id": "school-and-office-10",
+          "prompt": "Name punctuation marks.",
+          "judgingRule": "Accept standard written English punctuation marks; letters and numerals do not count.",
+          "sampleAnswers": ["Comma", "period", "colon", "semicolon", "question mark"]
+        }
+      ]
+    },
+    {
+      "id": "transport-and-vehicles",
+      "title": "Transport and vehicles",
+      "challenges": [
+        {
+          "id": "transport-and-vehicles-01",
+          "prompt": "Name road vehicles.",
+          "judgingRule": "Accept real vehicle types designed to travel on roads; brands and model names do not count.",
+          "sampleAnswers": ["Car", "bus", "motorcycle", "truck", "bicycle"]
+        },
+        {
+          "id": "transport-and-vehicles-02",
+          "prompt": "Name rail vehicles.",
+          "judgingRule": "Accept vehicles designed to run on rails; specific routes and operators do not count.",
+          "sampleAnswers": ["Tram", "subway train", "locomotive", "freight train", "monorail"]
+        },
+        {
+          "id": "transport-and-vehicles-03",
+          "prompt": "Name watercraft.",
+          "judgingRule": "Accept types of craft that travel on or through water; brands and named individual vessels do not count.",
+          "sampleAnswers": ["Canoe", "kayak", "ferry", "sailboat", "submarine"]
+        },
+        {
+          "id": "transport-and-vehicles-04",
+          "prompt": "Name aircraft.",
+          "judgingRule": "Accept real aircraft types; brands, models, and spacecraft do not count.",
+          "sampleAnswers": ["Airplane", "helicopter", "glider", "hot-air balloon", "blimp"]
+        },
+        {
+          "id": "transport-and-vehicles-05",
+          "prompt": "Name parts of a bicycle.",
+          "judgingRule": "Accept recognizable bicycle components; accessories not attached to the bicycle do not count.",
+          "sampleAnswers": ["Pedal", "chain", "saddle", "handlebar", "spoke"]
+        },
+        {
+          "id": "transport-and-vehicles-06",
+          "prompt": "Name parts of a car.",
+          "judgingRule": "Accept vehicle components; brands and general materials do not count.",
+          "sampleAnswers": ["Engine", "steering wheel", "windshield", "seat belt", "bumper"]
+        },
+        {
+          "id": "transport-and-vehicles-07",
+          "prompt": "Name human-powered vehicles.",
+          "judgingRule": "Accept vehicles propelled by human effort; exclude electric-only and gravity-only devices.",
+          "sampleAnswers": ["Bicycle", "tricycle", "pedal boat", "rowing boat", "handcycle"]
+        },
+        {
+          "id": "transport-and-vehicles-08",
+          "prompt": "Name emergency-service vehicles.",
+          "judgingRule": "Accept vehicle types used by police, fire, rescue, or emergency medical services.",
+          "sampleAnswers": [
+            "Ambulance",
+            "fire engine",
+            "police car",
+            "rescue helicopter",
+            "lifeboat"
+          ]
+        },
+        {
+          "id": "transport-and-vehicles-09",
+          "prompt": "Name vehicle types beginning with S.",
+          "judgingRule": "Use established English vehicle names beginning with S; exclude brands and model names.",
+          "sampleAnswers": ["Scooter", "sailboat", "submarine", "snowmobile", "streetcar"]
+        },
+        {
+          "id": "transport-and-vehicles-10",
+          "prompt": "Name things that provide information on a car dashboard.",
+          "judgingRule": "Accept named gauges, indicators, warning lights, or displays; synonyms count once.",
+          "sampleAnswers": [
+            "Speedometer",
+            "fuel gauge",
+            "tachometer",
+            "odometer",
+            "oil pressure light"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "travel-and-outdoor-gear",
+      "title": "Travel and outdoor gear",
+      "challenges": [
+        {
+          "id": "travel-and-outdoor-gear-01",
+          "prompt": "Name camping equipment.",
+          "judgingRule": "Accept portable items designed for camping, sleeping outdoors, or maintaining a campsite.",
+          "sampleAnswers": ["Tent", "sleeping bag", "camping stove", "groundsheet", "headlamp"]
+        },
+        {
+          "id": "travel-and-outdoor-gear-02",
+          "prompt": "Name hiking equipment.",
+          "judgingRule": "Accept items with an established hiking or trail-navigation use; exclude ordinary food and drinks.",
+          "sampleAnswers": ["Hiking boots", "trekking pole", "backpack", "compass", "trail map"]
+        },
+        {
+          "id": "travel-and-outdoor-gear-03",
+          "prompt": "Name types of luggage or travel bags.",
+          "judgingRule": "Accept recognized bag or luggage types; colors and brands do not create new answers.",
+          "sampleAnswers": ["Suitcase", "duffel bag", "backpack", "garment bag", "carry-on bag"]
+        },
+        {
+          "id": "travel-and-outdoor-gear-04",
+          "prompt": "Name outdoor shelter types.",
+          "judgingRule": "Accept recognized temporary or permanent structures that shelter people outdoors; exclude clothing.",
+          "sampleAnswers": ["Tent", "tarp shelter", "lean-to", "cabin", "gazebo"]
+        },
+        {
+          "id": "travel-and-outdoor-gear-05",
+          "prompt": "Name navigation tools.",
+          "judgingRule": "Accept instruments, devices, or documents used to determine position or direction; locations do not count.",
+          "sampleAnswers": ["Compass", "map", "GPS receiver", "sextant", "chart"]
+        },
+        {
+          "id": "travel-and-outdoor-gear-06",
+          "prompt": "Name items in a first-aid kit.",
+          "judgingRule": "Accept recognizable supplies used for immediate treatment of minor injuries; prescription drug names are excluded.",
+          "sampleAnswers": ["Bandage", "gauze", "adhesive tape", "antiseptic wipe", "tweezers"]
+        },
+        {
+          "id": "travel-and-outdoor-gear-07",
+          "prompt": "Name fishing equipment.",
+          "judgingRule": "Accept gear used to catch fish recreationally; fish species and unrelated boating equipment do not count.",
+          "sampleAnswers": ["Fishing rod", "reel", "hook", "lure", "fishing net"]
+        },
+        {
+          "id": "travel-and-outdoor-gear-08",
+          "prompt": "Name beach or swimming equipment.",
+          "judgingRule": "Accept items designed for beach recreation or swimming; generic clothing and food do not count.",
+          "sampleAnswers": ["Swim goggles", "snorkel", "fins", "beach umbrella", "bodyboard"]
+        },
+        {
+          "id": "travel-and-outdoor-gear-09",
+          "prompt": "Name types of temporary travel accommodation.",
+          "judgingRule": "Accept recognized lodging types booked or used by travelers; individual business names do not count.",
+          "sampleAnswers": ["Hotel", "hostel", "motel", "campsite", "guesthouse"]
+        },
+        {
+          "id": "travel-and-outdoor-gear-10",
+          "prompt": "Name winter outdoor sports equipment.",
+          "judgingRule": "Accept equipment designed for sports on snow or ice; generic warm clothing does not count.",
+          "sampleAnswers": ["Skis", "snowboard", "ice skates", "snowshoes", "sled"]
+        }
+      ]
+    },
+    {
+      "id": "sports-and-games",
+      "title": "Sports and games",
+      "challenges": [
+        {
+          "id": "sports-and-games-01",
+          "prompt": "Name sports played with a ball.",
+          "judgingRule": "Accept recognized sports whose standard play uses a ball; video games do not count.",
+          "sampleAnswers": ["Soccer", "basketball", "tennis", "cricket", "volleyball"]
+        },
+        {
+          "id": "sports-and-games-02",
+          "prompt": "Name sports played with a racket or paddle.",
+          "judgingRule": "Accept recognized sports in which players strike a ball or shuttle with a racket or paddle.",
+          "sampleAnswers": ["Tennis", "badminton", "squash", "table tennis", "pickleball"]
+        },
+        {
+          "id": "sports-and-games-03",
+          "prompt": "Name winter sports.",
+          "judgingRule": "Accept recognized sports performed on snow or ice; recreational equipment alone does not count.",
+          "sampleAnswers": ["Skiing", "snowboarding", "ice hockey", "curling", "figure skating"]
+        },
+        {
+          "id": "sports-and-games-04",
+          "prompt": "Name water sports.",
+          "judgingRule": "Accept recognized sports performed in or on water; ordinary transport does not count.",
+          "sampleAnswers": ["Swimming", "surfing", "rowing", "water polo", "diving"]
+        },
+        {
+          "id": "sports-and-games-05",
+          "prompt": "Name track and field events.",
+          "judgingRule": "Accept recognized athletics event types; changing race distance creates a distinct standard event, not an arbitrary distance.",
+          "sampleAnswers": ["Long jump", "high jump", "pole vault", "discus throw", "javelin throw"]
+        },
+        {
+          "id": "sports-and-games-06",
+          "prompt": "Name tabletop games.",
+          "judgingRule": "Accept named board, card, tile, or dice games; video games do not count.",
+          "sampleAnswers": ["Chess", "checkers", "Scrabble", "backgammon", "dominoes"]
+        },
+        {
+          "id": "sports-and-games-07",
+          "prompt": "Name card games played with a standard playing-card deck.",
+          "judgingRule": "Accept established games playable with a standard suited deck, with jokers if needed; proprietary special decks do not qualify.",
+          "sampleAnswers": ["Poker", "bridge", "gin rummy", "hearts", "solitaire"]
+        },
+        {
+          "id": "sports-and-games-08",
+          "prompt": "Name sports protective equipment.",
+          "judgingRule": "Accept gear specifically used to reduce injury during sport; ordinary clothing does not count.",
+          "sampleAnswers": ["Helmet", "mouthguard", "shin guard", "boxing glove", "elbow pad"]
+        },
+        {
+          "id": "sports-and-games-09",
+          "prompt": "Name sports venues or playing areas.",
+          "judgingRule": "Accept standard names for sport-specific spaces; individual stadium names do not count.",
+          "sampleAnswers": [
+            "Tennis court",
+            "swimming pool",
+            "golf course",
+            "velodrome",
+            "baseball diamond"
+          ]
+        },
+        {
+          "id": "sports-and-games-10",
+          "prompt": "Name sports beginning with B.",
+          "judgingRule": "Use a recognized English sport name beginning with B; individual teams do not count.",
+          "sampleAnswers": ["Basketball", "baseball", "badminton", "boxing", "bowling"]
+        }
+      ]
+    },
+    {
+      "id": "arts-and-music",
+      "title": "Arts and music",
+      "challenges": [
+        {
+          "id": "arts-and-music-01",
+          "prompt": "Name musical instruments.",
+          "judgingRule": "Accept recognized instrument types; brands and individual named instruments do not count.",
+          "sampleAnswers": ["Piano", "violin", "trumpet", "flute", "drum"]
+        },
+        {
+          "id": "arts-and-music-02",
+          "prompt": "Name string instruments.",
+          "judgingRule": "Accept instruments whose sound is produced primarily by vibrating strings.",
+          "sampleAnswers": ["Guitar", "violin", "cello", "harp", "banjo"]
+        },
+        {
+          "id": "arts-and-music-03",
+          "prompt": "Name wind instruments.",
+          "judgingRule": "Accept instruments whose sound is produced by vibrating air; brass and woodwind instruments both count.",
+          "sampleAnswers": ["Flute", "clarinet", "saxophone", "trumpet", "trombone"]
+        },
+        {
+          "id": "arts-and-music-04",
+          "prompt": "Name percussion instruments.",
+          "judgingRule": "Accept instruments played primarily by striking, shaking, or scraping; instrument sizes do not count separately.",
+          "sampleAnswers": ["Drum", "tambourine", "maraca", "cymbal", "xylophone"]
+        },
+        {
+          "id": "arts-and-music-05",
+          "prompt": "Name visual art materials.",
+          "judgingRule": "Accept physical materials used to make drawings, paintings, prints, or sculptures; finished artworks do not count.",
+          "sampleAnswers": ["Watercolor", "charcoal", "clay", "pastel", "ink"]
+        },
+        {
+          "id": "arts-and-music-06",
+          "prompt": "Name tools used to make visual art.",
+          "judgingRule": "Accept implements directly used to draw, paint, print, or sculpt; consumable media alone do not count.",
+          "sampleAnswers": ["Paintbrush", "palette knife", "easel", "carving chisel", "brayer"]
+        },
+        {
+          "id": "arts-and-music-07",
+          "prompt": "Name forms of visual art.",
+          "judgingRule": "Accept established art forms or media; individual works and broad evaluative terms do not count.",
+          "sampleAnswers": ["Painting", "sculpture", "photography", "printmaking", "collage"]
+        },
+        {
+          "id": "arts-and-music-08",
+          "prompt": "Name dance styles.",
+          "judgingRule": "Accept established named dances or dance styles; invented moves do not count.",
+          "sampleAnswers": ["Ballet", "tango", "salsa", "waltz", "tap"]
+        },
+        {
+          "id": "arts-and-music-09",
+          "prompt": "Name music genres.",
+          "judgingRule": "Accept established genre names; artists and songs do not count.",
+          "sampleAnswers": ["Jazz", "blues", "reggae", "country", "heavy metal"]
+        },
+        {
+          "id": "arts-and-music-10",
+          "prompt": "Name instruments beginning with C.",
+          "judgingRule": "Use an established English instrument name beginning with C.",
+          "sampleAnswers": ["Cello", "clarinet", "cornet", "cymbal", "concertina"]
+        }
+      ]
+    },
+    {
+      "id": "cities-and-landmarks",
+      "title": "Cities and landmarks",
+      "challenges": [
+        {
+          "id": "cities-and-landmarks-01",
+          "prompt": "Name cities beginning with B.",
+          "judgingRule": "Accept real cities anywhere, using common English names beginning with B; repeated city names count once unless different locations are specified.",
+          "sampleAnswers": ["Boston", "Berlin", "Bangkok", "Barcelona", "Beijing"]
+        },
+        {
+          "id": "cities-and-landmarks-02",
+          "prompt": "Name cities beginning with M.",
+          "judgingRule": "Accept real cities using common English names beginning with M.",
+          "sampleAnswers": ["Madrid", "Mumbai", "Manila", "Melbourne", "Montreal"]
+        },
+        {
+          "id": "cities-and-landmarks-03",
+          "prompt": "Name cities beginning with S.",
+          "judgingRule": "Accept real cities using common English names beginning with S.",
+          "sampleAnswers": ["Seoul", "Sydney", "Stockholm", "Singapore", "Santiago"]
+        },
+        {
+          "id": "cities-and-landmarks-04",
+          "prompt": "Name cities beginning with C.",
+          "judgingRule": "Accept real cities using common English names beginning with C.",
+          "sampleAnswers": ["Cairo", "Chicago", "Copenhagen", "Canberra", "Casablanca"]
+        },
+        {
+          "id": "cities-and-landmarks-05",
+          "prompt": "Name national capital cities.",
+          "judgingRule": "Accept cities that serve as a national capital; historical capitals alone do not qualify.",
+          "sampleAnswers": ["Paris", "Tokyo", "Nairobi", "Ottawa", "Buenos Aires"]
+        },
+        {
+          "id": "cities-and-landmarks-06",
+          "prompt": "Name cities in Europe.",
+          "judgingRule": "Accept cities geographically in Europe; cities spanning Europe and Asia may count.",
+          "sampleAnswers": ["Rome", "Lisbon", "Prague", "Vienna", "Amsterdam"]
+        },
+        {
+          "id": "cities-and-landmarks-07",
+          "prompt": "Name cities in Asia.",
+          "judgingRule": "Accept cities geographically in Asia; cities spanning Asia and Europe may count.",
+          "sampleAnswers": ["Tokyo", "Seoul", "Hanoi", "Bangkok", "Mumbai"]
+        },
+        {
+          "id": "cities-and-landmarks-08",
+          "prompt": "Name cities in Africa.",
+          "judgingRule": "Accept real cities geographically in Africa.",
+          "sampleAnswers": ["Cairo", "Nairobi", "Lagos", "Accra", "Cape Town"]
+        },
+        {
+          "id": "cities-and-landmarks-09",
+          "prompt": "Name cities in South America.",
+          "judgingRule": "Accept real cities on the South American continent.",
+          "sampleAnswers": ["Lima", "Quito", "Bogotá", "Santiago", "Buenos Aires"]
+        },
+        {
+          "id": "cities-and-landmarks-10",
+          "prompt": "Name named monuments or historic built landmarks.",
+          "judgingRule": "Accept identifiable real monuments, historic buildings, or built sites; generic structures and natural features do not count.",
+          "sampleAnswers": [
+            "Eiffel Tower",
+            "Taj Mahal",
+            "Colosseum",
+            "Great Wall of China",
+            "Statue of Liberty"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "countries-and-languages",
+      "title": "Countries and languages",
+      "challenges": [
+        {
+          "id": "countries-and-languages-01",
+          "prompt": "Name countries in Africa.",
+          "judgingRule": "Accept widely recognized sovereign countries geographically in Africa; dependent territories do not count.",
+          "sampleAnswers": ["Kenya", "Ghana", "Morocco", "Egypt", "Senegal"]
+        },
+        {
+          "id": "countries-and-languages-02",
+          "prompt": "Name countries in South America.",
+          "judgingRule": "Accept widely recognized sovereign countries on the South American continent; dependent territories do not count.",
+          "sampleAnswers": ["Brazil", "Argentina", "Chile", "Peru", "Colombia"]
+        },
+        {
+          "id": "countries-and-languages-03",
+          "prompt": "Name countries in Europe.",
+          "judgingRule": "Accept widely recognized sovereign countries wholly or partly in geographic Europe; dependent territories do not count.",
+          "sampleAnswers": ["France", "Germany", "Italy", "Spain", "Poland"]
+        },
+        {
+          "id": "countries-and-languages-04",
+          "prompt": "Name countries in Asia.",
+          "judgingRule": "Accept widely recognized sovereign countries wholly or partly in geographic Asia; dependent territories do not count.",
+          "sampleAnswers": ["Japan", "India", "Thailand", "Vietnam", "Mongolia"]
+        },
+        {
+          "id": "countries-and-languages-05",
+          "prompt": "Name landlocked countries.",
+          "judgingRule": "Accept widely recognized sovereign countries with no coastline on an ocean or an ocean-connected sea.",
+          "sampleAnswers": ["Nepal", "Switzerland", "Austria", "Bolivia", "Mongolia"]
+        },
+        {
+          "id": "countries-and-languages-06",
+          "prompt": "Name countries located entirely on islands.",
+          "judgingRule": "Accept widely recognized sovereign countries whose land territory is entirely on islands; territories with continental mainland land do not qualify.",
+          "sampleAnswers": ["Japan", "Madagascar", "Iceland", "New Zealand", "Sri Lanka"]
+        },
+        {
+          "id": "countries-and-languages-07",
+          "prompt": "Name countries beginning with M.",
+          "judgingRule": "Use common English short country names beginning with M; dependent territories do not count.",
+          "sampleAnswers": ["Mexico", "Morocco", "Malaysia", "Mongolia", "Madagascar"]
+        },
+        {
+          "id": "countries-and-languages-08",
+          "prompt": "Name countries beginning with S.",
+          "judgingRule": "Use common English short country names beginning with S; dependent territories do not count.",
+          "sampleAnswers": ["Spain", "Sweden", "Senegal", "Singapore", "Switzerland"]
+        },
+        {
+          "id": "countries-and-languages-09",
+          "prompt": "Name languages.",
+          "judgingRule": "Accept established named human languages, including signed and historical languages; programming languages do not count.",
+          "sampleAnswers": ["English", "Arabic", "Mandarin", "Spanish", "American Sign Language"]
+        },
+        {
+          "id": "countries-and-languages-10",
+          "prompt": "Name languages commonly written using the Latin alphabet.",
+          "judgingRule": "Accept languages with an established standard Latin-script writing system; occasional transliteration alone does not qualify.",
+          "sampleAnswers": ["English", "Spanish", "French", "Portuguese", "Vietnamese"]
+        }
+      ]
+    },
+    {
+      "id": "nature-and-the-earth",
+      "title": "Nature and the Earth",
+      "challenges": [
+        {
+          "id": "nature-and-the-earth-01",
+          "prompt": "Name natural landforms.",
+          "judgingRule": "Accept named kinds of naturally occurring terrain; individual place names and built structures do not count.",
+          "sampleAnswers": ["Mountain", "valley", "plateau", "canyon", "peninsula"]
+        },
+        {
+          "id": "nature-and-the-earth-02",
+          "prompt": "Name types of bodies of water.",
+          "judgingRule": "Accept standard names for kinds of water bodies; individual geographic names do not count.",
+          "sampleAnswers": ["Ocean", "lake", "river", "pond", "lagoon"]
+        },
+        {
+          "id": "nature-and-the-earth-03",
+          "prompt": "Name weather phenomena.",
+          "judgingRule": "Accept named atmospheric weather events or conditions; seasons alone do not count.",
+          "sampleAnswers": ["Rain", "snow", "hail", "fog", "thunderstorm"]
+        },
+        {
+          "id": "nature-and-the-earth-04",
+          "prompt": "Name gemstones.",
+          "judgingRule": "Accept established gemstone names, including organic gemstones; colors and jewelry types do not count.",
+          "sampleAnswers": ["Diamond", "ruby", "sapphire", "emerald", "opal"]
+        },
+        {
+          "id": "nature-and-the-earth-05",
+          "prompt": "Name rocks.",
+          "judgingRule": "Accept named rock types; loose minerals and commercial countertop colors do not count.",
+          "sampleAnswers": ["Granite", "basalt", "limestone", "sandstone", "marble"]
+        },
+        {
+          "id": "nature-and-the-earth-06",
+          "prompt": "Name natural sources of fresh water.",
+          "judgingRule": "Accept natural features or stores that contain or supply fresh water; manufactured containers do not count.",
+          "sampleAnswers": ["River", "freshwater lake", "spring", "glacier", "aquifer"]
+        },
+        {
+          "id": "nature-and-the-earth-07",
+          "prompt": "Name things found in the sky outside Earth's atmosphere.",
+          "judgingRule": "Accept kinds of natural astronomical objects; individual planet names also count, but satellites made by humans do not.",
+          "sampleAnswers": ["Star", "planet", "comet", "asteroid", "galaxy"]
+        },
+        {
+          "id": "nature-and-the-earth-08",
+          "prompt": "Name natural hazards.",
+          "judgingRule": "Accept naturally occurring events or processes capable of causing damage; human-caused accidents do not count.",
+          "sampleAnswers": ["Earthquake", "tsunami", "avalanche", "tornado", "volcanic eruption"]
+        },
+        {
+          "id": "nature-and-the-earth-09",
+          "prompt": "Name deserts.",
+          "judgingRule": "Accept named real deserts, including polar deserts; countries alone do not count.",
+          "sampleAnswers": ["Sahara", "Gobi", "Kalahari", "Atacama", "Namib"]
+        },
+        {
+          "id": "nature-and-the-earth-10",
+          "prompt": "Name mountain ranges.",
+          "judgingRule": "Accept named real mountain ranges; individual mountains alone do not count.",
+          "sampleAnswers": ["Andes", "Alps", "Himalayas", "Rocky Mountains", "Atlas Mountains"]
+        }
+      ]
+    },
+    {
+      "id": "science-and-the-human-body",
+      "title": "Science and the human body",
+      "challenges": [
+        {
+          "id": "science-and-the-human-body-01",
+          "prompt": "Name external human body parts.",
+          "judgingRule": "Accept recognizable body structures visible externally; internal organs do not count.",
+          "sampleAnswers": ["Hand", "foot", "nose", "ear", "elbow"]
+        },
+        {
+          "id": "science-and-the-human-body-02",
+          "prompt": "Name human bones.",
+          "judgingRule": "Accept standard bone names or familiar names for bones; left and right versions count once.",
+          "sampleAnswers": ["Femur", "tibia", "humerus", "clavicle", "scapula"]
+        },
+        {
+          "id": "science-and-the-human-body-03",
+          "prompt": "Name human organs.",
+          "judgingRule": "Accept recognized organs; organ systems and cells alone do not count.",
+          "sampleAnswers": ["Heart", "liver", "kidney", "lung", "skin"]
+        },
+        {
+          "id": "science-and-the-human-body-04",
+          "prompt": "Name chemical elements.",
+          "judgingRule": "Accept element names from the periodic table; symbols are aliases of the names, not extra answers.",
+          "sampleAnswers": ["Oxygen", "carbon", "iron", "helium", "gold"]
+        },
+        {
+          "id": "science-and-the-human-body-05",
+          "prompt": "Name metallic chemical elements.",
+          "judgingRule": "Accept elements classified as metals; alloys and metalloids do not count.",
+          "sampleAnswers": ["Iron", "copper", "aluminum", "silver", "gold"]
+        },
+        {
+          "id": "science-and-the-human-body-06",
+          "prompt": "Name units of length.",
+          "judgingRule": "Accept established length units, including standard metric multiples; arbitrary numerical distances do not count.",
+          "sampleAnswers": ["Meter", "centimeter", "kilometer", "inch", "foot"]
+        },
+        {
+          "id": "science-and-the-human-body-07",
+          "prompt": "Name units of time.",
+          "judgingRule": "Accept established time units; arbitrary quantities such as 'three minutes' do not create new answers.",
+          "sampleAnswers": ["Second", "minute", "hour", "day", "week"]
+        },
+        {
+          "id": "science-and-the-human-body-08",
+          "prompt": "Name units of mass.",
+          "judgingRule": "Accept established mass units, including customary units of mass; force units such as newtons do not count.",
+          "sampleAnswers": ["Gram", "kilogram", "milligram", "ounce", "pound"]
+        },
+        {
+          "id": "science-and-the-human-body-09",
+          "prompt": "Name laboratory equipment.",
+          "judgingRule": "Accept recognized instruments or apparatus used in scientific laboratory work; chemicals alone do not count.",
+          "sampleAnswers": ["Microscope", "test tube", "beaker", "pipette", "centrifuge"]
+        },
+        {
+          "id": "science-and-the-human-body-10",
+          "prompt": "Name substances that are gases at room temperature.",
+          "judgingRule": "Use 20 degrees Celsius and normal atmospheric pressure; accept named pure substances, not mixtures such as air.",
+          "sampleAnswers": ["Oxygen", "nitrogen", "helium", "carbon dioxide", "methane"]
+        }
+      ]
+    },
+    {
+      "id": "technology-and-computing",
+      "title": "Technology and computing",
+      "challenges": [
+        {
+          "id": "technology-and-computing-01",
+          "prompt": "Name computer input devices.",
+          "judgingRule": "Accept hardware used to supply data or commands to a computer; software does not count.",
+          "sampleAnswers": ["Keyboard", "mouse", "microphone", "scanner", "webcam"]
+        },
+        {
+          "id": "technology-and-computing-02",
+          "prompt": "Name computer output devices.",
+          "judgingRule": "Accept hardware used to present or physically produce computer output; software does not count.",
+          "sampleAnswers": ["Monitor", "printer", "speaker", "projector", "plotter"]
+        },
+        {
+          "id": "technology-and-computing-03",
+          "prompt": "Name internal computer components.",
+          "judgingRule": "Accept physical components located inside a desktop or laptop computer; software and external peripherals do not count.",
+          "sampleAnswers": ["Processor", "RAM", "motherboard", "power supply", "graphics card"]
+        },
+        {
+          "id": "technology-and-computing-04",
+          "prompt": "Name data storage media or devices.",
+          "judgingRule": "Accept physical media or devices used to retain digital data; online service names do not count.",
+          "sampleAnswers": [
+            "Hard drive",
+            "solid-state drive",
+            "USB flash drive",
+            "memory card",
+            "optical disc"
+          ]
+        },
+        {
+          "id": "technology-and-computing-05",
+          "prompt": "Name programming languages.",
+          "judgingRule": "Accept established programming languages, past or present; markup languages and frameworks do not count.",
+          "sampleAnswers": ["Python", "Java", "JavaScript", "C", "Rust"]
+        },
+        {
+          "id": "technology-and-computing-06",
+          "prompt": "Name digital file formats.",
+          "judgingRule": "Accept established named formats or their conventional extensions; the format name and extension count as one answer.",
+          "sampleAnswers": ["PDF", "JPEG", "PNG", "MP3", "CSV"]
+        },
+        {
+          "id": "technology-and-computing-07",
+          "prompt": "Name computer keyboard keys other than letters and digits.",
+          "judgingRule": "Accept named key functions; individual function-key numbers and alternate names do not create extra answers.",
+          "sampleAnswers": ["Enter", "Escape", "Tab", "Shift", "Backspace"]
+        },
+        {
+          "id": "technology-and-computing-08",
+          "prompt": "Name electronic communication devices.",
+          "judgingRule": "Accept physical devices designed to send or receive messages, voice, or video; apps alone do not count.",
+          "sampleAnswers": ["Telephone", "two-way radio", "fax machine", "pager", "smartphone"]
+        },
+        {
+          "id": "technology-and-computing-09",
+          "prompt": "Name devices that record sound, images, or video.",
+          "judgingRule": "Accept physical capture or recording devices; storage media alone do not count.",
+          "sampleAnswers": ["Camera", "camcorder", "voice recorder", "webcam", "document scanner"]
+        },
+        {
+          "id": "technology-and-computing-10",
+          "prompt": "Name consumer electronic devices.",
+          "judgingRule": "Accept recognizable powered electronic device types used by individuals; brands and model numbers do not count.",
+          "sampleAnswers": ["Television", "smartphone", "tablet", "e-reader", "game console"]
+        }
+      ]
+    },
+    {
+      "id": "jobs-and-workplaces",
+      "title": "Jobs and workplaces",
+      "challenges": [
+        {
+          "id": "jobs-and-workplaces-01",
+          "prompt": "Name healthcare occupations.",
+          "judgingRule": "Accept recognized healthcare job roles; medical specialties may count as distinct roles, but workplaces do not.",
+          "sampleAnswers": ["Nurse", "dentist", "pharmacist", "paramedic", "physiotherapist"]
+        },
+        {
+          "id": "jobs-and-workplaces-02",
+          "prompt": "Name construction occupations.",
+          "judgingRule": "Accept recognized jobs involved in constructing or finishing buildings; tools do not count.",
+          "sampleAnswers": ["Carpenter", "electrician", "plumber", "bricklayer", "roofer"]
+        },
+        {
+          "id": "jobs-and-workplaces-03",
+          "prompt": "Name food and hospitality occupations.",
+          "judgingRule": "Accept recognized jobs preparing or serving food, or providing accommodation.",
+          "sampleAnswers": ["Chef", "baker", "server", "bartender", "hotel receptionist"]
+        },
+        {
+          "id": "jobs-and-workplaces-04",
+          "prompt": "Name creative occupations.",
+          "judgingRule": "Accept recognized occupations producing or performing art, design, writing, or entertainment.",
+          "sampleAnswers": ["Illustrator", "actor", "composer", "novelist", "graphic designer"]
+        },
+        {
+          "id": "jobs-and-workplaces-05",
+          "prompt": "Name scientific occupations.",
+          "judgingRule": "Accept recognized scientific research or fieldwork occupations; pseudoscientific roles do not count.",
+          "sampleAnswers": ["Biologist", "chemist", "physicist", "geologist", "astronomer"]
+        },
+        {
+          "id": "jobs-and-workplaces-06",
+          "prompt": "Name transport occupations.",
+          "judgingRule": "Accept recognized jobs operating vehicles or directly managing passenger or freight transport.",
+          "sampleAnswers": [
+            "Pilot",
+            "bus driver",
+            "train conductor",
+            "ship captain",
+            "air traffic controller"
+          ]
+        },
+        {
+          "id": "jobs-and-workplaces-07",
+          "prompt": "Name occupations that work directly with animals.",
+          "judgingRule": "Accept recognized roles whose duties directly involve animal care, handling, training, or study.",
+          "sampleAnswers": [
+            "Veterinarian",
+            "zookeeper",
+            "dog groomer",
+            "farrier",
+            "marine biologist"
+          ]
+        },
+        {
+          "id": "jobs-and-workplaces-08",
+          "prompt": "Name occupations beginning with P.",
+          "judgingRule": "Use a conventional English occupation name beginning with P; arbitrary adjectives do not qualify.",
+          "sampleAnswers": ["Plumber", "pilot", "pharmacist", "photographer", "paramedic"]
+        },
+        {
+          "id": "jobs-and-workplaces-09",
+          "prompt": "Name types of workplaces.",
+          "judgingRule": "Accept named kinds of premises where work is performed; specific company names do not count.",
+          "sampleAnswers": ["Hospital", "bakery", "factory", "laboratory", "restaurant"]
+        },
+        {
+          "id": "jobs-and-workplaces-10",
+          "prompt": "Name occupations that make or repair physical objects.",
+          "judgingRule": "Accept recognized skilled roles that build, fabricate, craft, or repair tangible things.",
+          "sampleAnswers": ["Carpenter", "cobbler", "mechanic", "jeweler", "tailor"]
+        }
+      ]
+    },
+    {
+      "id": "words-and-spelling",
+      "title": "Words and spelling",
+      "challenges": [
+        {
+          "id": "words-and-spelling-01",
+          "prompt": "Name English words beginning with B.",
+          "judgingRule": "Accept standard English dictionary words beginning with B; exclude proper names, abbreviations, and letter names.",
+          "sampleAnswers": ["Book", "banana", "bridge", "button", "bright"]
+        },
+        {
+          "id": "words-and-spelling-02",
+          "prompt": "Name English words beginning with S.",
+          "judgingRule": "Accept standard English dictionary words beginning with S; exclude proper names, abbreviations, and letter names.",
+          "sampleAnswers": ["Sun", "spoon", "silver", "smile", "sandwich"]
+        },
+        {
+          "id": "words-and-spelling-03",
+          "prompt": "Name English words beginning with M.",
+          "judgingRule": "Accept standard English dictionary words beginning with M; exclude proper names, abbreviations, and letter names.",
+          "sampleAnswers": ["Moon", "mountain", "music", "marble", "mirror"]
+        },
+        {
+          "id": "words-and-spelling-04",
+          "prompt": "Name English words beginning with C.",
+          "judgingRule": "Accept standard English dictionary words beginning with C; exclude proper names, abbreviations, and letter names.",
+          "sampleAnswers": ["Cat", "candle", "cloud", "carrot", "curious"]
+        },
+        {
+          "id": "words-and-spelling-05",
+          "prompt": "Name English words ending in ING.",
+          "judgingRule": "Accept standard English words whose final letters are ING; inflections of the same base word count once.",
+          "sampleAnswers": ["Running", "singing", "swimming", "painting", "building"]
+        },
+        {
+          "id": "words-and-spelling-06",
+          "prompt": "Name English words with exactly five letters.",
+          "judgingRule": "Accept single English dictionary words with five alphabetic letters; exclude proper names, hyphens, and abbreviations.",
+          "sampleAnswers": ["Apple", "chair", "cloud", "bread", "tiger"]
+        },
+        {
+          "id": "words-and-spelling-07",
+          "prompt": "Name English words with a doubled letter.",
+          "judgingRule": "Accept words containing two identical letters next to each other; each word counts once regardless of how many pairs it contains.",
+          "sampleAnswers": ["Book", "coffee", "rabbit", "letter", "apple"]
+        },
+        {
+          "id": "words-and-spelling-08",
+          "prompt": "Name English words containing PH.",
+          "judgingRule": "Accept words with adjacent letters P and H in that order; pronunciation does not matter.",
+          "sampleAnswers": ["Phone", "alphabet", "elephant", "dolphin", "photograph"]
+        },
+        {
+          "id": "words-and-spelling-09",
+          "prompt": "Name English words beginning with BR.",
+          "judgingRule": "Accept standard English words whose first two letters are BR; exclude proper names and abbreviations.",
+          "sampleAnswers": ["Bread", "brick", "bridge", "brush", "broom"]
+        },
+        {
+          "id": "words-and-spelling-10",
+          "prompt": "Name English words ending with K.",
+          "judgingRule": "Accept standard English words whose final letter is K; exclude proper names and abbreviations.",
+          "sampleAnswers": ["Book", "duck", "milk", "park", "clock"]
+        }
+      ]
+    },
+    {
+      "id": "fiction-and-storytelling",
+      "title": "Fiction and storytelling",
+      "challenges": [
+        {
+          "id": "fiction-and-storytelling-01",
+          "prompt": "Name fairy-tale characters.",
+          "judgingRule": "Accept identifiable characters from established fairy tales; a generic role must identify its tale if ambiguous.",
+          "sampleAnswers": ["Cinderella", "Rapunzel", "Hansel", "Gretel", "Snow White"]
+        },
+        {
+          "id": "fiction-and-storytelling-02",
+          "prompt": "Name fictional detectives.",
+          "judgingRule": "Accept named fictional characters who investigate mysteries or crimes; real investigators do not count.",
+          "sampleAnswers": [
+            "Sherlock Holmes",
+            "Hercule Poirot",
+            "Miss Marple",
+            "Nancy Drew",
+            "Columbo"
+          ]
+        },
+        {
+          "id": "fiction-and-storytelling-03",
+          "prompt": "Name fictional robots.",
+          "judgingRule": "Accept named fictional robotic characters; purely biological characters and real robots do not count.",
+          "sampleAnswers": ["R2-D2", "C-3PO", "WALL-E", "Data", "Optimus Prime"]
+        },
+        {
+          "id": "fiction-and-storytelling-04",
+          "prompt": "Name fictional superheroes.",
+          "judgingRule": "Accept named characters established as superheroes in published fiction; aliases of one character count once.",
+          "sampleAnswers": ["Superman", "Wonder Woman", "Spider-Man", "Batman", "Black Panther"]
+        },
+        {
+          "id": "fiction-and-storytelling-05",
+          "prompt": "Name fictional places.",
+          "judgingRule": "Accept named locations invented for a published story, film, television series, or game; real locations do not count.",
+          "sampleAnswers": ["Narnia", "Gotham City", "Middle-earth", "Neverland", "Hogwarts"]
+        },
+        {
+          "id": "fiction-and-storytelling-06",
+          "prompt": "Name talking animal characters.",
+          "judgingRule": "Accept named fictional characters portrayed as animals that speak human language; human characters with animal nicknames do not count.",
+          "sampleAnswers": ["Bugs Bunny", "Dory", "Simba", "Paddington", "Winnie-the-Pooh"]
+        },
+        {
+          "id": "fiction-and-storytelling-07",
+          "prompt": "Name mythical creatures.",
+          "judgingRule": "Accept established creature types from mythology or folklore; individual character names and species invented only for a modern franchise do not count.",
+          "sampleAnswers": ["Dragon", "unicorn", "mermaid", "centaur", "griffin"]
+        },
+        {
+          "id": "fiction-and-storytelling-08",
+          "prompt": "Name forms of written storytelling.",
+          "judgingRule": "Accept established narrative forms; genres and individual titles do not count.",
+          "sampleAnswers": ["Novel", "novella", "short story", "fable", "epic poem"]
+        },
+        {
+          "id": "fiction-and-storytelling-09",
+          "prompt": "Name film genres.",
+          "judgingRule": "Accept established film genres or subgenres; film titles and subjective quality descriptions do not count.",
+          "sampleAnswers": ["Comedy", "horror", "western", "musical", "science fiction"]
+        },
+        {
+          "id": "fiction-and-storytelling-10",
+          "prompt": "Name fictional characters beginning with S.",
+          "judgingRule": "Use an established character name or alias beginning with S; the same character counts once across aliases.",
+          "sampleAnswers": ["Sherlock Holmes", "Superman", "Shrek", "Snoopy", "Simba"]
+        }
+      ]
+    }
+  ]
+}

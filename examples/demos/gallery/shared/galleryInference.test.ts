@@ -79,11 +79,9 @@ test('direct transport forwards the complete structured request, without cookies
   };
   const request = vi.fn<typeof fetch>(async () => Response.json(result));
   const admission = input();
-  const connection = await connectWithKey(
-    settings,
-    new AbortController().signal,
-    request
-  )(admission);
+  const connection = await connectWithKey(settings, new AbortController().signal, { request })(
+    admission
+  );
   const body = JSON.stringify({
     model: connection.model,
     response_format: { type: 'json_schema' },
@@ -117,7 +115,11 @@ test('key removal aborts transport and rejects a late response even if fetch ign
         finish = resolve;
       })
   );
-  const connection = await connectWithKey(owner.getSnapshot(), owner.getSignal(), request)(input());
+  const onTokenUsage = vi.fn();
+  const connection = await connectWithKey(owner.getSnapshot(), owner.getSignal(), {
+    request,
+    onTokenUsage,
+  })(input());
   const pending = connection.requestCompletion({
     body: '{}',
     signal: new AbortController().signal,
@@ -131,12 +133,13 @@ test('key removal aborts transport and rejects a late response even if fetch ign
   })();
   owner.remove();
   expect(request.mock.calls[0]![1]!.signal!.aborted).toBe(true);
-  finish(Response.json({ choices: [] }));
+  finish(Response.json({ choices: [], usage: { total_tokens: 100 } }));
   expect(await rejected).toMatchObject({ name: 'AbortError' });
   await expect(
     connection.requestCompletion({ body: '{}', signal: new AbortController().signal })
   ).rejects.toMatchObject({ name: 'AbortError' });
   expect(request).toHaveBeenCalledOnce();
+  expect(onTokenUsage).not.toHaveBeenCalled();
 });
 
 test.each([401, 402, 429, 400, 404, 500])(
@@ -145,16 +148,84 @@ test.each([401, 402, 429, 400, 404, 500])(
     const request = vi.fn<typeof fetch>(
       async () => new Response('secret-provider-body', { status })
     );
-    const connection = await connectWithKey(
-      settings,
-      new AbortController().signal,
-      request
-    )(input());
+    const onTokenUsage = vi.fn();
+    const connection = await connectWithKey(settings, new AbortController().signal, {
+      request,
+      onTokenUsage,
+    })(input());
     const error = await connection
       .requestCompletion({ body: '{}', signal: new AbortController().signal })
       .catch(error => error as Error);
     expect(error).toMatchObject({ name: 'Error', policy: {} });
     expect((error as Error).message).not.toContain('secret');
     expect((error as Error).message).not.toContain(settings.key);
+    expect(onTokenUsage).not.toHaveBeenCalled();
   }
 );
+
+test.each([
+  [{ usage: { total_tokens: 125, prompt_tokens: 100, completion_tokens: 25 } }, 125],
+  [{ usage: { total_tokens: 0 } }, 0],
+  [{}, undefined],
+  [{ usage: { total_tokens: -1 } }, undefined],
+  [{ usage: { total_tokens: 1.5 } }, undefined],
+  [{ usage: { total_tokens: '125' } }, undefined],
+])('reports provider token totals without changing the response: %j', async (result, tokens) => {
+  const onTokenUsage = vi.fn();
+  const connection = await connectWithKey(settings, new AbortController().signal, {
+    request: async () => Response.json(result),
+    onTokenUsage,
+  })(input());
+  expect(onTokenUsage).not.toHaveBeenCalled();
+  // Reporting precedes demo validation: a malformed completion still costs tokens on a retry.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    await expect(
+      connection.requestCompletion({ body: '{}', signal: new AbortController().signal })
+    ).resolves.toEqual(result);
+  }
+  expect(onTokenUsage.mock.calls).toEqual([[tokens], [tokens]]);
+});
+
+test('OpenRouter decisions use the configured key, pinned Jev, cancellation, and actual decision token usage', async () => {
+  const result = {
+    answers: { valid: { type: 'noul', noul: 0.99 } },
+    usage: { input_tokens: 100, output_tokens: 12 },
+  };
+  const request = vi.fn<typeof fetch>(async () => Response.json(result));
+  const onTokenUsage = vi.fn();
+  const source = new AbortController();
+  const connected = await connectWithKey(settings, source.signal, { request, onTokenUsage })(
+    input()
+  );
+  expect(connected.decisions).toMatchObject({ model: 'typesafe/jev-1.13', maxQuestions: 16 });
+  const body = JSON.stringify({ model: connected.decisions!.model, state: 'skirt', questions: {} });
+  await expect(
+    connected.decisions!.requestDecision({ body, signal: new AbortController().signal })
+  ).resolves.toEqual(result);
+  expect(request).toHaveBeenCalledWith(
+    'https://openrouter.ai/api/alpha/decisions',
+    expect.objectContaining({
+      body,
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-visitor-key' },
+      credentials: 'omit',
+      redirect: 'error',
+    })
+  );
+  expect(onTokenUsage).toHaveBeenCalledWith(112);
+  source.abort();
+  await expect(
+    connected.decisions!.requestDecision({ body, signal: new AbortController().signal })
+  ).rejects.toMatchObject({ name: 'AbortError' });
+  expect(request).toHaveBeenCalledOnce();
+});
+
+test('custom chat endpoints never receive Jev requests or send their credentials to OpenRouter', async () => {
+  const request = vi.fn<typeof fetch>();
+  const connected = await connectWithKey(
+    { ...settings, endpoint: 'http://localhost:8080/v1/chat/completions' },
+    new AbortController().signal,
+    { request }
+  )(input());
+  expect(connected.decisions).toBeUndefined();
+  expect(request).not.toHaveBeenCalled();
+});
