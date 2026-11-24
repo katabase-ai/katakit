@@ -6,12 +6,12 @@ These starters recognize speech locally and pass finalized text to Katakit's tra
 
 ## Choose a platform
 
-| Starter | What it demonstrates |
-| --- | --- |
-| [React](react-web.md) | Browser microphone transcription with Moonshine Tiny, displaying provisional speech and completed turns in a React UI. |
-| [Chrome extension](chrome-extension.md) | Tab and optional microphone transcription with Moonshine Tiny, displaying turns in a Chrome side panel. |
-| [Electron](electron.md) | Microphone transcription with Moonshine Tiny, displaying provisional speech and completed turns in a desktop window. |
-| [Obsidian](obsidian.md) | Recording a short microphone clip and transcribing it with Whisper Tiny after Stop, displaying turns in an Obsidian Desktop plugin view. |
+| Starter                                 | What it demonstrates                                                                                                                     |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| [React](react-web.md)                   | Browser microphone transcription with Moonshine Tiny, displaying provisional speech and completed turns in a React UI.                   |
+| [Chrome extension](chrome-extension.md) | Tab and optional microphone transcription with Moonshine Tiny, displaying turns in a Chrome side panel.                                  |
+| [Electron](electron.md)                 | Microphone transcription with Moonshine Tiny, displaying provisional speech and completed turns in a desktop window.                     |
+| [Obsidian](obsidian.md)                 | Recording a short microphone clip and transcribing it with Whisper Tiny after Stop, displaying turns in an Obsidian Desktop plugin view. |
 
 React and Electron have live microphone checks. Chrome has live tab and microphone checks, but further lifecycle and permission checks remain. Obsidian is provisional: its complete installed-plugin path still needs a test-vault run, and mobile is unsupported. Follow each starter's README for tested versions, verification steps, and remaining limitations.
 
