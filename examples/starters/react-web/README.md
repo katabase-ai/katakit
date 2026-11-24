@@ -19,6 +19,12 @@ Open Vite's localhost URL. Click **Start recording**, allow microphone access, s
 
 - `src/katakit.ts` configures transcript ingestion and exposes the methods for provisional/final text and Stop/flush. `src/main.tsx` uses `createMicrophoneTranscriber` from `@katakit/transcription/browser` to connect speech callbacks to those methods, displays Katakit turns, and disposes the input on unmount.
 - `vite.config.ts` includes packaged workers, worklet, WASM and SDK assets. Replace the input or render path here without importing files from a sibling demo. Stop and dispose the input before switching models.
-- `test/katakit.test.mjs` checks finalized speech and flushing without a microphone. In a separate manual check on **macOS 15.6 / Chrome 157**, the user observed model-loading progress, a final Katakit turn from spoken audio, another turn after Stop/Start, turns disappearing on reload, and a usable permission-denied error when Chrome's mic permission was blocked. A cold-cache first download, provisional-text display, other browsers, and deployed HTTPS/COOP/COEP isolation have not yet been verified.
+- `test/katakit.test.mjs` checks finalized speech and flushing without a microphone.
+
+## Verification
+
+The copied project builds and the deterministic finalized-segment test passes. Manual checks on **macOS 15.6 / Chrome 157** covered model-loading progress, a final turn from spoken audio, another turn after Stop/Start, turns clearing on reload, and a usable microphone-permission error. A cold-cache download, provisional-text display, other browsers, and deployed HTTPS/COOP/COEP isolation remain unverified.
+
+For a new manual check, record the OS/browser version and whether each scenario passes: first model download, spoken audio producing a final turn, provisional display, Stop/Start, denied permission, reload, and deployed hosting. Run these in the copied application; automated segment tests do not exercise a microphone or recognizer.
 
 Model weights download from the provider on first use. No microphone audio or transcript is sent to an application server by this starter. For the shared API, see the [Katakit reference](https://github.com/katabase-ai/katakit/tree/main/docs/pages/reference).

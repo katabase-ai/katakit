@@ -1,11 +1,36 @@
-# Build a React web app
+# React application starter
 
-The [React starter](https://github.com/katabase-ai/katakit/tree/main/examples/starters/react-web) records microphone audio with `createMicrophoneTranscriber` and Moonshine Tiny. Provisional speech appears during recording; finalized segments go through Katakit's transcript-ingestion plugin and become turns. The typed event-log example has been replaced: a validated text form alone is no longer the intended starter.
+The [React starter](https://github.com/katabase-ai/katakit/tree/main/examples/starters/react-web) is a browser application that recognizes microphone speech locally with Moonshine Tiny and displays Katakit conversation turns. Its interface includes recording controls, provisional speech, and completed turns.
 
-## Run and trace the path
+`src/main.tsx` connects `createMicrophoneTranscriber` callbacks to the methods in `src/katakit.ts`. That module assembles transcript ingestion and exposes the turn observable. Finalized recognition segments become Katakit turns; provisional speech is displayed separately. React subscribes to these results, and the input is disposed when the interface unmounts.
 
-Copy the entire directory and follow its [README](https://github.com/katabase-ai/katakit/blob/main/examples/starters/react-web/README.md) to install, build, test, and run Vite. Start from the localhost URL, allow microphone access, speak, then stop. First use downloads model weights. `src/main.tsx` maps the recognizer's `onProvisional`, `onFinal`, and `onStop` callbacks to methods in `src/katakit.ts`; the latter configures transcript ingestion and exposes turn observables. The React UI subscribes to those observables and releases the input on unmount. `vite.config.ts` ships the transcription worker, worklet, WASM, and SDK assets.
+### Status and limitations
 
-Replace the model/input or display in `src/main.tsx` without modifying Katakit's ingestion plugin. Finalized segments have source and segment IDs; Stop flushes remaining text. To persist turns, add explicit storage and retention policy: they currently disappear on reload. No application server receives the audio or transcript. First model download contacts the provider. Production Moonshine needs HTTPS and COOP/COEP headers, not just Vite's local defaults; see [Transcription utilities](../reference/transcription.md).
+Turns are held in memory and disappear on reload. Live microphone checks have covered Chrome on macOS; other browsers and deployed hosting remain unverified. See the [README's verification record](https://github.com/katabase-ai/katakit/blob/main/examples/starters/react-web/README.md#verification) for tested versions and remaining checks.
 
-The copied project builds and its fake-final-segment test passes. In a manual check on **macOS 15.6 / Chrome 157**, model-loading progress appeared; the user reported a finalized Katakit turn from microphone speech, a second turn after Stop/Start, turns clearing on reload, and an actionable error with the Chrome microphone permission blocked. The separate browser panel also showed permission denied. A cold-cache download, provisional-text rendering, other browsers, and deployed HTTPS/COOP/COEP isolation remain unverified.
+## Get started
+
+Follow the [starter README](https://github.com/katabase-ai/katakit/blob/main/examples/starters/react-web/README.md#copy-and-run) for prerequisites and exact copy, install, build, and run commands. Open its localhost URL, choose **Start recording**, and grant microphone access. First use downloads model weights. Speak, then choose **Stop recording** to finish the last turn.
+
+## Platform considerations
+
+### Hosting and model assets
+
+Production hosting needs HTTPS and COOP/COEP response headers for Moonshine's shared-memory WASM runtime. Vite supplies these headers locally; deployment must supply them too. `vite.config.ts` packages the worker, worklet, WASM, and SDK assets. See [Transcription utilities](../reference/transcription.md) for hosting and recognition requirements.
+
+### Data and input lifetime
+
+Recognition runs on the device. The first model download contacts its provider, but the starter does not send audio or transcripts to an application server. Stop flushes remaining text; disposal releases the microphone and recognition resources. Preserve that ownership when replacing the input or changing how the React root is mounted.
+
+## Make it yours
+
+- **Change the input:** replace the recognizer wiring in `src/main.tsx`. Keep provisional updates distinct from finalized segments, retain source/segment IDs, and flush remaining text on Stop.
+- **Change application behavior:** assemble additional plugins in `src/katakit.ts`. Derive application content from events rather than introducing a second writable state store.
+- **Change the interface:** adapt the React components and observable subscriptions in `src/main.tsx`; release subscriptions and input resources when their owner unmounts.
+- **Add persistence:** the current turns are memory-only. Connect an explicit storage owner to the [event log and persistence APIs](../reference/plugins/persistence.md), and decide how saved data is restored and cleared.
+
+## Additional resources
+
+- [React documentation](https://react.dev/learn) — component structure, state, and effects when adapting the interface.
+- [Vite deployment guide](https://vite.dev/guide/static-deploy.html) — building and serving the application; configure the required isolation headers on your chosen host.
+- [Cross-origin isolation](https://web.dev/articles/coop-coep) — how COOP and COEP enable shared-memory browser features.

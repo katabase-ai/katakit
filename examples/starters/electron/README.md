@@ -1,6 +1,6 @@
 # Electron microphone transcription starter
 
-Record English speech with Moonshine Tiny in an Electron window. The recognizer produces provisional text while listening; finalized segments become Katakit conversation turns. Nothing is saved or sent to an application server; closing the window clears the transcript. Model weights download from Moonshine on first use. This is a smaller starter than the notes-and-audio prototype: it does not capture system audio, save recordings, or package an installer.
+Record English speech with Moonshine Tiny in an Electron window. The recognizer produces provisional text while listening; finalized segments become Katakit conversation turns. Nothing is saved or sent to an application server; closing the window clears the transcript. Model weights download from Moonshine on first use. The starter does not capture system audio, save recordings, or package an installer.
 
 ## Copy and run
 
@@ -8,4 +8,10 @@ Copy this entire directory. With Node.js 24+ and pnpm 11.9.0, run `pnpm install`
 
 `electron/main.cjs` serves built files on a secure `katakit://app` origin with COOP/COEP headers required by Moonshine's WASM workers. It authorizes media permission only for the local app origin and keeps Node integration off and the renderer sandboxed. `vite.config.ts` copies the transcriber's worklet, workers and WASM/SDK assets to `dist/transcription-assets/`. `src/main.ts` connects `createMicrophoneTranscriber` to Katakit methods exposed by `src/kit.ts` and releases the input on page hide. Replace the input and plugin wiring there, not the secure-origin boundary.
 
-Audio stays on the device, but fetching npm/Electron dependencies and the first model load require network access. On **macOS 15.6 / Electron 35.7.5**, the user observed model-loading progress, a finalized Katakit turn from spoken audio, a second turn after Stop/Start, and an empty list after closing/reopening the window. The first run exposed an AudioWorklet registration failure, fixed by moving the shared processor's `process()` method onto its prototype. OS microphone denial was skipped; cold-cache first download, provisional display, other OSes, packaging, and signing remain unverified. For public APIs, see the [Katakit reference](https://github.com/katabase-ai/katakit/tree/main/docs/pages/reference).
+Audio stays on the device, but fetching npm/Electron dependencies and the first model load require network access. For public APIs, see the [Katakit reference](https://github.com/katabase-ai/katakit/tree/main/docs/pages/reference).
+
+## Verification
+
+The copied build and deterministic finalized-segment test pass. Manual checks on **macOS 15.6 / Electron 35.7.5** covered model-loading progress, a finalized turn from spoken audio, a second turn after Stop/Start, and an empty list after closing/reopening the window. OS microphone denial was skipped; cold-cache download, provisional display, other OSes, packaging, and signing remain unverified.
+
+For a new manual check, record OS and Electron versions and the result of first download, microphone recognition, provisional display, Stop/Start, permission denial, and window close/reopen. Recheck asset loading and microphone permission in a packaged build before claiming installer support. Automated segment tests do not exercise microphone capture.
