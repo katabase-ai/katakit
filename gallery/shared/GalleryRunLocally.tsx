@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useState, type RefCallback } from 'react';
 import { Check, Copy, SquareTerminal } from 'lucide-react';
-import type { galleryDemoDetails } from './galleryDemoDetails';
+import { requiresGalleryCapability, type galleryDemoDetails } from './galleryDemoDetails';
 import { useGalleryEvents } from './galleryEvents';
 import './galleryRunLocally.css';
 import './galleryTooltip.css';
@@ -40,7 +40,7 @@ export const runLocallyPrompt = (
     runLocallyCommand(demo, revision),
     '',
     'It needs Node.js 24 or newer and pnpm.',
-    ...((demo.capabilities as readonly string[]).includes('remoteModel')
+    ...(requiresGalleryCapability(demo.requiredCapabilities, 'remoteModel')
       ? [
           '',
           'This demo calls a language model with my own API key. Read README.md for how the model connection is configured. Ask me before you read, create, or edit anything that holds an API key.',
@@ -126,7 +126,7 @@ export const GalleryRunLocally = ({ demo, revision }: { demo: Demo; revision?: s
     };
   }, []);
   if (!canRunLocally(demo)) return null;
-  const needsKey = (demo.capabilities as readonly string[]).includes('remoteModel');
+  const needsKey = requiresGalleryCapability(demo.requiredCapabilities, 'remoteModel');
   return (
     <details ref={dismissOutside} className="gallery-run-locally">
       <summary>

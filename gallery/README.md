@@ -3,6 +3,11 @@
 `gallery/` is the repository's gallery host, separate from the feature demos under
 `examples/demos/`. It composes their source and supplies shared host behavior.
 
+For adding or updating demos, follow the
+[gallery authoring guide](../docs/pages/contributing/gallery.md). It defines the single
+catalogue, requirements and tags, standalone component interface, gallery-owned
+adapters, runtime lifecycle, verification, and explicit host publication.
+
 ## Prepare an independent copy
 
 From an installed Katakit checkout, run:
@@ -134,9 +139,14 @@ expected content types. Models download on Download model or an explicit microph
 ## Reuse from another host
 
 `shared/galleryDemoDetails.ts` is the eligible React catalogue, including stable IDs, names,
-descriptions, source paths, and required capabilities. `shared/galleryDemos.tsx` adds lazy component loaders.
-The catalogue is a manually maintained, typed build input. Every entry also declares
-`dataHandling: { audio: 'device', transcribedText: 'device' | 'cloud' }`; update it when the
+descriptions, source paths, `requiredCapabilities`, descriptive tags, and lazy loaders.
+`shared/galleryDemos.tsx` derives lazy components generically from those entries.
+Named exports remain available for hosts that select individual demos; the aggregate list
+follows catalogue order. Hosts adopting this source revision use `requiredCapabilities`
+instead of reading `capabilities` or `dataHandling` from entries. Use
+`requiresGalleryCapability` for requirement checks and `galleryDataHandling` for derived
+privacy presentation. `tags` describe demos and do not control inference or publication.
+The catalogue is a manually maintained, typed build input. Update requirements when the
 demo's data flow changes. `Gallery` uses those facts for its upper-right On-device or
 Cloud-assisted badge and two-row privacy popover. These describe the demo's behavior, not
 connection readiness or current network activity. No source scanning or runtime probing is used.

@@ -32,6 +32,11 @@ test('navigation follows the section order and uses directory READMEs as landing
       ],
     },
     {
+      label: 'Contributing',
+      slug: 'contributing',
+      children: [{ label: 'Authoring and hosting gallery demos', slug: 'contributing/gallery' }],
+    },
+    {
       label: 'Reference',
       slug: 'reference',
       children: [

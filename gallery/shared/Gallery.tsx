@@ -1,5 +1,9 @@
 import { lazy, Suspense, useCallback, useContext, useEffect, useMemo, type ReactNode } from 'react';
-import type { galleryDemoDetails } from './galleryDemoDetails';
+import {
+  galleryDataHandling,
+  requiresGalleryCapability,
+  type galleryDemoDetails,
+} from './galleryDemoDetails';
 import { GalleryModelContext, type GalleryModelConnect } from './galleryModel';
 import { useGalleryInference } from './GalleryInferenceProvider';
 import { connectWithKey } from './galleryInference';
@@ -158,7 +162,8 @@ export const Gallery = ({
   const settingsNotice =
     inference &&
     !connect &&
-    (activeDemo?.capabilities as readonly string[] | undefined)?.includes('remoteModel')
+    activeDemo &&
+    requiresGalleryCapability(activeDemo.requiredCapabilities, 'remoteModel')
       ? isDeveloperView
         ? 'No inference is configured.'
         : 'Free inference is not available here.'
@@ -250,7 +255,7 @@ export const Gallery = ({
                       <GalleryRunLocally demo={activeDemo} revision={sourceRevision} />
                       <GalleryPrivacyBadge
                         key={activeDemo.id}
-                        dataHandling={activeDemo.dataHandling}
+                        dataHandling={galleryDataHandling(activeDemo.requiredCapabilities)}
                         privacyUrl={privacyUrl}
                         developerEndpoint={isDeveloperView && inference?.settings.source === 'key'}
                         cloudPrivacyDescription={

@@ -3,7 +3,11 @@ import { act, cleanup, fireEvent, render, screen, within } from '@testing-librar
 import { afterEach, expect, test, vi } from 'vitest';
 import { GalleryPrivacyBadge } from './GalleryPrivacyBadge';
 import { Gallery } from './Gallery';
-import { galleryDemoDetails } from './galleryDemoDetails';
+import {
+  galleryDemoDetails,
+  galleryDataHandling,
+  requiresGalleryCapability,
+} from './galleryDemoDetails';
 import { GalleryInferenceProvider } from './GalleryInferenceProvider';
 import { GalleryModeProvider, GalleryPreviewToggle } from './GalleryModeProvider';
 import { defaultInference, inferenceStorageKey } from './galleryInference';
@@ -19,10 +23,11 @@ afterEach(() => {
 test.each(galleryDemoDetails)(
   '$title declares its data handling without a model connection',
   demo => {
-    const cloud = demo.dataHandling.transcribedText === 'cloud';
-    expect(demo.dataHandling.audio).toBe('device');
-    expect((demo.capabilities as readonly string[]).includes('remoteModel')).toBe(cloud);
-    render(<GalleryPrivacyBadge dataHandling={demo.dataHandling} />);
+    const dataHandling = galleryDataHandling(demo.requiredCapabilities);
+    const cloud = dataHandling.transcribedText === 'cloud';
+    expect(dataHandling.audio).toBe('device');
+    expect(requiresGalleryCapability(demo.requiredCapabilities, 'remoteModel')).toBe(cloud);
+    render(<GalleryPrivacyBadge dataHandling={dataHandling} />);
     const button = screen.getByRole('button', { name: cloud ? 'Cloud-assisted' : 'On-device' });
     expect(screen.queryByRole('dialog')).toBeNull();
     fireEvent.click(button);
@@ -44,7 +49,7 @@ test('hover details remain reachable by pointer and keyboard, and Escape restore
   vi.useFakeTimers();
   const view = render(
     <GalleryPrivacyBadge
-      dataHandling={galleryDemoDetails[2].dataHandling}
+      dataHandling={galleryDataHandling(galleryDemoDetails[2].requiredCapabilities)}
       privacyUrl="https://example.com/privacy"
     />
   );
@@ -88,7 +93,9 @@ test('hover details remain reachable by pointer and keyboard, and Escape restore
 test('tapping pins the disclosure until another tap or an outside interaction', () => {
   render(
     <>
-      <GalleryPrivacyBadge dataHandling={galleryDemoDetails[0].dataHandling} />
+      <GalleryPrivacyBadge
+        dataHandling={galleryDataHandling(galleryDemoDetails[0].requiredCapabilities)}
+      />
       <button type="button">Outside</button>
     </>
   );

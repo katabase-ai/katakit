@@ -57,7 +57,7 @@ documentation assets. All manifest paths are relative to the bundle directory. P
 `slug`, `kind`, `title`, `file`, heading IDs, and an authored `sourcePath` where applicable.
 `kind: "guide"` covers all authored pages, including handwritten Reference pages;
 `kind: "api"` identifies generated API reference.
-`navigation` contains authored pages, with Application starters above the package-named Reference section. Generated API
+`navigation` contains authored pages, with Contributing between Application starters and the package-named Reference section. Generated API
 pages remain in `pages` for existing links and public-export coverage, without sidebar entries.
 Navigation placement does not change page slugs or relative content links.
 `packages` records each public
