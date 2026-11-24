@@ -3,6 +3,7 @@ packages:
   - 'internal/pkgs/*'
   - 'examples/demos/*'
   - 'docs'
+  - 'gallery'
 
 allowBuilds:
   esbuild: true

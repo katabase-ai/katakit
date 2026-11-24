@@ -19,7 +19,7 @@ keys and uses the deployed host's managed connection.
 Switching either direction pauses inference and requires an explicit restart. This build flag is
 scoped to the gallery PR build step; normal production builds remain public. The `pnpm preview`
 command only serves the last built artifact locally and does not choose its mode. See the gallery's
-[mode reference](../examples/demos/gallery/README.md#developer-mode-and-public-preview).
+[mode reference](../gallery/README.md#developer-mode-and-public-preview).
 
 Gallery PR builds also set `VITE_GALLERY_SOURCE_REVISION` to the PR head commit. The header's
 **Run locally** command then copies the reviewed example rather than the default branch.
@@ -30,8 +30,8 @@ Docs use `wrangler versions upload --preview-alias`; the gallery uses native
 `wrangler preview --name pr-<number>` with a branded custom domain. The two preview Workers are `katakit-docs-preview` and
 `katakit-gallery-preview`; their Wrangler configurations enable version
 URLs. Docs use an HTML fallback for direct links; Start handles gallery routes and
-not-found responses. The gallery source configuration is `examples/demos/gallery/wrangler.jsonc`;
-the Vite build generates `examples/demos/gallery/dist/server/wrangler.json` for upload.
+not-found responses. The gallery source configuration is `gallery/wrangler.jsonc`;
+the Vite build generates `gallery/dist/server/wrangler.json` for upload.
 
 Both Workers have been initialized in protozoa-app's Cloudflare account
 (`df336523814581dc72f26c5b15fcfa8f`). Their default deployments are available at
@@ -54,7 +54,7 @@ update docs aliases and named gallery Previews independently of these default de
    pnpm --filter @katakit/docs build
    pnpm --filter @katakit/gallery build
    pnpm exec wrangler deploy --config wrangler.docs.jsonc
-   pnpm exec wrangler deploy --config examples/demos/gallery/dist/server/wrangler.json
+   pnpm exec wrangler deploy --config gallery/dist/server/wrangler.json
    ```
 
    Set `CLOUDFLARE_ACCOUNT_ID` in that shell too. An initial deployment is

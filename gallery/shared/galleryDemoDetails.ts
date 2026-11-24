@@ -48,7 +48,7 @@ export const notesDemoDetails = {
 } as const satisfies GalleryDemoMetadata;
 export const colorClashDemoDetails = {
   id: 'color-clash',
-  sourcePath: 'examples/demos/gallery/shared/color-clash',
+  sourcePath: 'gallery/shared/color-clash',
   title: 'Color Clash',
   description: 'Say the ink color, not the word. Speech stays on your device.',
   capabilities: ['microphone', 'localTranscription'],

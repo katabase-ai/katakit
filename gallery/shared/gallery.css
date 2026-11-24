@@ -1,4 +1,4 @@
-@import '../../../../internal/site-ui/components.css';
+@import '../../internal/site-ui/components.css';
 @import './galleryDemoFrame.css';
 /* The host supplies font/palette tokens. Inner typography, spacing and controls are scoped
    here so marketing rules and demo-local button styles cannot change the gallery's layout. */

@@ -1,7 +1,7 @@
 # Copyable feature examples
 
 Each feature-demo directory owns its application/plugin code, UI, styling, manifest,
-configuration, assets, and run instructions. `gallery/` composes demos and has an explicit
+configuration, assets, and run instructions. Root `gallery/` composes demos and has an explicit
 copy workflow for those source inputs; follow its narrower instructions.
 
 - A user must be able to run `pnpm examples:copy demos/<name> <destination>` and
