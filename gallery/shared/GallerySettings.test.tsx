@@ -11,9 +11,12 @@ import type { GalleryDeveloperPage } from './operationDetails';
 import { galleryDemoDetails } from './galleryDemoDetails';
 import { GalleryModelError, useGalleryModel, type GalleryModelConnect } from './galleryModel';
 import { defaultInference, inferenceStorageKey } from './galleryInference';
-import { NotesDemo } from '../../notes-react/src/NotesDemo';
-import { createNotesDemo } from '../../notes-react/src/createNotesDemo';
-import { NotesRequestError, type NotesConnection } from '../../notes-react/src/notesModel';
+import { NotesDemo } from '../../examples/demos/notes-react/src/NotesDemo';
+import { createNotesDemo } from '../../examples/demos/notes-react/src/createNotesDemo';
+import {
+  NotesRequestError,
+  type NotesConnection,
+} from '../../examples/demos/notes-react/src/notesModel';
 
 const completion = (text?: string) => ({
   choices: [

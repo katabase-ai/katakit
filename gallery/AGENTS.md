@@ -3,6 +3,12 @@
 `src/` is the local TanStack Start app; `shared/` contains portable gallery modules.
 Run commands from the Katakit root with `pnpm --filter @katakit/gallery`.
 
+- The gallery is a root workspace application, separate from copyable feature demos.
+  It may compose `examples/demos/*/src` and `internal/site-ui` CSS. Keep its registry
+  dependencies, copy inputs, and structural allowances aligned. No reverse imports from demos.
+- Preserve standalone copies with `pnpm examples:copy gallery <destination>` and verify with
+  `pnpm gallery:copy-check`. Copies carry demo sources and CSS as regular files.
+
 - Keep the host router registration and generated route tree inside this app. Consumers import
   shared modules directly, never `src/`. `#gallery-host-boundary`
 - Mount `GallerySpeechProvider` above the outlet. Each view acquires a deferred runtime lease;

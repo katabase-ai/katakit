@@ -12,10 +12,10 @@ import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const [example, destination] = process.argv.slice(2);
-if (!/^(demos|starters)\/[a-z0-9-]+$/.test(example ?? '') || !destination) {
-  throw new Error('Usage: pnpm examples:copy <demos/name|starters/name> <new-directory>');
+if (!/^(gallery|(demos|starters)\/[a-z0-9-]+)$/.test(example ?? '') || !destination) {
+  throw new Error('Usage: pnpm examples:copy <gallery|demos/name|starters/name> <new-directory>');
 }
-const source = join(root, 'examples', example);
+const source = example === 'gallery' ? join(root, 'gallery') : join(root, 'examples', example);
 const target = resolve(destination);
 if (!existsSync(join(source, 'package.json'))) throw new Error(`Unknown example: ${example}`);
 // lstat also catches dangling symlinks, which existsSync treats as absent.
@@ -59,7 +59,7 @@ const copy = (from, to) =>
     },
   });
 copy(source, target);
-if (example === 'demos/gallery') {
+if (example === 'gallery') {
   copy(join(root, 'internal/site-ui'), join(target, 'styles'));
   // The gallery is a composition: carry each imported example's source in this copy.
   for (const name of ['bingo-react', 'transcription-react', 'notes-react', 'brainstorm-react']) {
@@ -72,10 +72,10 @@ if (example === 'demos/gallery') {
       else if (/\.(tsx?|css)$/.test(entry.name)) {
         const text = readFileSync(path, 'utf8')
           .replace(
-            /\.\.\/\.\.\/(bingo-react|transcription-react|notes-react|brainstorm-react)\//g,
+            /\.\.\/\.\.\/examples\/demos\/(bingo-react|transcription-react|notes-react|brainstorm-react)\//g,
             '../sources/$1/'
           )
-          .replaceAll('../../../../internal/site-ui/', '../styles/');
+          .replaceAll('../../internal/site-ui/', '../styles/');
         writeFileSync(path, text);
       }
     }

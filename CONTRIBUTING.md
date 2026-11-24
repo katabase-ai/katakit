@@ -40,7 +40,7 @@ To explore the demos, start the gallery:
 pnpm -F @katakit/gallery dev
 ```
 
-Open the local URL printed in your terminal. The [gallery README](examples/demos/gallery/README.md)
+Open the local URL printed in your terminal. The [gallery README](gallery/README.md)
 covers microphone setup and the demos' other requirements. To work on an independent
 application starter, follow its own README; starters install and run from their own directories.
 
@@ -48,12 +48,13 @@ application starter, follow its own README; starters install and run from their 
 
 Keep your first pull request focused on one problem. These are good places to look:
 
-| You want to change…          | Start here                                                                                                  |
-| ---------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| A guide or explanation       | [`docs/pages/`](docs/pages/) and the [docs editing instructions](docs/AGENTS.md)                            |
-| A demo or its UI             | [`examples/demos/`](examples/demos/) and that demo's README                                                 |
-| An application starter       | [`examples/starters/`](examples/starters/) and the [starter contributor guide](examples/starters/README.md) |
-| A reusable package or plugin | [`pkgs/`](pkgs/) and the [library contributor guidance](pkgs/AGENTS.md)                                     |
+| You want to change…                   | Start here                                                                                                  |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| A guide or explanation                | [`docs/pages/`](docs/pages/) and the [docs editing instructions](docs/AGENTS.md)                            |
+| A demo or its UI                      | [`examples/demos/`](examples/demos/) and that demo's README                                                 |
+| The gallery host or shared gallery UI | [`gallery/`](gallery/) and its README                                                                       |
+| An application starter                | [`examples/starters/`](examples/starters/) and the [starter contributor guide](examples/starters/README.md) |
+| A reusable package or plugin          | [`pkgs/`](pkgs/) and the [library contributor guidance](pkgs/AGENTS.md)                                     |
 
 Read the `AGENTS.md` instructions in the area you change; they contain engineering
 conventions for everyone working in that area. The [development reference](DEVELOPMENT.md)

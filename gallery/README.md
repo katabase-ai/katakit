@@ -1,11 +1,14 @@
 # Demo gallery
 
+`gallery/` is the repository's gallery host, separate from the feature demos under
+`examples/demos/`. It composes their source and supplies shared host behavior.
+
 ## Prepare an independent copy
 
 From an installed Katakit checkout, run:
 
 ```sh
-pnpm examples:copy demos/gallery /tmp/my-gallery
+pnpm examples:copy gallery /tmp/my-gallery
 cd /tmp/my-gallery
 pnpm install
 pnpm build
@@ -36,7 +39,7 @@ while the loaded speech model remains ready for the next demo. Named `colorClash
 is available from `shared/galleryDemos.tsx`; embedding hosts with an explicit selection must add
 that entry when adopting this source revision. This does not remove the website's homepage embed.
 
-The [brainstorming game](../brainstorm-react/README.md) uses the shared microphone with a sticky
+The [brainstorming game](../examples/demos/brainstorm-react/README.md) uses the shared microphone with a sticky
 note board, 200 challenges, and 30s, 1min (default), 2min, or unlimited rounds.
 Challenges stay hidden and the clock stays stopped while **Start round** prepares the shared
 microphone and judge. **Cancel setup** cancels preparation; **End round** stops and drains capture.
@@ -395,7 +398,7 @@ supplies document and runtime isolation headers. The workflow sets `VITE_GALLERY
 only for the gallery PR build, so reviewers can use developer tools and the header's Preview toggle
 to inspect the public experience. The CI deployment can supply managed inference through the existing ProtoZoa demo proxy; see the preview setup below.
 Normal production builds remain public. See the repository's
-[preview setup](../../../.github/PREVIEWS.md).
+[preview setup](../.github/PREVIEWS.md).
 
 ### Managed inference in CI deployments
 
@@ -405,7 +408,7 @@ in both developer and public views. Neither the header toggle nor visitor storag
 Ordinary local and production builds omit this configuration. Sessions, verification, cancellation,
 server-reported allowance and errors follow the website's anonymous demo flow; the existing proxy
 and website budget are shared. No account sign-in or provider key is required from the reviewer.
-See [the one-time Cloudflare setup](../../../.github/PREVIEWS.md#managed-inference-for-every-gallery-pr-preview).
+See [the one-time Cloudflare setup](../.github/PREVIEWS.md#managed-inference-for-every-gallery-pr-preview).
 
 Gallery CI deploys a native Worker Preview named `pr-<number>`, served at
 `https://pr-<number>.katakit-preview.katabase.com`, and removes it when the PR closes. The

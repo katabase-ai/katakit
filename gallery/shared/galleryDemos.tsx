@@ -17,8 +17,8 @@ export const transcriptionGalleryDemo = {
   ...transcriptionDemoDetails,
   component: /* @__PURE__ */ lazy(async () => {
     const [{ TranscriptionDemo }, { createTranscriptionDemo }] = await Promise.all([
-      import('../../transcription-react/src/TranscriptionDemo'),
-      import('../../transcription-react/src/createTranscriptionDemo'),
+      import('../../examples/demos/transcription-react/src/TranscriptionDemo'),
+      import('../../examples/demos/transcription-react/src/createTranscriptionDemo'),
     ]);
     return {
       default: () => {
@@ -44,8 +44,8 @@ export const bingoGalleryDemo = {
   ...bingoDemoDetails,
   component: /* @__PURE__ */ lazy(async () => {
     const [{ BrowserBingoDemo }, { createBrowserBingoDemo }] = await Promise.all([
-      import('../../bingo-react/src/BrowserBingoDemo'),
-      import('../../bingo-react/src/createBrowserBingoDemo'),
+      import('../../examples/demos/bingo-react/src/BrowserBingoDemo'),
+      import('../../examples/demos/bingo-react/src/createBrowserBingoDemo'),
     ]);
     return {
       default: () => {

@@ -1,7 +1,7 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { createTranscriptionDemo } from '../../transcription-react/src/createTranscriptionDemo';
-import { createBrowserBingoDemo } from '../../bingo-react/src/createBrowserBingoDemo';
-import { createNotesDemo } from '../../notes-react/src/createNotesDemo';
+import { createTranscriptionDemo } from '../../examples/demos/transcription-react/src/createTranscriptionDemo';
+import { createBrowserBingoDemo } from '../../examples/demos/bingo-react/src/createBrowserBingoDemo';
+import { createNotesDemo } from '../../examples/demos/notes-react/src/createNotesDemo';
 import {
   transcriptionDemoDetails,
   bingoDemoDetails,

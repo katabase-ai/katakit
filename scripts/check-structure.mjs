@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, lstatSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { checkTemplateManifests } from './check-template-manifests.mjs';
@@ -70,7 +70,7 @@ export const checkStructure = (root = repository) => {
   const patterns = [...section.matchAll(/^\s*-\s*['"]?([^'"\s#]+)['"]?\s*$/gm)]
     .map(match => match[1])
     .toSorted();
-  const expected = ['pkgs/*', 'internal/pkgs/*', 'examples/demos/*', 'docs'].toSorted();
+  const expected = ['pkgs/*', 'internal/pkgs/*', 'examples/demos/*', 'docs', 'gallery'].toSorted();
   if (JSON.stringify(patterns) !== JSON.stringify(expected))
     report(
       workspace,
@@ -87,10 +87,24 @@ export const checkStructure = (root = repository) => {
   const tools = packages('internal/pkgs', 'tool');
   const demos = packages('examples/demos', 'demo');
   const starters = packages('examples/starters', 'starter');
-  const all = [...libraries, ...tools, ...demos, ...starters];
+  const gallery = [];
+  if (lstatSync(join(root, 'gallery'), { throwIfNoEntry: false })?.isSymbolicLink())
+    report(join(root, 'gallery'), 'package directories must not be symlinks');
+  try {
+    gallery.push({
+      path: join(root, 'gallery'),
+      kind: 'gallery',
+      manifest: JSON.parse(readFileSync(join(root, 'gallery/package.json'), 'utf8')),
+    });
+  } catch {
+    report(join(root, 'gallery'), 'requires a valid package.json');
+  }
+  const all = [...libraries, ...tools, ...demos, ...starters, ...gallery];
   const publicNames = new Set(libraries.map(pkg => pkg.manifest.name));
   const privateNames = new Set(
-    [...tools, ...demos, ...starters].map(pkg => pkg.manifest.name).concat('@katakit/docs')
+    [...tools, ...demos, ...starters, ...gallery]
+      .map(pkg => pkg.manifest.name)
+      .concat('@katakit/docs')
   );
   for (const { path, kind, manifest } of all) {
     if (kind === 'library') {
@@ -123,7 +137,7 @@ export const checkStructure = (root = repository) => {
       }
     } else if (manifest.private !== true)
       report(path, `${kind} packages must declare private: true`);
-    if (kind === 'demo' || kind === 'starter') {
+    if (kind === 'demo' || kind === 'starter' || kind === 'gallery') {
       for (const field of dependencyFields) {
         for (const name of Object.keys(manifest[field] ?? {})) {
           if (privateNames.has(name) || (name.startsWith('@katakit/') && !publicNames.has(name)))
@@ -147,8 +161,8 @@ export const checkStructure = (root = repository) => {
         if (!specifier.startsWith('.')) continue;
         const target = resolve(dirname(file), specifier.split(/[?#]/)[0]);
         const gallerySource =
-          kind === 'demo' &&
-          path === join(root, 'examples/demos/gallery') &&
+          kind === 'gallery' &&
+          path === join(root, 'gallery') &&
           manifest.name === '@katakit/gallery' &&
           (['bingo-react', 'transcription-react', 'notes-react', 'brainstorm-react'].some(name =>
             inside(join(root, 'examples/demos', name, 'src'), target)
@@ -168,6 +182,7 @@ export const checkStructure = (root = repository) => {
       );
     }
   }
+  problems.push(...checkTemplateManifests(root, ['gallery']));
   walk(join(root, 'internal'), file => {
     if (
       file.endsWith(`${sep}package.json`) &&

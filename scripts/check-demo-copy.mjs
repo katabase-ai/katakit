@@ -87,7 +87,7 @@ await withExamplePackages(
       const temporary = mkdtempSync(join(tmpdir(), 'katakit-demo-copy-'));
       const target = join(temporary, name);
       try {
-        run(root, ['examples:copy', `demos/${name}`, target]);
+        run(root, ['examples:copy', name === 'gallery' ? 'gallery' : `demos/${name}`, target]);
         useLocalPackages(target);
         run(target, ['install', '--no-frozen-lockfile']);
         run(target, ['build']);
@@ -105,9 +105,7 @@ await withExamplePackages(
         if (!readdirSync(assets, { recursive: true }).some(path => path.endsWith('.wasm')))
           throw new Error(`Missing WASM in ${assets}`);
         if (manifest.scripts.dev) await checkServer(target, name === 'gallery');
-        console.log(
-          `Standalone demo ${name}: install, build, types, tests, and runtime assets passed.`
-        );
+        console.log(`Standalone ${name}: install, build, types, tests, and runtime assets passed.`);
       } finally {
         rmSync(temporary, { recursive: true, force: true });
       }

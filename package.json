@@ -26,8 +26,9 @@
     "templates:copy-check": "node scripts/check-template-copy.mjs",
     "examples:copy": "node scripts/copy-example.mjs",
     "examples:check": "node --test scripts/copy-example.test.mjs",
-    "examples:copy-check": "node scripts/check-demo-copy.mjs && pnpm templates:copy-check",
+    "examples:copy-check": "pnpm demos:copy-check && pnpm gallery:copy-check && pnpm templates:copy-check",
     "demos:copy-check": "node scripts/check-demo-copy.mjs",
+    "gallery:copy-check": "node scripts/check-demo-copy.mjs gallery",
     "structure:check": "node scripts/check-structure.mjs && node --test scripts/check-structure.test.mjs"
   },
   "devDependencies": {

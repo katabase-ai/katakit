@@ -29,7 +29,7 @@ jobs:
             config: wrangler.docs.jsonc
           - site: Gallery
             package: '@katakit/gallery'
-            config: examples/demos/gallery/dist/server/wrangler.json
+            config: gallery/dist/server/wrangler.json
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -129,7 +129,7 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: pnpm exec wrangler preview delete --config examples/demos/gallery/wrangler.jsonc --name "pr-${PR_NUMBER}" --skip-confirmation
+        run: pnpm exec wrangler preview delete --config gallery/wrangler.jsonc --name "pr-${PR_NUMBER}" --skip-confirmation
 
 defaults:
   run:
