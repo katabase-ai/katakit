@@ -16,7 +16,7 @@ unrelated work.
 - Keep the core framework-independent and small. Publish a package only for a genuinely
   reusable capability. Example-specific plugins, prompts, UI, and orchestration stay local.
 - Official stateful plugins and example plugins derive replayable application content
-  from `@katakit/event-log`. Methods record events; projections derive content. Do not
+  from core's built-in `EventLogPlugin`. Methods record events; projections derive content. Do not
   keep a second writable subject or mutable object as the authority for that content.
 - Resource handles, cancellation, retry status, provisional input, and display timing may
   be transient. Explain their owner and lifetime. Replay must not call a model, generate

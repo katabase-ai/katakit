@@ -37,7 +37,6 @@ test('navigation follows the section order and uses directory READMEs as landing
       slug: 'reference',
       children: [
         { label: '@katakit/core', slug: 'reference/core' },
-        { label: '@katakit/event-log', slug: 'reference/plugins/event-log' },
         { label: '@katakit/persistence', slug: 'reference/plugins/persistence' },
         { label: '@katakit/react', slug: 'reference/react' },
         { label: '@katakit/transcript-ingestion', slug: 'reference/plugins/transcript-ingestion' },

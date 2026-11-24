@@ -110,9 +110,9 @@ platform interaction still require the selected example's manual checks.
 ## Package imports and TypeScript
 
 Import public APIs through package entry points such as `@katakit/core`,
-`@katakit/event-log`, and `@katakit/transcription/browser`. Default imports resolve to built
+`@katakit/persistence`, and `@katakit/transcription/browser`. Default imports resolve to built
 `dist/` entries. Package configs select the workspace-only `source` export condition for
-typechecking. Event-log and persistence tests select it too, so editing core does not require
+typechecking. Persistence tests select it too, so editing core does not require
 an intervening build.
 
 Vite consumers can select workspace source through `resolve.conditions` and, for SSR,
@@ -126,7 +126,7 @@ observables. The optional microphone ownership hook is exported from
 
 ## Stateful plugins
 
-Official stateful plugins must use `@katakit/event-log` as the source of application state and
+Official stateful plugins must use core's built-in event log as the source of application state and
 derive that state from its events. Keep recognition utilities independent: they do not need to
 instantiate a plugin runtime or event log. Persistent storage remains an application choice.
 

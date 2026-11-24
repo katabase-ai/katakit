@@ -69,10 +69,6 @@
         "slug": "reference/core"
       },
       {
-        "label": "@katakit/event-log",
-        "slug": "reference/plugins/event-log"
-      },
-      {
         "label": "@katakit/persistence",
         "slug": "reference/plugins/persistence"
       },

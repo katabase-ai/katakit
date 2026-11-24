@@ -15,7 +15,6 @@
   },
   "include": [
     "../../../pkgs/core/src",
-    "../../../pkgs/event-log/src",
     "../../../pkgs/persistence/src",
     "../../../pkgs/transcription/src",
     "../../../pkgs/react/src",
