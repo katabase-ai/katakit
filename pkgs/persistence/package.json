@@ -44,12 +44,9 @@
     "rxjs": "^7.8.2"
   },
   "devDependencies": {
-    "@katakit/core": "workspace:*",
-    "@katakit/event-log": "workspace:*",
-    "valibot": "1.2.0"
+    "@katakit/core": "workspace:*"
   },
   "peerDependencies": {
-    "@katakit/core": "workspace:^",
-    "@katakit/event-log": "workspace:^"
+    "@katakit/core": "workspace:^"
   }
 }

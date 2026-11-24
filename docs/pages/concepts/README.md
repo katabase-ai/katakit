@@ -12,10 +12,10 @@ Keeping the events lets you reconstruct the list instead of maintaining a separa
 4. [Restore and save history](persistence.md): validate stored events and append new ones.
 5. [Connect an input and a view](templates.md): display the list and choose a platform starter.
 
-Each page extends the same TypeScript example. You'll use `@katakit/core`, `@katakit/event-log`, `rxjs`, and `valibot`; the storage step also uses `@katakit/persistence` in a browser. Install the published packages in your application:
+Each page extends the same TypeScript example. Use matching event-sourcing versions of core and persistence, plus RxJS and Valibot:
 
 ```sh
-pnpm add @katakit/core@0.1.0 @katakit/event-log@0.1.0 @katakit/persistence@0.1.0 rxjs valibot
+pnpm add @katakit/core @katakit/persistence rxjs valibot
 ```
 
 For a complete platform application and an agent-guided setup, use [Quickstart](../getting-started/README.md).

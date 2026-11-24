@@ -7,20 +7,16 @@
 This runtime records messages and derives a count from their history:
 
 ```ts
-import { makeKatakit, makeKatakitPlugin, property } from '@katakit/core';
-import { makeEventLogPlugin } from '@katakit/event-log';
-import { scan, shareReplay, startWith } from 'rxjs';
-import * as v from 'valibot';
+import { EventLogPlugin, makeKatakit, makeKatakitPlugin, property } from '@katakit/core';
+import { filter, scan, shareReplay, startWith } from 'rxjs';
 
-const EventLogPlugin = makeEventLogPlugin({
-  validateEvent: v.strictObject({ type: v.literal('message'), text: v.string() }),
-});
 const MessageCountPlugin = makeKatakitPlugin({
   type: 'MessageCount',
   configure: (options: {}) => options,
   observables: ({ getObservables }) => ({
     count$: property(
       getObservables(EventLogPlugin).events$.pipe(
+        filter(event => event.type === 'message'),
         scan(count => count + 1, 0),
         startWith(0),
         shareReplay({ bufferSize: 1, refCount: true })
@@ -29,7 +25,7 @@ const MessageCountPlugin = makeKatakitPlugin({
   }),
 });
 const running = makeKatakit({
-  plugins: [EventLogPlugin.configure({ initialEvents: [] }), MessageCountPlugin.configure({})],
+  plugins: [MessageCountPlugin.configure({})],
 }).start();
 
 running.getMethods(EventLogPlugin).emitEvent({ type: 'message', text: 'Hello' });
@@ -42,7 +38,7 @@ console.log(running.getObservables(MessageCountPlugin).count$.get()); // 1
 
 `start()` may be called once. It initializes each registered plugin's methods and effects, subscribes the effects, and returns `getObservables(plugin)` and `getMethods(plugin)`. Starting again throws. Method collections are also cached per runtime.
 
-Both lookup functions accept a plugin factory or configured value and match by its `type` string. Missing types throw. Register distinct types: duplicate types are not rejected, and lookup uses the first match. Apart from the built-in event log, register every plugin the application uses.
+Both lookup functions match by plugin `type`. Missing types throw on lookup; duplicate types throw on runtime construction. Core registers the event log automatically.
 
 ## Built-in event log
 
@@ -51,13 +47,16 @@ Every runtime has its own in-memory log. Pass `existingEvents` to restore histor
 ```ts
 import { EventLogPlugin, makeKatakit } from '@katakit/core';
 
-const kit = makeKatakit({ plugins: [], existingEvents: ['opened'] });
+const kit = makeKatakit({
+  plugins: [],
+  existingEvents: [{ type: 'opened', meta: { seq: 0, timestamp: new Date(0) } }],
+});
 const { events$ } = kit.getObservables(EventLogPlugin);
-kit.start().getMethods(EventLogPlugin).emitEvent('closed');
-console.log(events$.getAll()); // ['opened', 'closed']
+kit.start().getMethods(EventLogPlugin).emitEvent({ type: 'closed' });
+console.log(events$.getAll().map(e => e.type)); // ['opened', 'closed']
 ```
 
-The default log accepts values as supplied. To validate live writes, register a [schema-configured event log](plugins/event-log.md) and supply restored history through its `initialEvents` option instead. Both handles then read and write the same validated log.
+Core appends the payload with `meta.seq` (the prior event count) and `meta.timestamp` (a `Date`). The application validates external input before emitting it and validates complete recorded events before supplying `existingEvents`. The standalone `@katakit/event-log` package is retired; do not register another `EventLog` plugin.
 
 ## makeKatakitPlugin
 

@@ -15,7 +15,7 @@ export default defineConfig({
     include: ['src/**/*.test.ts'],
     server: {
       deps: {
-        inline: ['@katakit/core', '@katakit/event-log'],
+        inline: ['@katakit/core'],
       },
     },
   },
