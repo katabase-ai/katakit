@@ -29,7 +29,6 @@ test('navigation follows the section order and uses directory READMEs as landing
         { label: 'Chrome extension', slug: 'starters/chrome-extension' },
         { label: 'Electron', slug: 'starters/electron' },
         { label: 'Obsidian', slug: 'starters/obsidian' },
-        { label: 'MCP App (WIP)', slug: 'starters/mcp-app' },
       ],
     },
     {

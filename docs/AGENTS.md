@@ -26,8 +26,8 @@ website consumers. See [EXPORT.md](EXPORT.md) for that boundary and bundle contr
   root and commit `src/nav.json`. Root section order is defined in that script;
   Tutorial follows its explicit learning order; other children are ordered by filename,
   with pages before subsections. Application Starters is a root section above Reference;
-  it explicitly orders React, Chrome extension, Electron, Obsidian, then MCP App (WIP)
-  directly under the section without changing their URLs.
+  it explicitly orders React, Chrome extension, Electron, and Obsidian directly under
+  the section without changing their URLs. The WIP MCP App page is omitted from navigation.
   Reference lists package pages directly under their full `@katakit/*` names, retaining
   existing plugin URLs.
   Standalone conceptual explanations belong in Reference; Tutorial teaches through use.

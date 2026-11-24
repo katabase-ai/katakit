@@ -74,11 +74,12 @@ export const buildNav = (directory = pages) => {
     });
     return [
       ...clients,
-      ...items
-        .filter(item => !clientStarters.some(starter => starter.slug === item.slug))
-        .map(item =>
-          item.slug === 'starters/mcp-app' ? { ...item, label: 'MCP App (WIP)' } : item
-        ),
+      // Keep the WIP MCP App page addressable, but omit it from navigation for now.
+      ...items.filter(
+        item =>
+          item.slug !== 'starters/mcp-app' &&
+          !clientStarters.some(starter => starter.slug === item.slug)
+      ),
     ];
   }
 
