@@ -1,42 +1,19 @@
-import { makeKatakitPlugin, optionalProperty, property } from '@katakit/core';
-import { Subject, distinctUntilChanged, filter, map, scan, shareReplay, startWith } from 'rxjs';
+import { EventLogPlugin, evolve, makeKatakitPlugin, property } from '@katakit/core';
+import { distinctUntilChanged, filter, map, scan, startWith } from 'rxjs';
+import {
+  ConversationTurn,
+  ConversationTurnAddedEvent,
+  PendingConversationTurn,
+  ProvisionalUtterance,
+  ProvisionalUtteranceAddedEvent,
+  Utterance,
+  UtteranceAddedEvent,
+} from './events';
 
-/** IDs identify one finalized source line, so retransmission cannot duplicate a turn. */
-export type TranscriptSegment = {
-  id: string;
-  sourceId: string;
-  text: string;
-  speaker?: string;
-  startMs?: number;
-  endMs?: number;
-};
-
-export type TranscriptTurn = {
-  id: string;
-  sourceId: string;
-  text: string;
-  speaker?: string;
-  startMs?: number;
-  endMs?: number;
-};
-
-/** Provisional updates are transient; only finalized segments and turns need forwarding. */
-export type TranscriptEvent =
-  | { type: 'provisional'; text: string | undefined }
-  | { type: 'segment'; segment: TranscriptSegment }
-  | { type: 'turn'; turn: TranscriptTurn }
-  | { type: 'reset' };
-
-export const makeTranscriptIngestionPlugin = <TEvent = never>({
+export const makeTranscriptIngestionPlugin = ({
   turnSilenceMs = 1400,
-  forward,
 }: {
   turnSilenceMs?: number;
-  /** Map and forward selected local events into a host-owned event log or other sink. */
-  forward?: {
-    createEvent: (event: TranscriptEvent) => TEvent | undefined;
-    emitEvent: (event: TEvent) => void;
-  };
 } = {}) => {
   if (!Number.isFinite(turnSilenceMs) || turnSilenceMs < 0) {
     throw new Error('turnSilenceMs must be a nonnegative number');
@@ -44,145 +21,155 @@ export const makeTranscriptIngestionPlugin = <TEvent = never>({
 
   return makeKatakitPlugin({
     type: 'TranscriptIngestion',
-    configure: (_options: {}) => ({ events: new Subject<TranscriptEvent>() }),
-    observables: ({ options }) => {
-      const events$ = options.events.asObservable();
-      const conversationTurns$ = property(
-        events$.pipe(
-          filter(
-            (event): event is Extract<TranscriptEvent, { type: 'turn' | 'reset' }> =>
-              event.type === 'turn' || event.type === 'reset'
-          ),
-          scan(
-            (turns: TranscriptTurn[], event) =>
-              event.type === 'reset' ? [] : [...turns, event.turn],
-            []
-          ),
-          startWith([] as TranscriptTurn[]),
-          shareReplay({ bufferSize: 1, refCount: true })
-        )
-      );
-      const currentTurn$ = optionalProperty(
-        events$.pipe(
-          scan(
-            (current: TranscriptTurn | undefined, event): TranscriptTurn | undefined => {
-              if (event.type === 'turn' || event.type === 'reset') return undefined;
-              if (event.type !== 'segment') return current;
-              const segment = event.segment;
-              return current
-                ? {
-                    ...current,
-                    text: `${current.text} ${segment.text}`,
-                    endMs: segment.endMs ?? current.endMs,
-                  }
-                : {
-                    id: `${segment.sourceId}\0${segment.id}`,
-                    sourceId: segment.sourceId,
-                    speaker: segment.speaker,
-                    text: segment.text,
-                    startMs: segment.startMs,
-                    endMs: segment.endMs,
-                  };
-            },
-            undefined as TranscriptTurn | undefined
-          ),
-          startWith(undefined),
-          shareReplay({ bufferSize: 1, refCount: true })
-        )
-      );
-      const provisional$ = optionalProperty(
-        events$.pipe(
-          filter(
-            (event): event is Extract<TranscriptEvent, { type: 'provisional' | 'reset' }> =>
-              event.type === 'provisional' || event.type === 'reset'
-          ),
-          scan(
-            (_, event) => (event.type === 'reset' ? undefined : event.text),
-            undefined as string | undefined
-          ),
-          startWith(undefined),
-          shareReplay({ bufferSize: 1, refCount: true })
-        )
-      );
-      const lastHeard$ = optionalProperty(
-        events$.pipe(
-          filter(event => event.type !== 'provisional'),
-          map(() => currentTurn$.get()?.text ?? conversationTurns$.get().at(-1)?.text),
-          startWith(undefined as string | undefined),
-          distinctUntilChanged(),
-          shareReplay({ bufferSize: 1, refCount: true })
-        )
-      );
-      return { events$, conversationTurns$, currentTurn$, provisional$, lastHeard$ };
-    },
-    methods: ({ options, observables }) => {
-      const { currentTurn$, provisional$ } = observables;
-      const seen = new Set<string>();
-      let timer: ReturnType<typeof setTimeout> | undefined;
-      let closed = false;
+    configure: (_options: {}) => ({}),
+    observables: ({ getObservables }) => {
+      const { events$ } = getObservables(EventLogPlugin);
 
-      const publish = (event: TranscriptEvent) => {
-        // Keep the local stream synchronous for low-latency consumers.
-        options.events.next(event);
-        const mapped = forward?.createEvent(event);
-        if (mapped !== undefined) forward?.emitEvent(mapped);
+      const utterances$ = events$.pipe(
+        filter((event): event is UtteranceAddedEvent => event.type === 'utteranceAdded'),
+        map(({ meta: _meta, type: _type, ...utterance }) => utterance)
+      );
+      const collectedUtterances$ = property(
+        utterances$.pipe(
+          scan((utterances, utterance) => [...utterances, utterance], [] as Utterance[]),
+          startWith([] as Utterance[])
+        )
+      );
+
+      const conversationTurns$ = events$.pipe(
+        filter(
+          (event): event is ConversationTurnAddedEvent => event.type === 'conversationTurnAdded'
+        ),
+        map(({ meta: _meta, type: _type, ...conversationTurn }) => conversationTurn)
+      );
+      const collectedConversationTurns$ = property(
+        conversationTurns$.pipe(
+          scan((turns, turn) => [...turns, turn], [] as ConversationTurn[]),
+          startWith([] as ConversationTurn[])
+        )
+      );
+
+      const provisionalUtterances$ = events$.pipe(
+        filter(
+          (event): event is ProvisionalUtteranceAddedEvent =>
+            event.type === 'provisionalUtteranceAdded'
+        ),
+        map(
+          ({ meta: _meta, type: _type, ...provisionalUtterance }) =>
+            provisionalUtterance satisfies ProvisionalUtterance
+        )
+      );
+
+      const provisionalUtterance$ = events$.pipe(
+        filter(
+          (event): event is ProvisionalUtteranceAddedEvent | UtteranceAddedEvent =>
+            event.type === 'provisionalUtteranceAdded' || event.type === 'utteranceAdded'
+        ),
+        map(event => {
+          if (event.type === 'provisionalUtteranceAdded') {
+            const { meta: _meta, type: _type, ...provisional } = event;
+            return provisional;
+          }
+          return null;
+        }),
+        startWith(null),
+        distinctUntilChanged()
+      );
+
+      const pendingConversationTurn$ = property(
+        events$.pipe(
+          filter(
+            (event): event is UtteranceAddedEvent | ConversationTurnAddedEvent =>
+              event.type === 'utteranceAdded' || event.type === 'conversationTurnAdded'
+          ),
+          evolve((acc, event) => {
+            if (event.type === 'conversationTurnAdded') {
+              return [];
+            }
+            const { type: _type, meta: _meta, ...utterance } = event;
+            return [...acc, utterance];
+          }, [] as Utterance[]),
+          evolve(
+            (acc, utterances) => {
+              if (utterances.length === 0) {
+                return null;
+              }
+              const last = utterances[utterances.length - 1]!;
+              if (acc) {
+                return {
+                  ...acc,
+                  endMs: last.endMs,
+                  text: acc.text + ' ' + last.text,
+                } satisfies PendingConversationTurn;
+              } else if (utterances.length === 1) {
+                return {
+                  text: last.text,
+                  startMs: last.startMs,
+                  endMs: last.endMs,
+                } satisfies PendingConversationTurn;
+              } else {
+                throw new Error(
+                  'Unexpected state: multiple utterances without existing accumulators'
+                );
+              }
+            },
+            null as null | PendingConversationTurn
+          )
+        )
+      );
+
+      return {
+        utterances$,
+        collectedUtterances$,
+        conversationTurns$,
+        collectedConversationTurns$,
+        provisionalUtterances$,
+        provisionalUtterance$,
+        pendingConversationTurn$,
       };
-      const clearProvisional = () => {
-        if (provisional$.get() !== undefined) publish({ type: 'provisional', text: undefined });
-      };
-      const flush = () => {
-        if (timer) clearTimeout(timer);
-        timer = undefined;
-        const current = currentTurn$.get();
-        if (current) publish({ type: 'turn', turn: current });
-        clearProvisional();
-      };
-      const schedule = () => {
-        if (timer) clearTimeout(timer);
-        timer = setTimeout(flush, turnSilenceMs);
+    },
+    methods: ({ observables: { pendingConversationTurn$ }, getMethods }) => {
+      const { emitEvent } = getMethods(EventLogPlugin);
+
+      let timer: ReturnType<typeof setTimeout> | null = null;
+
+      const rearmConversationTurnDetector = () => {
+        if (timer) {
+          clearTimeout(timer);
+        }
+        timer = setTimeout(() => {
+          const pendingTurn = pendingConversationTurn$.get();
+          if (pendingTurn) {
+            emitEvent({
+              type: 'conversationTurnAdded',
+              id: crypto.randomUUID(),
+              ...pendingTurn,
+            } satisfies Omit<ConversationTurnAddedEvent, 'meta'>);
+          }
+        }, turnSilenceMs);
       };
 
       return {
-        reset: () => {
-          if (closed) return;
-          if (timer) clearTimeout(timer);
-          timer = undefined;
-          seen.clear();
-          publish({ type: 'reset' });
+        updateProvisionalUtterance: (provisionalUtterance: ProvisionalUtterance) => {
+          emitEvent({
+            type: 'provisionalUtteranceAdded',
+            ...provisionalUtterance,
+          } satisfies Omit<ProvisionalUtteranceAddedEvent, 'meta'>);
         },
-        updateProvisional: (text: string) => {
-          if (!closed) publish({ type: 'provisional', text: text.trim() || undefined });
-        },
-        ingestSegment: (segment: TranscriptSegment) => {
-          if (closed) return;
-          const key = `${segment.sourceId}\0${segment.id}`;
-          if (seen.has(key)) return;
-          const text = segment.text.trim();
-          if (!text) return;
+        ingestUtterance: (utterance: Utterance) => {
+          emitEvent({
+            type: 'utteranceAdded',
+            ...utterance,
+          });
 
-          const current = currentTurn$.get();
-          if (
-            current &&
-            (current.sourceId !== segment.sourceId ||
-              current.speaker !== segment.speaker ||
-              (segment.startMs !== undefined &&
-                current.endMs !== undefined &&
-                segment.startMs - current.endMs > turnSilenceMs))
-          ) {
-            flush();
-          }
-          seen.add(key);
-          clearProvisional();
-          publish({ type: 'segment', segment: { ...segment, text } });
-          schedule();
+          rearmConversationTurnDetector();
         },
-        flush,
         /** Stop the plugin's timer; the host must stop its audio source separately. */
         close: () => {
-          if (closed) return;
-          flush();
-          closed = true;
-          options.events.complete();
+          if (timer) {
+            clearTimeout(timer);
+            timer = null;
+          }
         },
       };
     },

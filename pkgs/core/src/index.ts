@@ -38,3 +38,5 @@ export { type InferObservableValue } from './utils/reactive/observable';
 export { type BackpressureStrategy } from './utils/reactive/backpressure';
 
 export { type EmptyObj } from './utils/EmptyObj';
+
+export { type KatakitEvent } from './EventLog/event';
