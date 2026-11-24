@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const packages = ['core', 'event-log', 'transcript-ingestion', 'transcription'];
+const packages = ['core', 'event-log', 'react', 'transcript-ingestion', 'transcription'];
 
 export const runPnpm = (cwd, args) => {
   const cli = process.env.npm_execpath;

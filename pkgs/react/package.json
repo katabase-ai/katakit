@@ -1,7 +1,7 @@
 {
   "name": "@katakit/react",
   "version": "0.1.0",
-  "description": "Placeholder for future Katakit-specific React APIs.",
+  "description": "Katakit developer tools for React applications.",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -10,7 +10,8 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "THIRD_PARTY_NOTICES.txt"
   ],
   "type": "module",
   "sideEffects": false,
@@ -18,18 +19,11 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "source": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     }
   },
   "publishConfig": {
-    "exports": {
-      ".": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
-      }
-    },
     "access": "public"
   },
   "scripts": {
@@ -39,17 +33,27 @@
     "test": "vitest",
     "test:ci": "vitest run --passWithNoTests"
   },
+  "dependencies": {
+    "@base-ui/react": "^1.9.0",
+    "@jridgewell/trace-mapping": "^0.3.31",
+    "react-resizable": "^4.0.2",
+    "rxjs": "^7.8.2",
+    "tailwind-variants": "^4.0.2"
+  },
   "devDependencies": {
+    "@iconify-json/lucide": "^1.2.158",
     "@katakit/core": "workspace:*",
     "@testing-library/react": "^16.1.0",
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
     "happy-dom": "^18.0.1",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "unocss": "66.13.0"
   },
   "peerDependencies": {
     "@katakit/core": "workspace:^",
-    "react": "^19.0.0"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   }
 }

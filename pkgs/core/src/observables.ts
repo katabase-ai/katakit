@@ -8,6 +8,23 @@ export type GetObservables = <TObservables extends ObservablesObj>(
   plugin: KatakitPlugin<any, TObservables, any> | ConfiguredKatakitPlugin<TObservables, any>
 ) => TObservables;
 
+// Private, versioned handshake with the optional browser recorder. A recorder
+// failure must not prevent construction or cause a plugin factory to run twice.
+const inspectObservables = (
+  runtime: object,
+  plugin: string,
+  streams: ObservablesObj
+): ObservablesObj => {
+  try {
+    const inspect = Reflect.get(globalThis, Symbol.for('katakit.devtools.observables.v1')) as
+      | ((runtime: object, plugin: string, streams: ObservablesObj) => ObservablesObj)
+      | undefined;
+    return typeof inspect === 'function' ? (inspect(runtime, plugin, streams) ?? streams) : streams;
+  } catch {
+    return streams;
+  }
+};
+
 export const makeGetObservables = ({
   plugins,
 }: {
@@ -24,8 +41,9 @@ export const makeGetObservables = ({
     if (cached) return cached as TObservables;
 
     const observables = found.observables({ getObservables });
-    observablesByPlugin.set(found, observables);
-    return observables;
+    const exposed = inspectObservables(getObservables, found.type, observables);
+    observablesByPlugin.set(found, exposed);
+    return exposed as TObservables;
   };
   return getObservables;
 };

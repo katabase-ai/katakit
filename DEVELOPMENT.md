@@ -122,7 +122,7 @@ its configuration.
 
 Use [React-RxJS](docs/pages/reference/react.md#react-rxjs-bindings) for React subscriptions to runtime
 observables. The optional microphone ownership hook is exported from
-`@katakit/transcription/react`; `@katakit/react` remains reserved for future APIs.
+`@katakit/transcription/react`; the observable timeline is available from `@katakit/react`.
 
 ## Stateful plugins
 

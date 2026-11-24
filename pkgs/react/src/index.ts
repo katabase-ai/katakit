@@ -1,2 +1,1 @@
-// React bindings are not implemented yet; keep the declared package entry point buildable.
-export {};
+export { KatakitDevTools } from './dev-tools.js';

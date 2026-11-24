@@ -1,3 +1,4 @@
+import { KatakitDevTools } from '@katakit/react';
 import { useMicrophoneTranscriber } from '@katakit/transcription/react';
 import { Button } from './controls';
 import { AudioLevelMeter } from './AudioLevelMeter';
@@ -28,6 +29,7 @@ export const BrowserBingoDemo = () => {
 
 export const App = () => (
   <main>
+    {import.meta.env.DEV && <KatakitDevTools />}
     <BrowserBingoDemo />
   </main>
 );

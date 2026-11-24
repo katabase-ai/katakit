@@ -1,17 +1,62 @@
 # @katakit/react
 
-`@katakit/react` is the home of Katakit's optional developer workbench: a panel for inspecting
-a running application's plugins, observable state, and execution. Applications render their own
-runtime state with [React-RxJS bindings](#react-rxjs-bindings), described below.
+`@katakit/react` provides a browser timeline for inspecting observable deliveries.
+Applications render their own runtime state with [React-RxJS bindings](#react-rxjs-bindings).
+
+## Observable timeline
+
+Gate the component with your bundler’s development flag (shown here for Vite):
+
+```tsx
+import { KatakitDevTools } from '@katakit/react';
+
+export const App = () => (
+  <>
+    {import.meta.env.DEV && <KatakitDevTools />}
+    <MyApplication />
+  </>
+);
+```
+
+Capture starts in the component’s layout effect. Create the runtime’s observable
+collections after that point, for example in an application effect or an event
+handler. Placing the panel first in JSX does not capture collections created at
+module scope or during render: the runtime caches each collection on first access.
+
+Expand **Katakit devtools** and hover, tap, or keyboard-focus a dot. Each lane is
+a named observable in one runtime. Each dot is one `next` delivery to an existing
+subscriber; two subscribers get two dots. The panel does not subscribe to sources.
+Subscriptions made inside a plugin before it returns its observables are not observed.
+
+**Stack at delivery** shows application frames first, with the full stack one click
+away. Same-origin source maps are resolved on inspection. For replayed values the
+stack may show the subscription; for scheduled work it may show the scheduler.
+The panel keeps the last 500 deliveries, even while collapsed. Object previews
+read current fields rather than taking a deep snapshot. In the value preview, open an object
+or array to explore its children. Large collections show 32 fields per page;
+accessor properties are labeled rather than invoked. Mounted panels share a
+recording. After the last panel unmounts, the recording is discarded without
+stopping the runtime. A later mount records newly created observable collections;
+it does not reconnect to collections cached by an earlier recording.
+
+When zoomed in, scroll the wheel down to pan right or up to pan left; no Shift key
+is needed. Dragging and horizontal trackpad scrolling also pan. Ctrl/Cmd-wheel zooms under the pointer. **Fit**
+shows the full recording, and **Follow** keeps the latest deliveries in view.
+Click a marker to pin it; numbered markers cycle through nearby deliveries.
+Use **Lanes** to search and toggle observable visibility without changing capture.
+Drag the top or left edge (or the top-left corner) to resize the panel. Its minimum is
+360 × 320 px, capped by the available viewport. Collapsing and reopening preserves the size.
+The package ships its compiled UnoCSS theme inside an isolated shadow root.
+The panel loads Inter for interface text and JetBrains Mono for code and values
+from Google Fonts. If the provider is unavailable, it uses system fallbacks.
+
+## Developer workbench
 
 **Workbench availability — November 17, 2026:** [PR #27](https://github.com/katabase-ai/katakit/pull/27)
 implemented the workbench and merged into the tracing branch. Its parent
 [PR #38](https://github.com/katabase-ai/katakit/pull/38) has not merged into `main`.
-The developer-tool examples below require the compatible Core and React packages from that branch;
-the `dev-tools` entry points do not exist in `main`. React-RxJS bindings and the transcription
-hook work independently of those changes.
-
-## Developer workbench
+The richer workbench examples in this section require that branch's Core and React
+packages. They are separate from the observable timeline above.
 
 The workbench starts collapsed below the application. Capture continues while it is collapsed
 or showing another view. It provides:
