@@ -1,101 +1,30 @@
 import { lazy } from 'react';
 import {
+  galleryDemoDetails,
   transcriptionDemoDetails,
   bingoDemoDetails,
   notesDemoDetails,
   colorClashDemoDetails,
   listExtractionDemoDetails,
   brainstormDemoDetails,
+  type GalleryDemoMetadata,
 } from './galleryDemoDetails';
-import { GalleryCaptureControls } from './GalleryCaptureControls';
-import { GalleryDemo } from './GalleryDemo';
-import { TranscriptionIntroduction } from './TranscriptionIntroduction';
-import { useGalleryDemoHeader } from './GalleryDemoHeader';
 
-// Named entries let another host import only its selected demos. Lazy construction is inert,
-// so unused eligible entries can be removed without retaining their module loaders.
-export const transcriptionGalleryDemo = {
-  ...transcriptionDemoDetails,
-  component: /* @__PURE__ */ lazy(async () => {
-    const [{ TranscriptionDemo }, { createTranscriptionDemo }] = await Promise.all([
-      import('../../examples/demos/transcription-react/src/TranscriptionDemo'),
-      import('../../examples/demos/transcription-react/src/createTranscriptionDemo'),
-    ]);
-    return {
-      default: () => {
-        const hasHeader = useGalleryDemoHeader();
-        return (
-          <GalleryDemo
-            create={createTranscriptionDemo}
-            render={runtime => (
-              <TranscriptionDemo
-                runtime={runtime}
-                controls={<GalleryCaptureControls />}
-                introduction={<TranscriptionIntroduction />}
-                showIntroduction={!hasHeader}
-              />
-            )}
-          />
-        );
-      },
-    };
-  }),
-};
-export const bingoGalleryDemo = {
-  ...bingoDemoDetails,
-  component: /* @__PURE__ */ lazy(async () => {
-    const [{ BrowserBingoDemo }, { createBrowserBingoDemo }] = await Promise.all([
-      import('../../examples/demos/bingo-react/src/BrowserBingoDemo'),
-      import('../../examples/demos/bingo-react/src/createBrowserBingoDemo'),
-    ]);
-    return {
-      default: () => {
-        const hasHeader = useGalleryDemoHeader();
-        return (
-          <GalleryDemo
-            create={createBrowserBingoDemo}
-            render={runtime => (
-              <BrowserBingoDemo
-                runtime={runtime}
-                controls={<GalleryCaptureControls />}
-                showIntroduction={!hasHeader}
-              />
-            )}
-          />
-        );
-      },
-    };
-  }),
-};
-export const notesGalleryDemo = {
-  ...notesDemoDetails,
-  component: /* @__PURE__ */ lazy(async () => ({
-    default: (await import('./NotesGalleryDemo')).NotesGalleryDemo,
-  })),
-};
-export const colorClashGalleryDemo = {
-  ...colorClashDemoDetails,
-  component: /* @__PURE__ */ lazy(async () => ({
-    default: (await import('./ColorClashGalleryDemo')).ColorClashGalleryDemo,
-  })),
-};
-export const listExtractionGalleryDemo = {
-  ...listExtractionDemoDetails,
-  component: /* @__PURE__ */ lazy(async () => ({
-    default: (await import('./ListExtractionGalleryDemo')).ListExtractionGalleryDemo,
-  })),
-};
-export const brainstormGalleryDemo = {
-  ...brainstormDemoDetails,
-  component: /* @__PURE__ */ lazy(async () => ({
-    default: (await import('./BrainstormGalleryDemo')).BrainstormGalleryDemo,
-  })),
-};
-export const galleryDemos = [
-  transcriptionGalleryDemo,
-  bingoGalleryDemo,
-  notesGalleryDemo,
-  listExtractionGalleryDemo,
-  colorClashGalleryDemo,
-  brainstormGalleryDemo,
-];
+/** Registration is inert: React invokes the loader only when the component is rendered. */
+export const registerGalleryDemo = <T extends GalleryDemoMetadata>(details: T) => ({
+  ...details,
+  component: lazy(details.load),
+});
+
+/** Named selections avoid retaining the aggregate catalogue in narrow host bundles. */
+export const transcriptionGalleryDemo =
+  /* @__PURE__ */ registerGalleryDemo(transcriptionDemoDetails);
+export const bingoGalleryDemo = /* @__PURE__ */ registerGalleryDemo(bingoDemoDetails);
+export const notesGalleryDemo = /* @__PURE__ */ registerGalleryDemo(notesDemoDetails);
+export const colorClashGalleryDemo = /* @__PURE__ */ registerGalleryDemo(colorClashDemoDetails);
+export const listExtractionGalleryDemo =
+  /* @__PURE__ */ registerGalleryDemo(listExtractionDemoDetails);
+export const brainstormGalleryDemo = /* @__PURE__ */ registerGalleryDemo(brainstormDemoDetails);
+
+/** All eligible demos follow catalogue order; hosts can instead import named selections. */
+export const galleryDemos = /* @__PURE__ */ galleryDemoDetails.map(registerGalleryDemo);

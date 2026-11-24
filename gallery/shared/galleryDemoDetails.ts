@@ -23,7 +23,7 @@ export const requiresGalleryCapability = (
   capability: keyof GalleryRequiredCapabilities
 ) => requirements[capability] !== undefined;
 
-type GalleryDemoMetadata = {
+export type GalleryDemoMetadata = {
   readonly id: string;
   readonly sourcePath: string;
   readonly title: string;
@@ -32,6 +32,7 @@ type GalleryDemoMetadata = {
   readonly tags: readonly ('game' | 'transcription' | 'productivity')[];
   /** Directory name for a local copy; only demos with their own example directory have one. */
   readonly copyDirectory?: string;
+  readonly load: () => Promise<{ default: import('react').ComponentType }>;
 };
 
 /**
@@ -46,6 +47,10 @@ export const transcriptionDemoDetails = {
   description: 'Your browser turns microphone audio into text on this device.',
   requiredCapabilities: { microphone: true, localTranscription: { audio: 'device' } },
   tags: ['transcription'],
+  load: () =>
+    import('./TranscriptionGalleryDemo').then(module => ({
+      default: module.TranscriptionGalleryDemo,
+    })),
 } as const satisfies GalleryDemoMetadata;
 export const bingoDemoDetails = {
   id: 'bingo',
@@ -55,6 +60,7 @@ export const bingoDemoDetails = {
   description: 'Say it in the conversation. See it on the card. Five in a row wins!',
   requiredCapabilities: { microphone: true, localTranscription: { audio: 'device' } },
   tags: ['game'],
+  load: () => import('./BingoGalleryDemo').then(module => ({ default: module.BingoGalleryDemo })),
 } as const satisfies GalleryDemoMetadata;
 export const notesDemoDetails = {
   id: 'notes',
@@ -68,6 +74,7 @@ export const notesDemoDetails = {
     remoteModel: { transcribedText: 'cloud' },
   },
   tags: ['productivity'],
+  load: () => import('./NotesGalleryDemo').then(module => ({ default: module.NotesGalleryDemo })),
 } as const satisfies GalleryDemoMetadata;
 export const colorClashDemoDetails = {
   id: 'color-clash',
@@ -76,6 +83,8 @@ export const colorClashDemoDetails = {
   description: 'Say the ink color, not the word. Speech stays on your device.',
   requiredCapabilities: { microphone: true, localTranscription: { audio: 'device' } },
   tags: ['game'],
+  load: () =>
+    import('./ColorClashGalleryDemo').then(module => ({ default: module.ColorClashGalleryDemo })),
 } as const satisfies GalleryDemoMetadata;
 export const brainstormDemoDetails = {
   id: 'brainstorm',
@@ -89,6 +98,8 @@ export const brainstormDemoDetails = {
     remoteModel: { transcribedText: 'cloud' },
   },
   tags: ['game'],
+  load: () =>
+    import('./BrainstormGalleryDemo').then(module => ({ default: module.BrainstormGalleryDemo })),
 } as const satisfies GalleryDemoMetadata;
 
 export const listExtractionDemoDetails = {
@@ -103,6 +114,10 @@ export const listExtractionDemoDetails = {
     remoteModel: { transcribedText: 'cloud' },
   },
   tags: ['productivity'],
+  load: () =>
+    import('./ListExtractionGalleryDemo').then(module => ({
+      default: module.ListExtractionGalleryDemo,
+    })),
 } as const satisfies GalleryDemoMetadata;
 
 /** Ordered directory for gallery hosts; the named loaders do not depend on these positions. */
