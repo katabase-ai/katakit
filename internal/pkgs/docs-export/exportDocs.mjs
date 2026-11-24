@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { dirname, join, posix, relative, resolve } from 'node:path';
+import { dirname, join, posix, relative as relativePath, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseArgs } from 'node:util';
 import { performance } from 'node:perf_hooks';
@@ -17,6 +17,8 @@ import { renderPluginReference } from './renderPluginReference.mjs';
 
 const directory = dirname(fileURLToPath(import.meta.url));
 const root = resolve(directory, '../../..');
+const portable = path => path.split(sep).join('/');
+const relative = (from, to) => portable(relativePath(from, to));
 const packages = [
   'core',
   'event-log',
@@ -88,12 +90,14 @@ export const exportDocs = async ({ output }) => {
         nonCodeExports.push({ package: manifest.name, subpath, target: conditions });
         continue;
       }
-      if (!conditions.source) throw new Error(`${manifest.name} ${subpath} has no source export`);
-      entryPoints.push(join(packageRoot, conditions.source));
+      // The React entry needs its JSX styles compiled before it can be consumed.
+      const source = conditions.source ?? (name === 'react' && subpath === '.' ? './src/index.ts' : undefined);
+      if (!source) throw new Error(`${manifest.name} ${subpath} has no source export`);
+      entryPoints.push(portable(join(packageRoot, source)));
       coverage.push({
         package: manifest.name,
         subpath,
-        sourcePath: relative(root, join(packageRoot, conditions.source)),
+        sourcePath: relative(root, join(packageRoot, source)),
       });
     }
   }

@@ -1,0 +1,222 @@
+import * as v from 'valibot';
+import { GalleryModelError, type GalleryModelConnect } from './galleryModel';
+
+export const inferenceStorageKey = 'katakit.gallery.inference.v1';
+export const defaultInference = {
+  source: 'free' as 'free' | 'key',
+  key: '',
+  model: 'z-ai/glm-5.3',
+  endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+};
+export type GalleryInference = typeof defaultInference;
+
+export const validateInference = (input: GalleryInference): GalleryInference => {
+  const settings = {
+    source: input.source,
+    key: input.key.trim(),
+    model: input.model.trim(),
+    endpoint: input.endpoint.trim(),
+  };
+  if (!['free', 'key'].includes(settings.source)) throw new Error('Choose an inference source.');
+  if (settings.source === 'key' && !settings.key) throw new Error('Enter an OpenRouter API key.');
+  if (/[\r\n]/.test(settings.key)) throw new Error('Enter a valid API key.');
+  if (!settings.model) throw new Error('Enter a model ID.');
+  let url: URL;
+  try {
+    url = new URL(settings.endpoint);
+  } catch {
+    throw new Error('Enter a full chat-completions endpoint URL.');
+  }
+  const local = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
+  if (
+    !(url.protocol === 'https:' || (local && url.protocol === 'http:')) ||
+    url.username ||
+    url.password ||
+    url.search ||
+    url.hash
+  )
+    throw new Error(
+      'Use HTTPS (or local HTTP), with no credentials, query, or fragment in the URL.'
+    );
+  return settings;
+};
+
+/** One root-owned source lifetime, including changes made in another tab. No network on save. */
+export const createGalleryInference = (
+  storage: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>
+) => {
+  const read = (): GalleryInference => {
+    try {
+      const saved: unknown = JSON.parse(storage.getItem(inferenceStorageKey) ?? 'null');
+      if (typeof saved !== 'object' || !saved) return { ...defaultInference };
+      const value = saved as Record<string, unknown>;
+      if (
+        typeof value.key !== 'string' ||
+        typeof value.model !== 'string' ||
+        typeof value.endpoint !== 'string' ||
+        (value.source !== 'free' && value.source !== 'key')
+      )
+        return { ...defaultInference };
+      return validateInference(value as GalleryInference);
+    } catch {
+      return { ...defaultInference };
+    }
+  };
+  let settings = read();
+  let lifetime = new AbortController();
+  const listeners = new Set<() => void>();
+  const replace = (next: GalleryInference) => {
+    lifetime.abort();
+    lifetime = new AbortController();
+    settings = next;
+    listeners.forEach(listener => listener());
+  };
+  return {
+    getSnapshot: () => settings,
+    getSignal: () => lifetime.signal,
+    subscribe: (listener: () => void) => {
+      listeners.add(listener);
+      return () => {
+        listeners.delete(listener);
+      };
+    },
+    save: (next: GalleryInference) => {
+      const validated = validateInference(next);
+      try {
+        storage.setItem(inferenceStorageKey, JSON.stringify(validated));
+      } catch {
+        throw new Error(
+          'Could not save settings in this browser. Allow local storage and try again.'
+        );
+      }
+      replace(validated);
+    },
+    remove: () => {
+      try {
+        storage.removeItem(inferenceStorageKey);
+      } catch {
+        throw new Error('Could not remove the saved key. Allow local storage and try again.');
+      }
+      replace({ ...defaultInference });
+    },
+    reload: () => replace(read()),
+    /** Pause a source lifetime without changing or persisting developer settings. */
+    invalidate: () => replace(settings),
+    dispose: () => {
+      lifetime.abort();
+      listeners.clear();
+    },
+  };
+};
+
+const responseUsageSchema = v.object({
+  usage: v.object({ total_tokens: v.pipe(v.number(), v.integer(), v.minValue(0)) }),
+});
+
+/** Visitor-owned transport reports received token usage independently of host allowance. */
+export const connectWithKey =
+  (
+    settings: GalleryInference,
+    sourceSignal: AbortSignal,
+    {
+      request = fetch,
+      onTokenUsage,
+    }: {
+      request?: typeof fetch;
+      /** Undefined means this response omitted a valid token total; never estimate it. */
+      onTokenUsage?: (tokens?: number) => void;
+    } = {}
+  ): GalleryModelConnect =>
+  async ({ signal }) => {
+    const config = validateInference(settings);
+    const lifetime = AbortSignal.any([signal, sourceSignal]);
+    lifetime.throwIfAborted();
+    const requestModel = async (
+      endpoint: string,
+      { body, signal: requestSignal }: { body: string; signal: AbortSignal }
+    ) => {
+      const combined = AbortSignal.any([lifetime, requestSignal]);
+      combined.throwIfAborted();
+      try {
+        const response = await request(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${config.key}` },
+          body,
+          signal: combined,
+          credentials: 'omit',
+          referrerPolicy: 'no-referrer',
+          redirect: 'error',
+        });
+        combined.throwIfAborted();
+        if (!response.ok) {
+          // Another attempt cannot fix a rejected key, missing credits, or an unsupported
+          // model, so only rate limits and provider faults keep the automatic retries.
+          const status = response.status;
+          throw status === 401 || status === 403
+            ? new GalleryModelError(
+                'The provider rejected your key. Check it in Inference settings.',
+                { retryLimit: 0 }
+              )
+            : status === 402
+              ? new GalleryModelError(
+                  'Your provider account needs credits. Check your provider account or choose Free demo.',
+                  { retryLimit: 0 }
+                )
+              : status === 429
+                ? new GalleryModelError('The provider is rate limiting requests.', {
+                    retryAfterMs: 2000,
+                  })
+                : status === 400 || status === 404 || status === 422
+                  ? new GalleryModelError(
+                      'Check the model ID and structured-output support in Configure models, and the endpoint under Advanced.',
+                      { retryLimit: 0 }
+                    )
+                  : new GalleryModelError('The provider could not complete this request.');
+        }
+        const result: unknown = await response.json();
+        combined.throwIfAborted();
+        // Count each received completion, including responses the demo rejects and retries.
+        const usage = v.safeParse(responseUsageSchema, result);
+        const decisionUsage = v.safeParse(
+          v.object({
+            usage: v.object({
+              input_tokens: v.pipe(v.number(), v.integer(), v.minValue(0)),
+              output_tokens: v.pipe(v.number(), v.integer(), v.minValue(0)),
+            }),
+          }),
+          result
+        );
+        onTokenUsage?.(
+          usage.success
+            ? usage.output.usage.total_tokens
+            : decisionUsage.success
+              ? decisionUsage.output.usage.input_tokens + decisionUsage.output.usage.output_tokens
+              : undefined
+        );
+        return result;
+      } catch (error) {
+        combined.throwIfAborted();
+        if (error instanceof GalleryModelError) throw error;
+        // Do not surface provider bodies or native fetch errors: either can contain credentials/URLs.
+        throw new GalleryModelError(
+          'Could not reach the model. Check your endpoint, network, and browser access (CORS).'
+        );
+      }
+    };
+    return {
+      model: config.model,
+      maxBodyBytes: 65_536,
+      maxOutputTokens: 2048,
+      requestCompletion: input => requestModel(config.endpoint, input),
+      // A custom chat endpoint does not imply a compatible decision endpoint or credentials.
+      decisions:
+        config.endpoint === defaultInference.endpoint
+          ? {
+              model: 'typesafe/jev-1.13',
+              maxQuestions: 16,
+              requestDecision: input =>
+                requestModel('https://openrouter.ai/api/alpha/decisions', input),
+            }
+          : undefined,
+    };
+  };

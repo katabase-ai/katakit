@@ -47,8 +47,8 @@ entry points. JSON metadata exports are recorded separately in `nonCodeExports`.
 
 `internal/pkgs/docs-export` owns API extraction with TypeDoc 0.28.20, its Markdown plugin 4.14.1,
 and supported TypeScript 6.0.3. Application checking remains on TypeScript 7. Export validates
-actual public package entry points and guide links, and fails conversion errors. React currently
-has no public symbols; the manifest reports that without inventing an API page.
+actual public package entry points and guide links, and fails conversion errors.
+React devtools are covered by the `@katakit/react` entry point.
 
 ## Bundle contract
 

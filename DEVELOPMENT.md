@@ -19,6 +19,7 @@ Choose placement by what the code ships and who owns its behavior:
 | `examples/demos/<name>/`    | Private feature applications in the root workspace.                              | Ordinary library versions and local application files; no private workspace package dependencies.   |
 | `examples/starters/<name>/` | Private, independently installed platform starters outside the root workspace.   | Registry dependencies and local application files; no outside files.                                |
 | `docs/`                     | Authored guides and a private workspace viewer.                                  | Public APIs and plain internal CSS; the exporter owns the portable bundle.                          |
+| `gallery/`                  | Private gallery host and portable gallery modules in the root workspace.         | Composes demo source and internal CSS; standalone copies materialize those inputs.                  |
 
 Root `scripts/` orchestrates repository checks and copying; use a private tool package when a
 build tool needs its own dependencies. Do not turn an asset directory into a package merely to
@@ -35,7 +36,7 @@ recursive ordering can miss local dependency edges when registry pins differ fro
 No example source or asset may be a symlink. A feature demo or starter must not import sibling
 examples or files elsewhere in the repository.
 
-The gallery is an explicit composition exception: it imports the three feature demos' `src/`
+The root `gallery/` host is an explicit composition exception: it imports feature demos' `src/`
 directories and plain internal CSS. Its copy workflow carries those inputs as regular files and
 rewrites the copied imports. When adding another gallery source input, update the gallery's
 own dependencies, the copy inputs in `scripts/copy-example.mjs`, and the corresponding narrow
@@ -97,7 +98,8 @@ Run commands from the repository root:
 For focused work, use `pnpm --filter <package-name> <command>`. Before submitting, run the
 checks appropriate to the change; the CI workflow runs the full set. For template changes,
 also follow the manual platform checks in [examples/starters/README.md](examples/starters/README.md).
-To check one copy, use `pnpm demos:copy-check gallery` or `pnpm templates:copy-check react-web`.
+To check one copy, use `pnpm gallery:copy-check`, `pnpm demos:copy-check notes-react`, or
+`pnpm templates:copy-check react-web`.
 CI runs structural checks through lint and separately installs/builds/tests all demo and starter
 copies against freshly packed local libraries. The structural checker examines manifests and
 literal module/CSS imports; it is not a complete module resolver and does not evaluate computed
@@ -120,7 +122,7 @@ its configuration.
 
 Use [React-RxJS](docs/pages/reference/react.md#react-rxjs-bindings) for React subscriptions to runtime
 observables. The optional microphone ownership hook is exported from
-`@katakit/transcription/react`; `@katakit/react` remains reserved for future APIs.
+`@katakit/transcription/react`; the observable timeline is available from `@katakit/react`.
 
 ## Stateful plugins
 
@@ -170,7 +172,7 @@ Run the local gallery with:
 pnpm -F @katakit/gallery dev
 ```
 
-The [gallery README](examples/demos/gallery/README.md) covers adding entries, building the host,
+The [gallery README](gallery/README.md) covers adding entries, building the host,
 shared input ownership, model connections, and microphone hosting requirements.
 The [starter guides](docs/pages/starters/README.md) help users choose a platform;
 [template contributor guidance](examples/starters/README.md) defines copyability and verification.
@@ -184,13 +186,13 @@ extension; `pnpm bingo:check-copy` checks that those copies agree.
 ## Website source consumers
 
 A pinned website must update its source aliases when adopting this layout. In Protozoa's
-`pkgs/website`, change `.katakit/source/demos/gallery/shared` to
-`.katakit/source/examples/demos/gallery/shared` in both `tsconfig.json` and `vite.config.ts`.
-Source links must use `examples/demos/` too. Adopt the new source SHA together with those
+`pkgs/website`, change `.katakit/source/examples/demos/gallery/shared` (or the older
+`.katakit/source/demos/gallery/shared`) to
+`.katakit/source/gallery/shared` in both `tsconfig.json` and `vite.config.ts`.
+Feature-demo source links use `examples/demos/`; gallery-owned source links use `gallery/`.
+Adopt the new source SHA together with those
 changes; existing pins keep their old layout. `prepareKatakitRuntime.mjs` still builds libraries
 under `pkgs/`, and `prepareDocs.mjs` still invokes `pnpm docs:export`.
-The open Color Clash PR also needs its new gallery files moved beneath `examples/demos/`
-when rebased; this structural change does not incorporate that feature.
 
 ## Pull request previews
 

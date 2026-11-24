@@ -12,10 +12,11 @@ const dependencyFields = [
 const localOrExternalSource =
   /^(?:workspace:|file:|link:|portal:|git(?:\+|:)|github:|https?:|ssh:)/i;
 
-export const checkTemplateManifests = (directory = templates) => {
+export const checkTemplateManifests = (directory = templates, names) => {
   const problems = [];
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
+    if (names && !names.includes(entry.name)) continue;
     const manifestPath = join(directory, entry.name, 'package.json');
     for (const required of ['README.md', 'LICENSE']) {
       try {

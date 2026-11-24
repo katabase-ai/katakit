@@ -76,6 +76,8 @@ describe('published packages', () => {
       for (const dependency of Object.keys({
         ...packed.dependencies,
         ...packed.peerDependencies,
+        // The fixture is a TypeScript React consumer; provide its normal JSX declarations.
+        ...(name === 'react' ? { '@types/react': true } : {}),
       })) {
         if (dependency.startsWith('@katakit/')) continue;
         const target = join(fixture.consumer, 'node_modules', dependency);
@@ -103,7 +105,7 @@ describe('published packages', () => {
         import { makeKatakit } from '@katakit/core';
         import { makeEventLogPlugin } from '@katakit/event-log';
         import { makeEventPersistencePlugin, makeLocalStorageEventPersistencePlugin } from '@katakit/persistence';
-        import * as react from '@katakit/react';
+        import { KatakitDevTools } from '@katakit/react';
         const EventLogPlugin = makeEventLogPlugin({
           validateEvent: {
             '~standard': { version: 1, vendor: 'smoke-test', validate: value => ({ value }) },
@@ -124,7 +126,7 @@ describe('published packages', () => {
         assert.deepEqual(saved, [2]);
         assert.deepEqual(runtime.getObservables(EventLogPlugin).events$.getAll(), [1, 2]);
         assert.equal(typeof makeLocalStorageEventPersistencePlugin, 'function');
-        assert.equal(typeof react, 'object');
+        assert.equal(typeof KatakitDevTools, 'function');
       `
     );
     await writeFile(
@@ -133,8 +135,9 @@ describe('published packages', () => {
         import { makeEffect, makeKatakit, makeKatakitPlugin, type Effect } from '@katakit/core';
         import { makeEventLogPlugin } from '@katakit/event-log';
         import { makeEventPersistencePlugin, makeLocalStorageEventPersistencePlugin } from '@katakit/persistence';
-        import * as react from '@katakit/react';
+        import { KatakitDevTools } from '@katakit/react';
         import { of, type Observable } from 'rxjs';
+        const component = KatakitDevTools;
         const EventLogPlugin = makeEventLogPlugin<{ text: string }>({
           validateEvent: {
             '~standard': {
@@ -224,7 +227,7 @@ describe('published packages', () => {
     const local = JSON.parse(
       await readFile(join(repository, 'pkgs', name, 'package.json'), 'utf8')
     );
-    expect(local.exports['.'].source).toBe('./src/index.ts');
+    expect(local.exports['.'].source).toBe(name === 'react' ? undefined : './src/index.ts');
   });
 
   test.each([
