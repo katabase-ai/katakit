@@ -11,6 +11,7 @@ import {
 // oxlint-disable-next-line import/no-default-export -- UnoCSS loads the default export.
 export default defineConfig({
   extractorDefault: false,
+  content: { pipeline: { include: [/\.tsx$/, /\.classes\.ts$/] } },
   shortcuts: {
     'tool-button-chrome':
       'shrink-0 items-center justify-center gap-1.5 rounded-md font-medium text-xs cursor-pointer outline-none transition-colors focus-visible:ring-2 focus-visible:ring-teal-300 disabled:opacity-40 disabled:cursor-default',
@@ -32,10 +33,12 @@ export default defineConfig({
   ],
   transformers: [
     transformerVariantGroup(),
-    // Compile JSX className literals and explicit :uno: strings in button variants.
-    compileClass({
-      classPrefix: 'kk-',
-      trigger: /(["'])(?:(?<=\bclassName\s*=\s*["'])|:uno:\s+)([\s\S]*?)\1/g,
-    }),
+    compileClass({ classPrefix: 'kk-', trigger: /(?<=\bclassName\s*=\s*)(["'])([\s\S]*?)\1/g }),
+    // In class maps every string value is a class list, even a single utility.
+    {
+      ...compileClass({ classPrefix: 'kk-', trigger: /(?<=:\s*)(["'])([\s\S]*?)\1/g }),
+      name: 'katakit:compile-class-map',
+      idFilter: id => id.endsWith('.classes.ts'),
+    },
   ],
 });
