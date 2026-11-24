@@ -75,6 +75,7 @@ export const GalleryCaptureControls = (
           label: string;
           onClick: () => void;
           disabled?: boolean;
+          'aria-disabled'?: boolean;
           secondary?: boolean;
           className?: string;
         };
