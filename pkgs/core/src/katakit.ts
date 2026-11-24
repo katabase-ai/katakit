@@ -21,21 +21,20 @@ export type AliveKatakit = {
   getMethods: GetMethods;
 };
 
+const assertNoDuplicatePlugins = (plugins: readonly { type: string }[]) => {
+  const seen = new Set<string>();
+  for (const plugin of plugins) {
+    assert(!seen.has(plugin.type), `Duplicate plugin type: ${plugin.type}`);
+    seen.add(plugin.type);
+  }
+};
+
 export const makeKatakit = <TConfiguredKatakitPlugins extends ConfiguredKatakitPlugin<any, any>[]>(
   config: KatakitConfig<TConfiguredKatakitPlugins>
 ): Katakit => {
-  const { plugins: userPlugins, existingEvents } = config;
-
-  // Lookups use the plugin type, so a configured (e.g. schema-validating)
-  // EventLog must serve both handles rather than being shadowed by the default.
-  const hasEventLog = userPlugins.some(plugin => plugin.type === EventLogPlugin.type);
-  assert(
-    !hasEventLog || existingEvents === undefined,
-    'Supply history on the configured EventLog plugin instead of passing existingEvents'
-  );
-  const plugins = hasEventLog
-    ? userPlugins
-    : [EventLogPlugin.configure({ existingEvents: existingEvents ?? [] }), ...userPlugins];
+  const { plugins: userPlugins, existingEvents = [] } = config;
+  const plugins = [EventLogPlugin.configure({ existingEvents }), ...userPlugins];
+  assertNoDuplicatePlugins(plugins);
 
   const getObservables = makeGetObservables({ plugins });
 

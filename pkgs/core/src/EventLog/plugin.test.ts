@@ -1,6 +1,12 @@
 import { expect, expectTypeOf, test } from 'vitest';
 import { EventLogPlugin, makeKatakit } from '../index';
 
+test('the built-in log cannot be registered manually, even with no runtime history', () => {
+  expect(() =>
+    makeKatakit({ plugins: [EventLogPlugin.configure({ existingEvents: [] })] })
+  ).toThrow('Duplicate plugin type: EventLog');
+});
+
 test('replays restored history before start, then delivers live events on the same stream', () => {
   const kit = makeKatakit({ plugins: [], existingEvents: ['first', 'second'] });
   const { events$ } = kit.getObservables(EventLogPlugin);
