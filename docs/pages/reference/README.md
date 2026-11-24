@@ -8,6 +8,5 @@ Use Reference to configure a building block, look up its methods and observables
 - [@katakit/react](react.md): observable delivery swimlanes, source-mapped stacks, and React-RxJS bindings.
 - [@katakit/transcript-ingestion](plugins/transcript-ingestion.md): assemble finalized transcript segments into conversation turns.
 - [@katakit/transcription](transcription.md): standalone recognition, microphone capture, and WASM/worker setup.
-- [Authoring and hosting gallery demos](gallery.md): catalogue registration, standalone component interfaces, shared hosting, and publication.
 
 For a runnable application, choose a [Starter](../starters/README.md). Its overview explains how a starter differs from a plugin or a feature demo.

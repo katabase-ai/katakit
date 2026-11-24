@@ -8,7 +8,7 @@ copy workflow for those source inputs; follow its narrower instructions.
   install/build/run that copy without this checkout. No sibling imports, private packages,
   escaping symlinks, workspace-only versions, or source aliases inside a feature demo.
 - Use public Katakit APIs and registry dependencies.
-- Follow the [gallery authoring contract](../../docs/pages/reference/gallery.md) for embedded
+- Follow the [gallery authoring contract](../../docs/pages/contributing/gallery.md) for embedded
   components. Keep the common interface natural in the standalone entry point; gallery-only
   props, context wiring, and wrappers belong in gallery adapters, not the copied example.
 - Keep demo-specific plugins local. Durable content derives from logged events; transient

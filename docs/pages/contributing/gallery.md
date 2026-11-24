@@ -121,8 +121,8 @@ Katakit core has no universal runtime disposal API; a shared wrapper does not in
 
 Keep application content derived from logged events. Resource handles, pending setup,
 and display timing have explicit transient owners. Replaying history does not restart
-capture, call a model, or reacquire resources. See [event history](plugins/event-log.md)
-and [transcription ownership](transcription.md) for the underlying building blocks.
+capture, call a model, or reacquire resources. See [event history](../reference/plugins/event-log.md)
+and [transcription ownership](../reference/transcription.md) for the underlying building blocks.
 
 ## Add or update a demo
 

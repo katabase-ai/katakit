@@ -172,7 +172,7 @@ Run the local gallery with:
 pnpm -F @katakit/gallery dev
 ```
 
-The [gallery authoring guide](docs/pages/reference/gallery.md) defines catalogue registration,
+The [gallery authoring guide](docs/pages/contributing/gallery.md) defines catalogue registration,
 component interfaces, shared runtime ownership, and explicit host publication. Examples own
 feature behavior; gallery-only adapters stay in the gallery; consuming hosts select demos
 from a pinned source revision. The [gallery README](gallery/README.md) covers local setup,

@@ -1,7 +1,7 @@
 # Documentation
 
 This directory owns Katakit's authored documentation and its local Vite viewer.
-`pages/` contains Quickstart, Tutorial, Starters, and package-named Reference pages;
+`pages/` contains Quickstart, Tutorial, Starters, Contributing, and package-named Reference pages;
 `src/` renders them; `scripts/` generates navigation and checks links.
 `../internal/pkgs/docs-export/` combines these pages with generated API reference for
 website consumers. See [EXPORT.md](EXPORT.md) for that boundary and bundle contract.
@@ -13,6 +13,9 @@ website consumers. See [EXPORT.md](EXPORT.md) for that boundary and bundle contr
   and reusable API behavior, lifecycle, configuration, and examples in
   `pages/reference/`. The copied `examples/starters/*/README.md` files own the exact
   install and run commands; docs pages explain how and why to adapt them.
+- The Contributing section in `pages/contributing/` links to co-located repository guidance
+  and contains the gallery authoring guide; keep detailed area-specific instructions
+  alongside their code rather than duplicating them in the index.
 - Describe public symbols beside their source declarations with JSDoc. The
   exporter generates signatures, types, and symbol pages from those declarations;
   edit the source rather than the generated Markdown.
@@ -25,7 +28,8 @@ website consumers. See [EXPORT.md](EXPORT.md) for that boundary and bundle contr
   `pnpm --filter @katakit/docs exec node scripts/generate-nav.mjs` from the repository
   root and commit `src/nav.json`. Root section order is defined in that script;
   Tutorial follows its explicit learning order; other children are ordered by filename,
-  with pages before subsections. Application starters is a root section above Reference;
+  with pages before subsections. Contributing sits between Application starters and Reference.
+  Application starters
   it explicitly orders React, Chrome extension, Electron, and Obsidian directly under
   the section without changing their URLs. The WIP MCP App page is omitted from navigation.
   Reference lists package pages directly under their full `@katakit/*` names, retaining

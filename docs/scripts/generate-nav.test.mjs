@@ -32,6 +32,11 @@ test('navigation follows the section order and uses directory READMEs as landing
       ],
     },
     {
+      label: 'Contributing',
+      slug: 'contributing',
+      children: [{ label: 'Authoring and hosting gallery demos', slug: 'contributing/gallery' }],
+    },
+    {
       label: 'Reference',
       slug: 'reference',
       children: [
@@ -41,7 +46,6 @@ test('navigation follows the section order and uses directory READMEs as landing
         { label: '@katakit/react', slug: 'reference/react' },
         { label: '@katakit/transcript-ingestion', slug: 'reference/plugins/transcript-ingestion' },
         { label: '@katakit/transcription', slug: 'reference/transcription' },
-        { label: 'Authoring and hosting gallery demos', slug: 'reference/gallery' },
       ],
     },
   ]);

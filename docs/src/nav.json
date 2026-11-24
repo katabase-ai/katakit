@@ -57,6 +57,16 @@
     ]
   },
   {
+    "label": "Contributing",
+    "slug": "contributing",
+    "children": [
+      {
+        "label": "Authoring and hosting gallery demos",
+        "slug": "contributing/gallery"
+      }
+    ]
+  },
+  {
     "label": "Reference",
     "slug": "reference",
     "children": [
@@ -83,10 +93,6 @@
       {
         "label": "@katakit/transcription",
         "slug": "reference/transcription"
-      },
-      {
-        "label": "Authoring and hosting gallery demos",
-        "slug": "reference/gallery"
       }
     ]
   }

@@ -3,7 +3,7 @@
 These modules run in the local gallery and can be consumed by another website from a pinned
 source checkout. They do not own application bootstraps, routing, or private services.
 
-- Follow the [gallery authoring contract](../../docs/pages/reference/gallery.md).
+- Follow the [gallery authoring contract](../../docs/pages/contributing/gallery.md).
   `galleryDemoDetails.ts` declares React demo metadata and lazy loaders once;
   `galleryDemos.tsx` derives components generically, without per-demo branches.
   Use one `requiredCapabilities` declaration for requirement/data-handling consumers and

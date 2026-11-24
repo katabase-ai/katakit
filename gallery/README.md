@@ -4,7 +4,7 @@
 `examples/demos/`. It composes their source and supplies shared host behavior.
 
 For adding or updating demos, follow the
-[gallery authoring guide](../docs/pages/reference/gallery.md). It defines the single
+[gallery authoring guide](../docs/pages/contributing/gallery.md). It defines the single
 catalogue, requirements and tags, standalone component interface, gallery-owned
 adapters, runtime lifecycle, verification, and explicit host publication.
 
