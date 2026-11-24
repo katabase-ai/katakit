@@ -150,9 +150,13 @@ export const checkStructure = (root = repository) => {
           kind === 'demo' &&
           path === join(root, 'examples/demos/gallery') &&
           manifest.name === '@katakit/gallery' &&
-          (['bingo-react', 'transcription-react', 'notes-react', 'brainstorm-react'].some(name =>
-            inside(join(root, 'examples/demos', name, 'src'), target)
-          ) ||
+          ([
+            'bingo-react',
+            'transcription-react',
+            'notes-react',
+            'list-extraction-react',
+            'brainstorm-react',
+          ].some(name => inside(join(root, 'examples/demos', name, 'src'), target)) ||
             (file.endsWith('.css') &&
               target.endsWith('.css') &&
               inside(join(root, 'internal/site-ui'), target)));

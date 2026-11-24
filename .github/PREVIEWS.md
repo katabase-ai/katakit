@@ -21,6 +21,9 @@ scoped to the gallery PR build step; normal production builds remain public. The
 command only serves the last built artifact locally and does not choose its mode. See the gallery's
 [mode reference](../examples/demos/gallery/README.md#developer-mode-and-public-preview).
 
+Gallery PR builds also set `VITE_GALLERY_SOURCE_REVISION` to the PR head commit. The header's
+**Run locally** command then copies the reviewed example rather than the default branch.
+
 ## Cloudflare setup
 
 Docs use `wrangler versions upload --preview-alias`; the gallery uses native

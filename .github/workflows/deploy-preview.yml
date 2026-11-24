@@ -61,6 +61,7 @@ jobs:
           VITE_GALLERY_DEMO_PROXY_URL: ${{ matrix.site == 'Gallery' && github.event.pull_request.head.repo.full_name == github.repository && vars.KATAKIT_DEMO_PROXY_URL || '' }}
           VITE_GALLERY_PREVIEW_ORIGIN: ${{ matrix.site == 'Gallery' && github.event.pull_request.head.repo.full_name == github.repository && format('https://pr-{0}.katakit-preview.katabase.com', github.event.pull_request.number) || '' }}
           VITE_GALLERY_DEV_MODE: ${{ matrix.site == 'Gallery' && 'true' || 'false' }}
+          VITE_GALLERY_SOURCE_REVISION: ${{ matrix.site == 'Gallery' && github.event.pull_request.head.sha || '' }}
         run: pnpm --filter '${{ matrix.package }}' build
       - name: Report fork deployment limitation
         if: github.event.pull_request.head.repo.full_name != github.repository

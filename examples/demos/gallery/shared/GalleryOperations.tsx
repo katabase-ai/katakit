@@ -12,7 +12,7 @@ export const GalleryOperationSetup = () => {
   const { isDeveloperView } = useGalleryMode();
   const inference = useGalleryInference();
   const speech = useGallerySpeech();
-  const { hostAvailable } = useContext(GalleryModelContext);
+  const { hostAvailable, hostConnectionLabel = 'Free demo' } = useContext(GalleryModelContext);
   const initial = () =>
     inference && !hostAvailable && inference.settings.source === 'free'
       ? { ...inference.settings, source: 'key' as const }
@@ -114,7 +114,7 @@ export const GalleryOperationSetup = () => {
             event.preventDefault();
             apply(
               () => inference.owner.save(draft),
-              'Inference settings saved. Start listening in a demo when ready.'
+              'Inference settings saved. Return to a demo when ready.'
             );
           }}
         >
@@ -125,7 +125,7 @@ export const GalleryOperationSetup = () => {
                 {inference.settings.source === 'key'
                   ? 'Developer key selected'
                   : hostAvailable
-                    ? 'Free demo selected'
+                    ? `${hostConnectionLabel} selected`
                     : 'Needs a connection'}
               </p>
             </div>
@@ -139,7 +139,7 @@ export const GalleryOperationSetup = () => {
                 }
               >
                 <option value="free" disabled={!hostAvailable}>
-                  Free demo
+                  {hostConnectionLabel}
                 </option>
                 <option value="key">OpenRouter · My API key</option>
               </select>
@@ -174,8 +174,8 @@ export const GalleryOperationSetup = () => {
                 </label>
               </div>
               <p>
-                Choose an OpenRouter model ID. Structured notes needs JSON schema output. The key
-                authorizes your account; the model field chooses what runs.{' '}
+                Choose an OpenRouter model ID. Structured notes and list extraction need JSON schema
+                output. The key authorizes your account; the model field chooses what runs.{' '}
                 <a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer">
                   Browse models
                 </a>
@@ -204,7 +204,10 @@ export const GalleryOperationSetup = () => {
               </details>
             </>
           )}
-          <p>Saving reconnects inference with the new settings; local capture can continue.</p>
+          <p>
+            Saving reconnects live notes with the new settings. List extraction waits for Extract
+            lists. Local capture can continue.
+          </p>
           <div className="gallery-settings-actions">
             <button type="submit" className="site-button">
               Save

@@ -56,6 +56,7 @@ export type GalleryModelConnect = (input: {
 export const GalleryModelContext = createContext<{
   connect?: GalleryModelConnect;
   hostAvailable?: boolean;
+  hostConnectionLabel?: string;
   isDeveloperView?: boolean;
   configure?: (operation?: GalleryOperation) => void;
   openSettings?: () => void;

@@ -5,6 +5,7 @@ import {
   bingoDemoDetails,
   colorClashDemoDetails,
   notesDemoDetails,
+  listExtractionDemoDetails,
   brainstormDemoDetails,
 } from './galleryDemoDetails';
 import { GalleryEventsContext } from './galleryEvents';
@@ -24,6 +25,12 @@ test('the command copies the pinned example directory and starts it', () => {
       'pnpm install',
       'pnpm dev',
     ].join('\n')
+  );
+  expect(runLocallyCommand(listExtractionDemoDetails, 'abc123')).toContain(
+    'npx degit katabase-ai/katakit/examples/demos/list-extraction-react#abc123 list-extraction'
+  );
+  expect(runLocallyPrompt(listExtractionDemoDetails)).toContain(
+    'Ask me before you read, create, or edit'
   );
   expect(runLocallyCommand(bingoDemoDetails)).toMatch(
     /^npx degit katabase-ai\/katakit\/examples\/demos\/bingo-react conversation-bingo\n/
