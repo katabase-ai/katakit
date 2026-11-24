@@ -1,7 +1,8 @@
-import { Observable, ReplaySubject } from 'rxjs';
+import { Observable, ReplaySubject, scan, startWith } from 'rxjs';
 import { makeKatakitPlugin } from '../plugin';
 import { eager, type WithEager } from '../utils/reactive/eager';
 import { KatakitEvent } from './event';
+import { property } from '../utils/reactive/property';
 
 /**
  * The runtime's built-in event log. Read its replayable history before start,
@@ -21,6 +22,13 @@ export const EventLogPlugin = makeKatakitPlugin({
     // the same could be achieved with a replay subject, and an array with a manual subscription.
     const events$ = eager(new ReplaySubject<any>());
 
+    const eventCount$ = property(
+      events$.pipe(
+        scan(count => count + 1, 0),
+        startWith(0)
+      )
+    );
+
     for (const event of options.existingEvents) {
       events$.next(event);
     }
@@ -32,6 +40,7 @@ export const EventLogPlugin = makeKatakitPlugin({
        * Replays the complete event history; getAll() returns a snapshot array.
        */
       events$: events$ as WithEager<Observable<KatakitEvent>>,
+      eventCount$,
     };
   },
   methods: ({ observables }) => ({
@@ -42,7 +51,7 @@ export const EventLogPlugin = makeKatakitPlugin({
       (observables.events$ as WithEager<ReplaySubject<KatakitEvent>>).next({
         ...event,
         meta: {
-          seq: (observables.events$ as WithEager<ReplaySubject<KatakitEvent>>).getAll().length,
+          seq: observables.eventCount$.get(),
           timestamp: new Date(),
         },
       });

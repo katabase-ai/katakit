@@ -60,20 +60,29 @@ export const makeTranscriptIngestionPlugin = ({
         )
       );
 
-      const provisionalUtterance$ = events$.pipe(
-        filter(
-          (event): event is ProvisionalUtteranceAddedEvent | UtteranceAddedEvent =>
-            event.type === 'provisionalUtteranceAdded' || event.type === 'utteranceAdded'
-        ),
-        map(event => {
-          if (event.type === 'provisionalUtteranceAdded') {
-            const { meta: _meta, type: _type, ...provisional } = event;
-            return provisional;
-          }
-          return null;
-        }),
-        startWith(null),
-        distinctUntilChanged()
+      const provisionalUtterance$ = property(
+        events$.pipe(
+          filter(
+            (
+              event
+            ): event is
+              | ProvisionalUtteranceAddedEvent
+              | UtteranceAddedEvent
+              | ConversationTurnAddedEvent =>
+              event.type === 'provisionalUtteranceAdded' ||
+              event.type === 'utteranceAdded' ||
+              event.type === 'conversationTurnAdded'
+          ),
+          map(event => {
+            if (event.type === 'provisionalUtteranceAdded') {
+              const { meta: _meta, type: _type, ...provisional } = event;
+              return provisional;
+            }
+            return null;
+          }),
+          startWith(null),
+          distinctUntilChanged()
+        )
       );
 
       const pendingConversationTurn$ = property(
@@ -114,7 +123,8 @@ export const makeTranscriptIngestionPlugin = ({
               }
             },
             null as null | PendingConversationTurn
-          )
+          ),
+          startWith(null)
         )
       );
 
