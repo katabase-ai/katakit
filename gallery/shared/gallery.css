@@ -108,13 +108,12 @@
   box-shadow: var(--shadow-key, none);
   border-radius: var(--radius-input);
 }
-/* The gallery fills the window below the host header and only its content column scrolls, so the
-   sidebar and its footer controls never move. `GalleryFooter` measures the available height. */
-.katakit-gallery {
-  height: var(--gallery-sidebar-height, 100dvh);
-}
+/* The host page scrolls demos; the sidebar stays within the first viewport as it sticks. */
 .katakit-gallery .gallery-sidebar {
-  height: 100%;
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: var(--gallery-sidebar-height, 100dvh);
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -125,7 +124,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  /* A long demo list scrolls here; the sidebar itself must not clip its footer's tooltips. */
+  /* A long demo list can scroll without moving the sidebar controls. */
   min-height: 0;
   overflow-y: auto;
   padding: 1.5rem 0.75rem;
@@ -159,8 +158,6 @@
 }
 .katakit-gallery .gallery-content {
   min-width: 0;
-  min-height: 0;
-  overflow-y: auto;
   padding: 16px var(--gallery-gutter) 4rem;
 }
 .katakit-gallery .gallery-intro {
@@ -516,15 +513,10 @@
     border-radius: var(--radius-input);
   }
   /* A narrow screen scrolls as one page, with the controls fixed to its bottom edge. */
-  .katakit-gallery {
-    height: auto;
-  }
   .katakit-gallery .gallery-sidebar {
+    position: static;
     height: auto;
     border-right: 0;
-  }
-  .katakit-gallery .gallery-content {
-    overflow-y: visible;
   }
   .katakit-gallery .gallery-nav {
     flex-direction: row;

@@ -1,13 +1,4 @@
-import {
-  lazy,
-  Suspense,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  type ReactNode,
-} from 'react';
+import { lazy, Suspense, useCallback, useContext, useEffect, useMemo, type ReactNode } from 'react';
 import type { galleryDemoDetails } from './galleryDemoDetails';
 import { GalleryModelContext, type GalleryModelConnect } from './galleryModel';
 import { useGalleryInference } from './GalleryInferenceProvider';
@@ -112,11 +103,6 @@ export const Gallery = ({
     setActiveDemo(activeDemoId);
     return () => setActiveDemo(undefined);
   }, [setActiveDemo, activeDemoId]);
-  // The content column is its own scroller, so a new page has to be returned to its top.
-  const content = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    content.current?.scrollTo({ top: 0 });
-  }, [activeDemoId, developerPage, settingsPage]);
   const sourceSignal = inference?.owner.getSignal();
   const usesDeveloperKey = isDeveloperView && inference?.settings.source === 'key';
   const recordAllowance = usage?.reportAllowance;
@@ -229,7 +215,7 @@ export const Gallery = ({
             </nav>
             <GalleryFooter>{input}</GalleryFooter>
           </aside>
-          <div ref={content} className="gallery-content">
+          <div className="gallery-content">
             {settingsPage ? (
               <Suspense fallback={<p role="status">Loading Settings…</p>}>
                 <PublicSettings privacyUrl={privacyUrl} termsUrl={effectiveTermsUrl} />

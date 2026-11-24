@@ -202,12 +202,12 @@
     inset-inline-end: auto;
   }
 }
-/* What a demo may fill below the gallery's own header, so its card or column ends at the page's end. */
+/* Bound demo-specific grids and transcript panels independently of the gallery's page scroll. */
 .katakit-gallery .browser-bingo {
-  --bingo-grid-max-height: calc(var(--gallery-sidebar-height, 100dvh) - 18.75rem);
+  --bingo-grid-max-height: calc(100dvh - 18.75rem);
 }
 .katakit-gallery .structured-notes {
   /* Full width, with the same transcript column alignment as bingo. */
   max-width: none;
-  --transcript-column-height: calc(var(--gallery-sidebar-height, 100dvh) - 15.25rem);
+  --transcript-column-height: calc(100dvh - 15.25rem);
 }
