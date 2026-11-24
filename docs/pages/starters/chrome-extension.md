@@ -16,7 +16,7 @@ Follow the [starter README](https://github.com/katabase-ai/katakit/blob/main/exa
 
 ### Capture and extension permissions
 
-The manifest declares tab capture, side-panel, offscreen, session-storage, model-host, and WASM permissions. Microphone access is requested at runtime; denied microphone access still permits tab-only capture. Restricted browser pages cannot be treated like ordinary HTTP(S) capture targets.
+The manifest declares tab capture, side-panel, offscreen, and storage permissions, grants access to the model download host, and allows WASM compilation in its extension-page content security policy. Microphone access is requested at runtime; denied microphone access still permits tab-only capture. Restricted browser pages cannot be treated like ordinary HTTP(S) capture targets.
 
 The background process obtains a short-lived tab stream ID. The offscreen document redeems it before loading the model. Keep that ordering when changing startup; model loading must not consume the stream ID's useful lifetime.
 
@@ -26,7 +26,7 @@ Do not add manifest COOP/COEP: Chrome blocks this offscreen tab-capture path whe
 
 ### Data and input lifetime
 
-Audio is discarded after local recognition; model weights download from the provider. Finalized segments in `storage.session` let the panel reconstruct turns during the browser session. **Clear transcript** clears saved segments and displayed turns. Closing the panel may leave capture running: Stop is owned by the offscreen capture lifecycle, not by panel visibility. Preserve stop/drain/track cleanup when changing the message flow.
+Audio is discarded after local recognition; model weights download from the provider. The background process retains at most 200 finalized segments in `storage.session` so the panel can reconstruct recent turns during the browser session; older segments are dropped. **Clear transcript** clears saved segments and displayed turns. Closing the panel may leave capture running: Stop is owned by the offscreen capture lifecycle, not by panel visibility. Preserve stop/drain/track cleanup when changing the message flow.
 
 ## Make it yours
 
