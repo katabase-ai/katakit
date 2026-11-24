@@ -47,11 +47,11 @@ test('brainstorming offers the pinned standalone copy and its model setup instru
 });
 
 test('only a demo that calls a model mentions an API key', () => {
-  expect(runLocallyPrompt(notesDemoDetails)).toContain('Ask me before you read, create, or edit');
+  expect(runLocallyPrompt(notesDemoDetails)).toContain('Do not ask me for an API key');
   expect(runLocallyPrompt(bingoDemoDetails)).not.toMatch(/API key/);
   render(<GalleryRunLocally demo={notesDemoDetails} />);
   expect(screen.getByText('Get the code')).toBeDefined();
-  expect(screen.getByText(/connecting your own model API key/)).toBeDefined();
+  expect(screen.getByText(/provider API key from your shell/)).toBeDefined();
   cleanup();
   render(<GalleryRunLocally demo={bingoDemoDetails} />);
   expect(screen.getByText('Get the code')).toBeDefined();

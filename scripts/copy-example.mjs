@@ -65,6 +65,11 @@ if (example === 'demos/gallery') {
   for (const name of ['bingo-react', 'transcription-react', 'notes-react', 'brainstorm-react']) {
     copy(join(root, 'examples/demos', name, 'src'), join(target, 'sources', name, 'src'));
   }
+  // The notes example's dev-server model connection runs in the gallery's Vite config.
+  copy(
+    join(root, 'examples/demos/notes-react/inference'),
+    join(target, 'sources/notes-react/inference')
+  );
   const rewrite = directory => {
     for (const entry of readdirSync(directory, { withFileTypes: true })) {
       const path = join(directory, entry.name);
@@ -82,6 +87,14 @@ if (example === 'demos/gallery') {
   };
   rewrite(join(target, 'src'));
   rewrite(join(target, 'shared'));
+  const config = join(target, 'vite.config.ts');
+  writeFileSync(
+    config,
+    readFileSync(config, 'utf8').replaceAll(
+      '../notes-react/inference/',
+      './sources/notes-react/inference/'
+    )
+  );
 }
 console.log(
   `Copied ${example} to ${target}. Run pnpm install, pnpm build, and the README's run command there.`
