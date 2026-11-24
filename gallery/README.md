@@ -141,6 +141,11 @@ expected content types. Models download on Download model or an explicit microph
 `shared/galleryDemoDetails.ts` is the eligible React catalogue, including stable IDs, names,
 descriptions, source paths, `requiredCapabilities`, descriptive tags, and lazy loaders.
 `shared/galleryDemos.tsx` derives lazy components generically from those entries.
+Named exports remain available for hosts that select individual demos; the aggregate list
+follows catalogue order. Hosts adopting this source revision use `requiredCapabilities`
+instead of reading `capabilities` or `dataHandling` from entries. Use
+`requiresGalleryCapability` for requirement checks and `galleryDataHandling` for derived
+privacy presentation. `tags` describe demos and do not control inference or publication.
 The catalogue is a manually maintained, typed build input. Update requirements when the
 demo's data flow changes. `Gallery` uses those facts for its upper-right On-device or
 Cloud-assisted badge and two-row privacy popover. These describe the demo's behavior, not

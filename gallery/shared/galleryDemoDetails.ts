@@ -1,4 +1,7 @@
-/** Requirements describe data flow, not connection readiness or active capture. */
+/**
+ * Requirements for the current microphone/text demos, not connection readiness or active capture.
+ * Remote inference explicitly declares text processing; it never implies sending microphone audio.
+ */
 export type GalleryRequiredCapabilities = {
   readonly microphone: true;
   readonly localTranscription: { readonly audio: 'device' };
@@ -18,6 +21,7 @@ export const galleryDataHandling = (
   transcribedText: requirements.remoteModel?.transcribedText ?? 'device',
 });
 
+/** Tests a declared requirement without downloading, connecting, or probing a provider. */
 export const requiresGalleryCapability = (
   requirements: GalleryRequiredCapabilities,
   capability: keyof GalleryRequiredCapabilities
@@ -36,8 +40,8 @@ export type GalleryDemoMetadata = {
 };
 
 /**
- * Named metadata lets each lazy demo loader carry the right capabilities and data-handling
- * policy even when the gallery's display order changes. No browser/runtime imports live here.
+ * Named entries pair metadata with loaders independent of display order.
+ * Browser/runtime imports occur only inside loaders, never while reading metadata.
  */
 export const transcriptionDemoDetails = {
   id: 'transcription',
@@ -47,10 +51,9 @@ export const transcriptionDemoDetails = {
   description: 'Your browser turns microphone audio into text on this device.',
   requiredCapabilities: { microphone: true, localTranscription: { audio: 'device' } },
   tags: ['transcription'],
-  load: () =>
-    import('./TranscriptionGalleryDemo').then(module => ({
-      default: module.TranscriptionGalleryDemo,
-    })),
+  load: async () => ({
+    default: (await import('./TranscriptionGalleryDemo')).TranscriptionGalleryDemo,
+  }),
 } as const satisfies GalleryDemoMetadata;
 export const bingoDemoDetails = {
   id: 'bingo',
@@ -60,7 +63,7 @@ export const bingoDemoDetails = {
   description: 'Say it in the conversation. See it on the card. Five in a row wins!',
   requiredCapabilities: { microphone: true, localTranscription: { audio: 'device' } },
   tags: ['game'],
-  load: () => import('./BingoGalleryDemo').then(module => ({ default: module.BingoGalleryDemo })),
+  load: async () => ({ default: (await import('./BingoGalleryDemo')).BingoGalleryDemo }),
 } as const satisfies GalleryDemoMetadata;
 export const notesDemoDetails = {
   id: 'notes',
@@ -74,7 +77,7 @@ export const notesDemoDetails = {
     remoteModel: { transcribedText: 'cloud' },
   },
   tags: ['productivity'],
-  load: () => import('./NotesGalleryDemo').then(module => ({ default: module.NotesGalleryDemo })),
+  load: async () => ({ default: (await import('./NotesGalleryDemo')).NotesGalleryDemo }),
 } as const satisfies GalleryDemoMetadata;
 export const colorClashDemoDetails = {
   id: 'color-clash',
@@ -83,8 +86,7 @@ export const colorClashDemoDetails = {
   description: 'Say the ink color, not the word. Speech stays on your device.',
   requiredCapabilities: { microphone: true, localTranscription: { audio: 'device' } },
   tags: ['game'],
-  load: () =>
-    import('./ColorClashGalleryDemo').then(module => ({ default: module.ColorClashGalleryDemo })),
+  load: async () => ({ default: (await import('./ColorClashGalleryDemo')).ColorClashGalleryDemo }),
 } as const satisfies GalleryDemoMetadata;
 export const brainstormDemoDetails = {
   id: 'brainstorm',
@@ -98,8 +100,7 @@ export const brainstormDemoDetails = {
     remoteModel: { transcribedText: 'cloud' },
   },
   tags: ['game'],
-  load: () =>
-    import('./BrainstormGalleryDemo').then(module => ({ default: module.BrainstormGalleryDemo })),
+  load: async () => ({ default: (await import('./BrainstormGalleryDemo')).BrainstormGalleryDemo }),
 } as const satisfies GalleryDemoMetadata;
 
 export const listExtractionDemoDetails = {
@@ -114,10 +115,9 @@ export const listExtractionDemoDetails = {
     remoteModel: { transcribedText: 'cloud' },
   },
   tags: ['productivity'],
-  load: () =>
-    import('./ListExtractionGalleryDemo').then(module => ({
-      default: module.ListExtractionGalleryDemo,
-    })),
+  load: async () => ({
+    default: (await import('./ListExtractionGalleryDemo')).ListExtractionGalleryDemo,
+  }),
 } as const satisfies GalleryDemoMetadata;
 
 /** Ordered directory for gallery hosts; the named loaders do not depend on these positions. */

@@ -29,8 +29,7 @@ website consumers. See [EXPORT.md](EXPORT.md) for that boundary and bundle contr
   root and commit `src/nav.json`. Root section order is defined in that script;
   Tutorial follows its explicit learning order; other children are ordered by filename,
   with pages before subsections. Contributing sits between Application starters and Reference.
-  Application starters
-  it explicitly orders React, Chrome extension, Electron, and Obsidian directly under
+  Application starters explicitly orders React, Chrome extension, Electron, and Obsidian directly under
   the section without changing their URLs. The WIP MCP App page is omitted from navigation.
   Reference lists package pages directly under their full `@katakit/*` names, retaining
   existing plugin URLs.

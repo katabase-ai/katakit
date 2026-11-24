@@ -65,6 +65,22 @@ Keep these distinctions explicit when declaring requirements:
 Update the requirements and all their consumers together when a demo's data flow
 changes. Keep requirements declarative rather than probing runtimes to discover them.
 
+For example, a demo that sends recognized text to inference declares:
+
+```ts
+requiredCapabilities: {
+  microphone: true,
+  localTranscription: { audio: 'device' },
+  remoteModel: { transcribedText: 'cloud' },
+}
+```
+
+On-device demos omit `remoteModel`. `requiresGalleryCapability` checks requirements;
+`galleryDataHandling` derives the privacy presentation from them. The derived value
+is not another declaration in the catalogue. These types describe the gallery's
+current microphone/text demos; new input or transport kinds extend the contract and
+its notices together.
+
 Tags describe the demo, for example `game`. They do not grant capabilities, select
 transports, or determine privacy claims. Adding a tag does not require adding a
 filtering interface or another configuration flag.
@@ -81,6 +97,11 @@ The gallery's common hosting wrapper connects ordinary examples to the existing
 capture controls, and introduction visibility without repeating this wiring for
 every entry. Standalone views retain their own introductions; gallery adapters
 suppress them when the shared metadata header supplies that content.
+
+`createGalleryDemo({ createRuntime, View })` accepts a view with ordinary `runtime`,
+optional `controls`, and optional `showIntroduction` props. Examples satisfy this
+interface structurally without importing a gallery type. The transcription adapter
+adds its introduction through a small local view component.
 
 Judge the interface by reading both entry points: can someone copying the example
 understand and change it without learning the gallery? Do not add gallery-only
