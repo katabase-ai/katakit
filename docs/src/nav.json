@@ -39,25 +39,20 @@
     "slug": "starters",
     "children": [
       {
-        "label": "Client applications",
-        "children": [
-          {
-            "label": "React",
-            "slug": "starters/react-web"
-          },
-          {
-            "label": "Chrome extension",
-            "slug": "starters/chrome-extension"
-          },
-          {
-            "label": "Electron",
-            "slug": "starters/electron"
-          },
-          {
-            "label": "Obsidian",
-            "slug": "starters/obsidian"
-          }
-        ]
+        "label": "React",
+        "slug": "starters/react-web"
+      },
+      {
+        "label": "Chrome extension",
+        "slug": "starters/chrome-extension"
+      },
+      {
+        "label": "Electron",
+        "slug": "starters/electron"
+      },
+      {
+        "label": "Obsidian",
+        "slug": "starters/obsidian"
       },
       {
         "label": "MCP App (WIP)",

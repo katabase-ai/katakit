@@ -65,7 +65,7 @@ export const buildNav = (directory = pages) => {
     })
     .filter(item => item.slug || item.children.length);
 
-  // Group client applications without changing their published page URLs or titles.
+  // Order application starters without changing their published page URLs or titles.
   if (directory === join(pages, 'starters')) {
     const clients = clientStarters.map(starter => {
       const item = items.find(item => item.slug === starter.slug);
@@ -73,7 +73,7 @@ export const buildNav = (directory = pages) => {
       return { ...item, label: starter.label };
     });
     return [
-      { label: 'Client applications', children: clients },
+      ...clients,
       ...items
         .filter(item => !clientStarters.some(starter => starter.slug === item.slug))
         .map(item =>
