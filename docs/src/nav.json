@@ -83,6 +83,10 @@
       {
         "label": "@katakit/transcription",
         "slug": "reference/transcription"
+      },
+      {
+        "label": "Authoring and hosting gallery demos",
+        "slug": "reference/gallery"
       }
     ]
   }

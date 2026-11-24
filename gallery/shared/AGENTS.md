@@ -3,8 +3,14 @@
 These modules run in the local gallery and can be consumed by another website from a pinned
 source checkout. They do not own application bootstraps, routing, or private services.
 
-- `galleryDemoDetails.ts` owns React demo eligibility and metadata; `galleryDemos.tsx` adds lazy
-  components. Keep extension information pages out of both. `#gallery-react-catalogue`
+- Follow the [gallery authoring contract](../../docs/pages/reference/gallery.md).
+  `galleryDemoDetails.ts` declares React demo metadata and lazy loaders once;
+  `galleryDemos.tsx` derives components generically, without per-demo branches.
+  Use one `requiredCapabilities` declaration for requirement/data-handling consumers and
+  separate descriptive tags. Keep extension information pages out. `#gallery-react-catalogue`
+- Keep common hosting and custom adapters gallery-owned. Reuse `GalleryDemo` leases/readiness;
+  preserve Notes error adaptation, transcription introductions, and game capture coordination.
+  Catalogue imports must not invoke loaders or create runtimes. Preserve explicit host selection.
 - `GalleryRunLocally` copies a demo with `npx degit` from its `sourcePath` at the host's
   `sourceRevision`. Give an entry `copyDirectory` only when that path is a standalone example a
   plain `pnpm install` and `pnpm dev` can run; check a real `degit` copy before adding one.

@@ -172,8 +172,11 @@ Run the local gallery with:
 pnpm -F @katakit/gallery dev
 ```
 
-The [gallery README](gallery/README.md) covers adding entries, building the host,
-shared input ownership, model connections, and microphone hosting requirements.
+The [gallery authoring guide](docs/pages/reference/gallery.md) defines catalogue registration,
+component interfaces, shared runtime ownership, and explicit host publication. Examples own
+feature behavior; gallery-only adapters stay in the gallery; consuming hosts select demos
+from a pinned source revision. The [gallery README](gallery/README.md) covers local setup,
+building the host, model connections, and microphone hosting requirements.
 The [starter guides](docs/pages/starters/README.md) help users choose a platform;
 [template contributor guidance](examples/starters/README.md) defines copyability and verification.
 
