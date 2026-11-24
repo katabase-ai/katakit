@@ -38,7 +38,7 @@ export const KatakitDevTools = () => {
             {createPortal(<link rel="stylesheet" href={fontStylesheet} />, root.ownerDocument.head)}
             <link rel="stylesheet" href={stylesheet} />
             <aside
-              className="fixed z-[2147483646] bottom-3 right-3 left-3 sm:(left-auto bottom-5 right-5) font-sans text-[13px] leading-normal text-zinc-100 antialiased"
+              className=":uno: fixed z-[2147483646] bottom-3 right-3 left-3 sm:(left-auto bottom-5 right-5) font-sans text-[13px] leading-normal text-zinc-100 antialiased"
               aria-label="Katakit devtools"
             >
               {!open ? (
@@ -52,22 +52,22 @@ export const KatakitDevTools = () => {
                 </ToolButton>
               ) : (
                 <ResizablePanel size={size} onResize={setSize}>
-                  <header className="flex items-center justify-between gap-3 border-b border-zinc-800 px-4 py-3">
-                    <div className="flex min-w-0 items-center gap-2">
-                      <span className="grid size-8 shrink-0 place-items-center rounded-lg border border-teal-300/30 bg-teal-400/10 text-teal-300">
-                        <span className="inline-block size-4 shrink-0 i-lucide-audio-lines" />
+                  <header className=":uno: flex items-center justify-between gap-3 border-b border-zinc-800 px-4 py-3">
+                    <div className=":uno: flex min-w-0 items-center gap-2">
+                      <span className=":uno: grid size-8 shrink-0 place-items-center rounded-lg border border-teal-300/30 bg-teal-400/10 text-teal-300">
+                        <span className=":uno: inline-block size-4 shrink-0 i-lucide-audio-lines" />
                       </span>
                       <div>
-                        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+                        <p className=":uno: text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
                           Katakit / Devtools
                         </p>
-                        <h2 className="text-lg font-semibold tracking-tight text-zinc-50">
+                        <h2 className=":uno: text-lg font-semibold tracking-tight text-zinc-50">
                           Observable timeline
                         </h2>
                       </div>
                     </div>
-                    <div className="flex min-w-0 items-center gap-2">
-                      <span className="rounded-full border border-teal-400/25 bg-teal-400/10 px-2 py-0.5 text-[10px] text-teal-300">
+                    <div className=":uno: flex min-w-0 items-center gap-2">
+                      <span className=":uno: rounded-full border border-teal-400/25 bg-teal-400/10 px-2 py-0.5 text-[10px] text-teal-300">
                         Recording
                       </span>
                       <ToolButton
@@ -92,7 +92,7 @@ export const KatakitDevTools = () => {
                     release={() => setPinned(undefined)}
                     origin={events[0]?.time ?? 0}
                   />
-                  <footer className="flex items-center justify-between gap-2 border-t border-zinc-800 px-4 py-2 font-mono text-[10px] text-zinc-400">
+                  <footer className=":uno: flex items-center justify-between gap-2 border-t border-zinc-800 px-4 py-2 font-mono text-[10px] text-zinc-400">
                     <span>EVENT STREAM</span>
                     <span>{events.length} retained deliveries</span>
                   </footer>

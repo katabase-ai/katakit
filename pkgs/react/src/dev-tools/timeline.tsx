@@ -58,8 +58,8 @@ export const Timeline = ({
   const ticks = rulerTicks(offset, width, px);
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-1 border-b border-zinc-800 px-3 py-1.5 bg-zinc-900">
-        <div className="flex items-center gap-0.5">
+      <div className=":uno: flex flex-wrap items-center justify-between gap-1 border-b border-zinc-800 px-3 py-1.5 bg-zinc-900">
+        <div className=":uno: flex items-center gap-0.5">
           <ToolButton
             label="Choose observable lanes"
             icon="lanes"
@@ -67,11 +67,11 @@ export const Timeline = ({
             onClick={() => setFilter(!filter)}
           >
             Lanes
-            <span className="min-w-5 rounded bg-zinc-800 px-1 text-center font-mono text-[10px] text-zinc-300">
+            <span className=":uno: min-w-5 rounded bg-zinc-800 px-1 text-center font-mono text-[10px] text-zinc-300">
               {visible.length}
             </span>
           </ToolButton>
-          <span className="mx-1 h-4 border-l border-zinc-700" />
+          <span className=":uno: mx-1 h-4 border-l border-zinc-700" />
           <ToolButton
             label="Follow latest delivery"
             icon="follow"
@@ -81,7 +81,7 @@ export const Timeline = ({
             Follow
           </ToolButton>
         </div>
-        <div className="flex items-center gap-0.5">
+        <div className=":uno: flex items-center gap-0.5">
           <ToolButton label="Zoom out" icon="zoomOut" onClick={() => zoom(0.5)} />
           <ToolButton label="Fit recording" icon="fit" onClick={fitRecording}>
             Fit
@@ -93,23 +93,23 @@ export const Timeline = ({
         <LanePicker lanes={lanes.map(lane => lane.name)} hidden={hidden} toggle={toggleLane} />
       )}
       <div
-        className="relative flex-initial min-h-16 overflow-auto overscroll-contain bg-[#131417]"
+        className=":uno: relative flex-initial min-h-16 overflow-auto overscroll-contain bg-[#131417]"
         ref={viewport}
         aria-label="Scrollable delivery timeline"
         tabIndex={0}
         {...handlers}
       >
-        <div className="sticky top-0 z-20 flex w-max items-stretch bg-[#1d1e22]">
+        <div className=":uno: sticky top-0 z-20 flex w-max items-stretch bg-[#1d1e22]">
           <div
             ref={heading}
-            className="sticky left-0 z-10 flex w-[132px] shrink-0 items-center justify-between gap-2 border-r border-b border-zinc-800 bg-[#202125] px-3 sm:w-[208px]"
+            className=":uno: sticky left-0 z-10 flex w-[132px] shrink-0 items-center justify-between gap-2 border-r border-b border-zinc-800 bg-[#202125] px-3 sm:w-[208px]"
           >
-            <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+            <span className=":uno: text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
               Observables
             </span>
           </div>
           <svg
-            className="block shrink-0 border-b border-zinc-800"
+            className=":uno: block shrink-0 border-b border-zinc-800"
             width={length}
             height={30}
             aria-hidden="true"
@@ -117,13 +117,13 @@ export const Timeline = ({
             {ticks.map(t => (
               <g key={t}>
                 <line
-                  className="stroke-zinc-800"
+                  className=":uno: stroke-zinc-800"
                   x1={pad + t * px}
                   x2={pad + t * px}
                   y1="21"
                   y2="30"
                 />
-                <text className="fill-zinc-400 font-mono text-[10px]" x={pad + t * px} y="15">
+                <text className=":uno: fill-zinc-400 font-mono text-[10px]" x={pad + t * px} y="15">
                   {t < 1000 ? `${+t.toFixed(1)}ms` : `${+(t / 1000).toFixed(2)}s`}
                 </text>
               </g>
@@ -133,23 +133,23 @@ export const Timeline = ({
         {visible.map(({ name, deliveries, color }) => {
           const lane = splitLane(name);
           return (
-            <div key={name} className="flex w-max items-stretch">
+            <div key={name} className=":uno: flex w-max items-stretch">
               <div
-                className="sticky left-0 z-10 flex w-[132px] shrink-0 items-center gap-2 border-r border-b border-zinc-800 bg-[#1b1c20] px-3 sm:w-[208px]"
+                className=":uno: sticky left-0 z-10 flex w-[132px] shrink-0 items-center gap-2 border-r border-b border-zinc-800 bg-[#1b1c20] px-3 sm:w-[208px]"
                 title={name}
               >
                 <svg width="7" height="7" aria-hidden="true">
                   <circle cx="3.5" cy="3.5" r="3.5" fill={color} />
                 </svg>
-                <div className="min-w-0 leading-tight">
-                  <p className="truncate font-mono text-xs font-medium text-zinc-100">
+                <div className=":uno: min-w-0 leading-tight">
+                  <p className=":uno: truncate font-mono text-xs font-medium text-zinc-100">
                     {lane.name}
                   </p>
-                  <p className="mt-0.5 truncate text-[10px] text-zinc-400">{lane.group}</p>
+                  <p className=":uno: mt-0.5 truncate text-[10px] text-zinc-400">{lane.group}</p>
                 </div>
               </div>
               <svg
-                className="block shrink-0 border-b border-zinc-800"
+                className=":uno: block shrink-0 border-b border-zinc-800"
                 width={length}
                 height={43}
                 aria-label={name}
@@ -157,7 +157,7 @@ export const Timeline = ({
                 {ticks.map(t => (
                   <line
                     key={t}
-                    className="stroke-zinc-800"
+                    className=":uno: stroke-zinc-800"
                     x1={pad + t * px}
                     x2={pad + t * px}
                     y1="0"
@@ -166,7 +166,7 @@ export const Timeline = ({
                 ))}
                 {selected && (
                   <line
-                    className="stroke-teal-300"
+                    className=":uno: stroke-teal-300"
                     x1={x(selected)}
                     x2={x(selected)}
                     y1="0"
@@ -211,7 +211,7 @@ export const Timeline = ({
                             fill={color}
                           />
                           <text
-                            className="pointer-events-none fill-zinc-950 font-mono text-[9px] font-bold"
+                            className=":uno: pointer-events-none fill-zinc-950 font-mono text-[9px] font-bold"
                             x={n > 9 ? 4 : 1.5}
                             y="3"
                             textAnchor="middle"
@@ -228,7 +228,7 @@ export const Timeline = ({
           );
         })}
         {!visible.length && (
-          <p className="flex flex-col items-center gap-2 py-6 text-center text-xs text-zinc-400">
+          <p className=":uno: flex flex-col items-center gap-2 py-6 text-center text-xs text-zinc-400">
             {lanes.length
               ? 'All lanes are hidden. Choose Lanes to restore them.'
               : 'Waiting for the first observable delivery…'}

@@ -13,6 +13,10 @@ export default defineConfig({
     'vitest',
     'jsdoc',
   ],
+  jsPlugins: [{ name: '@unocss', specifier: '@unocss/eslint-plugin' }],
+  overrides: [
+    { files: ['pkgs/react/src/**/*.tsx'], rules: { '@unocss/enforce-class-compile': 'warn' } },
+  ],
   rules: {
     'eslint/no-unused-vars': [
       'warn',

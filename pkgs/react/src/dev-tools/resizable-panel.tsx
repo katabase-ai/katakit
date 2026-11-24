@@ -7,7 +7,7 @@ const minimum = { width: 360, height: 320 };
 // Keep the library's injected class off the DOM. The SVG supplies intrinsic
 // dimensions so the panel and its handles need neither inline styles nor extra classes.
 const Frame = ({ children }: { children: ReactNode }) => (
-  <div className="relative pointer-events-auto max-h-full max-w-full">{children}</div>
+  <div className=":uno: relative pointer-events-auto max-h-full max-w-full">{children}</div>
 );
 
 export const ResizablePanel = ({
@@ -34,7 +34,7 @@ export const ResizablePanel = ({
   const height = Math.min(available.height, size.height);
   return (
     <div
-      className="fixed inset-3 sm:inset-5 pointer-events-none flex items-end justify-end data-[resizing]:[scrollbar-color:transparent_transparent]"
+      className=":uno: fixed inset-3 sm:inset-5 pointer-events-none flex items-end justify-end data-[resizing]:[scrollbar-color:transparent_transparent]"
       ref={bounds}
       data-resizing={activeEdge ? true : undefined}
     >
@@ -63,7 +63,7 @@ export const ResizablePanel = ({
               <span
                 {...props}
                 title="Resize height"
-                className="absolute z-30 touch-none select-none hover:bg-teal-300/30 data-[resizing]:bg-teal-300/30 inset-x-2 -top-1 h-2 cursor-ns-resize rounded"
+                className=":uno: absolute z-30 touch-none select-none hover:bg-teal-300/30 data-[resizing]:bg-teal-300/30 inset-x-2 -top-1 h-2 cursor-ns-resize rounded"
               />
             );
           if (edge === 'w')
@@ -71,14 +71,14 @@ export const ResizablePanel = ({
               <span
                 {...props}
                 title="Resize width"
-                className="absolute z-30 touch-none select-none hover:bg-teal-300/30 data-[resizing]:bg-teal-300/30 inset-y-2 -left-1 w-2 cursor-ew-resize rounded"
+                className=":uno: absolute z-30 touch-none select-none hover:bg-teal-300/30 data-[resizing]:bg-teal-300/30 inset-y-2 -left-1 w-2 cursor-ew-resize rounded"
               />
             );
           return (
             <span
               {...props}
               title="Resize panel"
-              className="absolute z-30 touch-none select-none hover:bg-teal-300/30 data-[resizing]:bg-teal-300/30 -left-1 -top-1 size-4 cursor-nwse-resize rounded-tl-lg"
+              className=":uno: absolute z-30 touch-none select-none hover:bg-teal-300/30 data-[resizing]:bg-teal-300/30 -left-1 -top-1 size-4 cursor-nwse-resize rounded-tl-lg"
             />
           );
         }}
@@ -87,10 +87,10 @@ export const ResizablePanel = ({
           <svg
             width={width}
             height={height}
-            className="block invisible max-w-full max-h-full"
+            className=":uno: block invisible max-w-full max-h-full"
             aria-hidden="true"
           />
-          <section className="absolute inset-0 flex flex-col overflow-auto overscroll-contain rounded-xl border border-zinc-700 bg-[#18191c] shadow-2xl has-[[data-expanded-value]]:(invisible overflow-clip)">
+          <section className=":uno: absolute inset-0 flex flex-col overflow-auto overscroll-contain rounded-xl border border-zinc-700 bg-[#18191c] shadow-2xl has-[[data-expanded-value]]:(invisible overflow-clip)">
             {children}
           </section>
         </Frame>
@@ -98,7 +98,7 @@ export const ResizablePanel = ({
       {activeEdge && (
         <div
           aria-hidden="true"
-          className="fixed inset-0 z-40 pointer-events-auto select-none data-[edge=n]:cursor-ns-resize data-[edge=w]:cursor-ew-resize data-[edge=nw]:cursor-nwse-resize"
+          className=":uno: fixed inset-0 z-40 pointer-events-auto select-none data-[edge=n]:cursor-ns-resize data-[edge=w]:cursor-ew-resize data-[edge=nw]:cursor-nwse-resize"
           data-edge={activeEdge}
         />
       )}
