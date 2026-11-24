@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SectionsSectionIdRouteImport } from './routes/sections.$sectionId'
 import { Route as OperationsSetupRouteImport } from './routes/operations.setup'
 import { Route as OperationsGridRouteImport } from './routes/operations.grid'
 import { Route as DemosDemoIdRouteImport } from './routes/demos.$demoId'
@@ -23,6 +24,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SectionsSectionIdRoute = SectionsSectionIdRouteImport.update({
+  id: '/sections/$sectionId',
+  path: '/sections/$sectionId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OperationsSetupRoute = OperationsSetupRouteImport.update({
@@ -47,6 +53,7 @@ export interface FileRoutesByFullPath {
   '/demos/$demoId': typeof DemosDemoIdRoute
   '/operations/grid': typeof OperationsGridRoute
   '/operations/setup': typeof OperationsSetupRoute
+  '/sections/$sectionId': typeof SectionsSectionIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,6 +61,7 @@ export interface FileRoutesByTo {
   '/demos/$demoId': typeof DemosDemoIdRoute
   '/operations/grid': typeof OperationsGridRoute
   '/operations/setup': typeof OperationsSetupRoute
+  '/sections/$sectionId': typeof SectionsSectionIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -62,6 +70,7 @@ export interface FileRoutesById {
   '/demos/$demoId': typeof DemosDemoIdRoute
   '/operations/grid': typeof OperationsGridRoute
   '/operations/setup': typeof OperationsSetupRoute
+  '/sections/$sectionId': typeof SectionsSectionIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -71,6 +80,7 @@ export interface FileRouteTypes {
     | '/demos/$demoId'
     | '/operations/grid'
     | '/operations/setup'
+    | '/sections/$sectionId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -78,6 +88,7 @@ export interface FileRouteTypes {
     | '/demos/$demoId'
     | '/operations/grid'
     | '/operations/setup'
+    | '/sections/$sectionId'
   id:
     | '__root__'
     | '/'
@@ -85,6 +96,7 @@ export interface FileRouteTypes {
     | '/demos/$demoId'
     | '/operations/grid'
     | '/operations/setup'
+    | '/sections/$sectionId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -93,6 +105,7 @@ export interface RootRouteChildren {
   DemosDemoIdRoute: typeof DemosDemoIdRoute
   OperationsGridRoute: typeof OperationsGridRoute
   OperationsSetupRoute: typeof OperationsSetupRoute
+  SectionsSectionIdRoute: typeof SectionsSectionIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -109,6 +122,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sections/$sectionId': {
+      id: '/sections/$sectionId'
+      path: '/sections/$sectionId'
+      fullPath: '/sections/$sectionId'
+      preLoaderRoute: typeof SectionsSectionIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/operations/setup': {
@@ -141,6 +161,7 @@ const rootRouteChildren: RootRouteChildren = {
   DemosDemoIdRoute: DemosDemoIdRoute,
   OperationsGridRoute: OperationsGridRoute,
   OperationsSetupRoute: OperationsSetupRoute,
+  SectionsSectionIdRoute: SectionsSectionIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

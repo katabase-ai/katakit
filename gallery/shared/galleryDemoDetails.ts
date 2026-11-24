@@ -29,12 +29,13 @@ export const requiresGalleryCapability = (
 
 /** Navigation sections in display order; hosts still select which demos to publish. */
 export const galleryDemoSections = ['Basics', 'Games', 'Meetings'] as const;
+export type GalleryDemoSection = (typeof galleryDemoSections)[number];
 
 export type GalleryDemoMetadata = {
   readonly id: string;
   readonly sourcePath: string;
   readonly title: string;
-  readonly section: (typeof galleryDemoSections)[number];
+  readonly section: GalleryDemoSection;
   readonly description: string;
   readonly requiredCapabilities: GalleryRequiredCapabilities;
   readonly tags: readonly ('game' | 'transcription' | 'productivity')[];
@@ -51,7 +52,7 @@ export const transcriptionDemoDetails = {
   id: 'transcription',
   sourcePath: 'examples/demos/transcription-react',
   copyDirectory: 'local-transcription',
-  title: 'Local transcription',
+  title: 'Transcription',
   section: 'Basics',
   description: 'Your browser turns microphone audio into text on this device.',
   requiredCapabilities: { microphone: true, localTranscription: { audio: 'device' } },
@@ -64,7 +65,7 @@ export const bingoDemoDetails = {
   id: 'bingo',
   sourcePath: 'examples/demos/bingo-react',
   copyDirectory: 'conversation-bingo',
-  title: 'Conversation bingo',
+  title: 'Bingo',
   section: 'Games',
   description: 'Say it in the conversation. See it on the card. Five in a row wins!',
   requiredCapabilities: { microphone: true, localTranscription: { audio: 'device' } },
@@ -89,7 +90,7 @@ export const notesDemoDetails = {
 export const colorClashDemoDetails = {
   id: 'color-clash',
   sourcePath: 'gallery/shared/color-clash',
-  title: 'Color Clash',
+  title: 'Color clash',
   section: 'Games',
   description: 'Say the ink color, not the word. Speech stays on your device.',
   requiredCapabilities: { microphone: true, localTranscription: { audio: 'device' } },
@@ -100,7 +101,7 @@ export const brainstormDemoDetails = {
   id: 'brainstorm',
   sourcePath: 'examples/demos/brainstorm-react',
   copyDirectory: 'brainstorming-game',
-  title: 'Brainstorming game',
+  title: 'Word rush',
   section: 'Games',
   description: 'Race the clock and collect spoken answers on a shared sticky-note board.',
   requiredCapabilities: {

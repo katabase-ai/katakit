@@ -67,7 +67,7 @@ export const ColorClash = ({
   const permissionDenied =
     error === undefined && input.error?.code === 'microphone-permission-denied';
   return (
-    <section className="color-clash" aria-label="Color Clash game">
+    <section className="color-clash" aria-label="Color clash game">
       <header className="color-clash-hud">
         <div>
           <span>Time</span>
@@ -122,7 +122,7 @@ export const ColorClash = ({
           </div>
         ) : (
           <div className="color-clash-message">
-            <h3>{state.phase === 'finished' ? 'Time’s up' : 'Color Clash'}</h3>
+            <h3>{state.phase === 'finished' ? 'Time’s up' : 'Color clash'}</h3>
             {preparing ? (
               <>
                 <p role="status">
@@ -148,7 +148,7 @@ export const ColorClash = ({
                   <div className="color-clash-permission" role="alert">
                     <strong>Microphone access needed</strong>
                     <p>
-                      Color Clash listens for the colors you say. Allow microphone access to play.
+                      Color clash listens for the colors you say. Allow microphone access to play.
                     </p>
                     <p>
                       If your browser has blocked this site, allow Microphone in site settings

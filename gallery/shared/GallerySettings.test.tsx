@@ -353,8 +353,8 @@ test('developer operation grid uses catalogue requirements, remains navigable an
       requiresGalleryCapability(demo.requiredCapabilities, 'localTranscription')
     ).length
   );
-  const game = within(table).getByRole('row', { name: /Color Clash/ });
-  expect(within(game).getByRole('link', { name: 'Color Clash' })).toBeDefined();
+  const game = within(table).getByRole('row', { name: /Color clash/ });
+  expect(within(game).getByRole('link', { name: 'Color clash' })).toBeDefined();
   expect(within(game).getByRole('img', { name: 'Text generation: Not used' })).toBeDefined();
   expect(
     within(table).getAllByRole('img', { name: 'Text generation: Required · needs a connection' })
@@ -363,8 +363,8 @@ test('developer operation grid uses catalogue requirements, remains navigable an
       requiresGalleryCapability(demo.requiredCapabilities, 'remoteModel')
     ).length
   );
-  const brainstorm = within(table).getByRole('row', { name: /Brainstorming game/ });
-  expect(within(brainstorm).getByRole('link', { name: 'Brainstorming game' })).toBeDefined();
+  const brainstorm = within(table).getByRole('row', { name: /Word rush/ });
+  expect(within(brainstorm).getByRole('link', { name: 'Word rush' })).toBeDefined();
   expect(
     within(brainstorm).getByRole('img', { name: 'Text generation: Required · needs a connection' })
   ).toBeDefined();

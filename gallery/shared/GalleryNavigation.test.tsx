@@ -48,16 +48,16 @@ test('groups selected demos in section order, preserving host order and the acti
       .map(link => link.textContent)
   ).toEqual([
     'Welcome',
-    'Local transcription',
-    'Brainstorming game',
-    'Conversation bingo',
-    'Color Clash',
+    'Transcription',
+    'Word rush',
+    'Bingo',
+    'Color clash',
     'Structured notes',
     'List extraction',
   ]);
-  expect(
-    within(nav).getByRole('link', { name: 'Conversation bingo' }).getAttribute('aria-current')
-  ).toBe('page');
+  expect(within(nav).getByRole('link', { name: 'Bingo' }).getAttribute('aria-current')).toBe(
+    'page'
+  );
 });
 
 test('omits empty sections and never shows demos the host did not select', () => {
@@ -72,5 +72,5 @@ test('omits empty sections and never shows demos the host did not select', () =>
     within(nav)
       .getAllByRole('link')
       .map(link => link.textContent)
-  ).toEqual(['Welcome', 'Conversation bingo']);
+  ).toEqual(['Welcome', 'Bingo']);
 });

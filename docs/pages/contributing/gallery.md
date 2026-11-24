@@ -32,7 +32,11 @@ copy destination name for the gallery's local-running instructions.
 
 Navigation groups selected demos into Basics, Games, and Meetings, in that order,
 using each entry's `section`. Empty sections are omitted; the host's demo order is
-preserved within each section. Welcome stays above the sections.
+preserved within each section. Welcome stays above the sections. Hosts can supply
+`renderSectionLink` for linked section labels and `activeSection` to show an overview
+of their selected demos. The local host uses `/sections/basics`, `/sections/games`,
+and `/sections/meetings`. A separate disclosure button hides or shows each section's
+demo links; that UI state lasts for the mounted gallery view.
 
 The loader names its gallery-facing module directly. Reading metadata does not call
 the loader. There is no component-name string registry or second manually maintained
