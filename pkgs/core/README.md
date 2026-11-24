@@ -8,3 +8,7 @@ import { makeKatakit, makeKatakitPlugin, eager, evolve, property } from '@kataki
 ```
 
 Built as ESM with TypeScript declarations.
+
+Every runtime includes an in-memory event log. Import `EventLogPlugin` from
+`@katakit/core` to access it; see the [core reference](../../docs/pages/reference/core.md#built-in-event-log)
+for replay, restored history, and schema validation.

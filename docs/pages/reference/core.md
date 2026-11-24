@@ -42,7 +42,22 @@ console.log(running.getObservables(MessageCountPlugin).count$.get()); // 1
 
 `start()` may be called once. It initializes each registered plugin's methods and effects, subscribes the effects, and returns `getObservables(plugin)` and `getMethods(plugin)`. Starting again throws. Method collections are also cached per runtime.
 
-Both lookup functions accept a plugin factory or configured value and match by its `type` string. Missing types throw. Register distinct types: duplicate types are not rejected, and lookup uses the first match. Registration does not discover or add dependencies; register every plugin the application uses.
+Both lookup functions accept a plugin factory or configured value and match by its `type` string. Missing types throw. Register distinct types: duplicate types are not rejected, and lookup uses the first match. Apart from the built-in event log, register every plugin the application uses.
+
+## Built-in event log
+
+Every runtime has its own in-memory log. Pass `existingEvents` to restore history before starting, or omit it to start empty:
+
+```ts
+import { EventLogPlugin, makeKatakit } from '@katakit/core';
+
+const kit = makeKatakit({ plugins: [], existingEvents: ['opened'] });
+const { events$ } = kit.getObservables(EventLogPlugin);
+kit.start().getMethods(EventLogPlugin).emitEvent('closed');
+console.log(events$.getAll()); // ['opened', 'closed']
+```
+
+The default log accepts values as supplied. To validate live writes, register a [schema-configured event log](plugins/event-log.md) and supply restored history through its `initialEvents` option instead. Both handles then read and write the same validated log.
 
 ## makeKatakitPlugin
 

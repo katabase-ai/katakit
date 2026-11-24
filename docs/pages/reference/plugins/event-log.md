@@ -25,7 +25,7 @@ const history = running.getObservables(EventLogPlugin).events$.getAll();
 
 `makeEventLogPlugin({ validateEvent })` creates a factory of type `EventLog`. `validateEvent` is a synchronous Standard Schema validator; its output type determines the event type.
 
-`EventLogPlugin.configure({ initialEvents })` requires an array of events. The host loads and validates that array before configuration. The log replays it as supplied without revalidation.
+`EventLogPlugin.configure({ initialEvents })` requires an array of events. The host loads and validates that array before configuration. The log replays it as supplied without revalidation. Registering this plugin configures the runtime's [built-in log](../core.md#built-in-event-log); omit `existingEvents` from `makeKatakit` when registering it.
 
 ## Observables
 

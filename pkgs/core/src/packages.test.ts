@@ -102,10 +102,13 @@ describe('published packages', () => {
       join(fixture.consumer, 'smoke.mjs'),
       `
         import assert from 'node:assert/strict';
-        import { makeKatakit } from '@katakit/core';
+        import { EventLogPlugin as BuiltInLog, makeKatakit } from '@katakit/core';
         import { makeEventLogPlugin } from '@katakit/event-log';
         import { makeEventPersistencePlugin, makeLocalStorageEventPersistencePlugin } from '@katakit/persistence';
         import { KatakitDevTools } from '@katakit/react';
+        const coreOnly = makeKatakit({ plugins: [], existingEvents: [1] }).start();
+        coreOnly.getMethods(BuiltInLog).emitEvent(2);
+        assert.deepEqual(coreOnly.getObservables(BuiltInLog).events$.getAll(), [1, 2]);
         const EventLogPlugin = makeEventLogPlugin({
           validateEvent: {
             '~standard': { version: 1, vendor: 'smoke-test', validate: value => ({ value }) },

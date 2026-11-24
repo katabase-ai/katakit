@@ -1,4 +1,4 @@
-import { makeKatakit } from '@katakit/core';
+import { EventLogPlugin, makeKatakit } from '@katakit/core';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import type { Observable } from 'rxjs';
 import * as v from 'valibot';
@@ -31,6 +31,27 @@ const createLog = ({
 };
 
 describe('event log', () => {
+  test('the built-in handle uses the same validated log as the configured handle', () => {
+    const { plugin, runtime } = createLog({ initialEvents: [{ type: 'countSet', value: 1 }] });
+    const { events$ } = runtime.getObservables(EventLogPlugin);
+    expect(runtime.getObservables(plugin).events$).toBe(events$);
+    const alive = runtime.start();
+    const { emitEvent } = alive.getMethods(EventLogPlugin);
+    expect(() => emitEvent({ type: 'unknown' })).toThrow('Invalid event');
+    emitEvent({ type: 'message', text: '  Ready  ' });
+    expect(events$.getAll()).toEqual([
+      { type: 'countSet', value: 1 },
+      { type: 'message', text: 'Ready' },
+    ]);
+  });
+
+  test('rejects competing history sources instead of silently ignoring one', () => {
+    const { configured } = createLog();
+    expect(() => makeKatakit({ plugins: [configured], existingEvents: [1] })).toThrow(
+      /existingEvents/
+    );
+  });
+
   test('reconstructs ordered history without starting the runtime', () => {
     const initialEvents: TestEvent[] = [
       { type: 'countSet', value: 1 },

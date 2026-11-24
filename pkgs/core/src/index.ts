@@ -10,6 +10,7 @@ export {
 } from './plugin';
 
 export { makeKatakit, type KatakitConfig, type Katakit, type AliveKatakit } from './katakit';
+export { EventLogPlugin } from './EventLog/plugin';
 
 export { type GetMethods, type MethodsObj } from './methods';
 
