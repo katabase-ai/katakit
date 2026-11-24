@@ -1,0 +1,370 @@
+.list-extraction {
+  color: inherit;
+  font: inherit;
+  max-width: 58rem;
+  container: extraction / inline-size;
+}
+.list-extraction [hidden] {
+  display: none !important;
+}
+.list-extraction .extraction-intro h1 {
+  margin: 0 0 1rem;
+}
+.list-extraction .extraction-intro {
+  margin-bottom: 1.5rem;
+}
+.list-extraction :is(button, input, select, textarea) {
+  font: inherit;
+  color: inherit;
+}
+.list-extraction button {
+  cursor: pointer;
+  min-height: 44px;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--color-rule-2, currentColor);
+  border-radius: 6px;
+  background: var(--color-key-face, transparent);
+}
+.list-extraction button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+.list-extraction :is(button, input, select, textarea):focus-visible {
+  outline: 2px solid var(--color-focus, currentColor);
+  outline-offset: 4px;
+}
+.list-extraction .extraction-quiet {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  color: var(--color-link, inherit);
+  font-size: 0.875rem;
+}
+.list-extraction .extraction-primary {
+  background: var(--color-accent, #175fc9);
+  color: var(--color-accent-ink, #fafbfe);
+}
+.list-extraction .extraction-hint,
+.list-extraction .extraction-rule-hint {
+  font-size: 0.8125rem;
+  color: var(--color-muted, inherit);
+  line-height: 1.5;
+}
+.list-extraction .extraction-hint {
+  margin: 0.75rem 0;
+}
+.list-extraction .extraction-workflow {
+  margin: 0 0 0.75rem;
+}
+.list-extraction .extraction-setup {
+  margin: 0 0 1.25rem;
+}
+.list-extraction .extraction-rule-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 44px;
+}
+.list-extraction .extraction-rule-summary p {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.875rem;
+}
+.list-extraction .extraction-rule-summary button {
+  flex-shrink: 0;
+}
+.list-extraction .extraction-done {
+  margin-top: 0.5rem;
+}
+.list-extraction .extraction-rule + .extraction-rule {
+  margin-top: 1rem;
+}
+.list-extraction .extraction-rule-row,
+.list-extraction .extraction-actions,
+.list-extraction .extraction-new,
+.list-extraction .extraction-item-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.list-extraction .extraction-rule-row > label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.list-extraction select {
+  min-width: 10rem;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-key-face, transparent);
+  border: 1px solid var(--color-rule-2, currentColor);
+  border-radius: 6px;
+}
+.list-extraction .extraction-rule-hint {
+  margin: 0.5rem 0 0;
+}
+.list-extraction .extraction-remove-list {
+  justify-self: start;
+}
+.list-extraction .extraction-options {
+  display: grid;
+  gap: 1rem;
+  margin: 0.75rem 0;
+  padding: 1rem;
+  max-width: 40rem;
+  background: var(--color-paper-2, transparent);
+  border-radius: 6px;
+}
+.list-extraction .extraction-field {
+  display: grid;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+}
+.list-extraction :is(input[type='text'], textarea) {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  padding: 0.6rem 0.75rem;
+  background: var(--color-paper, transparent);
+  border: 1px solid var(--color-muted, currentColor);
+  border-radius: 6px;
+}
+.list-extraction textarea {
+  resize: vertical;
+  line-height: 1.5;
+}
+.list-extraction fieldset {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+.list-extraction legend {
+  margin-bottom: 0.5rem;
+  font-size: 0.8125rem;
+}
+.list-extraction fieldset label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.875rem;
+}
+.list-extraction input[type='radio'] {
+  accent-color: var(--color-accent, auto);
+}
+.list-extraction .extraction-model {
+  margin: 0;
+}
+.list-extraction .extraction-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 270px);
+  align-items: start;
+  gap: 2.5rem;
+  margin-top: 1.25rem;
+}
+.list-extraction .extraction-output {
+  min-width: 0;
+  min-height: 12rem;
+}
+.list-extraction .extraction-sample-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.list-extraction .extraction-sample-notice .extraction-hint {
+  margin: 0;
+}
+.list-extraction .extraction-output-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  min-height: 44px;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-rule, currentColor);
+}
+.list-extraction .extraction-output-heading .extraction-actions {
+  gap: 0.5rem;
+}
+.list-extraction .extraction-output-heading .extraction-quiet {
+  padding-inline: 0.5rem;
+}
+.list-extraction .extraction-output-heading h2,
+.list-extraction .extraction-transcript h2 {
+  margin: 0;
+  color: var(--color-ink, inherit);
+  font-size: var(--text-lg, 1.25rem);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: normal;
+}
+.list-extraction .extraction-output-heading button {
+  font-size: 0.8125rem;
+}
+.list-extraction .extraction-empty {
+  padding: 1.5rem 0;
+  color: var(--color-muted, inherit);
+}
+.list-extraction .extraction-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 1rem;
+}
+.list-extraction .extraction-tabs button {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  font-size: 0.875rem;
+}
+.list-extraction .extraction-tabs [aria-pressed='true'] {
+  background: var(--color-accent-wash, transparent);
+  color: var(--color-accent-deep, inherit);
+}
+.list-extraction .extraction-item {
+  padding: 1.25rem 0;
+  border-bottom: 1px solid var(--color-rule, currentColor);
+  overflow-wrap: anywhere;
+}
+.list-extraction .extraction-item-text {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.list-extraction .extraction-item-meta {
+  margin: 0.4rem 0;
+  color: var(--color-muted, inherit);
+  font-size: 0.8125rem;
+}
+.list-extraction .extraction-item-actions {
+  gap: 0.25rem;
+}
+.list-extraction .extraction-item-actions button {
+  min-height: 32px;
+  font-size: 0.8125rem;
+  padding: 0.25rem 0.5rem;
+}
+.list-extraction .extraction-evidence {
+  display: grid;
+  gap: 1rem;
+  background: var(--color-paper-2, transparent);
+  border-radius: 6px;
+  padding: 1rem;
+  margin-top: 0.75rem;
+}
+.list-extraction .extraction-evidence time,
+.list-extraction .extraction-transcript time {
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-muted, inherit);
+}
+.list-extraction blockquote {
+  margin: 0.5rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+.list-extraction .extraction-transcript {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: var(--transcript-column-height, calc(100dvh - 14rem));
+}
+.list-extraction .extraction-transcript h2 {
+  box-sizing: content-box;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-height: 44px;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-rule, currentColor);
+}
+.list-extraction .extraction-transcript-list {
+  flex: 1 1 0;
+  min-height: 6rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.list-extraction .extraction-transcript-turn {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr);
+  gap: 0.25rem 0.5rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--color-rule, currentColor);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.list-extraction .extraction-transcript-turn p {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.list-extraction .extraction-transcript-index {
+  padding-top: 0.15rem;
+  color: var(--color-muted, inherit);
+  font-family: var(--font-outlier, ui-monospace, monospace);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+.list-extraction .extraction-transcript-turn time {
+  grid-column: 2;
+  justify-self: end;
+}
+.list-extraction .extraction-transcript-turn[data-interim='true'] p {
+  color: var(--color-muted, inherit);
+  font-style: italic;
+}
+.list-extraction .extraction-copy {
+  margin-top: 1rem;
+}
+.list-extraction .extraction-message {
+  min-height: 1.5em;
+  font-size: 0.8125rem;
+  color: var(--color-muted, inherit);
+}
+.list-extraction .extraction-new {
+  margin-top: 1rem;
+}
+.list-extraction .extraction-new p {
+  width: 100%;
+}
+.list-extraction .extraction-error {
+  color: var(--color-error, inherit);
+  font-size: 0.875rem;
+}
+@container extraction (max-width: 650px) {
+  .list-extraction .extraction-layout {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+  .list-extraction .extraction-transcript {
+    position: static;
+    height: auto;
+  }
+  .list-extraction .extraction-transcript-list {
+    flex: auto;
+    overflow-y: visible;
+  }
+}
+@media (max-width: 650px) {
+  .list-extraction .extraction-rule-row select {
+    flex: 1;
+    min-width: 8rem;
+  }
+  .list-extraction :is(input, textarea, select) {
+    font-size: 16px;
+  }
+  .list-extraction .extraction-item-actions button {
+    min-height: 44px;
+  }
+}

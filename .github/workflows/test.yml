@@ -68,6 +68,8 @@ jobs:
         include:
           - kind: demos
             script: demos:copy-check
+          - kind: gallery
+            script: gallery:copy-check
           - kind: starters
             script: templates:copy-check
     steps:

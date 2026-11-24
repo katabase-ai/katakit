@@ -20,7 +20,7 @@ const fixture = t => {
   };
   write(
     'pnpm-workspace.yaml',
-    "packages:\n  - 'pkgs/*'\n  - 'internal/pkgs/*'\n  - 'examples/demos/*'\n  - 'docs'\n\nlinkWorkspacePackages: true\n"
+    "packages:\n  - 'pkgs/*'\n  - 'internal/pkgs/*'\n  - 'examples/demos/*'\n  - 'docs'\n  - 'gallery'\n\nlinkWorkspacePackages: true\n"
   );
   write(
     'pkgs/core/package.json',
@@ -39,12 +39,12 @@ const fixture = t => {
   write('internal/site-ui/styles.css', "@import './components.css';");
   write('internal/site-ui/components.css', '.site-button { display: block; }');
   for (const [path, name] of [
-    ['demos/bingo-react', '@katakit/demo-bingo-react'],
-    ['demos/gallery', '@katakit/gallery'],
-    ['starters/react-web', '@katakit/react-starter'],
+    ['examples/demos/bingo-react', '@katakit/demo-bingo-react'],
+    ['gallery', '@katakit/gallery'],
+    ['examples/starters/react-web', '@katakit/react-starter'],
   ]) {
     write(
-      `examples/${path}/package.json`,
+      `${path}/package.json`,
       JSON.stringify({
         name,
         private: true,
@@ -52,15 +52,12 @@ const fixture = t => {
         dependencies: { '@katakit/core': '0.0.0' },
       })
     );
-    write(`examples/${path}/README.md`, '# Example');
-    write(`examples/${path}/LICENSE`, 'fixture license');
-    write(`examples/${path}/src/main.ts`, 'export const value = 1;');
+    write(`${path}/README.md`, '# Example');
+    write(`${path}/LICENSE`, 'fixture license');
+    write(`${path}/src/main.ts`, 'export const value = 1;');
   }
-  write('examples/demos/gallery/shared/view.ts', "import '../../bingo-react/src/main';");
-  write(
-    'examples/demos/gallery/shared/style.css',
-    "@import '../../../../internal/site-ui/components.css';"
-  );
+  write('gallery/shared/view.ts', "import '../../examples/demos/bingo-react/src/main';");
+  write('gallery/shared/style.css', "@import '../../internal/site-ui/components.css';");
   return { root, write, manifest };
 };
 const rejects = (t, mutate, expected) => {
@@ -120,14 +117,17 @@ test('feature demos cannot import a sibling example', t =>
   rejects(
     t,
     ({ write }) =>
-      write('examples/demos/bingo-react/src/main.ts', "import '../../gallery/shared/view';"),
+      write('examples/demos/bingo-react/src/main.ts', "import '../../../../gallery/shared/view';"),
     /escapes its demo directory/
   ));
 test('literal template-string imports cannot escape an example', t =>
   rejects(
     t,
     ({ write }) =>
-      write('examples/demos/bingo-react/src/main.ts', 'void import(`../../gallery/shared/view`);'),
+      write(
+        'examples/demos/bingo-react/src/main.ts',
+        'void import(`../../../../gallery/shared/view`);'
+      ),
     /escapes its demo directory/
   ));
 test('demo manifests reject workspace protocols', t =>
@@ -143,10 +143,25 @@ test('examples cannot add private workspace dependencies with ordinary versions'
   rejects(
     t,
     ({ manifest }) =>
-      manifest('examples/demos/gallery', value => {
+      manifest('gallery', value => {
         value.dependencies['@katakit/docs-export'] = '0.0.0';
       }),
     /cannot depend on a private workspace package/
+  ));
+test('gallery composition does not allow arbitrary repository imports', t =>
+  rejects(
+    t,
+    ({ write }) => write('gallery/shared/view.ts', "import '../../pkgs/core/src/index';"),
+    /escapes its gallery directory/
+  ));
+test('gallery copies still require registry dependency versions', t =>
+  rejects(
+    t,
+    ({ manifest }) =>
+      manifest('gallery', value => {
+        value.dependencies['@katakit/core'] = 'workspace:*';
+      }),
+    /must use an installable registry version/
   ));
 test('CSS assets cannot acquire a package manifest or React source', t => {
   const { root, write } = fixture(t);
@@ -160,10 +175,7 @@ test('shared CSS cannot import files elsewhere in the repository', t =>
   rejects(
     t,
     ({ write }) =>
-      write(
-        'internal/site-ui/styles.css',
-        "@import '../../examples/demos/gallery/shared/style.css';"
-      ),
+      write('internal/site-ui/styles.css', "@import '../../gallery/shared/style.css';"),
     /shared CSS imports must stay inside/
   ));
 test('other private tools cannot create manifests outside internal/pkgs', t =>

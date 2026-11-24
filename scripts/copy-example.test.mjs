@@ -47,7 +47,7 @@ test('rejects a destination routed into the checkout through a symlinked parent'
   }
 });
 
-for (const example of ['starters/react-web', 'demos/transcription-react', 'demos/gallery']) {
+for (const example of ['starters/react-web', 'demos/transcription-react', 'gallery']) {
   test(`copies ${example} with registry dependencies and no bundled packages`, () => {
     const temp = mkdtempSync(join(tmpdir(), 'katakit-copy-destination-'));
     try {
@@ -57,15 +57,31 @@ for (const example of ['starters/react-web', 'demos/transcription-react', 'demos
       assert.ok(lstatSync(join(target, 'package.json')).isFile());
       assert.equal(
         readFileSync(join(target, 'package.json'), 'utf8'),
-        readFileSync(join(root, 'examples', example, 'package.json'), 'utf8')
+        readFileSync(
+          join(root, example === 'gallery' ? '' : 'examples', example, 'package.json'),
+          'utf8'
+        )
       );
       assert.equal(existsSync(join(target, 'vendor')), false);
       assert.doesNotMatch(
         readFileSync(join(target, 'pnpm-workspace.yaml'), 'utf8'),
         /overrides:|file:/
       );
-      if (example === 'demos/gallery') {
+      if (example === 'gallery') {
         assert.ok(existsSync(join(target, 'sources/notes-react/src/NotesDemo.tsx')));
+        assert.ok(
+          existsSync(join(target, 'sources/list-extraction-react/src/ListExtractionDemo.tsx'))
+        );
+        assert.match(
+          readFileSync(join(target, 'shared/ListExtractionGalleryDemo.tsx'), 'utf8'),
+          /\.\.\/sources\/list-extraction-react\//
+        );
+        assert.ok(existsSync(join(target, 'sources/brainstorm-react/src/BrainstormDemo.tsx')));
+        assert.ok(existsSync(join(target, 'sources/brainstorm-react/src/challenges.json')));
+        assert.match(
+          readFileSync(join(target, 'shared/BrainstormGalleryDemo.tsx'), 'utf8'),
+          /\.\.\/sources\/brainstorm-react\//
+        );
         assert.ok(existsSync(join(target, 'styles/components.css')));
         assert.match(readFileSync(join(target, 'shared/gallery.css'), 'utf8'), /\.\.\/styles\//);
       }

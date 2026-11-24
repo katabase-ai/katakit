@@ -52,7 +52,7 @@ turns with the existing outline. Stop listening to stop sending. A failed connec
 
 ## Embed the example
 
-The gallery exports `notesGalleryDemo` from `examples/demos/gallery/shared/galleryDemos.tsx`. Its lazy
+The gallery exports `notesGalleryDemo` from `gallery/shared/galleryDemos.tsx`. Its lazy
 component takes no props: it uses the host's `GallerySpeechProvider` and the model connection the
 host passes to `Gallery` as `connectModel`. Catalogue metadata and source paths live in Katakit.
 A host can consume them through an exact source pin without publishing a demo package. Without a

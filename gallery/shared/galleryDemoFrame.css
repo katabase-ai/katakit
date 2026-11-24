@@ -1,0 +1,213 @@
+.katakit-gallery .gallery-demo-frame[data-loading='true'] {
+  min-height: 24rem;
+}
+.katakit-gallery .gallery-demo-stage {
+  display: flow-root;
+}
+.katakit-gallery .gallery-demo-stage[hidden] {
+  display: none;
+}
+.katakit-gallery .gallery-demo-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto auto;
+  align-items: start;
+  gap: 8px 16px;
+  margin-bottom: 24px;
+}
+.katakit-gallery .gallery-demo-header > h1 {
+  grid-column: 1;
+  grid-row: 1;
+  margin: 0;
+  font-size: 36px;
+  line-height: 1.2;
+}
+.katakit-gallery .gallery-demo-header > p {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  max-width: 65ch;
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 16px;
+  line-height: 24px;
+}
+/* Keep the demo's metadata level with its title; listening belongs below the description. */
+.katakit-gallery .gallery-demo-header-badge {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: start;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.katakit-gallery .gallery-demo-header-controls {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  align-self: start;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin-top: 8px;
+}
+.katakit-gallery .gallery-demo-header-controls:empty {
+  display: none;
+}
+/* Beside the badge there is no room to expand in place, so the panel opens over the page. */
+.katakit-gallery .gallery-demo-header-badge .gallery-run-locally {
+  position: relative;
+}
+/* Beside the badge, Get the code is a text button at the badge's type size; the badge keeps its pill. */
+.katakit-gallery .gallery-demo-header-badge .gallery-run-locally > summary {
+  gap: 6px;
+  min-height: 0;
+  padding: 4px 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  /* Without this the inline summary leaves descender space below it and sits off the badge's centre. */
+  vertical-align: top;
+}
+.katakit-gallery .gallery-demo-header-badge .gallery-run-locally > summary:hover,
+.katakit-gallery .gallery-demo-header-badge .gallery-run-locally[open] > summary {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.katakit-gallery .gallery-demo-header-badge .gallery-run-locally > summary svg {
+  width: 14px;
+  height: 14px;
+  flex-basis: 14px;
+}
+.katakit-gallery .gallery-demo-header-badge .gallery-privacy-badge {
+  font-size: 0.8125rem;
+}
+
+.katakit-gallery .gallery-demo-header-badge .gallery-run-locally-panel {
+  position: absolute;
+  inset-block-start: 100%;
+  inset-inline-end: 0;
+  z-index: 5;
+  width: min(40rem, 60vw);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+}
+.katakit-gallery .gallery-capture-action {
+  --gallery-capture-icon-size: 44px;
+  --gallery-capture-gap: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gallery-capture-gap);
+}
+.katakit-gallery .gallery-demo-header-controls .gallery-capture-action {
+  max-width: none;
+  margin: 0;
+}
+.katakit-gallery .gallery-capture-action [role='status'] {
+  /* Setup messages follow the action so Start stays anchored to the left edge. */
+  order: 1;
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.8125rem;
+  text-align: left;
+}
+/* Start and Pause share a width, so the button does not jump when it changes. */
+.katakit-gallery .gallery-capture-toggle {
+  min-width: 6rem;
+}
+/* Compact mouse controls; touch keeps the existing 44px button and microphone. */
+@media (min-width: 651px) and (pointer: fine) {
+  .katakit-gallery .gallery-demo-header-controls .gallery-capture-toggle {
+    min-width: 5rem;
+    min-height: 36px;
+  }
+  .katakit-gallery .gallery-demo-header-controls .gallery-microphone-indicator {
+    width: 36px;
+    height: 36px;
+  }
+  .katakit-gallery .gallery-capture-action {
+    --gallery-capture-icon-size: 36px;
+    --gallery-capture-gap: 8px;
+  }
+}
+/* One Start style for a demo's button and Color Clash's Play. */
+.katakit-gallery .gallery-capture-start {
+  min-width: 8rem;
+  min-height: 52px;
+  font-size: var(--text-base, 1rem);
+}
+.katakit-gallery .gallery-demo-header-badge .gallery-privacy-row {
+  margin: 0;
+}
+.katakit-gallery .gallery-demo-header-badge .gallery-privacy-panel {
+  max-width: min(20rem, calc(100vw - 2 * var(--gutter, 1rem) - 2 * var(--gallery-gutter)));
+}
+.katakit-gallery .gallery-demo-activity-slot {
+  min-height: 24px;
+}
+.katakit-gallery .gallery-demo-activity {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 14px;
+  line-height: 24px;
+}
+.katakit-gallery .gallery-demo-spinner {
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  border: 2px solid var(--color-rule);
+  border-top-color: var(--color-muted);
+  border-radius: 50%;
+  animation: gallery-demo-spin 800ms linear infinite;
+}
+@keyframes gallery-demo-spin {
+  to { transform: rotate(360deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .katakit-gallery .gallery-demo-spinner { animation: none; }
+}
+@media (max-width: 650px) {
+  .katakit-gallery .gallery-demo-header > h1 { font-size: 28px; }
+  /* A narrow header has no right column to spare: the badges follow the description instead. */
+  .katakit-gallery .gallery-demo-header { grid-template-rows: auto; }
+  .katakit-gallery .gallery-demo-header > :is(h1, p) { grid-column: 1 / -1; }
+  /* The title keeps the full width; Start takes its own row under the badges. */
+  .katakit-gallery .gallery-demo-header-controls {
+    grid-row: 4;
+  }
+  .katakit-gallery .gallery-demo-header-badge {
+    grid-column: 1 / -1;
+    grid-row: 3;
+    justify-self: start;
+  }
+  .katakit-gallery .gallery-demo-header-badge .gallery-run-locally-panel {
+    --gallery-caret-left: 1rem;
+    --gallery-caret-right: auto;
+    inset-inline-start: 0;
+    inset-inline-end: auto;
+    width: calc(100vw - 2 * var(--gutter, 1rem) - 2 * var(--gallery-gutter));
+  }
+  .katakit-gallery .gallery-demo-header-badge .gallery-privacy-panel {
+    inset-inline-start: 0;
+    inset-inline-end: auto;
+  }
+  .katakit-gallery .gallery-demo-header-badge .gallery-privacy-popover::before {
+    inset-inline-start: 2rem;
+    inset-inline-end: auto;
+  }
+}
+/* Bound demo-specific grids and transcript panels independently of the gallery's page scroll. */
+.katakit-gallery .browser-bingo {
+  --bingo-grid-max-height: calc(100dvh - 18.75rem);
+}
+.katakit-gallery .structured-notes {
+  /* Full width, with the same transcript column alignment as bingo. */
+  max-width: none;
+  --transcript-column-height: calc(100dvh - 15.25rem);
+}
