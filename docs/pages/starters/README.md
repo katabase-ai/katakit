@@ -1,4 +1,4 @@
-# Application Starters
+# Application starters
 
 Choose a copyable application starter for your platform. Each guide explains its input path, permissions, and current verification. The starter's README owns the exact install and run commands.
 

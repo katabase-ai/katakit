@@ -22,7 +22,7 @@ test('navigation follows the section order and uses directory READMEs as landing
       ],
     },
     {
-      label: 'Application Starters',
+      label: 'Application starters',
       slug: 'starters',
       children: [
         { label: 'React', slug: 'starters/react-web' },
