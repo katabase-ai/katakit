@@ -13,6 +13,12 @@ const conceptOrder = [
   'persistence.md',
   'templates.md',
 ];
+const clientStarters = [
+  { label: 'React', slug: 'starters/react-web' },
+  { label: 'Chrome extension', slug: 'starters/chrome-extension' },
+  { label: 'Electron', slug: 'starters/electron' },
+  { label: 'Obsidian', slug: 'starters/obsidian' },
+];
 
 const titleOf = path => {
   const title = readFileSync(path, 'utf8').match(/^# (.+)$/m)?.[1];
@@ -58,6 +64,23 @@ export const buildNav = (directory = pages) => {
       };
     })
     .filter(item => item.slug || item.children.length);
+
+  // Group client applications without changing their published page URLs or titles.
+  if (directory === join(pages, 'starters')) {
+    const clients = clientStarters.map(starter => {
+      const item = items.find(item => item.slug === starter.slug);
+      if (!item) throw new Error(`Missing client starter page: ${starter.slug}`);
+      return { ...item, label: starter.label };
+    });
+    return [
+      { label: 'Client applications', children: clients },
+      ...items
+        .filter(item => !clientStarters.some(starter => starter.slug === item.slug))
+        .map(item =>
+          item.slug === 'starters/mcp-app' ? { ...item, label: 'MCP App (WIP)' } : item
+        ),
+    ];
+  }
 
   // Package pages are peers in Reference; existing plugin URLs remain valid.
   if (directory === join(pages, 'reference'))
