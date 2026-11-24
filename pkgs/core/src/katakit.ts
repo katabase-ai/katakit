@@ -1,4 +1,5 @@
 import { startEffects } from './effect';
+import { KatakitEvent } from './EventLog/event';
 import { EventLogPlugin } from './EventLog/plugin';
 import { GetMethods, makeGetMethods } from './methods';
 import { GetObservables, makeGetObservables } from './observables';
@@ -7,7 +8,7 @@ import { assert } from './utils/assert';
 
 export type KatakitConfig<TConfiguredKatakitPlugins extends ConfiguredKatakitPlugin<any, any>[]> = {
   /** Seed the built-in log with host-validated history. Defaults to an empty log. */
-  existingEvents?: readonly unknown[];
+  existingEvents?: KatakitEvent[];
   plugins: TConfiguredKatakitPlugins;
 };
 

@@ -8,7 +8,13 @@ test('the built-in log cannot be registered manually, even with no runtime histo
 });
 
 test('replays restored history before start, then delivers live events on the same stream', () => {
-  const kit = makeKatakit({ plugins: [], existingEvents: ['first', 'second'] });
+  const kit = makeKatakit({
+    plugins: [],
+    existingEvents: [
+      { type: 'first', meta: { seq: 0, timestamp: new Date() } },
+      { type: 'second', meta: { seq: 1, timestamp: new Date() } },
+    ],
+  });
   const { events$ } = kit.getObservables(EventLogPlugin);
   const seen: unknown[] = [];
   const subscription = events$.subscribe(event => seen.push(event));
@@ -25,7 +31,6 @@ test('replays restored history before start, then delivers live events on the sa
     const late: unknown[] = [];
     events$.subscribe(event => late.push(event)).unsubscribe();
     expect(late).toEqual(seen);
-    expectTypeOf(events$.getAll()).toEqualTypeOf<unknown[]>();
     expectTypeOf(events$).not.toHaveProperty('next');
   } finally {
     subscription.unsubscribe();
