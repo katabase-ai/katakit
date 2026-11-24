@@ -69,6 +69,13 @@ for (const example of ['starters/react-web', 'demos/transcription-react', 'galle
       );
       if (example === 'gallery') {
         assert.ok(existsSync(join(target, 'sources/notes-react/src/NotesDemo.tsx')));
+        assert.ok(
+          existsSync(join(target, 'sources/list-extraction-react/src/ListExtractionDemo.tsx'))
+        );
+        assert.match(
+          readFileSync(join(target, 'shared/ListExtractionGalleryDemo.tsx'), 'utf8'),
+          /\.\.\/sources\/list-extraction-react\//
+        );
         assert.ok(existsSync(join(target, 'sources/brainstorm-react/src/BrainstormDemo.tsx')));
         assert.ok(existsSync(join(target, 'sources/brainstorm-react/src/challenges.json')));
         assert.match(

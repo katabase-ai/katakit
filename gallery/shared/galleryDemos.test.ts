@@ -7,6 +7,7 @@ import {
   bingoDemoDetails,
   notesDemoDetails,
   colorClashDemoDetails,
+  listExtractionDemoDetails,
   brainstormDemoDetails,
 } from './galleryDemoDetails';
 import {
@@ -14,6 +15,7 @@ import {
   bingoGalleryDemo,
   notesGalleryDemo,
   colorClashGalleryDemo,
+  listExtractionGalleryDemo,
   brainstormGalleryDemo,
 } from './galleryDemos';
 
@@ -25,6 +27,7 @@ test('each named loader carries its matching metadata independent of catalogue p
     [bingoGalleryDemo, bingoDemoDetails],
     [notesGalleryDemo, notesDemoDetails],
     [colorClashGalleryDemo, colorClashDemoDetails],
+    [listExtractionGalleryDemo, listExtractionDemoDetails],
     [brainstormGalleryDemo, brainstormDemoDetails],
   ] as const) {
     expect(entry).toMatchObject(details);
