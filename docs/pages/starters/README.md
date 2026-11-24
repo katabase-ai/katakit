@@ -1,34 +1,28 @@
-# Starters
+# Application starters
 
-Choose a copyable application starter for your platform. Each guide explains its input path, permissions, and current verification. The starter's README owns the exact install and run commands.
+Start an application with Katakit using one of these copyable projects. Each starter connects platform-specific input to Katakit and displays the resulting conversation turns. Choose your platform below, then follow the starter's README to install and run it.
 
-Copy one directory under [`examples/starters/`](https://github.com/katabase-ai/katakit/tree/main/examples/starters) and install from that copy. Each is an independent pnpm project using Katakit packages from npm. Client-side starters download speech-model weights on first use. Use Node.js 24+ and pnpm 11.9.0 unless a README says otherwise.
-
-The intended path for React, Electron, Chrome extension, and Obsidian is **record audio → recognize speech locally → send finalized text to Katakit transcript ingestion → display conversation turns**. React and Electron have documented live checks; Chrome has reported successful tab and microphone transcription with additional paths still unverified. Obsidian awaits a complete installed-plugin check. A copied build and a fake-segment test alone do not verify a platform integration. A real model download requires internet access, but no paid speech account. The [MCP App](mcp-app.md) is **WIP**: it needs a separate local transcription server and does not yet have an audio path.
+These starters recognize speech locally and pass finalized text to Katakit's transcript-ingestion plugin. Audio is processed on the device rather than uploaded to an application service. First use downloads speech-model weights and requires internet access, but no paid speech account.
 
 ## Choose a platform
 
-| Starter                                 | Audio source and recognizer                        | Current evidence                                                                             |
-| --------------------------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| [React web](react-web.md)               | Browser microphone, Moonshine Tiny                 | Copied build/unit test; mic path checked in Chrome 157                                       |
-| [Electron](electron.md)                 | Desktop microphone, Moonshine Tiny                 | Copied build/unit test; mic path checked in Electron 35                                      |
-| [Chrome extension](chrome-extension.md) | Tab and optional mic, Moonshine Tiny               | Tab and mic transcription reported in Chrome 157; further lifecycle/permission checks remain |
-| [Obsidian](obsidian.md)                 | Short mic clip, Whisper Tiny                       | Copied build/unit test; new plugin needs a test-vault run                                    |
-| [MCP App — WIP](mcp-app.md)             | No audio path yet; requires local companion server | Typed-text preview only; real chat host unverified                                           |
+| Starter                                 | What it demonstrates                                                                                                                     |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| [React](react-web.md)                   | Browser microphone transcription with Moonshine Tiny, displaying provisional speech and completed turns in a React UI.                   |
+| [Chrome extension](chrome-extension.md) | Tab and optional microphone transcription with Moonshine Tiny, displaying turns in a Chrome side panel.                                  |
+| [Electron](electron.md)                 | Microphone transcription with Moonshine Tiny, displaying provisional speech and completed turns in a desktop window.                     |
+| [Obsidian](obsidian.md)                 | Recording a short microphone clip and transcribing it with Whisper Tiny after Stop, displaying turns in an Obsidian Desktop plugin view. |
+
+React and Electron have live microphone checks. Chrome has live tab and microphone checks, but further lifecycle and permission checks remain. Obsidian is provisional: its complete installed-plugin path still needs a test-vault run, and mobile is unsupported. Follow each starter's README for tested versions, verification steps, and remaining limitations.
 
 ## From copy to your application
 
-1. Follow that starter's README for the exact copy, install, build, run, permission, model-download and manual test steps. A root `pnpm install` does not install these independent projects.
-2. Find the recognition callback, Katakit `ingestSegment` method, Stop/`flush`, and turn observable in its platform guide. Some hosts use a browser microphone helper; Chrome supplies PCM from an offscreen document; Obsidian transcribes a completed clip. Do not confuse provisional speech with finalized text.
-3. Change one input, plugin, or display at a time. If adding persistence or a server, document where audio/text goes and who can access it. The client-side starters do not upload recordings to an application service.
-4. Verify the **copied** project on its actual platform: first model load, a final turn, Stop/Start, denied microphone permission, close/reopen, and cleanup. A browser preview cannot stand in for an Obsidian, Chrome, Electron, or chat-host smoke test.
+1. Choose a platform and copy its directory from [`examples/starters/`](https://github.com/katabase-ai/katakit/tree/main/examples/starters). Each starter is an independent pnpm project using Katakit packages from npm.
+2. Follow the copied project's README for prerequisites and exact install, build, and run commands. Use Node.js 24+ and pnpm 11.9.0 unless that README says otherwise; a root repository install does not install the starters.
+3. Use the platform guide to find where input, Katakit plugins, and UI connect. Adapt one part at a time, then run the README's checks on the target platform, including permissions and stopping the input. A successful build alone does not verify the live interaction.
 
 ## Starters, applications, and demos
 
-A **plugin** supplies reusable behavior, such as event history or conversation-turn grouping. An **application** connects plugins to its inputs, UI, storage, and external services. Its **platform** is the host it runs in, such as the browser, Electron, or Obsidian.
+A **starter** is a minimal application foundation with platform-specific setup, input, and UI. A **demo** shows a particular user-facing capability and may include more application behavior. Starters live in `examples/starters/`; demos live in `examples/demos/`.
 
-A **starter** is a minimal copyable application for one platform. It includes assembly and host-specific setup. A **demo** is an application showing a user-facing capability and can contain more behavior than a starter. Starters live in `examples/starters/`; demos live in `examples/demos/`; reusable libraries live in `pkgs/`.
-
-Platform permissions, audio capture, and UI belong to the application. The transcript-ingestion plugin accepts normalized text regardless of its source. A successful build verifies the code can compile; the platform guides separately record which real host interactions have been checked.
-
-For reusable behavior, see the [transcription utility](../reference/transcription.md) and [transcript-ingestion plugin](../reference/plugins/transcript-ingestion.md). For a worked input-to-view path, continue the [Tutorial](../concepts/templates.md). The [contributor checklist](https://github.com/katabase-ai/katakit/blob/main/examples/starters/README.md) describes the distribution and review contract.
+For plugin architecture, see [Add a plugin and an effect](../concepts/plugins.md). For a worked input-to-view path, see [Connect an input and a view](../concepts/templates.md). The [contributor checklist](https://github.com/katabase-ai/katakit/blob/main/examples/starters/README.md) explains how to build and verify a new starter.
