@@ -1,5 +1,4 @@
 import { icons } from '@iconify-json/lucide';
-import compileClass from '@unocss/transformer-compile-class';
 import {
   defineConfig,
   presetIcons,
@@ -10,7 +9,6 @@ import {
 
 // oxlint-disable-next-line import/no-default-export -- UnoCSS loads the default export.
 export default defineConfig({
-  extractorDefault: false,
   shortcuts: {
     'tool-button-chrome':
       'shrink-0 items-center justify-center gap-1.5 rounded-md font-medium text-xs cursor-pointer outline-none transition-colors focus-visible:ring-2 focus-visible:ring-teal-300 disabled:opacity-40 disabled:cursor-default',
@@ -30,5 +28,5 @@ export default defineConfig({
     }),
     presetIcons({ collections: { lucide: icons } }),
   ],
-  transformers: [transformerVariantGroup(), compileClass({ classPrefix: 'kk-' })],
+  transformers: [transformerVariantGroup()],
 });

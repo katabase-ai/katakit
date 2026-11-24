@@ -32,7 +32,6 @@
   },
   "devDependencies": {
     "@types/node": "24.13.3",
-    "@unocss/eslint-plugin": "66.13.0",
     "husky": "8.0.3",
     "lint-staged": "15.2.2",
     "oxfmt": "^0.66.0",

@@ -37,7 +37,7 @@ const Fields = ({
         );
       })}
       {fields.length > pageSize && (
-        <div className=":uno: flex flex-wrap items-center gap-1 text-zinc-400">
+        <div className="flex flex-wrap items-center gap-1 text-zinc-400">
           <ToolButton
             label="Previous fields"
             disabled={!start}
@@ -86,12 +86,12 @@ const ValueNode = ({
       <Collapsible.Trigger className={buttonClasses({ variant: 'disclosure' })}>
         <span
           aria-hidden="true"
-          className=":uno: inline-block size-3 align-middle i-lucide-chevron-right"
+          className="inline-block size-3 align-middle i-lucide-chevron-right"
         />
         {prefix}
         {length === null ? '{…}' : `Array(${length})`}
       </Collapsible.Trigger>
-      <Collapsible.Panel className=":uno: ml-1.5 border-l border-zinc-700 pl-2">
+      <Collapsible.Panel className="ml-1.5 border-l border-zinc-700 pl-2">
         <Fields object={value} length={length} ancestors={[...ancestors, value]} />
       </Collapsible.Panel>
     </Collapsible.Root>
@@ -101,7 +101,7 @@ const ValueNode = ({
 export const ValuePreview = ({ value }: { value: unknown }) => (
   <div
     tabIndex={0}
-    className=":uno: flex-1 overflow-auto whitespace-pre-wrap break-words pl-3 pr-11 py-2 font-mono text-[11px] leading-relaxed text-zinc-200"
+    className="flex-1 overflow-auto whitespace-pre-wrap break-words pl-3 pr-11 py-2 font-mono text-[11px] leading-relaxed text-zinc-200"
   >
     <ValueNode value={value} ancestors={[]} />
   </div>

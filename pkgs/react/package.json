@@ -46,7 +46,6 @@
     "@testing-library/react": "^16.1.0",
     "@types/react": "19.0.0",
     "@types/react-dom": "19.0.0",
-    "@unocss/transformer-compile-class": "66.13.0",
     "happy-dom": "^18.0.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
