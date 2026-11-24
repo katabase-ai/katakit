@@ -13,7 +13,3 @@ Copy the entire `examples/starters/obsidian/` directory. With Node.js 24+ and pn
 The copied build, deterministic Katakit segment test, and mocked recorder-error cleanup test pass; none proves the complete microphone-to-turn flow in an installed Obsidian plugin. **The complete interaction still needs a manual test-vault run.** Record the Obsidian and OS versions alongside results for first download, microphone recognition, OS permission denial, short/empty audio, a second recording, and close/reopen. Opening the plugin view alone does not verify recording or inference. Mobile is unsupported.
 
 For shared APIs, see [Transcript ingestion](https://github.com/katabase-ai/katakit/tree/main/docs/pages/reference/plugins).
-
-### Screenshot provenance
-
-`docs/public/starters/obsidian.png` was captured on 2026-11-24 from a standalone copy of source revision `37af0d7`, installed against npm dependencies. Obsidian 1.8.4 on macOS 15.6 loaded the built plugin in an isolated application profile and a new empty test vault. Community plugins were enabled for that vault and the starter command opened its real view. Playwright captured the idle view without injecting a transcript, recording audio, or running inference. Plugin loading and view rendering passed; the complete microphone-to-turn flow and remaining scenarios above are still unverified.

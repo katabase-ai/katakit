@@ -28,7 +28,3 @@ The copied project builds and the deterministic finalized-segment test passes. M
 For a new manual check, record the OS/browser version and whether each scenario passes: first model download, spoken audio producing a final turn, provisional display, Stop/Start, denied permission, reload, and deployed hosting. Run these in the copied application; automated segment tests do not exercise a microphone or recognizer.
 
 Model weights download from the provider on first use. No microphone audio or transcript is sent to an application server by this starter. For the shared API, see the [Katakit reference](https://github.com/katabase-ai/katakit/tree/main/docs/pages/reference).
-
-### Screenshot provenance
-
-`docs/public/starters/react-web.png` was captured on 2026-11-24 from a standalone copy of source revision `37af0d7`, installed against npm dependencies, using Chrome 158.0.8127.37 on macOS 15.6. Playwright captured the actual localhost interface in its idle, empty state. No sample transcript was injected, microphone permission requested, or inference run for this capture. It verifies initial UI rendering only.

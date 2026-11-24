@@ -15,7 +15,3 @@ Audio stays on the device, but fetching npm/Electron dependencies and the first 
 The copied build and deterministic finalized-segment test pass. Manual checks on **macOS 15.6 / Electron 35.7.5** covered model-loading progress, a finalized turn from spoken audio, a second turn after Stop/Start, and an empty list after closing/reopening the window. OS microphone denial was skipped; cold-cache download, provisional display, other OSes, packaging, and signing remain unverified.
 
 For a new manual check, record OS and Electron versions and the result of first download, microphone recognition, provisional display, Stop/Start, permission denial, and window close/reopen. Recheck asset loading and microphone permission in a packaged build before claiming installer support. Automated segment tests do not exercise microphone capture.
-
-### Screenshot provenance
-
-`docs/public/starters/electron.png` was captured on 2026-11-24 from a standalone copy of source revision `37af0d7`, installed against npm dependencies, in Electron 35.7.5 on macOS 15.6. Playwright attached to the actual desktop renderer at `katakit://app/index.html` and captured its idle, empty state. No transcript was injected or microphone/inference interaction exercised. This confirms initial window rendering, not a packaged installer or live recognition.

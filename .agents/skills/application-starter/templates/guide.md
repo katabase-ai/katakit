@@ -3,6 +3,8 @@
 [Describe what the existing application is, its real input, and its visible result.
 Link to its source directory. Keep the opening summary short.]
 
+<!-- Optional: include a screenshot only if it explains something useful beyond the prose. -->
+
 ![Describe the actual application and visible state](/starters/[name].png)
 
 [Caption explaining the screenshot. Identify an idle or fixture-driven state honestly.]

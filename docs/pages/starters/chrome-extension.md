@@ -2,10 +2,6 @@
 
 The [Chrome extension starter](https://github.com/katabase-ai/katakit/tree/main/examples/starters/chrome-extension) captures tab audio, optionally mixes in microphone audio, and recognizes speech locally with Moonshine Tiny. Katakit conversation turns appear in a Chrome side panel.
 
-![Chrome extension starter with recording controls and an empty transcript](/starters/chrome-extension.png)
-
-The installed extension's side-panel page before recording, opened directly in Chrome.
-
 The extension has three cooperating contexts. `public/background.js` coordinates user actions and stores finalized segments in `storage.session`. An offscreen document runs recognition: `src/capture.ts` owns media tracks and 16 kHz PCM, while `src/offscreen.ts` supplies that PCM to `createBrowserTranscriber`. The side panel uses `src/kit.ts` to ingest recognized text and `src/sidepanel.ts` to display turns.
 
 ### Status and limitations

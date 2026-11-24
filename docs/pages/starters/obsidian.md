@@ -2,10 +2,6 @@
 
 The [Obsidian starter](https://github.com/katabase-ai/katakit/tree/main/examples/starters/obsidian) is a desktop plugin that records a short microphone clip and transcribes it locally with Whisper Tiny English after **Stop**. Recognized text enters Katakit and appears as a completed conversation turn in a plugin view.
 
-![Obsidian test vault with the Katakit transcription starter view open](/starters/obsidian.png)
-
-The plugin view in an empty test vault, before recording.
-
 `src/speech.ts` owns microphone permission, MediaRecorder capture, decoding, 16 kHz resampling, and single-thread inference. `src/session.ts` assembles Katakit and flushes recognized text into a turn. `src/main.ts` creates the Obsidian view, connects its controls and subscriptions, and releases resources when the view closes.
 
 ### Status and limitations

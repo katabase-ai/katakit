@@ -22,8 +22,9 @@ website consumers. See [EXPORT.md](EXPORT.md) for that boundary and bundle contr
   `README.md` is its landing page. Link to other authored pages with relative
   Markdown paths and heading anchors. Images belong in `public/`.
 - Application starter guides follow the [authoring skill and templates](../.agents/skills/application-starter/SKILL.md):
-  opening summary, real screenshot, how it works, optional status/limitations, then
+  opening summary, how it works, optional status/limitations, then
   Get started, Platform considerations, Make it yours, and Additional resources.
+  Screenshots are optional and should add useful information beyond the prose.
   The copied README owns exact commands and detailed verification/capture records.
 - After adding, moving, or retitling a page, run
   `pnpm --filter @katakit/docs exec node scripts/generate-nav.mjs` from the repository

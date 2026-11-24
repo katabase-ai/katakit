@@ -60,6 +60,8 @@ observable result, repeated use, shutdown/reopen, and a meaningful failure path.
 
 ### Screenshot provenance
 
+<!-- Omit this subsection when the guide has no screenshot. -->
+
 [Asset path, capture date, OS/host version, source revision/dependency source,
 displayed sample or idle state, and how it was captured. Identify fixture-driven
 input and anything the screenshot does not verify. Never use personal data.]

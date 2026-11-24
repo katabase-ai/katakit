@@ -2,10 +2,6 @@
 
 The [React starter](https://github.com/katabase-ai/katakit/tree/main/examples/starters/react-web) is a browser application that recognizes microphone speech locally with Moonshine Tiny and displays Katakit conversation turns. Its interface includes recording controls, provisional speech, and completed turns.
 
-![React starter showing its microphone controls and empty conversation view](/starters/react-web.png)
-
-The React starter before recording.
-
 `src/main.tsx` connects `createMicrophoneTranscriber` callbacks to the methods in `src/katakit.ts`. That module assembles transcript ingestion and exposes the turn observable. Finalized recognition segments become Katakit turns; provisional speech is displayed separately. React subscribes to these results, and the input is disposed when the interface unmounts.
 
 ### Status and limitations

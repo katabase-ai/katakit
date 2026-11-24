@@ -2,10 +2,6 @@
 
 The [Electron starter](https://github.com/katabase-ai/katakit/tree/main/examples/starters/electron) is a desktop application that recognizes microphone speech locally with Moonshine Tiny. Its window displays provisional speech and completed Katakit conversation turns.
 
-![Electron starter window showing microphone controls before recording](/starters/electron.png)
-
-The desktop window before recording.
-
 Electron's main process creates the window and serves the built application. The renderer owns the microphone, recognition, Katakit runtime, and view: `src/main.ts` connects recognition callbacks to `src/kit.ts` and displays the resulting turns. Both processes run on the user's computer; this is a client application, not a hosted service.
 
 ### Status and limitations

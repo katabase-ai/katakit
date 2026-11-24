@@ -42,16 +42,17 @@ checklist is the engineering authority; this skill organizes the authoring workf
 - Start with [the guide template](templates/guide.md) and
   [the copied README template](templates/readme.md). Replace placeholders and remove
   unused optional content; a template is not evidence for a feature.
-- The guide describes the existing app: summary, screenshot, how it works, optional short
+- The guide describes the existing app: summary, how it works, optional short
   status/limitations, Get started, Platform considerations, Make it yours, Additional resources.
   Keep that order. Give concrete file/API adaptation points and verify external links.
 - The README owns exact commands, prerequisites, manual scenarios, tested versions,
   outcomes, skipped checks, and deployment instructions. Move useful verification facts
   there instead of discarding them with historical debugging prose.
-- Capture the actual installed/running application using non-sensitive sample data in an
+- Include screenshots only when they explain something useful beyond the prose; omit
+  empty/idle captures that add no information. Capture the actual application in an
   isolated profile or test vault. Never synthesize a screenshot or insert fake successful
-  output into the DOM. An idle-state capture is acceptable when labeled honestly; it does
-  not establish live input or inference. Record date, version, source revision/dependency
+  output into the DOM or use personal data. A screenshot does not establish live input
+  or inference. Record date, version, source revision/dependency
   source, displayed state, and capture limits in the README. Store assets in
   `docs/public/starters/` and use `/starters/<name>.png` in authored guides.
 - Keep existing page URLs. Search for links to headings before renaming/removing them;

@@ -26,9 +26,9 @@ Keep detailed verification evidence in a `Verification` section: date where know
 
 ## Each starter's guide
 
-Use an opening summary, a real screenshot with alt text and a caption, then an explanation of the input-to-output path and relevant source files. Include an optional **Status and limitations** subsection in that opening overview only for consequential restrictions or verification gaps. Then use **Get started**, **Platform considerations**, **Make it yours**, and **Additional resources**, in that order. Exact commands belong in the copied README; guides explain how and why to adapt the project. External resources should be a short list of verified official links with a reason to use each.
+Use an opening summary, then an explanation of the input-to-output path and relevant source files. Include an optional **Status and limitations** subsection in that opening overview only for consequential restrictions or verification gaps. Then use **Get started**, **Platform considerations**, **Make it yours**, and **Additional resources**, in that order. Exact commands belong in the copied README; guides explain how and why to adapt the project. External resources should be a short list of verified official links with a reason to use each.
 
-Capture the actual application with sample data and enough host context to identify the platform. Use an empty/idle view if no successful interaction can honestly be shown, and label it as such. Keep images under `docs/public/starters/`, record capture provenance and limits in the README, and never fabricate output or capture a personal vault/profile. Update navigation and affected links after retitling a guide.
+Screenshots are optional: include one only when it explains something useful beyond the prose, rather than showing an empty/idle interface. Capture the actual application with sample data and enough host context to identify the platform. Keep images under `docs/public/starters/`, include alt text and a caption, record capture provenance and limits in the README, and never fabricate output or capture a personal vault/profile. Update navigation and affected links after retitling a guide.
 
 Link to the [Katakit docs](../../docs/pages/reference/README.md) for shared API behavior rather than duplicating an API reference in every README.
 
