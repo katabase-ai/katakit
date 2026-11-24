@@ -27,8 +27,12 @@ standalone copy materializes imported demo sources and shared CSS as regular fil
 
 `gallery/shared/galleryDemoDetails.ts` is the authoritative catalogue. Each entry
 declares a stable ID, title, description, source location, requirements, descriptive
-tags, and a lazy loader. Independently runnable source directories also declare a
+tags, a navigation section, and a lazy loader. Independently runnable source directories also declare a
 copy destination name for the gallery's local-running instructions.
+
+Navigation groups selected demos into Basics, Games, and Meetings, in that order,
+using each entry's `section`. Empty sections are omitted; the host's demo order is
+preserved within each section. Welcome stays above the sections.
 
 The loader names its gallery-facing module directly. Reading metadata does not call
 the loader. There is no component-name string registry or second manually maintained

@@ -8,7 +8,11 @@ import { GallerySpeechProvider } from './GallerySpeechProvider';
 import { GallerySpeechControls } from './GallerySpeechControls';
 import { GalleryModeProvider, GalleryPreviewToggle, useGalleryMode } from './GalleryModeProvider';
 import type { GalleryDeveloperPage } from './operationDetails';
-import { galleryDemoDetails, requiresGalleryCapability } from './galleryDemoDetails';
+import {
+  galleryDemoDetails,
+  notesDemoDetails,
+  requiresGalleryCapability,
+} from './galleryDemoDetails';
 import { GalleryModelError, useGalleryModel, type GalleryModelConnect } from './galleryModel';
 import { defaultInference, inferenceStorageKey } from './galleryInference';
 import { NotesDemo } from '../../examples/demos/notes-react/src/NotesDemo';
@@ -94,7 +98,7 @@ const Content = ({
       <GalleryPreviewToggle />
       <Gallery
         demos={galleryDemoDetails}
-        activeDemo={galleryDemoDetails[2]}
+        activeDemo={notesDemoDetails}
         developerPage={page === 'settings' ? undefined : page}
         settingsPage={page === 'settings'}
         account={{ waitlistUrl: 'https://example.com/waitlist' }}

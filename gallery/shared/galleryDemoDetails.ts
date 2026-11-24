@@ -27,10 +27,14 @@ export const requiresGalleryCapability = (
   capability: keyof GalleryRequiredCapabilities
 ) => requirements[capability] !== undefined;
 
+/** Navigation sections in display order; hosts still select which demos to publish. */
+export const galleryDemoSections = ['Basics', 'Games', 'Meetings'] as const;
+
 export type GalleryDemoMetadata = {
   readonly id: string;
   readonly sourcePath: string;
   readonly title: string;
+  readonly section: (typeof galleryDemoSections)[number];
   readonly description: string;
   readonly requiredCapabilities: GalleryRequiredCapabilities;
   readonly tags: readonly ('game' | 'transcription' | 'productivity')[];
@@ -48,6 +52,7 @@ export const transcriptionDemoDetails = {
   sourcePath: 'examples/demos/transcription-react',
   copyDirectory: 'local-transcription',
   title: 'Local transcription',
+  section: 'Basics',
   description: 'Your browser turns microphone audio into text on this device.',
   requiredCapabilities: { microphone: true, localTranscription: { audio: 'device' } },
   tags: ['transcription'],
@@ -60,6 +65,7 @@ export const bingoDemoDetails = {
   sourcePath: 'examples/demos/bingo-react',
   copyDirectory: 'conversation-bingo',
   title: 'Conversation bingo',
+  section: 'Games',
   description: 'Say it in the conversation. See it on the card. Five in a row wins!',
   requiredCapabilities: { microphone: true, localTranscription: { audio: 'device' } },
   tags: ['game'],
@@ -70,6 +76,7 @@ export const notesDemoDetails = {
   sourcePath: 'examples/demos/notes-react',
   copyDirectory: 'structured-notes',
   title: 'Structured notes',
+  section: 'Meetings',
   description: 'Talk through a plan. Notes take shape as you finish each thought.',
   requiredCapabilities: {
     microphone: true,
@@ -83,6 +90,7 @@ export const colorClashDemoDetails = {
   id: 'color-clash',
   sourcePath: 'gallery/shared/color-clash',
   title: 'Color Clash',
+  section: 'Games',
   description: 'Say the ink color, not the word. Speech stays on your device.',
   requiredCapabilities: { microphone: true, localTranscription: { audio: 'device' } },
   tags: ['game'],
@@ -93,6 +101,7 @@ export const brainstormDemoDetails = {
   sourcePath: 'examples/demos/brainstorm-react',
   copyDirectory: 'brainstorming-game',
   title: 'Brainstorming game',
+  section: 'Games',
   description: 'Race the clock and collect spoken answers on a shared sticky-note board.',
   requiredCapabilities: {
     microphone: true,
@@ -108,6 +117,7 @@ export const listExtractionDemoDetails = {
   sourcePath: 'examples/demos/list-extraction-react',
   copyDirectory: 'list-extraction',
   title: 'List extraction',
+  section: 'Meetings',
   description: 'Tell it what to keep. Speak freely and collect selective lists.',
   requiredCapabilities: {
     microphone: true,
@@ -124,8 +134,8 @@ export const listExtractionDemoDetails = {
 export const galleryDemoDetails = [
   transcriptionDemoDetails,
   bingoDemoDetails,
-  notesDemoDetails,
-  listExtractionDemoDetails,
   colorClashDemoDetails,
   brainstormDemoDetails,
+  notesDemoDetails,
+  listExtractionDemoDetails,
 ] as const satisfies readonly GalleryDemoMetadata[];

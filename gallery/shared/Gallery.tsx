@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useContext, useEffect, useMemo, type ReactNode } from 'react';
 import {
   galleryDataHandling,
+  galleryDemoSections,
   requiresGalleryCapability,
   type galleryDemoDetails,
 } from './galleryDemoDetails';
@@ -208,15 +209,29 @@ export const Gallery = ({
                 children: 'Welcome',
                 current: !activeDemo && !developerPage && !settingsPage,
               })}
-              {demos.map(demo => (
-                <span key={demo.id}>
-                  {renderLink({
-                    demo,
-                    children: demo.title,
-                    current: !developerPage && !settingsPage && activeDemo?.id === demo.id,
-                  })}
-                </span>
-              ))}
+              {galleryDemoSections.map(section => {
+                const sectionDemos = demos.filter(demo => demo.section === section);
+                if (!sectionDemos.length) return null;
+                return (
+                  <div
+                    className="gallery-nav-section"
+                    role="group"
+                    aria-label={section}
+                    key={section}
+                  >
+                    <span className="gallery-nav-label">{section}</span>
+                    {sectionDemos.map(demo => (
+                      <span key={demo.id}>
+                        {renderLink({
+                          demo,
+                          children: demo.title,
+                          current: !developerPage && !settingsPage && activeDemo?.id === demo.id,
+                        })}
+                      </span>
+                    ))}
+                  </div>
+                );
+              })}
             </nav>
             <GalleryFooter>{input}</GalleryFooter>
           </aside>
