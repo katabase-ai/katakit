@@ -1,6 +1,6 @@
 import { useCallback, type ReactNode, type RefCallback } from 'react';
 
-/** Reserve mobile space for either mode's footer, and size the gallery to the window below the host header. */
+/** Reserve mobile footer space and size the desktop sidebar without constraining demo content. */
 export const GalleryFooter = ({ children }: { children: ReactNode }) => {
   const measureInput: RefCallback<HTMLElement> = useCallback(node => {
     const gallery = node?.closest('.katakit-gallery');
@@ -10,19 +10,18 @@ export const GalleryFooter = ({ children }: { children: ReactNode }) => {
         '--gallery-input-height',
         `${node.getBoundingClientRect().height}px`
       );
+      // Use the document offset so resizing the footer while scrolling cannot grow the sidebar.
       gallery.style.setProperty(
         '--gallery-sidebar-height',
-        `${window.innerHeight - Math.max(0, gallery.getBoundingClientRect().top)}px`
+        `${Math.max(0, window.innerHeight - gallery.getBoundingClientRect().top - window.scrollY)}px`
       );
     };
     const observer = new ResizeObserver(measure);
     observer.observe(node);
-    window.addEventListener('scroll', measure, { passive: true });
     window.addEventListener('resize', measure);
     measure();
     return () => {
       observer.disconnect();
-      window.removeEventListener('scroll', measure);
       window.removeEventListener('resize', measure);
       gallery.style.removeProperty('--gallery-input-height');
       gallery.style.removeProperty('--gallery-sidebar-height');
