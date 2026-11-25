@@ -17,7 +17,7 @@ import { promisify } from 'node:util';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
 
 const run = promisify(execFile);
-const packageNames = ['core', 'event-log', 'persistence', 'react', 'transcript-ingestion'];
+const packageNames = ['core', 'persistence', 'react', 'transcript-ingestion'];
 const repository = fileURLToPath(new URL('../../../', import.meta.url));
 
 type Manifest = {
@@ -102,75 +102,63 @@ describe('published packages', () => {
       join(fixture.consumer, 'smoke.mjs'),
       `
         import assert from 'node:assert/strict';
-        import { makeKatakit } from '@katakit/core';
-        import { makeEventLogPlugin } from '@katakit/event-log';
-        import { makeEventPersistencePlugin, makeLocalStorageEventPersistencePlugin } from '@katakit/persistence';
+        import { EventLogPlugin, makeKatakit } from '@katakit/core';
+        import { makeEventPersistencePlugin } from '@katakit/persistence';
+        import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
         import { KatakitDevTools } from '@katakit/react';
-        const EventLogPlugin = makeEventLogPlugin({
-          validateEvent: {
-            '~standard': { version: 1, vendor: 'smoke-test', validate: value => ({ value }) },
-          },
-        });
+        const seed = { type: 'started', meta: { seq: 0, timestamp: new Date(0) } };
+        const Transcript = makeTranscriptIngestionPlugin();
         const saved = [];
         const PersistencePlugin = makeEventPersistencePlugin({
-          EventLogPlugin, appendEvents: events => { saved.push(...events); },
+          appendEvents: events => { saved.push(...events); },
         });
         const runtime = makeKatakit({
-          plugins: [
-            EventLogPlugin.configure({ initialEvents: [1] }),
-            PersistencePlugin.configure({}),
-          ],
+          existingEvents: [seed],
+          plugins: [Transcript.configure({}), PersistencePlugin.configure({})],
         }).start();
-        runtime.getMethods(EventLogPlugin).emitEvent(2);
+        runtime.getMethods(Transcript).updateProvisionalUtterance({ speaker: 'mic', text: 'hello' });
         await runtime.getMethods(PersistencePlugin).kill();
-        assert.deepEqual(saved, [2]);
-        assert.deepEqual(runtime.getObservables(EventLogPlugin).events$.getAll(), [1, 2]);
-        assert.equal(typeof makeLocalStorageEventPersistencePlugin, 'function');
+        assert.equal(saved.length, 1);
+        assert.equal(saved[0].type, 'provisionalUtteranceAdded');
+        assert.equal(saved[0].meta.seq, 1);
+        assert.ok(saved[0].meta.timestamp instanceof Date);
+        assert.deepEqual(runtime.getObservables(EventLogPlugin).events$.getAll(), [seed, ...saved]);
         assert.equal(typeof KatakitDevTools, 'function');
       `
     );
     await writeFile(
       join(fixture.consumer, 'consumer.ts'),
       `
-        import { makeEffect, makeKatakit, makeKatakitPlugin, type Effect } from '@katakit/core';
-        import { makeEventLogPlugin } from '@katakit/event-log';
-        import { makeEventPersistencePlugin, makeLocalStorageEventPersistencePlugin } from '@katakit/persistence';
+        import { EventLogPlugin, makeEffect, makeKatakit, makeKatakitPlugin, type Effect, type KatakitEvent } from '@katakit/core';
+        import { makeEventPersistencePlugin } from '@katakit/persistence';
+        import { makeTranscriptIngestionPlugin, type Utterance } from '@katakit/transcript-ingestion';
         import { KatakitDevTools } from '@katakit/react';
         import { of, type Observable } from 'rxjs';
         const component = KatakitDevTools;
-        const EventLogPlugin = makeEventLogPlugin<{ text: string }>({
-          validateEvent: {
-            '~standard': {
-              version: 1, vendor: 'type-test',
-              validate: value => ({ value: value as { text: string } }),
-            },
-          },
-        });
+        const Transcript = makeTranscriptIngestionPlugin();
         const PersistencePlugin = makeEventPersistencePlugin({
-          EventLogPlugin,
           appendEvents: events => {
-            const text: string = events[0]!.text;
-            // @ts-expect-error Adapter events must retain the schema's event type.
-            const invalid: number = events[0]!.text;
+            const timestamp: Date = events[0]!.meta.timestamp;
+            // @ts-expect-error Serialization to a string belongs to the storage adapter.
+            const invalid: string = events[0]!.meta.timestamp;
           },
         });
-        const local = makeLocalStorageEventPersistencePlugin({ EventLogPlugin, localStorageKey: 'events' });
         const runtime = makeKatakit({
-          plugins: [EventLogPlugin.configure({ initialEvents: [] }), PersistencePlugin.configure({})],
+          plugins: [Transcript.configure({}), PersistencePlugin.configure({})],
         }).start();
-        runtime.getMethods(EventLogPlugin).emitEvent({ text: 'valid' });
-        // @ts-expect-error An incorrect event payload must be rejected.
-        runtime.getMethods(EventLogPlugin).emitEvent({ text: 123 });
-        const events$: Observable<{ text: string }> = runtime.getObservables(EventLogPlugin).events$;
+        const write = (e: Utterance) => runtime.getMethods(Transcript).ingestUtterance(e);
+        // @ts-expect-error Transcript input needs the complete utterance.
+        write({ text: 'incomplete' });
+        const events$: Observable<KatakitEvent> = runtime.getObservables(EventLogPlugin).events$;
         // @ts-expect-error The public event stream does not permit direct writes.
         events$.next({ text: 'bypass' });
         const shutdown: Promise<void> = runtime.getMethods(PersistencePlugin).kill();
         makeEffect({
           on: events$, backpressure: 'none',
           handler: event => {
-            const text: string = event.text;
+            const seq: number = event.meta.seq;
             // @ts-expect-error Effect inputs must retain the observable value type.
-            const invalid: number = event.text;
+            const invalid: string = event.meta.seq;
           },
         });
         // @ts-expect-error A structural lookalike must not bypass the effect factory.
@@ -231,8 +219,7 @@ describe('published packages', () => {
   });
 
   test.each([
-    ['event-log', ['core']],
-    ['persistence', ['core', 'event-log']],
+    ['persistence', ['core']],
     ['react', ['core']],
     ['transcript-ingestion', ['core']],
   ] as const)('%s publishes Katakit requirements as peer dependencies', (name, peers) => {

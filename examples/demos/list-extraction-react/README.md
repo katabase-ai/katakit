@@ -32,9 +32,9 @@ The gallery's **Run locally** panel pins this command to the host's source revis
 The copy contains its own source, runtime configuration, and registry dependencies.
 No gallery, sibling example, private package, or outside source alias is required.
 
-This migration requires the log-backed `eventLog` API in `@katakit/transcript-ingestion`.
-The currently pinned npm release (`0.1.0`) does not yet provide it: until that API is released
-and the registry pin is updated, use the checkout or the contributor copy check with freshly
+This migration requires core's built-in `EventLogPlugin` and the log-backed `eventLog` API in
+`@katakit/transcript-ingestion`. The currently pinned npm releases (`0.1.0`) do not yet provide
+these APIs: until they are released and the registry pins are updated, use the checkout or the contributor copy check with freshly
 packed libraries. A registry-only copy cannot yet build this revision.
 
 **Try sample** loads an explicitly labeled transcript fixture and preset results without a
@@ -73,7 +73,8 @@ validated event log, and the local extraction plugin. Rules, finalized segments 
 text edits, visibility changes, and session clears are logged. Projections derive content and
 Markdown; the log is the sole authority. IDs and evidence are recorded with accepted items.
 The factory validates all `initialEvents` with `ExtractionEventSchema` before starting either
-runtime. Transcript ingestion reads that same log, including sample turns and session clears;
+runtime. Commands validate live writes before core's built-in `EventLogPlugin` adds its sequence
+and timestamp metadata. Transcript ingestion reads that same log, including sample turns and session clears;
 its live notifications are not a second source of transcript history.
 
 For an in-memory restore, take `runtime.events$.getAll()` and pass that snapshot to
@@ -82,6 +83,11 @@ rules, pending finalized segments, completed turns, accepted IDs, evidence, edit
 without calling a model, allocating replacement IDs, scheduling silence timers, or appending
 events. Provisional recognition text and request/error state are transient and start empty.
 There is no automatic storage or reload persistence.
+
+Native log snapshots retain their metadata. JSON snapshots restore ISO timestamp strings as
+Dates without changing their values. Legacy metadata-free snapshots receive their array index
+as sequence and the Unix epoch as timestamp, preserving all recorded content and source IDs;
+this deterministic import does not invent historical wall-clock times.
 
 Recorded source/segment IDs suppress retransmission after restore. A pending turn continues
 with its recorded ID when fresh speech arrives; explicit flush/extraction can finalize it.

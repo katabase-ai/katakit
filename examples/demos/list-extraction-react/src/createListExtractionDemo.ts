@@ -1,11 +1,11 @@
-import { makeKatakit, property } from '@katakit/core';
-import { makeEventLogPlugin } from '@katakit/event-log';
+import { EventLogPlugin, makeKatakit, property, type KatakitEvent } from '@katakit/core';
 import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
 import { combineLatest, map, shareReplay, startWith, Subject, takeUntil } from 'rxjs';
 import * as v from 'valibot';
 import {
   ExtractionEventSchema,
   makeExtractionPlugin,
+  parseExtractionHistory,
   type ExtractionEvent,
 } from './extractionPlugin';
 import {
@@ -26,16 +26,17 @@ export const createListExtractionDemo = ({
   initialEvents = [],
 }: { initialEvents?: unknown } = {}) => {
   // EventLog deliberately trusts initial history; validate before starting any resources.
-  const history = v.parse(v.array(ExtractionEventSchema), initialEvents);
-  const EventLog = makeEventLogPlugin({ validateEvent: ExtractionEventSchema });
-  const extraction = makeExtractionPlugin(EventLog);
+  const history = parseExtractionHistory(initialEvents);
+  const extraction = makeExtractionPlugin();
   const kit = makeKatakit({
-    plugins: [EventLog.configure({ initialEvents: history }), extraction.configure({})],
+    existingEvents: history,
+    plugins: [extraction.configure({})],
   }).start();
-  const transcript = makeTranscriptIngestionPlugin<ExtractionEvent>({
+  const transcript = makeTranscriptIngestionPlugin<KatakitEvent, ExtractionEvent>({
     eventLog: {
-      events$: kit.getObservables(EventLog).events$,
-      emitEvent: kit.getMethods(EventLog).emitEvent,
+      events$: kit.getObservables(EventLogPlugin).events$,
+      emitEvent: event =>
+        kit.getMethods(EventLogPlugin).emitEvent(v.parse(ExtractionEventSchema, event)),
       toEvent: event => {
         switch (event.type) {
           case 'segment':
@@ -46,7 +47,8 @@ export const createListExtractionDemo = ({
             return { type: 'sessionCleared' };
         }
       },
-      fromEvent: event => {
+      fromEvent: ({ meta: _meta, ...record }) => {
+        const event = v.parse(ExtractionEventSchema, record);
         switch (event.type) {
           case 'transcriptSegment':
             return { type: 'segment', segment: event.segment };
@@ -119,7 +121,7 @@ export const createListExtractionDemo = ({
   };
   return {
     state$,
-    events$: kit.getObservables(EventLog).events$,
+    events$: kit.getObservables(EventLogPlugin).events$,
     ingestSegment: (segment: Parameters<typeof input.ingestSegment>[0]) => {
       if (closed) return;
       if (active && segment.text.trim()) cancel();

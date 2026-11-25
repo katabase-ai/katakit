@@ -170,8 +170,7 @@ test('observable construction failures are not cached as a partially built plugi
   expect(construct).toHaveBeenCalledTimes(2);
 });
 
-// TODO: Re-enable when type-based lookup rejects ambiguous registrations.
-test.skip('duplicate plugin types are rejected before either configuration can be silently selected', () => {
+test('duplicate plugin types are rejected during runtime construction', () => {
   // Lookup is type-based, so accepting this configuration would erase the second instance.
   const plugin = makeKatakitPlugin({
     type: 'Duplicate',
@@ -182,6 +181,6 @@ test.skip('duplicate plugin types are rejected before either configuration can b
   expect(() =>
     makeKatakit({
       plugins: [plugin.configure({ value: 1 }), plugin.configure({ value: 2 })],
-    }).start()
-  ).toThrow(/duplicate|already registered|ambiguous/i);
+    })
+  ).toThrow('Duplicate plugin type: Duplicate');
 });

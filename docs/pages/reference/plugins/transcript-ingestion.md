@@ -20,7 +20,7 @@ transcript.close();
 
 ## Configuration
 
-`makeTranscriptIngestionPlugin({ turnSilenceMs?, eventLog?, forward? })` creates a factory of type `TranscriptIngestion`. Call `.configure({})` for each session. Without `eventLog`, each runtime owns a private in-memory `@katakit/event-log`; install that peer alongside `@katakit/core` and `rxjs`.
+`makeTranscriptIngestionPlugin({ turnSilenceMs?, eventLog?, forward? })` creates a factory of type `TranscriptIngestion`. Call `.configure({})` for each session. By default it reads and writes that runtime's built-in `EventLogPlugin` from `@katakit/core`. There is no separate event-log package or private nested runtime.
 
 `turnSilenceMs` defaults to `1400` and must be a nonnegative finite number. The plugin groups successive segments from the same source and speaker until a timestamped gap exceeds that threshold, the source or speaker changes, or no new segment arrives for that many milliseconds. A source that delivers a long turn only after it ends cannot be made more responsive by lowering this setting.
 
@@ -68,7 +68,8 @@ const TranscriptIngestionPlugin = makeTranscriptIngestionPlugin({
 
 `toEvent` must map all three `TranscriptRecordedEvent` variants: `segment`, `turn`, and `reset`.
 `fromEvent` maps those host records back and returns `undefined` for unrelated events.
-The event-log emitter validates live writes through the host's synchronous Standard Schema.
+Core's emitter does not validate writes. When supplying `eventLog`, wrap `emitEvent` with
+the host's synchronous validator (for example, Standard Schema) before calling core's emitter.
 Before supplying `initialEvents`, validate the entire restored array with the host schema;
 `parseTranscriptRecordedEvent(unknown)` validates transcript records and throws on malformed
 identity, text, speaker, or nonfinite timestamps. It does not generate IDs or normalize saved text.
@@ -88,6 +89,24 @@ live/replay equivalence. Keep `turnSilenceMs` stable when replaying raw segment 
 `events$` remains live-only, including externally appended mapped records. Use it for immediate
 notifications, not history recovery. The legacy `forward` sink still forwards locally requested
 events after publication, but is not a second authority or a hydration mechanism.
+
+## Built-in core records and compatibility
+
+The default integration writes `utteranceAdded`, `conversationTurnAdded`, and `transcriptReset`
+records into core's log. Core adds sequence and emission-time metadata only on live writes.
+Supply host-validated `existingEvents` to `makeKatakit` to restore the log before reading
+ingestion observables. `fromTranscriptIngestionEvent` validates/maps these flat payloads to
+canonical transcript records; `toTranscriptIngestionEvent` performs the inverse mapping.
+The host still validates core metadata and other event variants. Legacy records lacking
+`sourceId` use the stable `default` source. Legacy `provisionalUtteranceAdded` records are
+ignored on replay, and new provisional updates are never logged.
+
+`ingestUtterance` and `updateProvisionalUtterance` accept the core-style input names.
+`collectedUtterances$` aliases `segments$`, and `collectedConversationTurns$` aliases the
+array-valued `conversationTurns$`. `pendingConversationTurn$` uses `null` for an empty current
+turn. `provisionalUtterance$` preserves transient speaker/text with `null` for empty input.
+For individual replaying records use `utterances$` or `conversationTurnEvents$`; unlike the
+short-lived core integration API, `conversationTurns$` consistently exposes the completed array.
 
 `examples/demos/transcription-react/` is a feature demo. For copyable application integrations and their verification limits, see [Starters](../../starters/README.md), including the [Obsidian starter](../../starters/obsidian.md).
 

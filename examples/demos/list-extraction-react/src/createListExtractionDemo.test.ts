@@ -276,10 +276,10 @@ test('restored pending segments retain identity without replay timers or duplica
   const replay = create(history);
   expect(replay.state$.get().current).toEqual(pending);
   expect(replay.state$.get().provisional).toBeUndefined();
-  expect(replay.events$.getAll()).toEqual(history);
+  expect(JSON.parse(JSON.stringify(replay.events$.getAll()))).toEqual(history);
   expect(vi.getTimerCount()).toBe(0);
   replay.ingestSegment(first);
-  expect(replay.events$.getAll()).toEqual(history);
+  expect(JSON.parse(JSON.stringify(replay.events$.getAll()))).toEqual(history);
   replay.ingestSegment({
     id: 'second',
     sourceId: 'mic',
@@ -335,7 +335,7 @@ test('duplicate recorded turns are projected once and legacy history continues o
   ];
   const replay = create(history);
   expect(replay.state$.get().turns).toEqual([turn]);
-  expect(replay.events$.getAll()).toEqual(history);
+  expect(replay.events$.getAll()).toMatchObject(history);
   replay.ingestSegment({ id: 'new', sourceId: 'other', text: 'New speech' });
   replay.flush();
   expect(replay.state$.get().turns.map(turn => turn.id)).toEqual(['recorded-id', 'other\0new']);
@@ -363,7 +363,7 @@ test('restored results remain equivalent through explicit extraction and cancell
   replay.cancel(true); // Host source/model changes invalidate even a transport ignoring abort.
   finish(response(replay));
   await job;
-  expect(replay.events$.getAll()).toEqual(history);
+  expect(JSON.parse(JSON.stringify(replay.events$.getAll()))).toEqual(history);
   expect(replay.state$.get()).toEqual(live.state$.get());
   expect(request).toHaveBeenCalledOnce();
 });
@@ -412,7 +412,7 @@ test('closing hydrated history does not write; repeated close and flush are iner
   replay.close();
   replay.flush();
   replay.ingestSegment({ id: 'late', sourceId: 'mic', text: 'Too late' });
-  expect(replay.events$.getAll()).toEqual(history);
+  expect(replay.events$.getAll()).toMatchObject(history);
   expect(vi.getTimerCount()).toBe(0);
 });
 
@@ -430,6 +430,28 @@ test('flush never emits a completed turn that is still displayed as pending', ()
   expect(runtime.state$.get().turns).toHaveLength(1);
 });
 
+test('legacy metadata is deterministic and JSON log envelopes retain their sequence and time', () => {
+  const event = {
+    type: 'transcriptTurn',
+    turn: { id: 'saved', sourceId: 'legacy', text: 'Saved speech.' },
+  };
+  const legacy = create([event]);
+  expect(legacy.events$.getAll()).toEqual([{ ...event, meta: { seq: 0, timestamp: new Date(0) } }]);
+  const history = [{ ...event, meta: { seq: 0, timestamp: '2026-01-02T03:04:05.000Z' } }];
+  const replay = create(history);
+  expect(replay.events$.getAll()[0]!.meta).toEqual({
+    seq: 0,
+    timestamp: new Date(history[0]!.meta.timestamp),
+  });
+  replay.setRules([{ ...replay.state$.get().rules[0]!, name: 'Continued' }]);
+  expect(replay.events$.getAll()[1]!.meta.seq).toBe(1);
+  expect(JSON.parse(JSON.stringify(replay.events$.getAll()))[0]).toEqual(history[0]);
+  expect(() => create([{ ...event, meta: { seq: -1, timestamp: new Date() } }])).toThrow(/Invalid/);
+  expect(() => create([{ ...event, meta: { seq: 0, timestamp: 'not a date' } }])).toThrow(
+    /Invalid/
+  );
+});
+
 test('segment-only history uses the canonical transcript projection for extraction sources', async () => {
   const history = [
     { type: 'transcriptSegment', segment: { id: 'one', sourceId: 'first', text: 'First source.' } },
@@ -441,7 +463,7 @@ test('segment-only history uses the canonical transcript projection for extracti
   const replay = create(history);
   expect(replay.state$.get().turns.map(turn => turn.text)).toEqual(['First source.']);
   expect(replay.state$.get().current?.text).toBe('Second source.');
-  expect(replay.events$.getAll()).toEqual(history);
+  expect(replay.events$.getAll()).toMatchObject(history);
   const request = vi.fn<ExtractionConnection['requestCompletion']>(async () => ({
     choices: [{ finish_reason: 'stop', message: { content: '{"items":[]}' } }],
   }));

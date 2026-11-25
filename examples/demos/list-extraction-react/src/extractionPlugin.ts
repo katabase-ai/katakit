@@ -1,7 +1,6 @@
-import { makeKatakitPlugin, property } from '@katakit/core';
-import type { makeEventLogPlugin } from '@katakit/event-log';
+import { EventLogPlugin, makeKatakitPlugin, property, type KatakitEvent } from '@katakit/core';
 import type { TranscriptTurn } from '@katakit/transcript-ingestion';
-import { scan, shareReplay, startWith, Subject, takeUntil } from 'rxjs';
+import { map, scan, shareReplay, startWith, Subject, takeUntil } from 'rxjs';
 import * as v from 'valibot';
 import {
   defaultRules,
@@ -43,22 +42,41 @@ export const ExtractionEventSchema = v.variant('type', [
   v.strictObject({ type: v.literal('sessionCleared') }),
 ]);
 export type ExtractionEvent = v.InferOutput<typeof ExtractionEventSchema>;
+const MetadataSchema = v.strictObject({
+  seq: v.pipe(v.number(), v.integer(), v.minValue(0), v.maxValue(Number.MAX_SAFE_INTEGER)),
+  timestamp: v.union([
+    v.date(),
+    v.pipe(
+      v.string(),
+      v.isoTimestamp(),
+      v.transform(value => new Date(value))
+    ),
+  ]),
+});
+
+/** Validate JSON/native history; legacy snapshots get deterministic envelope metadata only. */
+export const parseExtractionHistory = (value: unknown): KatakitEvent<ExtractionEvent>[] =>
+  v
+    .parse(v.array(v.looseObject({ meta: v.optional(MetadataSchema) })), value)
+    .map(({ meta, ...event }, seq) => ({
+      ...v.parse(ExtractionEventSchema, event),
+      meta: meta ?? { seq, timestamp: new Date(0) },
+    }));
 export type ExtractionContent = {
   rules: ListRule[];
   result?: { rules: ListRule[]; items: ExtractedItem[]; turnIds: string[]; sample: boolean };
 };
 
 /** All durable content is projected from events. No replay runs inference or allocates IDs. */
-export const makeExtractionPlugin = (
-  EventLog: ReturnType<typeof makeEventLogPlugin<ExtractionEvent>>
-) =>
+export const makeExtractionPlugin = () =>
   makeKatakitPlugin({
     type: 'ListExtraction',
     configure: (_options: {}) => ({ closed: new Subject<void>() }),
     observables: ({ options, getObservables }) => {
       const initial: ExtractionContent = { rules: v.parse(RulesSchema, defaultRules) };
       const content$ = property(
-        getObservables(EventLog).events$.pipe(
+        getObservables(EventLogPlugin).events$.pipe(
+          map(({ meta: _meta, ...event }) => v.parse(ExtractionEventSchema, event)),
           scan((content: ExtractionContent, event): ExtractionContent => {
             switch (event.type) {
               case 'transcriptSegment':
@@ -103,7 +121,8 @@ export const makeExtractionPlugin = (
       return { content$ };
     },
     methods: ({ options, getMethods }) => ({
-      record: (event: ExtractionEvent) => getMethods(EventLog).emitEvent(event),
+      record: (event: ExtractionEvent) =>
+        getMethods(EventLogPlugin).emitEvent(v.parse(ExtractionEventSchema, event)),
       close: () => {
         options.closed.next();
         options.closed.complete();
