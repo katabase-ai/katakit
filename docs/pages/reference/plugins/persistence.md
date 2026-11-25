@@ -4,49 +4,37 @@
 
 ## Example
 
-This browser example loads a validated message history and saves one new event:
+Here `store` is the application's storage adapter. Its loader validates the event payloads and metadata and returns recorded events in order:
 
 ```ts
-import { makeKatakit } from '@katakit/core';
-import { makeEventLogPlugin } from '@katakit/event-log';
-import { makeLocalStorageEventPersistencePlugin } from '@katakit/persistence';
-import * as v from 'valibot';
+import { EventLogPlugin, makeKatakit } from '@katakit/core';
+import { makeEventPersistencePlugin } from '@katakit/persistence';
 
-const MessageSchema = v.strictObject({ type: v.literal('message'), text: v.string() });
-const localStorageKey = 'katakit-messages';
-const initialEvents = v.parse(
-  v.array(MessageSchema),
-  JSON.parse(localStorage.getItem(localStorageKey) ?? '[]')
-);
-const EventLogPlugin = makeEventLogPlugin({ validateEvent: MessageSchema });
-const PersistencePlugin = makeLocalStorageEventPersistencePlugin({
-  EventLogPlugin,
-  localStorageKey,
+const existingEvents = await store.load('messages');
+const PersistencePlugin = makeEventPersistencePlugin({
+  appendEvents: events => store.append('messages', events),
 });
 const running = makeKatakit({
-  plugins: [EventLogPlugin.configure({ initialEvents }), PersistencePlugin.configure({})],
+  existingEvents,
+  plugins: [PersistencePlugin.configure({})],
 }).start();
 
 running.getMethods(EventLogPlugin).emitEvent({ type: 'message', text: 'Hello' });
 await running.getMethods(PersistencePlugin).kill();
-// With writable localStorage, the key contains the prior history followed by the new event.
 ```
 
 ## makeEventPersistencePlugin
 
-`makeEventPersistencePlugin({ EventLogPlugin, appendEvents, persistInterval? })` creates a factory of type `EventPersistence`. Configure it with `{}` and register it alongside the configured event log.
+`makeEventPersistencePlugin({ appendEvents, persistInterval? })` creates a factory of type `EventPersistence`. Configure it with `{}` and register it. It subscribes to the runtime's built-in log.
 
-- `EventLogPlugin`: the event-log factory whose new events should be saved.
 - `appendEvents(events)`: an ordered batch writer returning `void` or `Promise<void>`. Resolve only after the whole batch is durable.
 - `persistInterval`: milliseconds between flush requests; defaults to `5000`.
 
 Use this factory for a database or another storage service. The callback owns storage identity, transactions, and acknowledgement semantics.
 
-## makeLocalStorageEventPersistencePlugin
+## Restoring the log
 
-`makeLocalStorageEventPersistencePlugin({ EventLogPlugin, localStorageKey, persistInterval? })` supplies a browser `localStorage` batch writer. It reads the existing JSON array and writes that array plus each new batch. It uses the same `EventPersistence` type; choose one persistence factory per runtime.
-
-Load and validate the prior array yourself before configuring the event log. Values must survive JSON serialization. The adapter does not decode dates, migrate events, or coordinate concurrent tabs.
+Persist the whole ordered log, including provisional transcript events. Core uses the restored count for the next sequence number, so a filtered archive is not a restart log. JSON serializes `meta.timestamp` to a string; the loader must validate it and restore a `Date`. Keep existing IDs and sequence numbers. The application owns migration of older formats.
 
 ## Observables and methods
 

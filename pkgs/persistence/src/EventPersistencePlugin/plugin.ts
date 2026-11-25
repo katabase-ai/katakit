@@ -1,18 +1,15 @@
-import { makeKatakitPlugin, skipReplay } from '@katakit/core';
-import type { makeEventLogPlugin } from '@katakit/event-log';
+import { EventLogPlugin, KatakitEvent, makeKatakitPlugin, skipReplay } from '@katakit/core';
 import pLimit from 'p-limit';
 
 /**
  * Persists an event log's unsaved suffix through a caller-owned storage adapter.
  * Loading history, identifying the stored log, and stopping producers remain host responsibilities.
  */
-export const makeEventPersistencePlugin = <TEvent>({
-  EventLogPlugin,
+export const makeEventPersistencePlugin = ({
   appendEvents,
   persistInterval,
 }: {
-  EventLogPlugin: ReturnType<typeof makeEventLogPlugin<TEvent>>;
-  appendEvents: (events: TEvent[]) => void | Promise<void>;
+  appendEvents: (events: KatakitEvent[]) => void | Promise<void>;
   persistInterval?: number;
 }) =>
   makeKatakitPlugin({
@@ -28,7 +25,7 @@ export const makeEventPersistencePlugin = <TEvent>({
       // TODO: use an effect instead.
       const flushLimit = pLimit(1);
 
-      let pendingEvents: TEvent[] = [];
+      let pendingEvents: KatakitEvent[] = [];
 
       const flush = async () => {
         if (!pendingEvents.length) return;

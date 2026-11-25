@@ -5,16 +5,16 @@ Continue with `eventLog.ts` from [Start a runtime](runtime.md). The event log re
 Replace `main.ts` with:
 
 ```ts
-import { makeKatakit, property } from '@katakit/core';
-import { scan, shareReplay, startWith } from 'rxjs';
-import { EventLogPlugin } from './eventLog';
+import { EventLogPlugin, makeKatakit, property } from '@katakit/core';
+import { filter, scan, shareReplay, startWith } from 'rxjs';
 
 const runtime = makeKatakit({
-  plugins: [EventLogPlugin.configure({ initialEvents: [] })],
+  plugins: [],
 });
 const { events$ } = runtime.getObservables(EventLogPlugin);
 const messages$ = property(
   events$.pipe(
+    filter(event => event.type === 'message'),
     scan((messages: string[], event) => [...messages, event.text], []),
     startWith([] as string[]),
     shareReplay({ bufferSize: 1, refCount: true })
@@ -35,10 +35,12 @@ The list has no separate setter. Adding a message means recording an event; the 
 
 ## Rebuild from history
 
-Replace `initialEvents: []` above with:
+To seed that runtime, add the following to the `makeKatakit` options beside `plugins`:
 
 ```ts
-initialEvents: [{ type: 'message', text: 'Earlier message' }];
+existingEvents: [
+  { type: 'message', text: 'Earlier message', meta: { seq: 0, timestamp: new Date(0) } },
+];
 ```
 
 The first `messages$.get()` now returns `['Earlier message']`, before `start()`. After the two emissions, it returns `['Earlier message', 'Hello', 'Let’s make a plan.']`.
@@ -47,4 +49,4 @@ The event log replays stored events synchronously when the projection subscribes
 
 `get()` reads once. A UI should subscribe to `messages$` to receive updates. That subscription's owner must unsubscribe when the view goes away. Core's property helper keeps its own subscription; removing a UI subscription does not dispose the runtime.
 
-Next: [put this projection inside a plugin](plugins.md). The [event-log reference](../reference/plugins/event-log.md) owns the replay and validation contract.
+Next: [put this projection inside a plugin](plugins.md). See the [built-in event log](../reference/core.md#built-in-event-log) for the replay contract.

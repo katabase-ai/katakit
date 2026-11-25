@@ -1,8 +1,12 @@
-import { makeKatakit } from '@katakit/core';
-import { makeEventLogPlugin } from '@katakit/event-log';
-import * as v from 'valibot';
+import { EventLogPlugin, type KatakitEvent, makeKatakit } from '@katakit/core';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { makeEventPersistencePlugin } from './plugin';
+
+const recorded = (value: number, seq: number) => ({
+  type: 'reading',
+  value,
+  meta: { seq, timestamp: new Date(0) },
+});
 
 const createPersistence = ({
   initialEvents = [],
@@ -11,23 +15,24 @@ const createPersistence = ({
 }: {
   initialEvents?: number[];
   persistInterval?: number;
-  appendEvents?: (events: number[]) => void | Promise<void>;
+  appendEvents?: (events: KatakitEvent[]) => void | Promise<void>;
 } = {}) => {
-  const EventLogPlugin = makeEventLogPlugin({ validateEvent: v.number() });
-  const append = vi.fn(appendEvents ?? ((_events: number[]) => {}));
+  const append = vi.fn(appendEvents ?? ((_events: KatakitEvent[]) => {}));
   const PersistencePlugin = makeEventPersistencePlugin({
-    EventLogPlugin,
     appendEvents: append,
     persistInterval,
   });
   const kit = makeKatakit({
-    plugins: [EventLogPlugin.configure({ initialEvents }), PersistencePlugin.configure({})],
+    existingEvents: initialEvents.map(recorded),
+    plugins: [PersistencePlugin.configure({})],
   });
   const runtime = kit.start();
   return {
     append,
     events$: runtime.getObservables(EventLogPlugin).events$,
-    emitEvent: runtime.getMethods(EventLogPlugin).emitEvent,
+    emitEvent: (value: number) =>
+      runtime.getMethods(EventLogPlugin).emitEvent({ type: 'reading', value }),
+    batches: () => append.mock.calls.map(([events]) => events.map(e => e.value)),
     kill: runtime.getMethods(PersistencePlugin).kill,
     methods: runtime.getMethods(PersistencePlugin),
     runtime,
@@ -48,17 +53,15 @@ afterEach(() => {
 
 describe('persistence initialization and batching', () => {
   test('factory creation, configuration, and observable-only access start no timer or storage work', () => {
-    const EventLogPlugin = makeEventLogPlugin({ validateEvent: v.number() });
     const appendEvents = vi.fn();
-    const PersistencePlugin = makeEventPersistencePlugin({ EventLogPlugin, appendEvents });
+    const PersistencePlugin = makeEventPersistencePlugin({ appendEvents });
+    const existingEvents = [1, 2].map(recorded);
     const kit = makeKatakit({
-      plugins: [
-        EventLogPlugin.configure({ initialEvents: [1, 2] }),
-        PersistencePlugin.configure({}),
-      ],
+      existingEvents,
+      plugins: [PersistencePlugin.configure({})],
     });
 
-    expect(kit.getObservables(EventLogPlugin).events$.getAll()).toEqual([1, 2]);
+    expect(kit.getObservables(EventLogPlugin).events$.getAll()).toEqual(existingEvents);
     expect(kit.getObservables(PersistencePlugin)).toEqual({});
     expect(appendEvents).not.toHaveBeenCalled();
     expect(vi.getTimerCount()).toBe(0);
@@ -71,8 +74,13 @@ describe('persistence initialization and batching', () => {
 
     fixture.emitEvent(3);
     await fixture.kill();
-    expect(fixture.append.mock.calls).toEqual([[[3]]]);
-    expect(fixture.events$.getAll()).toEqual([1, 2, 3]);
+    const history = fixture.events$.getAll();
+    expect(history).toEqual([
+      recorded(1, 0),
+      recorded(2, 1),
+      { type: 'reading', value: 3, meta: { seq: 2, timestamp: expect.any(Date) } },
+    ]);
+    expect(fixture.append).toHaveBeenCalledExactlyOnceWith(history.slice(2));
   });
 
   test.each([
@@ -86,13 +94,13 @@ describe('persistence initialization and batching', () => {
     await vi.advanceTimersByTimeAsync(interval - 1);
     expect(fixture.append).not.toHaveBeenCalled();
     await vi.advanceTimersByTimeAsync(1);
-    expect(fixture.append.mock.calls).toEqual([[[1, 1, 2]]]);
+    expect(fixture.batches()).toEqual([[1, 1, 2]]);
 
     await vi.advanceTimersByTimeAsync(interval);
     expect(fixture.append).toHaveBeenCalledOnce();
     fixture.emitEvent(3);
     await vi.advanceTimersByTimeAsync(interval);
-    expect(fixture.append.mock.calls).toEqual([[[1, 1, 2]], [[3]]]);
+    expect(fixture.batches()).toEqual([[1, 1, 2], [3]]);
     await fixture.kill();
   });
 
@@ -110,7 +118,7 @@ describe('persistence initialization and batching', () => {
     expect(vi.getTimerCount()).toBe(1);
     fixture.emitEvent(1);
     await fixture.kill();
-    expect(fixture.append.mock.calls).toEqual([[[1]]]);
+    expect(fixture.batches()).toEqual([[1]]);
   });
 });
 
@@ -124,7 +132,7 @@ describe('persistence serialization and recovery', () => {
       appendEvents: async events => {
         active++;
         maximumActive = Math.max(maximumActive, active);
-        if (events[0] === 1) await firstWrite.promise;
+        if (events[0]?.value === 1) await firstWrite.promise;
         active--;
       },
     });
@@ -135,12 +143,12 @@ describe('persistence serialization and recovery', () => {
       fixture.emitEvent(2);
       await vi.advanceTimersByTimeAsync(60);
       fixture.emitEvent(3);
-      expect(fixture.append.mock.calls).toEqual([[[1]]]);
+      expect(fixture.batches()).toEqual([[1]]);
       expect(maximumActive).toBe(1);
       firstWrite.resolve();
       await vi.advanceTimersByTimeAsync(0);
       await fixture.kill();
-      expect(fixture.append.mock.calls).toEqual([[[1]], [[2, 3]]]);
+      expect(fixture.batches()).toEqual([[1], [2, 3]]);
       expect(maximumActive).toBe(1);
     } finally {
       firstWrite.resolve();
@@ -166,10 +174,10 @@ describe('persistence serialization and recovery', () => {
       firstWrite.reject(failure);
       await vi.advanceTimersByTimeAsync(0);
       expect(report).toHaveBeenCalledExactlyOnceWith('Failed to flush events:', failure);
-      expect(fixture.append.mock.calls).toEqual([[[1]]]);
+      expect(fixture.batches()).toEqual([[1]]);
       await vi.advanceTimersByTimeAsync(20);
-      expect(fixture.append.mock.calls).toEqual([[[1]], [[1, 2]]]);
-      expect(fixture.events$.getAll()).toEqual([1, 2]);
+      expect(fixture.batches()).toEqual([[1], [1, 2]]);
+      expect(fixture.append.mock.calls[1]![0]).toEqual(fixture.events$.getAll());
       await vi.advanceTimersByTimeAsync(20);
       await fixture.kill();
       expect(fixture.append).toHaveBeenCalledTimes(2);
@@ -197,27 +205,26 @@ describe('persistence serialization and recovery', () => {
       expect(report).toHaveBeenCalledExactlyOnceWith('Failed to flush events:', failure);
       await vi.advanceTimersByTimeAsync(20);
       await fixture.kill();
-      expect(fixture.append.mock.calls).toEqual([[[0]], [[0]]]);
+      expect(fixture.batches()).toEqual([[0], [0]]);
     }
   );
 
   test('method-owned pending batches remain isolated when configured plugins are reused', async () => {
-    const EventLogPlugin = makeEventLogPlugin({ validateEvent: v.number() });
-    const append = vi.fn((_events: number[]) => {});
-    const PersistencePlugin = makeEventPersistencePlugin({ EventLogPlugin, appendEvents: append });
-    const plugins = [
-      EventLogPlugin.configure({ initialEvents: [10] }),
-      PersistencePlugin.configure({}),
-    ];
+    const append = vi.fn((_events: KatakitEvent[]) => {});
+    const PersistencePlugin = makeEventPersistencePlugin({ appendEvents: append });
+    const plugins = [PersistencePlugin.configure({})];
     const first = makeKatakit({ plugins }).start();
     const second = makeKatakit({ plugins }).start();
-    first.getMethods(EventLogPlugin).emitEvent(1);
-    second.getMethods(EventLogPlugin).emitEvent(2);
+    first.getMethods(EventLogPlugin).emitEvent({ type: 'first' });
+    second.getMethods(EventLogPlugin).emitEvent({ type: 'second' });
 
     await first.getMethods(PersistencePlugin).kill();
-    expect(append.mock.calls).toEqual([[[1]]]);
+    expect(append).toHaveBeenCalledExactlyOnceWith(
+      first.getObservables(EventLogPlugin).events$.getAll()
+    );
     await second.getMethods(PersistencePlugin).kill();
-    expect(append.mock.calls).toEqual([[[1]], [[2]]]);
+    expect(append).toHaveBeenCalledTimes(2);
+    expect(append).toHaveBeenLastCalledWith(second.getObservables(EventLogPlugin).events$.getAll());
   });
 
   test('repeated failed retries preserve every event and its order until a write succeeds', async () => {
@@ -237,7 +244,7 @@ describe('persistence serialization and recovery', () => {
     await vi.advanceTimersByTimeAsync(20);
     await vi.advanceTimersByTimeAsync(20);
     await fixture.kill();
-    expect(fixture.append.mock.calls).toEqual([[[1]], [[1, 2]], [[1, 2, 3]], [[1, 2, 3]]]);
+    expect(fixture.batches()).toEqual([[1], [1, 2], [1, 2, 3], [1, 2, 3]]);
     expect(report).toHaveBeenCalledTimes(3);
   });
 });
@@ -247,7 +254,7 @@ describe('persistence shutdown safety', () => {
     const fixture = createPersistence();
     fixture.emitEvent(1);
     await fixture.kill();
-    expect(fixture.append.mock.calls).toEqual([[[1]]]);
+    expect(fixture.batches()).toEqual([[1]]);
     expect(vi.getTimerCount()).toBe(0);
     await vi.advanceTimersByTimeAsync(20000);
     await fixture.kill();
@@ -259,7 +266,7 @@ describe('persistence shutdown safety', () => {
     const fixture = createPersistence({
       persistInterval: 20,
       appendEvents: async events => {
-        if (events[0] === 1) await firstWrite.promise;
+        if (events[0]?.value === 1) await firstWrite.promise;
       },
     });
     try {
@@ -276,7 +283,7 @@ describe('persistence shutdown safety', () => {
       expect(vi.getTimerCount()).toBe(0);
       firstWrite.resolve();
       await shutdown;
-      expect(fixture.append.mock.calls).toEqual([[[1]], [[2]]]);
+      expect(fixture.batches()).toEqual([[1], [2]]);
     } finally {
       firstWrite.resolve();
     }
@@ -292,7 +299,7 @@ describe('persistence shutdown safety', () => {
     const second = fixture.kill();
     try {
       await vi.advanceTimersByTimeAsync(0);
-      expect(fixture.append.mock.calls).toEqual([[[1]]]);
+      expect(fixture.batches()).toEqual([[1]]);
       write.resolve();
       await Promise.all([first, second]);
       expect(fixture.append).toHaveBeenCalledOnce();
@@ -318,13 +325,11 @@ describe('persistence shutdown safety', () => {
 
   // TODO: Re-enable when shutdown unsubscribes from live events.
   test.skip('shutdown releases its event subscription as well as its timer', async () => {
-    const EventLogPlugin = makeEventLogPlugin({ validateEvent: v.number() });
     const PersistencePlugin = makeEventPersistencePlugin({
-      EventLogPlugin,
       appendEvents: () => {},
     });
     const kit = makeKatakit({
-      plugins: [EventLogPlugin.configure({ initialEvents: [] }), PersistencePlugin.configure({})],
+      plugins: [PersistencePlugin.configure({})],
     });
     const subscribe = vi.spyOn(kit.getObservables(EventLogPlugin).events$, 'subscribe');
     const runtime = kit.start();
