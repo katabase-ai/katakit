@@ -1,6 +1,6 @@
-import { useEffect, useState, type ReactNode } from 'react';
-import type { TranscriptTurn } from '@katakit/transcript-ingestion';
-import { combineLatest, type Observable } from 'rxjs';
+import type { ReactNode } from 'react';
+import { useBingoValue } from './bingo/useBingoValue';
+import type { createBingoSession } from './bingo/createBingoSession';
 
 const formatTime = (ms?: number) => {
   if (ms === undefined) return undefined;
@@ -14,33 +14,15 @@ const formatTime = (ms?: number) => {
  * bingo examples each carry this file so either can be copied alone.
  */
 export const TranscriptTurns = ({
-  transcript,
+  runtime,
   children,
 }: {
-  /** The transcript ingestion plugin's observables. */
-  transcript: {
-    conversationTurns$: Observable<TranscriptTurn[]>;
-    currentTurn$: Observable<TranscriptTurn | undefined>;
-    provisional$: Observable<string | undefined>;
-  };
+  runtime: ReturnType<typeof createBingoSession>;
   /** A short note about the transcript, shown beneath its turns. */
   children?: ReactNode;
 }) => {
-  const [state, setState] = useState<{
-    turns: TranscriptTurn[];
-    provisional?: string;
-  }>({ turns: [] });
-  useEffect(() => {
-    const subscription = combineLatest([
-      transcript.conversationTurns$,
-      transcript.currentTurn$,
-      transcript.provisional$,
-    ]).subscribe(([completed, current, provisional]) =>
-      setState({ turns: current ? [...completed, current] : completed, provisional })
-    );
-    return () => subscription.unsubscribe();
-  }, [transcript]);
-  const { turns, provisional } = state;
+  const { completed, pending, provisional } = useBingoValue(runtime.transcript$);
+  const turns = pending ? [...completed, { ...pending, id: 'pending' }] : completed;
   return (
     <aside className="transcript-turns" aria-label="Transcript">
       <h2>Transcript</h2>

@@ -143,20 +143,21 @@ export const makeTranscriptIngestionPlugin = ({
 
       let timer: ReturnType<typeof setTimeout> | null = null;
 
-      const rearmConversationTurnDetector = () => {
-        if (timer) {
-          clearTimeout(timer);
+      const cancelTimer = () => {
+        if (timer) clearTimeout(timer);
+        timer = null;
+      };
+      /** Complete the pending turn after silence or once the input source has drained. */
+      const flush = () => {
+        cancelTimer();
+        const pendingTurn = pendingConversationTurn$.get();
+        if (pendingTurn) {
+          emitEvent({
+            type: 'conversationTurnAdded',
+            id: crypto.randomUUID(),
+            ...pendingTurn,
+          } satisfies Omit<ConversationTurnAddedEvent, 'meta'>);
         }
-        timer = setTimeout(() => {
-          const pendingTurn = pendingConversationTurn$.get();
-          if (pendingTurn) {
-            emitEvent({
-              type: 'conversationTurnAdded',
-              id: crypto.randomUUID(),
-              ...pendingTurn,
-            } satisfies Omit<ConversationTurnAddedEvent, 'meta'>);
-          }
-        }, turnSilenceMs);
       };
 
       return {
@@ -172,15 +173,12 @@ export const makeTranscriptIngestionPlugin = ({
             ...utterance,
           });
 
-          rearmConversationTurnDetector();
+          cancelTimer();
+          timer = setTimeout(flush, turnSilenceMs);
         },
+        flush,
         /** Stop the plugin's timer; the host must stop its audio source separately. */
-        close: () => {
-          if (timer) {
-            clearTimeout(timer);
-            timer = null;
-          }
-        },
+        close: cancelTimer,
       };
     },
   });

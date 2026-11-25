@@ -26,7 +26,8 @@ Multi-speaker turn assembly is not currently supported. A `speaker` label descri
 
 - `updateProvisionalUtterance({ text, speaker })` records a draft. The current provisional becomes `null` on either a finalized utterance or a completed turn.
 - `ingestUtterance({ id, text, speaker, startMs, endMs })` records the input as supplied. If a source delivers a final twice, the producer must deduplicate it to avoid recording both.
-- `close()` cancels the live turn timer. The input owner stops its audio source separately.
+- `flush()` completes a pending turn immediately using the same event as the silence timer. Call it after the recognizer delivers its last words. With no pending turn it writes nothing.
+- `close()` cancels the live turn timer without completing a turn. The input owner stops its audio source separately.
 
 ## Events and observables
 
