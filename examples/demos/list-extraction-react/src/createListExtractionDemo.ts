@@ -63,9 +63,18 @@ export const createListExtractionDemo = ({
   const transcriptKit = makeKatakit({ plugins: [transcript.configure({})] }).start();
   const input = transcriptKit.getMethods(transcript);
   const logged = kit.getMethods(extraction);
-  const { content$ } = kit.getObservables(extraction);
-  const { currentTurn$, provisional$ } = transcriptKit.getObservables(transcript);
+  const { content$: extractionContent$ } = kit.getObservables(extraction);
+  const { conversationTurns$, currentTurn$, provisional$ } =
+    transcriptKit.getObservables(transcript);
   const closed$ = new Subject<void>();
+  // Use ingestion's canonical log projection for every transcript consumer, including extraction.
+  const content$ = property(
+    combineLatest([extractionContent$, conversationTurns$]).pipe(
+      map(([content, turns]) => ({ ...content, turns })),
+      takeUntil(closed$),
+      shareReplay({ bufferSize: 1, refCount: true })
+    )
+  );
   const requests = new Subject<RequestState>();
   const request$ = property(
     requests.pipe(

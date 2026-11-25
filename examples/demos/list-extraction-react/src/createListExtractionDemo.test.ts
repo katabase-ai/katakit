@@ -415,3 +415,28 @@ test('closing hydrated history does not write; repeated close and flush are iner
   expect(replay.events$.getAll()).toEqual(history);
   expect(vi.getTimerCount()).toBe(0);
 });
+
+test('segment-only history uses the canonical transcript projection for extraction sources', async () => {
+  const history = [
+    { type: 'transcriptSegment', segment: { id: 'one', sourceId: 'first', text: 'First source.' } },
+    {
+      type: 'transcriptSegment',
+      segment: { id: 'two', sourceId: 'second', text: 'Second source.' },
+    },
+  ];
+  const replay = create(history);
+  expect(replay.state$.get().turns.map(turn => turn.text)).toEqual(['First source.']);
+  expect(replay.state$.get().current?.text).toBe('Second source.');
+  expect(replay.events$.getAll()).toEqual(history);
+  const request = vi.fn<ExtractionConnection['requestCompletion']>(async () => ({
+    choices: [{ finish_reason: 'stop', message: { content: '{"items":[]}' } }],
+  }));
+  await replay.extract(async () => connection(request));
+  const body = JSON.parse(request.mock.calls[0]![0].body);
+  const input = JSON.parse(body.messages[1].content);
+  expect(input.transcript.map((turn: { id: string }) => turn.id)).toEqual([
+    'first\0one',
+    'second\0two',
+  ]);
+  expect(replay.state$.get().result!.turnIds).toEqual(['first\0one', 'second\0two']);
+});

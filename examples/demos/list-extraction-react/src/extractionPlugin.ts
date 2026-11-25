@@ -14,7 +14,7 @@ import {
 const TranscriptEntrySchema = v.object({
   id: v.pipe(v.string(), v.minLength(1)),
   sourceId: v.pipe(v.string(), v.minLength(1)),
-  text: v.pipe(v.string(), v.minLength(1)),
+  text: v.pipe(v.string(), v.minLength(1), v.regex(/\S/)),
   speaker: v.optional(v.string()),
   startMs: v.optional(v.pipe(v.number(), v.finite())),
   endMs: v.optional(v.pipe(v.number(), v.finite())),
@@ -45,7 +45,6 @@ export const ExtractionEventSchema = v.variant('type', [
 export type ExtractionEvent = v.InferOutput<typeof ExtractionEventSchema>;
 export type ExtractionContent = {
   rules: ListRule[];
-  turns: TranscriptTurn[];
   result?: { rules: ListRule[]; items: ExtractedItem[]; turnIds: string[]; sample: boolean };
 };
 
@@ -57,17 +56,14 @@ export const makeExtractionPlugin = (
     type: 'ListExtraction',
     configure: (_options: {}) => ({ closed: new Subject<void>() }),
     observables: ({ options, getObservables }) => {
-      const initial: ExtractionContent = { rules: v.parse(RulesSchema, defaultRules), turns: [] };
+      const initial: ExtractionContent = { rules: v.parse(RulesSchema, defaultRules) };
       const content$ = property(
         getObservables(EventLog).events$.pipe(
           scan((content: ExtractionContent, event): ExtractionContent => {
             switch (event.type) {
               case 'transcriptSegment':
-                return content;
               case 'transcriptTurn':
-                return content.turns.some(turn => turn.id === event.turn.id)
-                  ? content
-                  : { ...content, turns: [...content.turns, event.turn] };
+                return content;
               case 'rulesChanged':
                 return { ...content, rules: event.rules };
               case 'extracted':
@@ -96,7 +92,7 @@ export const makeExtractionPlugin = (
                   },
                 };
               case 'sessionCleared':
-                return { rules: content.rules, turns: [] };
+                return { rules: content.rules };
             }
           }, initial),
           startWith(initial),
