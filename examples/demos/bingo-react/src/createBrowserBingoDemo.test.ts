@@ -5,6 +5,38 @@ import { makeSquares } from './bingo';
 afterEach(() => vi.useRealTimers());
 
 describe('browser Bingo history', () => {
+  it('migrates legacy records, preserves serialized metadata and continues core sequencing', () => {
+    const legacy = [
+      {
+        type: 'transcript',
+        event: {
+          type: 'segment',
+          segment: { sourceId: 'saved', id: 'original', text: 'Quick question' },
+        },
+      },
+    ];
+    const live = createBrowserBingoDemo({ initialEvents: legacy });
+    expect(live.getHistory()[0]?.meta).toEqual({ seq: 0, timestamp: new Date(0) });
+    const restored = createBrowserBingoDemo({
+      initialEvents: JSON.parse(JSON.stringify(live.getHistory())),
+    });
+    expect(restored.getHistory()).toEqual(live.getHistory());
+    expect(restored.transcript.currentTurn$.get()?.id).toBe('saved\0original');
+    restored.bingoMethods.setOverride(1, true);
+    expect(restored.getHistory().map(event => event.meta.seq)).toEqual([0, 1]);
+    expect(() =>
+      createBrowserBingoDemo({
+        initialEvents: [{ ...legacy[0], meta: { seq: 9, timestamp: new Date(0) } }],
+      })
+    ).toThrow('Invalid Bingo history metadata.');
+    expect(() =>
+      createBrowserBingoDemo({
+        initialEvents: [{ ...legacy[0], meta: { seq: 0, timestamp: 'invalid' } }],
+      })
+    ).toThrow('Invalid Bingo history timestamp.');
+    live.close();
+    restored.close();
+  });
   it('immediately matches finalized input, replays without effects, and continues with stable IDs', () => {
     vi.useFakeTimers();
     const live = createBrowserBingoDemo();

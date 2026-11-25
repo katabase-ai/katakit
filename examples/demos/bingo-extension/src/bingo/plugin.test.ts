@@ -1,11 +1,25 @@
 import { describe, expect, it, vi } from 'vitest';
-import { makeKatakit } from '@katakit/core';
+import { EventLogPlugin, makeKatakit } from '@katakit/core';
 import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
-import { makeBingoPlugin, makeSquares, matchPhrase, winningLines, type BingoEvent } from './plugin';
+import {
+  makeBingoPlugin,
+  makeSquares,
+  matchPhrase,
+  winningLines,
+  parseBingoEvent,
+  type BingoEvent,
+} from './plugin';
 
 const setup = (initialEvents: BingoEvent[] = []) => {
   const bingo = makeBingoPlugin();
-  const kit = makeKatakit({ plugins: [bingo.configure({ initialEvents })] });
+  const kit = makeKatakit({
+    plugins: [bingo.configure({})],
+    existingEvents: initialEvents.map((event, seq) => ({
+      type: 'bingo',
+      event: parseBingoEvent(event),
+      meta: { seq, timestamp: new Date(0) },
+    })),
+  });
   const history: BingoEvent[] = [];
   kit.getObservables(bingo).events$.subscribe(event => history.push(event));
   return {
@@ -16,6 +30,19 @@ const setup = (initialEvents: BingoEvent[] = []) => {
 };
 
 describe('Bingo plugin', () => {
+  it('uses the owning runtime core log and ignores unrelated records', () => {
+    const bingo = makeBingoPlugin();
+    const kit = makeKatakit({ plugins: [bingo.configure({})] });
+    const running = kit.start();
+    running.getMethods(EventLogPlugin).emitEvent({ type: 'unrelated' });
+    running.getMethods(bingo).setOverride(0, true);
+    expect(kit.getObservables(EventLogPlugin).events$.getAll()).toMatchObject([
+      { type: 'unrelated', meta: { seq: 0 } },
+      { type: 'bingo', event: { type: 'override-set', index: 0, value: true }, meta: { seq: 1 } },
+    ]);
+    expect(kit.getObservables(bingo).state$.get().marked[0]).toBe(true);
+    running.getMethods(bingo).close();
+  });
   it('replays actual draws, corrections, evidence and wins, then continues identically', () => {
     const live = setup();
     const squares = makeSquares(Array.from({ length: 24 }, (_, i) => `phrase ${i}`));

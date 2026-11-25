@@ -1,9 +1,9 @@
-import { makeKatakit, makeKatakitPlugin, property } from '@katakit/core';
-import { makeEventLogPlugin } from '@katakit/event-log';
+import { EventLogPlugin, makeKatakitPlugin, property } from '@katakit/core';
 import type { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
 import {
   ReplaySubject,
   combineLatest,
+  filter,
   map,
   of,
   scan,
@@ -214,22 +214,16 @@ export const makeBingoPlugin = ({
 } = {}) =>
   makeKatakitPlugin({
     type: 'Bingo',
-    configure: ({ initialEvents = [] }: { initialEvents?: BingoEvent[] }) => {
-      if (eventLog && initialEvents.length) throw new Error('Restore history in the host log.');
-      const log = makeEventLogPlugin<BingoEvent>({ validateEvent: bingoEventSchema });
-      const kit = makeKatakit({
-        plugins: [log.configure({ initialEvents: initialEvents.map(parseBingoEvent) })],
-      });
-      const binding: { events$: Observable<BingoEvent>; emitEvent: (event: BingoEvent) => void } =
-        eventLog ?? {
-          events$: kit.getObservables(log).events$,
-          emitEvent: kit.start().getMethods(log).emitEvent,
-        };
-      return { ...binding, closed$: new ReplaySubject<void>(1), closed: false };
-    },
+    configure: (_options: {}) => ({ closed$: new ReplaySubject<void>(1), closed: false }),
     observables: ({ options, getObservables }) => {
+      const events$ =
+        eventLog?.events$ ??
+        getObservables(EventLogPlugin).events$.pipe(
+          filter(event => event.type === 'bingo'),
+          map(event => parseBingoEvent(event.event))
+        );
       const content$ = property(
-        options.events$.pipe(
+        events$.pipe(
           scan(reduceContent, initialContent()),
           startWith(initialContent()),
           takeUntil(options.closed$),
@@ -252,11 +246,14 @@ export const makeBingoPlugin = ({
           shareReplay({ bufferSize: 1, refCount: true })
         )
       );
-      return { state$, content$, events$: options.events$.pipe(takeUntil(options.closed$)) };
+      return { state$, content$, events$: events$.pipe(takeUntil(options.closed$)) };
     },
-    methods: ({ options, observables }) => {
+    methods: ({ options, observables, getMethods }) => {
       const append = (event: BingoEvent) => {
-        if (!options.closed) options.emitEvent(parseBingoEvent(event));
+        if (options.closed) return;
+        const validated = parseBingoEvent(event);
+        if (eventLog) eventLog.emitEvent(validated);
+        else getMethods(EventLogPlugin).emitEvent({ type: 'bingo', event: validated });
       };
       return {
         close: () => {
