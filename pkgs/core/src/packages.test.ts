@@ -116,12 +116,24 @@ describe('published packages', () => {
           existingEvents: [seed],
           plugins: [Transcript.configure({}), PersistencePlugin.configure({})],
         }).start();
-        runtime.getMethods(Transcript).updateProvisionalUtterance({ speaker: 'mic', text: 'hello' });
+        const input = runtime.getMethods(Transcript);
+        input.updateProvisionalUtterance({ speaker: 'mic', text: 'unfinished' });
+        assert.equal(runtime.getObservables(Transcript).provisionalUtterance$.get().text, 'unfinished');
+        assert.deepEqual(runtime.getObservables(EventLogPlugin).events$.getAll(), [seed]);
+        assert.deepEqual(saved, []);
+        const utterance = { id: 'segment-1', sourceId: 'mic', speaker: 'Ada', text: 'hello', startMs: 10, endMs: 30 };
+        input.ingestUtterance(utterance);
+        assert.equal(runtime.getObservables(Transcript).provisionalUtterance$.get(), null);
+        input.close();
+        input.close();
         await runtime.getMethods(PersistencePlugin).kill();
-        assert.equal(saved.length, 1);
-        assert.equal(saved[0].type, 'provisionalUtteranceAdded');
-        assert.equal(saved[0].meta.seq, 1);
-        assert.ok(saved[0].meta.timestamp instanceof Date);
+        assert.deepEqual(saved.map(event => event.type), ['utteranceAdded', 'conversationTurnAdded']);
+        const { type: _type, meta: _meta, ...persistedUtterance } = saved[0];
+        assert.deepEqual(persistedUtterance, utterance);
+        assert.deepEqual(saved.map(event => event.meta.seq), [1, 2]);
+        assert.ok(saved.every(event => event.meta.timestamp instanceof Date));
+        assert.equal(saved[1].id, runtime.getObservables(Transcript).conversationTurns$.get()[0].id);
+        assert.equal(saved[1].text, 'hello');
         assert.deepEqual(runtime.getObservables(EventLogPlugin).events$.getAll(), [seed, ...saved]);
         assert.equal(typeof KatakitDevTools, 'function');
       `
