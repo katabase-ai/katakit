@@ -17,18 +17,24 @@ identical replacements are ignored and `setTurns([])` clears transcript evidence
 `state$` exposes the 25 squares, manual `overrides`, matched `evidence`, `marked`
 flags, and `winningLines`. The center is always free. `setOverride(index, value)`
 sets or clears a manual correction; `setSquares(makeSquares(phrases))` replaces a
-card of 24 phrases. Each command appends to `@katakit/event-log`; deterministic
+card of 24 phrases. Each command appends to core's built-in `EventLogPlugin`; deterministic
 projections derive the board, evidence, marks and wins. `restoreBoard({ squares,
 overrides })` migrates a legacy persisted board by appending one validated
 `board-set` event. It never restores transcript content.
 
-By default the plugin owns an in-memory log. Capture its replaying `events$` and
-restore with `configure({ initialEvents })`; every restored event is validated.
+By default the plugin uses its owning runtime's built-in log, recording
+`{ type: 'bingo', event: BingoEvent }`. It never creates a separate runtime or log.
+Restore host-validated core records with `makeKatakit({ existingEvents, plugins })`;
+the host validates metadata and Bingo payloads with `parseBingoEvent`. Core adds
+sequence/timestamp metadata to live writes but does not validate schemas, so
+Bingo validates every command before appending. The plugin's `events$` exposes
+Bingo payloads only; capture core `EventLogPlugin.events$` for full metadata.
+
 For a caller-owned log pass `eventLog: { events$, emitEvent }` to the factory.
-The host must validate initial history with `parseBingoEvent` and live writes
-with `bingoEventSchema`, and provide a replaying, synchronous event stream.
-Filter a host union down to `BingoEvent` before binding it. Do not also pass
-`initialEvents` when binding a host log.
+Validate restored payloads with `parseBingoEvent` (or `bingoEventSchema`), and
+provide a replaying synchronous stream. Filter a host union down to `BingoEvent`
+before binding it. Plugin configuration is `configure({})`; history belongs to
+the host runtime, not a second plugin-local source.
 
 The log records actual shuffled squares, explicit override additions/removals,
 and standalone transcript replacements. Replay never shuffles, generates IDs,

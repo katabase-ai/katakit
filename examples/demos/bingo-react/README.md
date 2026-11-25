@@ -68,11 +68,16 @@ can do either without stopping transcription.
 
 ### Replay and lifecycle
 
-`createBrowserBingoDemo()` owns an in-memory `@katakit/event-log` containing
+`createBrowserBingoDemo()` uses one runtime's built-in core `EventLogPlugin`, containing
 finalized transcript segments/turns/resets and board/override commands.
 `runtime.getHistory()` returns a copied history; construct
 `createBrowserBingoDemo({ initialEvents: history })` to validate and replay it.
 The default app still resets on reload: this API adds no automatic persistence.
+The host validates live payloads and restored history because core's log does not.
+Core sequence/timestamp metadata survives replay (including JSON date strings).
+Old metadata-free snapshots receive deterministic sequence numbers and epoch
+timestamps; recorded transcript IDs and audio timing are unchanged. Restored
+sequence numbers must match their positions so continuation cannot reuse them.
 
 Board draws record their actual squares. Evidence, marks and wins are projected
 from those squares and the finalized transcript, including the unfinished turn.
