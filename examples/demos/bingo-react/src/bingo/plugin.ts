@@ -1,6 +1,17 @@
-import { makeEffect, makeKatakitPlugin, property } from '@katakit/core';
+import { makeKatakit, makeKatakitPlugin, property } from '@katakit/core';
+import { makeEventLogPlugin } from '@katakit/event-log';
 import type { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
-import { BehaviorSubject, filter } from 'rxjs';
+import {
+  ReplaySubject,
+  combineLatest,
+  map,
+  of,
+  scan,
+  shareReplay,
+  startWith,
+  takeUntil,
+  type Observable,
+} from 'rxjs';
 
 export type BingoTurn = { id: string; text: string };
 export type BingoBoard = { squares: string[]; overrides: Record<number, boolean> };
@@ -41,7 +52,7 @@ export const defaultSquares = [
 export const normalizePhrase = (text: string) =>
   text
     .normalize('NFKC')
-    .toLocaleLowerCase()
+    .toLowerCase()
     .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .trim();
 
@@ -72,6 +83,7 @@ const validateOverrides = (overrides: Record<number, boolean>) => {
     const index = Number(key);
     if (
       !Number.isInteger(index) ||
+      key !== String(index) ||
       index < 0 ||
       index >= 25 ||
       index === 12 ||
@@ -113,74 +125,164 @@ const calculate = (board: BingoBoard, turns: BingoTurn[]): BingoState => {
   };
 };
 
-/** A headless card driven by source-neutral transcript turns, not audio or React. */
+/** Board history is independent of the input session; shuffle records its actual draw. */
+export type BingoEvent =
+  | { type: 'board-set'; board: BingoBoard }
+  | { type: 'override-set'; index: number; value: boolean | null }
+  | { type: 'turns-set'; turns: BingoTurn[] };
+
+/** Validate and copy untrusted history before passing it to an event log. */
+export const parseBingoEvent = (input: unknown): BingoEvent => {
+  if (!input || typeof input !== 'object') throw new Error('Invalid bingo event.');
+  const event = input as BingoEvent;
+  if (event.type === 'board-set') {
+    if (
+      !Array.isArray(event.board?.squares) ||
+      !event.board.overrides ||
+      typeof event.board.overrides !== 'object' ||
+      Array.isArray(event.board.overrides) ||
+      event.board.squares.some(value => typeof value !== 'string')
+    )
+      throw new Error('Invalid bingo board.');
+    validateSquares(event.board.squares);
+    validateOverrides(event.board.overrides);
+    return {
+      type: event.type,
+      board: { squares: [...event.board.squares], overrides: { ...event.board.overrides } },
+    };
+  }
+  if (event.type === 'override-set') {
+    if (
+      !Number.isInteger(event.index) ||
+      event.index < 0 ||
+      event.index >= 25 ||
+      event.index === 12
+    )
+      throw new Error('Invalid bingo square index.');
+    if (event.value !== null && typeof event.value !== 'boolean')
+      throw new Error('Invalid bingo square override.');
+    return { type: event.type, index: event.index, value: event.value };
+  }
+  if (
+    event.type === 'turns-set' &&
+    Array.isArray(event.turns) &&
+    event.turns.every(turn => turn && typeof turn.id === 'string' && typeof turn.text === 'string')
+  ) {
+    if (new Set(event.turns.map(turn => turn.id)).size !== event.turns.length)
+      throw new Error('Duplicate bingo turn ID.');
+    return { type: event.type, turns: event.turns.map(({ id, text }) => ({ id, text })) };
+  }
+  throw new Error('Invalid bingo event.');
+};
+
+export const bingoEventSchema = {
+  '~standard': {
+    version: 1 as const,
+    vendor: 'bingo',
+    validate: (input: unknown) => {
+      try {
+        return { value: parseBingoEvent(input) };
+      } catch (error) {
+        return { issues: [{ message: String(error) }] };
+      }
+    },
+  },
+};
+
+type Content = { board: BingoBoard; turns: BingoTurn[] };
+const initialContent = (): Content => ({
+  board: { squares: [...defaultSquares], overrides: {} },
+  turns: [],
+});
+const reduceContent = (content: Content, event: BingoEvent): Content => {
+  if (event.type === 'board-set') return { ...content, board: event.board };
+  if (event.type === 'turns-set') return { ...content, turns: event.turns };
+  const overrides = { ...content.board.overrides };
+  if (event.value === null) delete overrides[event.index];
+  else overrides[event.index] = event.value;
+  return { ...content, board: { ...content.board, overrides } };
+};
+
+/** Headless event-sourced card. Input, storage, and subscription lifetime belong to its host. */
 export const makeBingoPlugin = ({
   TranscriptIngestionPlugin,
-}: { TranscriptIngestionPlugin?: ReturnType<typeof makeTranscriptIngestionPlugin> } = {}) =>
+  eventLog,
+}: {
+  TranscriptIngestionPlugin?: ReturnType<typeof makeTranscriptIngestionPlugin>;
+  /** A replaying, synchronously validated host log; filter host union events before binding. */
+  eventLog?: { events$: Observable<BingoEvent>; emitEvent: (event: BingoEvent) => void };
+} = {}) =>
   makeKatakitPlugin({
     type: 'Bingo',
-    configure: (_options: {}) => ({
-      state: new BehaviorSubject<BingoState>(
-        calculate({ squares: defaultSquares, overrides: {} }, [])
-      ),
-    }),
-    observables: ({ options }) => ({ state$: property(options.state.asObservable()) }),
-    methods: ({ options, observables }) => {
-      const { state$ } = observables;
-      let turns: BingoTurn[] = [];
-      let board: BingoBoard = { squares: [...defaultSquares], overrides: {} };
-      const update = () => options.state.next(calculate(board, turns));
-      return {
-        /** Complete state subscriptions when an owning application releases this card. */
-        close: () => options.state.complete(),
-        /** Replace the current transcript view, including any in-progress finalized turn. */
-        setTurns: (next: BingoTurn[]) => {
-          if (
-            next.length === turns.length &&
-            next.every(
-              (turn, index) => turn.id === turns[index]?.id && turn.text === turns[index]?.text
+    configure: ({ initialEvents = [] }: { initialEvents?: BingoEvent[] }) => {
+      if (eventLog && initialEvents.length) throw new Error('Restore history in the host log.');
+      const log = makeEventLogPlugin<BingoEvent>({ validateEvent: bingoEventSchema });
+      const kit = makeKatakit({
+        plugins: [log.configure({ initialEvents: initialEvents.map(parseBingoEvent) })],
+      });
+      const binding: { events$: Observable<BingoEvent>; emitEvent: (event: BingoEvent) => void } =
+        eventLog ?? {
+          events$: kit.getObservables(log).events$,
+          emitEvent: kit.start().getMethods(log).emitEvent,
+        };
+      return { ...binding, closed$: new ReplaySubject<void>(1), closed: false };
+    },
+    observables: ({ options, getObservables }) => {
+      const content$ = property(
+        options.events$.pipe(
+          scan(reduceContent, initialContent()),
+          startWith(initialContent()),
+          takeUntil(options.closed$),
+          shareReplay({ bufferSize: 1, refCount: true })
+        )
+      );
+      const turns$ = TranscriptIngestionPlugin
+        ? getObservables(TranscriptIngestionPlugin).state$.pipe(
+            map(state =>
+              state.currentTurn
+                ? [...state.conversationTurns, state.currentTurn]
+                : state.conversationTurns
             )
           )
-            return;
-          turns = next.map(turn => ({ id: turn.id, text: turn.text }));
-          update();
-        },
-        setSquares: (squares: string[]) => {
-          validateSquares(squares);
-          board = { squares: [...squares], overrides: {} };
-          update();
-        },
-        restoreBoard: (snapshot: BingoBoard) => {
-          validateSquares(snapshot.squares);
-          validateOverrides(snapshot.overrides);
-          board = { squares: [...snapshot.squares], overrides: { ...snapshot.overrides } };
-          update();
-        },
-        setOverride: (index: number, value: boolean | undefined) => {
-          if (!Number.isInteger(index) || index < 0 || index >= 25 || index === 12)
-            throw new Error('Invalid bingo square index.');
-          const overrides = { ...state$.get().overrides };
-          if (value === undefined) delete overrides[index];
-          else overrides[index] = value;
-          board = { squares: board.squares, overrides };
-          update();
-        },
-      };
+        : of(undefined);
+      const state$ = property(
+        combineLatest([content$, turns$]).pipe(
+          map(([content, turns]) => calculate(content.board, turns ?? content.turns)),
+          takeUntil(options.closed$),
+          shareReplay({ bufferSize: 1, refCount: true })
+        )
+      );
+      return { state$, content$, events$: options.events$.pipe(takeUntil(options.closed$)) };
     },
-    effects: ({ methods, getObservables }) => {
-      if (!TranscriptIngestionPlugin) return [];
-      const { events$, conversationTurns$, currentTurn$ } =
-        getObservables(TranscriptIngestionPlugin);
-      return [
-        makeEffect({
-          on: events$.pipe(filter(event => event.type !== 'provisional')),
-          backpressure: 'latest',
-          handler: () => {
-            const turns = conversationTurns$.get();
-            const current = currentTurn$.get();
-            methods.setTurns(current ? [...turns, current] : turns);
-          },
-        }),
-      ];
+    methods: ({ options, observables }) => {
+      const append = (event: BingoEvent) => {
+        if (!options.closed) options.emitEvent(parseBingoEvent(event));
+      };
+      return {
+        close: () => {
+          if (options.closed) return;
+          options.closed = true;
+          options.closed$.next();
+          options.closed$.complete();
+        },
+        /** Standalone input replacement/reset. A bound ingestion plugin owns input instead. */
+        setTurns: (turns: BingoTurn[]) => {
+          if (TranscriptIngestionPlugin)
+            throw new Error('The transcript plugin owns this card input.');
+          const previous = observables.content$.get().turns;
+          if (
+            turns.length === previous.length &&
+            turns.every((turn, i) => turn.id === previous[i]?.id && turn.text === previous[i]?.text)
+          )
+            return;
+          append({ type: 'turns-set', turns });
+        },
+        setSquares: (squares: string[]) =>
+          append({ type: 'board-set', board: { squares, overrides: {} } }),
+        /** Migrate a legacy persisted board with one validated event; never restores transcript. */
+        restoreBoard: (board: BingoBoard) => append({ type: 'board-set', board }),
+        setOverride: (index: number, value: boolean | undefined) =>
+          append({ type: 'override-set', index, value: value ?? null }),
+      };
     },
   });
