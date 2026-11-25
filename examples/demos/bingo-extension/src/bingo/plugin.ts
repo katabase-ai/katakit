@@ -1,14 +1,23 @@
-import { makeEffect, makeKatakitPlugin, property } from '@katakit/core';
-import type { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
-import { BehaviorSubject, filter } from 'rxjs';
+import {
+  EventLogPlugin,
+  evolve,
+  makeKatakitPlugin,
+  optionalProperty,
+  type KatakitEvent,
+} from '@katakit/core';
+import { filter, shareReplay } from 'rxjs';
 
-export type BingoTurn = { id: string; text: string };
 export type BingoBoard = { squares: string[]; overrides: Record<number, boolean> };
 export type BingoState = BingoBoard & {
-  evidence: (string | undefined)[];
+  spoken: boolean[];
   marked: boolean[];
   winningLines: number[][];
 };
+
+type BingoChange =
+  | { type: 'gameStarted'; cards: [string[]] }
+  | { type: 'squareManuallyChanged'; index: number; marked: boolean }
+  | { type: 'squareSpoken'; index: number };
 
 export const defaultSquares = [
   'Quick question',
@@ -41,7 +50,7 @@ export const defaultSquares = [
 export const normalizePhrase = (text: string) =>
   text
     .normalize('NFKC')
-    .toLocaleLowerCase()
+    .toLowerCase()
     .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .trim();
 
@@ -58,7 +67,7 @@ export const makeSquares = (phrases: string[]) => {
   return squares;
 };
 
-const validateSquares = (squares: string[]) => {
+export const validateSquares = (squares: string[]) => {
   if (
     squares.length !== 25 ||
     squares[12] !== 'Free space' ||
@@ -67,10 +76,12 @@ const validateSquares = (squares: string[]) => {
     throw new Error('A bingo card needs 24 phrases and a free center square.');
 };
 
-const validateOverrides = (overrides: Record<number, boolean>) => {
+export const validateBoard = ({ squares, overrides }: BingoBoard) => {
+  validateSquares(squares);
   for (const [key, value] of Object.entries(overrides)) {
     const index = Number(key);
     if (
+      key !== String(index) ||
       !Number.isInteger(index) ||
       index < 0 ||
       index >= 25 ||
@@ -91,96 +102,85 @@ export const winningLines = (marked: boolean[]) => {
   return lines.filter(line => line.every(index => marked[index]));
 };
 
-const calculate = (board: BingoBoard, turns: BingoTurn[]): BingoState => {
-  const normalizedTurns = turns.map(turn => ({
-    text: turn.text,
-    normalized: normalizePhrase(turn.text),
-  }));
-  const evidence = board.squares.map((phrase, index) => {
-    if (index === 12) return undefined;
-    const needle = ` ${normalizePhrase(phrase)} `;
-    return normalizedTurns.find(turn => ` ${turn.normalized} `.includes(needle))?.text;
-  });
-  const marked = board.squares.map(
-    (_, index) => index === 12 || (board.overrides[index] ?? !!evidence[index])
-  );
-  return {
-    squares: [...board.squares],
-    overrides: { ...board.overrides },
-    evidence,
-    marked,
-    winningLines: winningLines(marked),
-  };
+const validateIndex = (index: number) => {
+  if (!Number.isInteger(index) || index < 0 || index >= 25 || index === 12)
+    throw new Error('Invalid bingo square index.');
 };
 
-/** A headless card driven by source-neutral transcript turns, not audio or React. */
-export const makeBingoPlugin = ({
-  TranscriptIngestionPlugin,
-}: { TranscriptIngestionPlugin?: ReturnType<typeof makeTranscriptIngestionPlugin> } = {}) =>
-  makeKatakitPlugin({
-    type: 'Bingo',
-    configure: (_options: {}) => ({
-      state: new BehaviorSubject<BingoState>(
-        calculate({ squares: defaultSquares, overrides: {} }, [])
-      ),
-    }),
-    observables: ({ options }) => ({ state$: property(options.state.asObservable()) }),
-    methods: ({ options, observables }) => {
-      const { state$ } = observables;
-      let turns: BingoTurn[] = [];
-      let board: BingoBoard = { squares: [...defaultSquares], overrides: {} };
-      const update = () => options.state.next(calculate(board, turns));
-      return {
-        /** Complete state subscriptions when an owning application releases this card. */
-        close: () => options.state.complete(),
-        /** Replace the current transcript view, including any in-progress finalized turn. */
-        setTurns: (next: BingoTurn[]) => {
-          if (
-            next.length === turns.length &&
-            next.every(
-              (turn, index) => turn.id === turns[index]?.id && turn.text === turns[index]?.text
-            )
-          )
-            return;
-          turns = next.map(turn => ({ id: turn.id, text: turn.text }));
-          update();
-        },
-        setSquares: (squares: string[]) => {
-          validateSquares(squares);
-          board = { squares: [...squares], overrides: {} };
-          update();
-        },
-        restoreBoard: (snapshot: BingoBoard) => {
-          validateSquares(snapshot.squares);
-          validateOverrides(snapshot.overrides);
-          board = { squares: [...snapshot.squares], overrides: { ...snapshot.overrides } };
-          update();
-        },
-        setOverride: (index: number, value: boolean | undefined) => {
-          if (!Number.isInteger(index) || index < 0 || index >= 25 || index === 12)
-            throw new Error('Invalid bingo square index.');
-          const overrides = { ...state$.get().overrides };
-          if (value === undefined) delete overrides[index];
-          else overrides[index] = value;
-          board = { squares: board.squares, overrides };
-          update();
-        },
-      };
-    },
-    effects: ({ methods, getObservables }) => {
-      if (!TranscriptIngestionPlugin) return [];
-      const { events$, conversationTurns$, currentTurn$ } =
-        getObservables(TranscriptIngestionPlugin);
-      return [
-        makeEffect({
-          on: events$.pipe(filter(event => event.type !== 'provisional')),
-          backpressure: 'latest',
-          handler: () => {
-            const turns = conversationTurns$.get();
-            const current = currentTurn$.get();
-            methods.setTurns(current ? [...turns, current] : turns);
-          },
-        }),
-      ];
-    },
-  });
+const score = (squares: string[], overrides: BingoBoard['overrides'], spoken: boolean[]) => {
+  const marked = squares.map((_, i) => i === 12 || (overrides[i] ?? spoken[i]!));
+  return { squares, overrides, spoken, marked, winningLines: winningLines(marked) };
+};
+
+/** No board exists before the opening deal. A spoken fact survives a manual unmark. */
+const evolveGame = (state: BingoState | undefined, event: KatakitEvent<BingoChange>) => {
+  if (event.type === 'gameStarted') {
+    if (state || event.meta.seq !== 0 || event.cards.length !== 1)
+      throw new Error('A bingo runtime starts with exactly one card.');
+    const [squares] = event.cards;
+    validateSquares(squares);
+    return score(
+      [...squares],
+      {},
+      squares.map(() => false)
+    );
+  }
+  if (!state) throw new Error('Missing opening bingo card.');
+  validateIndex(event.index);
+  if (event.type === 'squareSpoken')
+    return score(
+      state.squares,
+      state.overrides,
+      state.spoken.map((heard, i) => heard || i === event.index)
+    );
+  if (typeof event.marked !== 'boolean') throw new Error('Invalid bingo mark.');
+  return score(state.squares, { ...state.overrides, [event.index]: event.marked }, state.spoken);
+};
+
+export const BingoPlugin = makeKatakitPlugin({
+  type: 'Bingo',
+  configure: (_options: {}) => ({}),
+  observables: ({ getObservables }) => ({
+    state$: optionalProperty(
+      getObservables(EventLogPlugin).events$.pipe(
+        filter(
+          (e): e is KatakitEvent<BingoChange> =>
+            e.type === 'gameStarted' ||
+            e.type === 'squareManuallyChanged' ||
+            e.type === 'squareSpoken'
+        ),
+        evolve(evolveGame, undefined),
+        shareReplay({ bufferSize: 1, refCount: true })
+      )
+    ),
+  }),
+  methods: ({ getMethods, getObservables, observables: { state$ } }) => {
+    const { emitEvent } = getMethods(EventLogPlugin);
+    const emit = (event: BingoChange) => emitEvent(event);
+    return {
+      startGame: (squares: string[]) => {
+        validateSquares(squares);
+        if (getObservables(EventLogPlugin).eventCount$.get() !== 0)
+          throw new Error('Start a new runtime for a new game.');
+        emit({ type: 'gameStarted', cards: [[...squares]] });
+      },
+      changeSquare: (index: number, marked: boolean) => {
+        validateIndex(index);
+        if (typeof marked !== 'boolean') throw new Error('Invalid bingo mark.');
+        const state = state$.get();
+        if (!state) throw new Error('Missing opening bingo card.');
+        if (state.overrides[index] !== marked)
+          emit({ type: 'squareManuallyChanged', index, marked });
+      },
+      /** Live recognition records each matched square once; replay only consumes its index. */
+      hearTurn: (text: string) => {
+        const state = state$.get();
+        if (!state) throw new Error('Missing opening bingo card.');
+        state.squares.forEach((phrase, index) => {
+          if (index !== 12 && !state.spoken[index] && matchPhrase(phrase, text))
+            emit({ type: 'squareSpoken', index });
+        });
+      },
+    };
+  },
+});

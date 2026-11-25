@@ -24,11 +24,16 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
     }
     return;
   }
-  if (message.type === 'TRANSCRIPT_SEGMENT') {
+  if (message.type === 'TRANSCRIPT_SEGMENT' || message.type === 'BINGO_NEW_ROUND') {
     const previous = transcriptWrites;
     transcriptWrites = (async () => {
       try {
         await previous;
+        // Reopening the panel must not match words from before the last shuffle.
+        if (message.type === 'BINGO_NEW_ROUND') {
+          await chrome.storage.session.set({ segments: [] });
+          return;
+        }
         const { segments = [] } = await chrome.storage.session.get('segments');
         await chrome.storage.session.set({ segments: [...segments, message.segment].slice(-2000) });
       } catch {

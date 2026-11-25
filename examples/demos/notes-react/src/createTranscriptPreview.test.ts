@@ -87,7 +87,10 @@ test('the line being spoken stays first and keeps its identity through correctio
 test('replay never presents old transcript as freshly spoken lines', () => {
   const runtime = createNotesDemo({
     initialEvents: [
-      { type: 'transcriptTurn', turn: { id: 'old', sourceId: 'mic', text: 'Old speech.' } },
+      {
+        type: 'transcriptTurn',
+        turn: { id: 'old', sourceId: 'mic', text: 'Old speech.' },
+      },
     ],
   });
   const onLines = vi.fn();

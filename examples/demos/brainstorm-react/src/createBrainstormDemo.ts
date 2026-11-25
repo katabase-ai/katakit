@@ -1,5 +1,4 @@
-import { makeKatakit } from '@katakit/core';
-import { makeEventLogPlugin } from '@katakit/event-log';
+import { EventLogPlugin, makeKatakit } from '@katakit/core';
 import type { MicrophoneOptions } from '@katakit/transcription/browser';
 import { BehaviorSubject } from 'rxjs';
 import * as v from 'valibot';
@@ -119,10 +118,10 @@ export type BrainstormSnapshot = Content & {
 
 /** One visit owns its event log, single-flight judging queue, and round clock. */
 export const createBrainstormDemo = () => {
-  const log = makeEventLogPlugin({ validateEvent: EventSchema });
-  const kit = makeKatakit({ plugins: [log.configure({ initialEvents: [] })] }).start();
-  const { emitEvent } = kit.getMethods(log);
-  const { events$ } = kit.getObservables(log);
+  const kit = makeKatakit({ plugins: [] }).start();
+  const log = kit.getMethods(EventLogPlugin);
+  const emitEvent = (event: GameEvent) => log.emitEvent(v.parse(EventSchema, event));
+  const { events$ } = kit.getObservables(EventLogPlugin);
   let content = initial();
   let connection: BrainstormConnection | undefined;
   let controller: AbortController | undefined;
@@ -150,7 +149,7 @@ export const createBrainstormDemo = () => {
     if (!closed) state$.next(snapshot());
   };
   const subscription = events$.subscribe(event => {
-    content = reduce(content, event);
+    content = reduce(content, v.parse(EventSchema, event));
     publish();
   });
   const clearTimer = () => {

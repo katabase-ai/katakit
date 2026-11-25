@@ -1,4 +1,4 @@
-import type { TranscriptTurn } from '@katakit/transcript-ingestion';
+import type { TranscriptTurn } from './extractionPlugin';
 import { formatTime } from './extractionModel';
 
 /** A local view of the already-bound transcript, matching the gallery's numbered-turn column. */
@@ -8,7 +8,7 @@ export const TranscriptTurns = ({
   provisional,
 }: {
   turns: readonly TranscriptTurn[];
-  current?: TranscriptTurn;
+  current?: Pick<TranscriptTurn, 'text' | 'startMs'>;
   provisional?: string;
 }) => (
   <aside className="extraction-transcript" aria-label="Transcript">
@@ -27,7 +27,10 @@ export const TranscriptTurns = ({
         .map((turn, index) => ({ turn, number: index + 1 }))
         .toReversed()
         .map(({ turn, number }) => (
-          <article className="extraction-transcript-turn" key={turn.id}>
+          <article
+            className="extraction-transcript-turn"
+            key={'id' in turn ? String(turn.id) : 'pending'}
+          >
             <span className="extraction-transcript-index">{String(number).padStart(2, '0')}</span>
             <p>{turn.text}</p>
             <time>{formatTime(turn.startMs)}</time>

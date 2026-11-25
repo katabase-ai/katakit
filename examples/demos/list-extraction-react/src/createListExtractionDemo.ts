@@ -1,12 +1,20 @@
-import { makeKatakit, property } from '@katakit/core';
-import { makeEventLogPlugin } from '@katakit/event-log';
-import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
-import { combineLatest, map, shareReplay, startWith, Subject, takeUntil } from 'rxjs';
+import { EventLogPlugin, makeKatakit, property } from '@katakit/core';
+import {
+  BehaviorSubject,
+  combineLatest,
+  map,
+  shareReplay,
+  startWith,
+  Subject,
+  switchMap,
+  takeUntil,
+} from 'rxjs';
+import { createTranscriptInput, type SourceSegment } from './transcriptInput';
 import * as v from 'valibot';
 import {
   ExtractionEventSchema,
   makeExtractionPlugin,
-  type ExtractionEvent,
+  readExtractionEvent,
 } from './extractionPlugin';
 import {
   createExtractionRequest,
@@ -24,27 +32,20 @@ type RequestState = { phase: 'idle' | 'connecting' | 'extracting'; error?: Extra
 /** One visit owns its transcript, event projections, admission, and cancellable on-demand request. */
 export const createListExtractionDemo = ({
   initialEvents = [],
-}: { initialEvents?: ExtractionEvent[] } = {}) => {
-  const EventLog = makeEventLogPlugin({ validateEvent: ExtractionEventSchema });
-  const transcript = makeTranscriptIngestionPlugin({
-    forward: {
-      createEvent: event =>
-        event.type === 'turn' ? { type: 'transcriptTurn' as const, turn: event.turn } : undefined,
-      emitEvent: event => kit.getMethods(EventLog).emitEvent(event),
-    },
-  });
-  const extraction = makeExtractionPlugin(EventLog);
+}: { initialEvents?: unknown[] } = {}) => {
+  const extraction = makeExtractionPlugin();
   const kit = makeKatakit({
-    plugins: [
-      EventLog.configure({ initialEvents }),
-      transcript.configure({}),
-      extraction.configure({}),
-    ],
+    existingEvents: initialEvents.map(readExtractionEvent),
+    plugins: [extraction.configure({})],
   }).start();
-  const input = kit.getMethods(transcript);
+  const inputs = new BehaviorSubject(createTranscriptInput());
   const logged = kit.getMethods(extraction);
   const { content$ } = kit.getObservables(extraction);
-  const { currentTurn$, provisional$ } = kit.getObservables(transcript);
+  const turns = inputs
+    .pipe(switchMap(input => input.turns$))
+    .subscribe(turn => logged.record({ type: 'transcriptTurn', turn }));
+  const currentTurn$ = inputs.pipe(switchMap(input => input.currentTurn$));
+  const provisional$ = inputs.pipe(switchMap(input => input.provisional$));
   const closed$ = new Subject<void>();
   const requests = new Subject<RequestState>();
   const request$ = property(
@@ -84,18 +85,18 @@ export const createListExtractionDemo = ({
   };
   return {
     state$,
-    events$: kit.getObservables(EventLog).events$,
-    ingestSegment: (segment: Parameters<typeof input.ingestSegment>[0]) => {
+    events$: kit.getObservables(EventLogPlugin).events$,
+    ingestSegment: (segment: SourceSegment) => {
       if (closed) return;
       if (active && segment.text.trim()) cancel();
-      input.ingestSegment(segment);
+      inputs.value.ingestSegment(segment);
     },
     updateProvisional: (text: string) => {
       if (closed) return;
       if (active && text.trim()) cancel();
-      input.updateProvisional(text);
+      inputs.value.updateProvisional(text);
     },
-    flush: input.flush,
+    flush: () => inputs.value.flush(),
     cancel,
     setRules: (next: ListRule[]) => {
       if (closed) return;
@@ -119,15 +120,16 @@ export const createListExtractionDemo = ({
     clear: () => {
       if (closed) return;
       cancel();
-      input.reset();
+      inputs.value.close();
+      inputs.next(createTranscriptInput());
       logged.record({ type: 'sessionCleared' });
     },
     loadSample: () => {
       if (
         closed ||
         content$.get().turns.some(turn => turn.sourceId !== 'sample') ||
-        currentTurn$.get() ||
-        provisional$.get()
+        state$.get().current ||
+        state$.get().provisional
       )
         return;
       cancel();
@@ -144,7 +146,7 @@ export const createListExtractionDemo = ({
     },
     extract: async (connect: ExtractionConnect) => {
       if (closed || active || request$.get().error?.policy.terminal) return;
-      input.flush();
+      inputs.value.flush();
       const { rules, turns } = content$.get();
       if (!turns.length) return;
       const controller = new AbortController();
@@ -192,7 +194,9 @@ export const createListExtractionDemo = ({
       if (closed) return;
       cancel();
       closed = true;
-      input.close();
+      inputs.value.close();
+      turns.unsubscribe();
+      inputs.complete();
       logged.close();
       closed$.next();
       closed$.complete();

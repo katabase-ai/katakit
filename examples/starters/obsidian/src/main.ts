@@ -33,7 +33,7 @@ class TranscriptionView extends ItemView {
     const list = this.contentEl.createEl('ul');
     this.speech = createShortClipTranscriber({
       status: text => status.setText(text),
-      final: text => session.acceptRecognized(text),
+      final: session.acceptRecognized,
       error: text => {
         this.recording = false;
         record.setText('Record');
@@ -42,9 +42,9 @@ class TranscriptionView extends ItemView {
     });
     const render = () => {
       list.empty();
-      for (const turn of session.conversationTurns$.get()) list.createEl('li', { text: turn.text });
+      for (const turn of session.turns$.get()) list.createEl('li', { text: turn.text });
     };
-    this.subscriptions.push(session.conversationTurns$.subscribe(render));
+    this.subscriptions.push(session.turns$.subscribe(render));
     record.addEventListener('click', () => {
       record.disabled = true;
       void (async () => {

@@ -49,7 +49,7 @@ Squares match complete normalized phrases against finalized transcript turns.
 They do not use a semantic classifier. Click a square to correct a mark; the
 center is free. Choose from seven built-in word lists or select **Shuffle** for
 another draw. Previously saved custom cards remain selectable. Switching lists
-or shuffling rechecks the current transcript and clears manual corrections.
+or shuffling starts a fresh round, clearing the prior transcript and manual corrections.
 Interim recognition text is not displayed or used for bingo.
 
 Board edits and the selected pack are stored in extension local storage;

@@ -1,17 +1,8 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 
-vi.mock('./kit', () => ({
-  createTranscriptSession: () => ({
-    conversationTurns$: { get: () => [], subscribe: () => ({ unsubscribe: () => {} }) },
-    currentTurn$: { get: () => null, subscribe: () => ({ unsubscribe: () => {} }) },
-    onFinal: vi.fn(),
-    onStop: vi.fn(),
-    clear: vi.fn(),
-    close: vi.fn(),
-  }),
-}));
-
 let receive: (message: object) => void;
+let clear: { disabled: boolean; onclick?: () => Promise<void> };
+let list: { replaceChildren: ReturnType<typeof vi.fn> };
 let button: { disabled: boolean; textContent: string; onclick?: () => Promise<void> };
 let micSetup: { hidden: boolean; onclick?: () => Promise<void> };
 let createTab: ReturnType<typeof vi.fn>;
@@ -27,8 +18,8 @@ beforeEach(async () => {
   button = { disabled: false, textContent: 'Start recording' };
   micSetup = { hidden: false };
   createTab = vi.fn(async () => ({}));
-  const clear = { disabled: true };
-  const list = { replaceChildren: vi.fn() };
+  clear = { disabled: true };
+  list = { replaceChildren: vi.fn() };
   fields = Object.fromEntries(
     ['#status', '#mic-permission', '#input-levels', '#pcm', '#recognition'].map(id => [
       id,
@@ -36,6 +27,7 @@ beforeEach(async () => {
     ])
   );
   vi.stubGlobal('document', {
+    createElement: () => ({ textContent: '' }),
     querySelector: (selector: string) =>
       selector in fields
         ? fields[selector]
@@ -67,6 +59,22 @@ beforeEach(async () => {
   await vi.waitFor(() => {
     if (!button.onclick || button.disabled) throw new Error('Panel is not ready');
   });
+});
+
+test('clearing the saved transcript switches the panel to a fresh live session', async () => {
+  const message = {
+    type: 'TRANSCRIPT_SEGMENT',
+    segment: { id: '1', sourceId: 'tab', text: 'Before clear.' },
+  };
+  receive(message);
+  expect(clear.disabled).toBe(false);
+  await clear.onclick!();
+  expect(sendMessage).toHaveBeenCalledWith({ type: 'CLEAR_TRANSCRIPT' });
+  expect(list.replaceChildren.mock.lastCall).toEqual([]);
+  expect(clear.disabled).toBe(true);
+  receive({ ...message, segment: { ...message.segment, text: 'After clear.' } });
+  receive({ type: 'TRANSCRIPT_STOP' });
+  expect(list.replaceChildren.mock.lastCall).toEqual([{ textContent: 'After clear.' }]);
 });
 
 test('a duplicate Start restores the running state so Stop remains available', async () => {

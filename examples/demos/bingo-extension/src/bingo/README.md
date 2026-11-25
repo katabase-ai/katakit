@@ -4,22 +4,20 @@ This module implements the browser and extension examples’ conversation bingo
 card. Each application imports its own `./bingo` source directory. It is not
 published as a standalone package.
 
-Import it from `./bingo` in either application. Register `makeBingoPlugin().configure({})`
-with `makeKatakit`, then use `getMethods(Bingo).setTurns(turns)` to supply the complete
-current turn list (`{ id, text }[]`). Alternatively, pass a `TranscriptIngestionPlugin` to
-`makeBingoPlugin({ TranscriptIngestionPlugin })` when both are registered in one runtime.
-The bingo plugin then reacts to finalized segments, completed turns, and resets
-through a runtime effect, including when no UI is mounted. It includes the current
-turn, whose words are finalized, but not provisional text. Replacing the list
-recomputes matches; duplicates and removed turns cannot leave stale matches.
+One Katakit runtime is one round. Its first event, `gameStarted({ cards })`, records
+one 25-square layout in row-major order, including its free center. A live final
+utterance can produce `squareSpoken({ index })` for each newly heard phrase.
+A click records `squareManuallyChanged({ index, marked })`. A manual mark wins
+over speech, including when someone later says a phrase the player unmarked.
+Wins and counts are calculated; they are not additional events.
 
-`state$` exposes the 25 squares, manual `overrides`, matched `evidence`, `marked`
-flags, and `winningLines`. The center is always free. `setOverride(index, value)`
-sets or clears a manual correction; `setSquares(makeSquares(phrases))` replaces a
-card of 24 phrases. `restoreBoard({ squares, overrides })` restores host-owned
-board state. The plugin holds no audio, UI, storage, network access, or timers;
-the host persists board settings if desired. Runtime effects currently have no
-whole-runtime disposal hook; unmounting React does not stop the bingo effect.
+Register `BingoPlugin.configure({})` with `makeKatakit` and call
+`getMethods(BingoPlugin).startGame(squares)` on the empty running kit. To replay,
+pass the recorded events as `existingEvents` and read
+`kit.getObservables(BingoPlugin).state$.get()` **without** starting the kit or
+matching text again. With no opening event this returns `undefined`.
+`createBingoSession()` owns the active runtime for the demo. Its `restart(squares)`
+switches to a new log and transcript without stopping the host's microphone.
 
 `bingoPacks` provides meeting phrases, animals, US states, world capitals,
 tricky-to-pronounce words, corporate jargon, and AI technical jargon. Each
@@ -54,5 +52,4 @@ replaces Malabo for Equatorial Guinea. Jakarta remains Indonesia's capital
 The chosen English spellings are for card play; uncommon names and alternate
 transliterations may not be recognized by Moonshine. Hosts allow manual corrections.
 
-When an application releases a card, call its `close()` method to complete the state stream.
-The application owns any transcript bridge subscriptions and must unsubscribe those separately.
+When the host finishes draining input, call the session's `flush()` and `close()`.

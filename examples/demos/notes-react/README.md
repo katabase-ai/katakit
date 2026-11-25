@@ -112,14 +112,14 @@ client build output. It sets local dev/preview headers; your production server o
 
 ## Behavior and verification
 
-`createNotesDemo({ initialEvents })` registers `@katakit/event-log` with `NotesEventSchema`.
+`createNotesDemo({ initialEvents })` restores the notes runtime's built-in event log.
 Finalized transcript turns append `transcriptTurn` events. Each validated model result appends a
 `notesUpdated` event containing the complete accepted outline, stable IDs, and processed-turn cursor.
 Clear appends `notesCleared` with the current cursor. The notes plugin derives content from these
 events. Admission, retries, cancellation, and errors remain transient.
 
-Read `runtime.events$.getAll()` to capture the event history. Validate serialized history with
-`NotesEventSchema` before supplying it as `initialEvents`. Replay restores the outline and original
+Read `runtime.events$.getAll()` to capture the event history, including each record's `meta`.
+The demo validates payloads and metadata and restores timestamps from JSON when loading `initialEvents`. Replay restores the outline and original
 transcript without generating IDs or calling a model. An explicit connection can process turns
 remaining after the recorded cursor. The example keeps its history in memory for one visit.
 

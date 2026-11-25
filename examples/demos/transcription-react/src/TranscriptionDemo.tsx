@@ -63,7 +63,7 @@ export const TranscriptionDemo = ({
         ) : (
           <div className="turn-list" aria-live="polite" aria-relevant="additions text">
             {turns.map((turn, index) => (
-              <article className="turn" key={turn.id}>
+              <article className="turn" key={'id' in turn ? String(turn.id) : 'pending'}>
                 <span className="turn-index">{String(index + 1).padStart(2, '0')}</span>
                 <div>
                   <p>{turn.text}</p>
