@@ -3,10 +3,11 @@ import { createPortal } from 'react-dom';
 import { useCapture } from './dev-tools/capture';
 import stylesheet, { fontStylesheet } from 'virtual:katakit-stylesheet';
 import { ToolButton } from './dev-tools/ui';
-import { Timeline } from './dev-tools/timeline';
+import { Timeline } from './timeline';
 import { Inspector } from './dev-tools/inspector';
 import { ResizablePanel } from './dev-tools/resizable-panel';
 import type { Delivery } from './dev-tools/deliveries';
+import { useMemo } from 'react';
 
 /**
  * Displays deliveries from observable collections first accessed after the panel mounts.
@@ -22,14 +23,25 @@ export const KatakitDevTools = () => {
   const [size, setSize] = useState({ width: 900, height: 530 });
   const [preview, setPreview] = useState<Delivery>();
   const [pinned, setPinned] = useState<Delivery>();
-  const [hidden, setHidden] = useState(new Set<string>());
-  const toggleLane = (name: string) =>
-    setHidden(previous => {
-      const next = new Set(previous);
-      if (next.has(name)) next.delete(name);
-      else next.add(name);
-      return next;
-    });
+  const lanes = useMemo(
+    () =>
+      [...new Set(events.map(event => event.lane))].map(id => ({
+        id,
+        label: id,
+      })),
+    [events]
+  );
+  const timelineEvents = useMemo(
+    () =>
+      events.map(event => ({
+        id: `${event.lane}:${event.messageNumber}`,
+        laneId: event.lane,
+        time: event.time,
+      })),
+    [events]
+  );
+  const deliveryById = (id: string) =>
+    events.find(event => `${event.lane}:${event.messageNumber}` === id);
   return (
     <div ref={host} data-katakit-devtools="">
       {root &&
@@ -78,13 +90,13 @@ export const KatakitDevTools = () => {
                     </div>
                   </header>
                   <Timeline
-                    events={events}
-                    selected={pinned ?? preview}
-                    pinned={pinned}
-                    hidden={hidden}
-                    toggleLane={toggleLane}
-                    onPreview={setPreview}
-                    onPin={setPinned}
+                    lanes={lanes}
+                    events={timelineEvents}
+                    playheadTime={(pinned ?? preview)?.time}
+                    selectedId={pinned ? `${pinned.lane}:${pinned.messageNumber}` : undefined}
+                    onPreview={id => setPreview(deliveryById(id))}
+                    onSelect={id => setPinned(deliveryById(id))}
+                    emptyLabel="Waiting for the first observable delivery…"
                   />
                   <Inspector
                     event={pinned ?? preview}

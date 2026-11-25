@@ -1,0 +1,170 @@
+.katakit-timeline {
+  color: #f4f4f5;
+  background: #131417;
+  font:
+    13px/1.4 system-ui,
+    sans-serif;
+  min-width: 0;
+}
+.katakit-timeline *,
+.katakit-timeline *::before,
+.katakit-timeline *::after {
+  box-sizing: border-box;
+}
+.katakit-timeline-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 6px 12px;
+  border-bottom: 1px solid #27272a;
+  background: #18181b;
+}
+.katakit-timeline-toolbar > div {
+  display: flex;
+  gap: 4px;
+}
+.katakit-timeline-toolbar button {
+  color: #d4d4d8;
+  background: transparent;
+  border: 0;
+  border-radius: 5px;
+  padding: 5px 9px;
+  font: inherit;
+  cursor: pointer;
+}
+.katakit-timeline-toolbar button:hover,
+.katakit-timeline-toolbar button[aria-pressed='true'] {
+  background: #27272a;
+  color: #5eead4;
+}
+.katakit-timeline-toolbar button:focus-visible,
+.katakit-timeline-picker input:focus-visible,
+.katakit-timeline-marker:focus-visible {
+  outline: 2px solid #5eead4;
+  outline-offset: 2px;
+}
+.katakit-timeline-picker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #202125;
+  border-bottom: 1px solid #27272a;
+}
+.katakit-timeline-picker > input {
+  color: inherit;
+  background: #18181b;
+  border: 1px solid #52525b;
+  border-radius: 4px;
+  padding: 5px 8px;
+  font: inherit;
+}
+.katakit-timeline-picker label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+.katakit-timeline-picker label input {
+  accent-color: #5eead4;
+}
+.katakit-timeline-viewport {
+  position: relative;
+  min-height: 64px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.katakit-timeline-ruler,
+.katakit-timeline-row {
+  display: flex;
+  width: max-content;
+  align-items: stretch;
+}
+.katakit-timeline-ruler {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #1d1e22;
+}
+.katakit-timeline-heading {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  display: flex;
+  flex: 0 0 208px;
+  width: 208px;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  background: #202125;
+  border-right: 1px solid #27272a;
+  border-bottom: 1px solid #27272a;
+  overflow: hidden;
+}
+.katakit-timeline-heading span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.katakit-timeline-ruler .katakit-timeline-heading {
+  z-index: 3;
+  color: #a1a1aa;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.katakit-timeline-lane {
+  background: #1b1c20;
+  font:
+    12px/1.2 ui-monospace,
+    monospace;
+}
+.katakit-timeline-plot {
+  display: block;
+  flex: none;
+  border-bottom: 1px solid #27272a;
+}
+.katakit-timeline-grid {
+  stroke: #27272a;
+}
+.katakit-timeline-tick {
+  fill: #a1a1aa;
+  font:
+    10px ui-monospace,
+    monospace;
+}
+.katakit-timeline-playhead {
+  stroke: #5eead4;
+  opacity: 0.55;
+}
+.katakit-timeline-marker {
+  cursor: pointer;
+  outline: none;
+}
+.katakit-timeline-marker[aria-pressed='true'] {
+  stroke: white;
+  stroke-width: 2px;
+}
+.katakit-timeline-count {
+  pointer-events: none;
+  fill: #09090b;
+  font:
+    bold 9px ui-monospace,
+    monospace;
+}
+.katakit-timeline-empty {
+  padding: 24px;
+  text-align: center;
+  color: #a1a1aa;
+  font-size: 12px;
+}
+@media (max-width: 640px) {
+  .katakit-timeline-heading {
+    flex-basis: 132px;
+    width: 132px;
+  }
+}

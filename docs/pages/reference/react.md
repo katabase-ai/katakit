@@ -3,6 +3,39 @@
 `@katakit/react` provides a browser timeline for inspecting observable deliveries.
 Applications render their own runtime state with [React-RxJS bindings](#react-rxjs-bindings).
 
+## Data-driven timeline
+
+`Timeline` renders any caller-supplied lanes and events. It does not capture observables,
+require a Katakit runtime, or manage a clock. Import the package's compiled CSS explicitly:
+
+```tsx
+import { Timeline, type TimelineEvent, type TimelineLane } from '@katakit/react';
+import '@katakit/react/timeline.css';
+
+const lanes: TimelineLane[] = [{ id: 'jobs', label: 'Jobs', color: '#5eead4' }];
+const events: TimelineEvent[] = [{ id: 'job-1', laneId: 'jobs', time: 1_000 }];
+
+<Timeline
+  lanes={lanes}
+  events={events}
+  playheadTime={1_500}
+  selectedId={selectedId}
+  onSelect={setSelectedId}
+/>;
+```
+
+Provide unique, stable string IDs for lanes and events. Event `time` and `playheadTime`
+are absolute millisecond values on the same clock (for example `Date.now()` or a
+recording's relative milliseconds). The ruler starts at the earliest event and labels
+elapsed time. Events may arrive out of order; the component sorts them within each lane
+without changing the input. An event whose `laneId` is absent from `lanes` is not drawn.
+The optional `onPreview(id)` fires on marker hover or focus. `onSelect(id)` fires on
+click or Enter/Space; nearby clustered markers cycle through their IDs using
+`selectedId`. The caller owns selection and playhead updates. Lanes can be filtered,
+and Follow, Fit, zoom, wheel pan, and drag pan operate locally on the viewport.
+The component attaches a ResizeObserver and wheel listener while mounted and removes
+both on unmount. Its CSS is scoped to `.katakit-timeline` and needs no UnoCSS setup.
+
 ## Observable timeline
 
 Gate the component with your bundler’s development flag (shown here for Vite):

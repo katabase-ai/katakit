@@ -62,7 +62,7 @@ pages remain in `pages` for existing links and public-export coverage, without s
 Navigation placement does not change page slugs or relative content links.
 `packages` records each public
 entry point and its exported symbol names. `assets` lists exported documentation files. `nonCodeExports` records package metadata
-exports that do not expose TypeScript declarations; these are not invented API pages. The
+and CSS exports that do not expose TypeScript declarations; these are not invented API pages. The
 transcript-ingestion package is documented separately from the speech transcription utilities.
 
 The manifest records the actual Git revision, dirty state, exact extraction tool versions, and
