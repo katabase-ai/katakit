@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
-import { cleanup, render, screen } from '@testing-library/react';
-import { afterEach, expect, test } from 'vitest';
+import { act, cleanup, render, screen } from '@testing-library/react';
+import { afterEach, expect, test, vi } from 'vitest';
 import { Gallery } from './Gallery';
 import { GallerySpeechProvider } from './GallerySpeechProvider';
 import { galleryDemos } from './galleryDemos';
@@ -34,6 +34,7 @@ test.each(galleryDemos)(
             : 'On-device',
       })
     ).toBeDefined();
+    await act(() => vi.dynamicImportSettled());
     await screen.findByRole('button', {
       name:
         demo.id === 'color-clash'

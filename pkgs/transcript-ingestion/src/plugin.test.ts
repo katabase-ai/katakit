@@ -55,6 +55,20 @@ test('keeps interim input transient and clears it on an utterance or completed t
   input.close();
 });
 
+test('draining and the silence timer cannot complete the same pending turn twice', () => {
+  const { start, state, history } = create();
+  const input = start();
+  input.ingestUtterance(first);
+  input.flush();
+  input.flush();
+  vi.advanceTimersByTime(2000);
+  expect(history.getAll().map(event => event.type)).toEqual([
+    'utteranceAdded',
+    'conversationTurnAdded',
+  ]);
+  expect(state.pendingConversationTurn$.get()).toBeNull();
+});
+
 test('reconstructs finalized and pending turns before start without rearming the live detector', () => {
   const live = create();
   const input = live.start();

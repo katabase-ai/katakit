@@ -61,33 +61,30 @@ in italics and is not used for bingo.
 Choose a word list. Built-in packs draw a mix of familiar, less familiar, and
 wildcard entries; choose **Shuffle** for another draw. Rare names and tricky words
 may be misheard by the recognizer; click a square to correct it. Switching lists
-or shuffling rechecks the current transcript and clears manual corrections. You
+or shuffling starts a fresh round with an empty transcript and no manual corrections. You
 can do either without stopping transcription.
 
 ## Modifying and hosting
 
 ### Replay and lifecycle
 
-`createBrowserBingoDemo()` uses one runtime's built-in core `EventLogPlugin`, containing
-finalized transcript segments/turns/resets and board/override commands.
-`runtime.getHistory()` returns a copied history; construct
-`createBrowserBingoDemo({ initialEvents: history })` to validate and replay it.
-The default app still resets on reload: this API adds no automatic persistence.
-The host validates live payloads and restored history because core's log does not.
-Core sequence/timestamp metadata survives replay (including JSON date strings).
-Old metadata-free snapshots receive deterministic sequence numbers and epoch
-timestamps; recorded transcript IDs and audio timing are unchanged. Restored
-sequence numbers must match their positions so continuation cannot reuse them.
+`createBingoSession()` owns one runtime per deal. Its built-in core `EventLogPlugin`
+records the actual opening card, manual corrections, accepted spoken-square matches,
+and finalized transcript input. `session.history.getAll()` exposes that round's log.
+Pass its events to `makeKatakit({ existingEvents, plugins: [BingoPlugin.configure({})] })`
+and read Bingo's `state$` without starting the runtime to reconstruct the board.
+Replay consumes recorded square indices rather than matching text again, and starts
+no microphones, models, timers or log writes. Provisional text stays transient.
+This demo adds no persistence or legacy history import API; reload starts a new game.
 
-Board draws record their actual squares. Evidence, marks and wins are projected
-from those squares and the finalized transcript, including the unfinished turn.
-Changing the board immediately rematches existing text. Replay preserves source,
-segment and turn IDs and does not start microphones, models, timers or new log
-writes. Provisional text and preview expiry are live display state only.
+Finalized input marks matching squares immediately, including phrases spanning segments.
+Source IDs, segment IDs, speakers and optional audio timestamps pass through unchanged.
+`restart(squares)` creates a fresh log and transcript, closes the old ingestion, and
+switches the views. Previous speech never marks the new deal.
 
-The microphone/gallery host stops and drains its input before `runtime.close()`.
-Ingestion owns live turn-silence timers; Bingo detaches its content subscriptions
-on close. Closing a restored, untouched history does not create a new turn.
+The microphone/gallery host stops and drains its input before `session.close()`.
+Ingestion closes by finalizing live pending input once and cancelling its silence timer.
+The session detaches the old round's views; subsequent input is ignored after close.
 
 Manual browser verification: start microphone recognition, say a board phrase,
 confirm it marks before the turn silence timeout, switch/shuffle the board while

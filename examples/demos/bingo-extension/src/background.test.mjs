@@ -3,6 +3,28 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 afterEach(() => vi.unstubAllGlobals());
 
 describe('extension capture coordinator', () => {
+  it('clears retained speech at the deal boundary without dropping later segments', async () => {
+    let listener;
+    let segments = [];
+    vi.stubGlobal('chrome', {
+      runtime: { onMessage: { addListener: fn => (listener = fn) } },
+      storage: {
+        session: {
+          get: async () => ({ segments }),
+          set: async data => {
+            segments = data.segments;
+          },
+        },
+      },
+    });
+    vi.resetModules();
+    await import('../public/background.js');
+    listener({ type: 'TRANSCRIPT_SEGMENT', segment: 'old' });
+    listener({ type: 'BINGO_NEW_ROUND' });
+    listener({ type: 'TRANSCRIPT_SEGMENT', segment: 'new' });
+    await vi.waitFor(() => expect(segments).toEqual(['new']));
+  });
+
   it.each([false, true])(
     'recovers an errored document (initial cleanup fails: %s) and resets the transcript',
     async cleanupFails => {

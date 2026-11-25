@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import type { TranscriptEvent } from '@katakit/transcript-ingestion';
+import type { PreviewEvent } from './createTranscriptPreview';
 import type { Observable } from 'rxjs';
 import { createTranscriptPreview, type TranscriptPreviewLine } from './createTranscriptPreview';
 
@@ -12,7 +12,7 @@ export const TranscriptPreview = ({
   events$,
   children,
 }: {
-  events$: Observable<TranscriptEvent>;
+  events$: Observable<PreviewEvent>;
   /** A short note about the transcript, shown beneath its lines. */
   children?: ReactNode;
 }) => {

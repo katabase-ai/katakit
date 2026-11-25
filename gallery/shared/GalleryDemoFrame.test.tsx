@@ -204,6 +204,7 @@ test('the same frame reserves outgoing height when navigating between a demo and
   const frame = f.frame();
   view.rerender(page(false));
   expect(f.frame()).toBe(frame);
+  await act(() => vi.dynamicImportSettled());
   await vi.waitFor(() => expect(f.frame().getAttribute('data-loading')).toBe('false'));
   view.rerender(page(true, Lazy));
   expect(f.frame()).toBe(frame);

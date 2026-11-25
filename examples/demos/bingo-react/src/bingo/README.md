@@ -4,44 +4,20 @@ This module implements the browser and extension examples’ conversation bingo
 card. Each application imports its own `./bingo` source directory. It is not
 published as a standalone package.
 
-Import it from `./bingo` in either application. Register `makeBingoPlugin().configure({})`
-with `makeKatakit`, then use `getMethods(Bingo).setTurns(turns)` to supply the complete
-current turn list (`{ id, text }[]`). Alternatively, pass a `TranscriptIngestionPlugin` to
-`makeBingoPlugin({ TranscriptIngestionPlugin })` when both are registered in one runtime.
-The bingo plugin synchronously projects the ingestion plugin's atomic transcript
-state, including when no UI is mounted. It includes the current turn, whose words
-are finalized, but not provisional text. In this mode ingestion owns input and
-`setTurns` is unavailable. In standalone mode `setTurns` records a replacement;
-identical replacements are ignored and `setTurns([])` clears transcript evidence.
+One Katakit runtime is one round. Its first event, `gameStarted({ cards })`, records
+one 25-square layout in row-major order, including its free center. A live final
+utterance can produce `squareSpoken({ index })` for each newly heard phrase.
+A click records `squareManuallyChanged({ index, marked })`. A manual mark wins
+over speech, including when someone later says a phrase the player unmarked.
+Wins and counts are calculated; they are not additional events.
 
-`state$` exposes the 25 squares, manual `overrides`, matched `evidence`, `marked`
-flags, and `winningLines`. The center is always free. `setOverride(index, value)`
-sets or clears a manual correction; `setSquares(makeSquares(phrases))` replaces a
-card of 24 phrases. Each command appends to core's built-in `EventLogPlugin`; deterministic
-projections derive the board, evidence, marks and wins. `restoreBoard({ squares,
-overrides })` migrates a legacy persisted board by appending one validated
-`board-set` event. It never restores transcript content.
-
-By default the plugin uses its owning runtime's built-in log, recording
-`{ type: 'bingo', event: BingoEvent }`. It never creates a separate runtime or log.
-Restore host-validated core records with `makeKatakit({ existingEvents, plugins })`;
-the host validates metadata and Bingo payloads with `parseBingoEvent`. Core adds
-sequence/timestamp metadata to live writes but does not validate schemas, so
-Bingo validates every command before appending. The plugin's `events$` exposes
-Bingo payloads only; capture core `EventLogPlugin.events$` for full metadata.
-
-For a caller-owned log pass `eventLog: { events$, emitEvent }` to the factory.
-Validate restored payloads with `parseBingoEvent` (or `bingoEventSchema`), and
-provide a replaying synchronous stream. Filter a host union down to `BingoEvent`
-before binding it. Plugin configuration is `configure({})`; history belongs to
-the host runtime, not a second plugin-local source.
-
-The log records actual shuffled squares, explicit override additions/removals,
-and standalone transcript replacements. Replay never shuffles, generates IDs,
-appends events, or opens resources. Hosts that persist only board preferences
-can retain `board-set`/`override-set` events separately from session transcript
-history. The browser demo uses one host log for both kinds of content; the
-extension owns its board persistence policy.
+Register `BingoPlugin.configure({})` with `makeKatakit` and call
+`getMethods(BingoPlugin).startGame(squares)` on the empty running kit. To replay,
+pass the recorded events as `existingEvents` and read
+`kit.getObservables(BingoPlugin).state$.get()` **without** starting the kit or
+matching text again. With no opening event this returns `undefined`.
+`createBingoSession()` owns the active runtime for the demo. Its `restart(squares)`
+switches to a new log and transcript without stopping the host's microphone.
 
 `bingoPacks` provides meeting phrases, animals, US states, world capitals,
 tricky-to-pronounce words, corporate jargon, and AI technical jargon. Each
@@ -76,7 +52,4 @@ replaces Malabo for Equatorial Guinea. Jakarta remains Indonesia's capital
 The chosen English spellings are for card play; uncommon names and alternate
 transliterations may not be recognized by Moonshine. Hosts allow manual corrections.
 
-When an application releases a card, call its idempotent `close()` method to
-complete projections and detach log/transcript subscriptions. Late commands are
-ignored. The host separately stops/drains audio and closes transcript ingestion,
-which owns its live silence timer. Bingo owns no timers, network or storage.
+When the host finishes draining input, call the session's `flush()` and `close()`.
