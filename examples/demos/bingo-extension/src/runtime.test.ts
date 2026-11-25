@@ -14,6 +14,27 @@ const first = {
 const second = { id: 'next', sourceId: 'meeting-1', text: 'Circle back', startMs: 200, endMs: 300 };
 
 describe('extension event-sourced runtime', () => {
+  it('imports legacy metadata deterministically and preserves full core metadata on continuation', () => {
+    const legacy = createPanelRuntime([first]);
+    expect(legacy.events$.getAll()[0]?.meta).toEqual({ seq: 0, timestamp: new Date(0) });
+    const history = legacy.events$.getAll();
+    const replay = createPanelRuntime([], undefined, history);
+    expect(replay.events$.getAll()).toEqual(history);
+    replay.methods.ingestSegment(second);
+    expect(replay.events$.getAll()[1]?.meta.seq).toBe(1);
+    expect(replay.transcript.segments$.get()).toEqual([first, second]);
+    legacy.close();
+    replay.close();
+    expect(() =>
+      createPanelRuntime([], undefined, [
+        { ...history[0], meta: { seq: 2, timestamp: new Date(0) } },
+      ])
+    ).toThrow('Invalid restored transcript metadata');
+    expect(() =>
+      createPanelRuntime([], undefined, [{ ...history[0], meta: { seq: 0, timestamp: 'invalid' } }])
+    ).toThrow('Invalid restored transcript metadata');
+  });
+
   it('replays full event history exactly, including explicit silence boundaries and IDs', () => {
     const live = createPanelRuntime();
     live.methods.ingestSegment(first);

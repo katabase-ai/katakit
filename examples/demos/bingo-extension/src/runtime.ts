@@ -1,5 +1,4 @@
-import { makeKatakit } from '@katakit/core';
-import { makeEventLogPlugin } from '@katakit/event-log';
+import { EventLogPlugin, makeKatakit, type KatakitEvent } from '@katakit/core';
 import { makeTranscriptIngestionPlugin, type TranscriptEvent } from '@katakit/transcript-ingestion';
 import { makeBingoPlugin, type BingoBoard } from './bingo';
 import { isSegment, restoreSegments } from './history';
@@ -28,30 +27,43 @@ export const createPanelRuntime = (
           if (!isRecordedEvent(event)) throw new Error('Invalid restored transcript record');
           return event;
         });
-  const log = makeEventLogPlugin<RecordedEvent>({
-    validateEvent: {
-      '~standard': {
-        version: 1,
-        vendor: 'bingo-extension',
-        validate: value =>
-          isRecordedEvent(value)
-            ? { value }
-            : { issues: [{ message: 'Invalid transcript record' }] },
+  const existingEvents = initialEvents.map((event, seq): KatakitEvent<RecordedEvent> => {
+    const meta = (event as { meta?: unknown }).meta;
+    if (meta === undefined) {
+      // Legacy segment snapshots have no log metadata. Epoch metadata is purely
+      // an import marker; source IDs and audio timestamps remain untouched.
+      return { ...event, meta: { seq, timestamp: new Date(0) } };
+    }
+    if (
+      !meta ||
+      typeof meta !== 'object' ||
+      !('seq' in meta) ||
+      meta.seq !== seq ||
+      !('timestamp' in meta) ||
+      !(meta.timestamp instanceof Date) ||
+      !Number.isFinite(meta.timestamp.getTime())
+    )
+      throw new Error('Invalid restored transcript metadata');
+    return { ...event, meta: { seq, timestamp: meta.timestamp } };
+  });
+  const logKit = makeKatakit({ plugins: [], existingEvents });
+  const logRunning = logKit.start();
+  const { events$ } = logKit.getObservables(EventLogPlugin);
+  const { emitEvent } = logRunning.getMethods(EventLogPlugin);
+  const transcript = makeTranscriptIngestionPlugin<KatakitEvent, RecordedEvent>({
+    eventLog: {
+      events$,
+      emitEvent: event => {
+        // Core's emitter deliberately accepts any event; validation belongs to this host.
+        if (!isRecordedEvent(event)) throw new Error('Invalid transcript record');
+        emitEvent(event);
+      },
+      toEvent: event => event,
+      fromEvent: event => {
+        if (!isRecordedEvent(event)) throw new Error('Invalid transcript record');
+        return event;
       },
     },
-  });
-  const logKit = makeKatakit({
-    plugins: [
-      log.configure({
-        initialEvents,
-      }),
-    ],
-  });
-  const logRunning = logKit.start();
-  const { events$ } = logKit.getObservables(log);
-  const { emitEvent } = logRunning.getMethods(log);
-  const transcript = makeTranscriptIngestionPlugin<RecordedEvent>({
-    eventLog: { events$, emitEvent, toEvent: event => event, fromEvent: event => event },
   });
   const bingo = makeBingoPlugin({ TranscriptIngestionPlugin: transcript });
   const kit = makeKatakit({ plugins: [transcript.configure({}), bingo.configure({})] });

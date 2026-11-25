@@ -58,12 +58,17 @@ may require manual correction. No account or external bingo API is required.
 
 ## Replay and storage lifetimes
 
-Each panel mount creates an in-memory `@katakit/event-log` transcript log in
+Each panel mount creates an in-memory core `EventLogPlugin` transcript log in
 `src/runtime.ts`. Finalized segments, completed turns, and resets are recorded events;
 the ingestion plugin derives its transcript from those records. The canonical Bingo
 plugin records board commands and combines its board projection with the transcript
 projection to compute evidence and wins. Replay does not start recognition, capture,
 silence timers, or replacement IDs.
+
+The host validates both restored records and live writes before core admission.
+Metadata-free legacy records receive deterministic sequence numbers and epoch log
+timestamps; source IDs and audio timestamps are unchanged. Full recorded histories
+retain their original log metadata and must have contiguous sequence numbers.
 
 The existing storage boundaries remain separate:
 
