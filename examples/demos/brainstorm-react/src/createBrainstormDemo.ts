@@ -15,7 +15,9 @@ import {
   type BrainstormJudgment,
 } from './brainstormModel';
 
-const NoteSchema = v.object({ id: v.string(), text: v.string(), evidence: v.string() });
+const TextSchema = v.pipe(v.string(), v.minLength(1), v.regex(/\S/));
+const TimeSchema = v.pipe(v.number(), v.finite(), v.minValue(0));
+const NoteSchema = v.object({ id: TextSchema, text: TextSchema, evidence: TextSchema });
 const JudgmentSchema = v.object({
   text: v.string(),
   evidence: v.string(),
@@ -24,22 +26,25 @@ const JudgmentSchema = v.object({
 const EventSchema = v.variant('type', [
   v.object({
     type: v.literal('configured'),
-    challengeId: v.string(),
-    seconds: v.nullable(v.number()),
+    challengeId: v.pipe(
+      TextSchema,
+      v.check(id => !!findChallenge(id))
+    ),
+    seconds: v.nullable(v.pipe(TimeSchema, v.minValue(Number.MIN_VALUE))),
   }),
-  v.object({ type: v.literal('started'), roundId: v.string(), deadline: v.nullable(v.number()) }),
-  v.object({ type: v.literal('heard'), id: v.string(), text: v.string() }),
+  v.object({ type: v.literal('started'), roundId: TextSchema, deadline: v.nullable(TimeSchema) }),
+  v.object({ type: v.literal('heard'), id: TextSchema, text: TextSchema }),
   v.object({
     type: v.literal('judged'),
     notes: v.array(NoteSchema),
     judgments: v.array(JudgmentSchema),
-    cursor: v.number(),
+    cursor: v.pipe(v.number(), v.integer(), v.minValue(1)),
   }),
-  v.object({ type: v.literal('removed'), id: v.string() }),
-  v.object({ type: v.literal('finishing'), at: v.number() }),
+  v.object({ type: v.literal('removed'), id: TextSchema }),
+  v.object({ type: v.literal('finishing'), at: TimeSchema }),
   v.object({ type: v.literal('finished') }),
 ]);
-type GameEvent = v.InferOutput<typeof EventSchema>;
+export type BrainstormEvent = v.InferOutput<typeof EventSchema>;
 export type BrainstormNote = v.InferOutput<typeof NoteSchema>;
 type Content = {
   roundId: string;
@@ -69,7 +74,7 @@ const initial = (): Content => ({
 });
 
 /** Board content is derived only from accepted events; clocks and requests are transient. */
-const reduce = (state: Content, event: GameEvent): Content => {
+const reduce = (state: Content, event: BrainstormEvent): Content => {
   switch (event.type) {
     case 'configured':
       return { ...initial(), challengeId: event.challengeId, seconds: event.seconds };
@@ -108,7 +113,80 @@ const reduce = (state: Content, event: GameEvent): Content => {
   }
 };
 
+/** Validate the entire imported history before constructing a runtime or starting any work. */
+const restore = (input: unknown): BrainstormEvent[] => {
+  const events = v.parse(v.array(EventSchema), input);
+  let state = initial();
+  const segments = new Set<string>();
+  const ids = new Set<string>();
+  for (const [index, event] of events.entries()) {
+    let valid = true;
+    switch (event.type) {
+      case 'configured':
+        // Also the explicit clear command; it may interrupt any phase.
+        break;
+      case 'started':
+        valid =
+          !['running', 'finishing'].includes(state.phase) &&
+          !ids.has(event.roundId) &&
+          (event.deadline === null) === (state.seconds === null);
+        ids.add(event.roundId);
+        break;
+      case 'heard':
+        valid = ['running', 'finishing'].includes(state.phase) && !segments.has(event.id);
+        segments.add(event.id);
+        break;
+      case 'judged': {
+        valid =
+          state.phase !== 'idle' &&
+          event.cursor > state.cursor &&
+          event.cursor <= state.segments.length;
+        const text = state.segments
+          .slice(state.cursor, event.cursor)
+          .map(segment => segment.text)
+          .join('\n');
+        const keys = new Set(
+          [...state.notes.map(note => note.text), ...state.removed].map(answerKey)
+        );
+        valid &&= event.judgments.every(
+          judgment =>
+            !!judgment.text.trim() && !!judgment.evidence.trim() && text.includes(judgment.evidence)
+        );
+        for (const note of event.notes) {
+          const key = answerKey(note.text);
+          valid &&=
+            !ids.has(note.id) &&
+            !!key &&
+            !keys.has(key) &&
+            event.judgments.some(
+              judgment =>
+                judgment.text === note.text &&
+                judgment.evidence === note.evidence &&
+                judgment.probability >= qualificationThreshold
+            );
+          ids.add(note.id);
+          keys.add(key);
+        }
+        break;
+      }
+      case 'removed':
+        valid = state.notes.some(note => note.id === event.id);
+        break;
+      case 'finishing':
+        valid = state.phase === 'running';
+        break;
+      case 'finished':
+        valid = state.phase === 'finishing';
+        break;
+    }
+    if (!valid) throw new Error(`Invalid brainstorm history at event ${index} (${event.type})`);
+    state = reduce(state, event);
+  }
+  return events;
+};
+
 export type BrainstormSnapshot = Content & {
+  interrupted: boolean;
   remaining: number | null;
   provisional: string;
   busy: boolean;
@@ -118,9 +196,10 @@ export type BrainstormSnapshot = Content & {
 };
 
 /** One visit owns its event log, single-flight judging queue, and round clock. */
-export const createBrainstormDemo = () => {
+export const createBrainstormDemo = ({ initialEvents = [] }: { initialEvents?: unknown } = {}) => {
+  const history = restore(initialEvents);
   const log = makeEventLogPlugin({ validateEvent: EventSchema });
-  const kit = makeKatakit({ plugins: [log.configure({ initialEvents: [] })] }).start();
+  const kit = makeKatakit({ plugins: [log.configure({ initialEvents: history })] }).start();
   const { emitEvent } = kit.getMethods(log);
   const { events$ } = kit.getObservables(log);
   let content = initial();
@@ -132,6 +211,7 @@ export const createBrainstormDemo = () => {
   let generation = 0;
   const seen = new Set<string>();
   let transient = {
+    interrupted: false,
     provisional: '',
     busy: false,
     connected: false,
@@ -151,8 +231,13 @@ export const createBrainstormDemo = () => {
   };
   const subscription = events$.subscribe(event => {
     content = reduce(content, event);
+    if (event.type === 'heard') seen.add(event.id);
     publish();
   });
+  // Replay reconstructs content only. Recovery requires an explicit command, even on connect.
+  transient.interrupted =
+    ['running', 'finishing'].includes(content.phase) || content.cursor < content.segments.length;
+  publish();
   const clearTimer = () => {
     clearInterval(timer);
     timer = undefined;
@@ -170,12 +255,13 @@ export const createBrainstormDemo = () => {
     transient = { ...transient, busy: false, provisional: '', failure };
   };
   const finish = () => {
-    if (closed || content.phase !== 'running') return;
+    if (closed || transient.interrupted || content.phase !== 'running') return;
     clearTimer();
     emitEvent({ type: 'finishing', at: Date.now() });
   };
   const flush = () => {
-    if (closed || !['running', 'finishing'].includes(content.phase)) return;
+    if (closed || transient.interrupted || !['running', 'finishing'].includes(content.phase))
+      return;
     finish();
     accepting = false;
     transient.provisional = '';
@@ -203,6 +289,7 @@ export const createBrainstormDemo = () => {
   const process = async () => {
     if (
       closed ||
+      transient.interrupted ||
       controller ||
       transient.failure ||
       !connection ||
@@ -271,6 +358,22 @@ export const createBrainstormDemo = () => {
   return {
     state$,
     events$,
+    /** Seal restored input, then judge only its pending suffix using an explicitly connected host. */
+    recover: () => {
+      if (closed || !transient.interrupted) return;
+      transient.interrupted = false;
+      flush();
+      publish();
+      void process();
+    },
+    /** Clear projected round content, retaining history and delivery deduplication for this visit. */
+    clear: () => {
+      if (closed) return;
+      cancelWork();
+      transient.interrupted = false;
+      transient.feedback = '';
+      emitEvent({ type: 'configured', challengeId: content.challengeId, seconds: content.seconds });
+    },
     configure: ({
       challengeId = content.challengeId,
       seconds = content.seconds,
@@ -285,6 +388,7 @@ export const createBrainstormDemo = () => {
       )
         return;
       cancelWork();
+      transient.interrupted = false;
       transient.feedback = '';
       emitEvent({ type: 'configured', challengeId, seconds });
     },
@@ -299,6 +403,7 @@ export const createBrainstormDemo = () => {
     begin: () => {
       if (
         closed ||
+        transient.interrupted ||
         ['running', 'finishing'].includes(content.phase) ||
         (content.phase === 'finished' && transient.busy) ||
         !connection ||
@@ -325,7 +430,6 @@ export const createBrainstormDemo = () => {
       if (closed || !accepting || !segment.text.trim()) return;
       const key = `${segment.sourceId}:${segment.id}`;
       if (seen.has(key)) return;
-      seen.add(key);
       transient.provisional = '';
       // Preserve whole utterances, including answers spanning an arbitrary character boundary.
       // An oversized utterance pauses at the wire-size check rather than losing words.
@@ -338,7 +442,7 @@ export const createBrainstormDemo = () => {
       publish();
     },
     remove: (id: string) => {
-      if (!closed) emitEvent({ type: 'removed', id });
+      if (!closed && content.notes.some(note => note.id === id)) emitEvent({ type: 'removed', id });
     },
     retry: () => {
       if (closed || transient.failure?.policy.terminal) return;
@@ -353,7 +457,7 @@ export const createBrainstormDemo = () => {
       transient.connected = false;
       transient.failure = undefined;
       // A changed host/mode must not resume an old connection or leave a stopped clock running.
-      finish();
+      if (!transient.interrupted) finish();
       publish();
     },
     cancelWork,
