@@ -5,6 +5,7 @@ import {
   bingoPacks,
   defaultSquares,
   drawBingoPack,
+  parseBingoEvent,
   type BingoBoard,
   type BingoPackId,
 } from './bingo';
@@ -51,11 +52,16 @@ const BingoView = ({
   });
   const [customSquares] = useState(() => {
     const saved = panel.local.customSquares;
-    return Array.isArray(saved) &&
-      saved.length === 25 &&
-      saved.every(value => typeof value === 'string')
-      ? (saved as string[])
-      : [...board.squares];
+    try {
+      const event = parseBingoEvent({
+        type: 'board-set',
+        board: { squares: saved, overrides: {} },
+      });
+      if (event.type === 'board-set') return event.board.squares;
+    } catch {
+      // Saved custom cards obey the same schema as the active board.
+    }
+    return [...board.squares];
   });
   const [busy, setBusy] = useState(false);
 

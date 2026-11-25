@@ -4,6 +4,17 @@ import { orderHydration, restoreSegments } from './history';
 const segment = (id: string, sourceId = 'session') => ({ id, sourceId, text: id });
 
 describe('extension history admission', () => {
+  it('does not resurrect queued deliveries already evicted from a slow storage snapshot', () => {
+    const history = Array.from({ length: 2002 }, (_, i) => segment(String(i)));
+    const ordered = orderHydration(
+      history.slice(-2000),
+      history.map(value => ({ type: 'TRANSCRIPT_SEGMENT', segment: value }))
+    );
+    expect(ordered.initialSegments).toEqual(history.slice(-2000));
+    expect(ordered.live).toHaveLength(2000);
+    expect(ordered.live[0]).toEqual({ type: 'TRANSCRIPT_SEGMENT', segment: history[2] });
+  });
+
   it('validates stored content, preserves identities, deduplicates before retention', () => {
     const history = Array.from({ length: 2002 }, (_, i) => segment(String(i)));
     expect(

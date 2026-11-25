@@ -43,8 +43,22 @@ export type TranscriptMessage =
 /** A reset received during asynchronous reads invalidates the entire old snapshot. */
 export const orderHydration = (snapshot: unknown, queued: TranscriptMessage[]) => {
   const reset = queued.findLastIndex(message => message.type === 'CAPTURE_RESET');
+  const initialSegments = reset < 0 ? restoreSegments(snapshot) : [];
+  let live = queued.slice(reset + 1);
+  if (initialSegments.length === 2000) {
+    // A slow read may overlap more deliveries than storage retains. Queued entries
+    // before the first retained segment were already evicted, not new live input.
+    const first = initialSegments[0]!;
+    const retainedStart = live.findIndex(
+      message =>
+        message.type === 'TRANSCRIPT_SEGMENT' &&
+        message.segment.sourceId === first.sourceId &&
+        message.segment.id === first.id
+    );
+    if (retainedStart >= 0) live = live.slice(retainedStart);
+  }
   return {
-    initialSegments: reset < 0 ? restoreSegments(snapshot) : [],
-    live: queued.slice(reset + 1),
+    initialSegments,
+    live,
   };
 };
