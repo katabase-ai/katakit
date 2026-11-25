@@ -14,11 +14,18 @@ const files = directory =>
 
 const sourceFiles = new Set(files(canonical));
 const copiedFiles = new Set(files(standalone));
+const contents = (directory, file) => {
+  const bytes = readFileSync(join(directory, file));
+  // Git can check the two text copies out with different working-tree line endings.
+  return /\.(ts|md)$/.test(file)
+    ? Buffer.from(bytes.toString('utf8').replaceAll('\r\n', '\n'))
+    : bytes;
+};
 const differences = [...new Set([...sourceFiles, ...copiedFiles])].filter(
   file =>
     !sourceFiles.has(file) ||
     !copiedFiles.has(file) ||
-    !readFileSync(join(canonical, file)).equals(readFileSync(join(standalone, file)))
+    !contents(canonical, file).equals(contents(standalone, file))
 );
 
 if (differences.length) {

@@ -1,7 +1,8 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
+import { useBingoValue } from './bingo/useBingoValue';
 import { bingoPacks, drawBingoPack, type BingoPackId } from './bingo';
 import { Button, SelectField } from './controls';
-import type { createBrowserBingoDemo } from './createBrowserBingoDemo';
+import type { createBingoSession } from './bingo/createBingoSession';
 import { TranscriptTurns } from './TranscriptTurns';
 import './style.css';
 
@@ -10,23 +11,17 @@ export const BrowserBingoDemo = ({
   controls,
   showIntroduction = true,
 }: {
-  runtime: ReturnType<typeof createBrowserBingoDemo>;
+  runtime: ReturnType<typeof createBingoSession>;
   controls?: ReactNode;
   /** Embedded hosts can supply their own page header. */
   showIntroduction?: boolean;
 }) => {
-  const [snapshot, setSnapshot] = useState(() => runtime.state$.getValue());
+  const board = useBingoValue(runtime.board$);
   const [packId, setPackId] = useState<BingoPackId>('meeting');
-  useEffect(() => {
-    const subscription = runtime.state$.subscribe(setSnapshot);
-    return () => subscription.unsubscribe();
-  }, [runtime]);
-  const { board } = snapshot;
   const markedCount = board.marked.filter(Boolean).length - 1;
-  const bingoMethods = runtime.bingoMethods;
   const choosePack = (next: BingoPackId) => {
     if (next === packId) return;
-    bingoMethods.setSquares(drawBingoPack(next));
+    runtime.restart(drawBingoPack(next));
     setPackId(next);
   };
   const packPicker = (
@@ -48,7 +43,7 @@ export const BrowserBingoDemo = ({
         size="icon"
         aria-label="Shuffle"
         title="Shuffle"
-        onClick={() => bingoMethods.setSquares(drawBingoPack(packId))}
+        onClick={() => runtime.restart(drawBingoPack(packId))}
       >
         <svg
           width="18"
@@ -110,16 +105,12 @@ export const BrowserBingoDemo = ({
                 data-long={phrase.length > 22}
                 aria-pressed={board.marked[index]}
                 aria-disabled={index === 12}
-                aria-label={`${phrase}${board.evidence[index] ? `, heard: ${board.evidence[index]}` : ''}`}
+                aria-label={`${phrase}${board.spoken[index] ? ', heard' : ''}`}
                 title={
-                  board.evidence[index]
-                    ? `Heard: ${board.evidence[index]}`
-                    : phrase.length > 22
-                      ? phrase
-                      : undefined
+                  board.spoken[index] ? `Heard: ${phrase}` : phrase.length > 22 ? phrase : undefined
                 }
                 onClick={() => {
-                  if (index !== 12) bingoMethods.setOverride(index, !board.marked[index]);
+                  if (index !== 12) runtime.changeSquare(index, !board.marked[index]);
                 }}
               >
                 {phrase}
@@ -129,7 +120,7 @@ export const BrowserBingoDemo = ({
         </section>
         <aside className="bingo-controls" aria-label="Bingo controls">
           {controls}
-          <TranscriptTurns transcript={runtime.transcript} />
+          <TranscriptTurns runtime={runtime} />
         </aside>
       </div>
     </section>

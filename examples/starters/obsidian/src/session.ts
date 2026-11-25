@@ -6,15 +6,20 @@ export const createTextSession = () => {
   const transcription = makeTranscriptIngestionPlugin();
   const kit = makeKatakit({ plugins: [transcription.configure({})] });
   const methods = kit.start().getMethods(transcription);
-  const { conversationTurns$, currentTurn$ } = kit.getObservables(transcription);
+  const { collectedConversationTurns$ } = kit.getObservables(transcription);
   let nextId = 0;
 
   return {
-    conversationTurns$,
-    currentTurn$,
-    acceptRecognized(text: string) {
+    turns$: collectedConversationTurns$,
+    acceptRecognized(text: string, durationMs: number) {
       if (!text.trim()) throw new Error('No speech recognized. Try a shorter recording.');
-      methods.ingestSegment({ id: String(++nextId), sourceId: 'microphone', text });
+      methods.ingestUtterance({
+        id: String(++nextId),
+        speaker: 'microphone',
+        text: text.trim(),
+        startMs: 0,
+        endMs: durationMs,
+      });
       methods.flush();
     },
     close: () => methods.close(),

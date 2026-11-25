@@ -12,8 +12,8 @@ copy workflow for those source inputs; follow its narrower instructions.
   components. Keep the common interface natural in the standalone entry point; gallery-only
   props, context wiring, and wrappers belong in gallery adapters, not the copied example.
 - Keep demo-specific plugins local. Durable content derives from logged events; transient
-  microphone, network, retry, and display state can remain local. Existing Bingo state
-  subjects are migration debt, not a model for new plugins.
+  microphone, network, retry, and display state can remain local. Bingo records one
+  opening event per runtime; starting another round replaces that runtime.
 - Prefer small React/TypeScript modules and local plain CSS. Do not require Tailwind or
   a shared design-system package. Necessary components are fine; a two-file demo is a
   simplicity goal, not a hard file-count rule.

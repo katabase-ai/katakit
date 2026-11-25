@@ -1,5 +1,6 @@
-import type { TranscriptEvent } from '@katakit/transcript-ingestion';
 import type { Observable } from 'rxjs';
+
+export type PreviewEvent = { type: 'provisional' | 'final'; text: string };
 
 export type TranscriptPreviewLine = {
   id: number;
@@ -21,7 +22,7 @@ export const createTranscriptPreview = ({
   events$,
   onLines,
 }: {
-  events$: Observable<TranscriptEvent>;
+  events$: Observable<PreviewEvent>;
   onLines: (lines: TranscriptPreviewLine[]) => void;
 }) => {
   let finalized: TranscriptPreviewLine[] = [];
@@ -52,12 +53,7 @@ export const createTranscriptPreview = ({
   };
 
   const subscription = events$.subscribe(event => {
-    if (event.type === 'turn') return;
-    if (event.type === 'reset') {
-      finalized = [];
-      draft = undefined;
-      showDraft = false;
-    } else if (event.type === 'provisional') {
+    if (event.type === 'provisional') {
       showDraft = !!event.text;
       // Ingestion clears provisional text immediately before publishing the finalized segment.
       if (event.text) draft = line({ text: event.text, provisional: true });
@@ -69,7 +65,7 @@ export const createTranscriptPreview = ({
         });
       }
     } else {
-      finalized.unshift(line({ text: event.segment.text, provisional: false }));
+      finalized.unshift(line({ text: event.text, provisional: false }));
       draft = undefined;
       showDraft = false;
     }

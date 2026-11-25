@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import type { TranscriptTurn } from '@katakit/transcript-ingestion';
+import type { TranscriptionSegment } from '@katakit/transcription';
 import { NoteSchema } from './notesModel';
 
 const cursor = v.pipe(v.number(), v.integer(), v.minValue(0));
@@ -15,10 +15,26 @@ export const NotesEventSchema = v.variant('type', [
       speaker: v.optional(v.string()),
       startMs: v.optional(v.number()),
       endMs: v.optional(v.number()),
-    }) satisfies v.GenericSchema<TranscriptTurn>,
+    }) satisfies v.GenericSchema<TranscriptionSegment>,
   }),
   v.strictObject({ type: v.literal('notesUpdated'), notes: v.array(NoteSchema), cursor }),
   v.strictObject({ type: v.literal('notesCleared'), cursor }),
 ]);
 
 export type NotesEvent = v.InferOutput<typeof NotesEventSchema>;
+
+export const readNotesEvent = (record: unknown, index: number) => {
+  // Payload-only histories predate core metadata. Preserve order; epoch denotes unknown time.
+  if (typeof record === 'object' && record !== null && !('meta' in record))
+    return { ...v.parse(NotesEventSchema, record), meta: { seq: index, timestamp: new Date(0) } };
+  const { meta, ...payload } = v.parse(
+    v.looseObject({
+      meta: v.object({
+        seq: v.pipe(v.number(), v.integer(), v.minValue(0)),
+        timestamp: v.pipe(v.union([v.date(), v.pipe(v.string(), v.isoTimestamp())]), v.toDate()),
+      }),
+    }),
+    record
+  );
+  return { ...v.parse(NotesEventSchema, payload), meta };
+};

@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import { toJsonSchema } from '@valibot/to-json-schema';
-import type { TranscriptTurn } from '@katakit/transcript-ingestion';
+import type { TranscriptTurn } from './extractionPlugin';
 
 const text = v.pipe(v.string(), v.minLength(1), v.maxLength(1000), v.regex(/\S/));
 export const presets = {

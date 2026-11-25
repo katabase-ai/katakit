@@ -1,39 +1,23 @@
-import { bind, Subscribe } from '@react-rxjs/core';
-import { combineLatest } from 'rxjs';
 import { useEffect, useState } from 'react';
-import { makeKatakit } from '@katakit/core';
+import { createBingoSession } from './bingo/createBingoSession';
+import { useBingoValue } from './bingo/useBingoValue';
 import {
   bingoPacks,
   defaultSquares,
   drawBingoPack,
-  makeBingoPlugin,
   type BingoBoard,
   type BingoPackId,
 } from './bingo';
-import {
-  makeTranscriptIngestionPlugin,
-  type TranscriptSegment,
-} from '@katakit/transcript-ingestion';
+import type { TranscriptionSegment } from '@katakit/transcription';
 import { AudioLevelMeter } from './AudioLevelMeter';
-
-const transcriptIngestion = makeTranscriptIngestionPlugin();
-const bingo = makeBingoPlugin({ TranscriptIngestionPlugin: transcriptIngestion });
-const kit = makeKatakit({ plugins: [transcriptIngestion.configure({}), bingo.configure({})] });
-const running = kit.start();
-const methods = running.getMethods(transcriptIngestion);
-const bingoMethods = running.getMethods(bingo);
-const { lastHeard$ } = kit.getObservables(transcriptIngestion);
-const board$ = kit.getObservables(bingo).state$;
-const [useLastHeard, lastHeardState$] = bind(lastHeard$);
-const [useBoard, boardState$] = bind(board$);
-const view$ = combineLatest([lastHeardState$, boardState$]);
 
 type Phase = 'idle' | 'loading' | 'recording' | 'error';
 type CaptureState = { phase: Phase; progress?: number; error?: string; micConnected?: boolean };
 
-const BingoView = () => {
-  const lastHeard = useLastHeard();
-  const board = useBoard();
+const BingoView = ({ game }: { game: ReturnType<typeof createBingoSession> }) => {
+  const transcript = useBingoValue(game.transcript$);
+  const lastHeard = transcript.pending?.text ?? transcript.completed.at(-1)?.text;
+  const board = useBingoValue(game.board$);
   const [capture, setCapture] = useState<CaptureState>({ phase: 'idle' });
   const [micLevel, setMicLevel] = useState(0);
   const [tabLevel, setTabLevel] = useState(0);
@@ -44,10 +28,16 @@ const BingoView = () => {
 
   useEffect(() => {
     let mounted = true;
-    let transcriptVersion = 0;
+    let ready = false;
+    let resetDuringLoad = false;
+    const queued: (() => void)[] = [];
+    const deliver = (action: () => void) => {
+      if (ready) action();
+      else queued.push(action);
+    };
     const listener = (message: {
       type?: string;
-      segment?: TranscriptSegment;
+      segment?: TranscriptionSegment;
       phase?: Phase;
       progress?: number;
       error?: string;
@@ -56,29 +46,36 @@ const BingoView = () => {
       level?: number;
     }) => {
       if (message.type === 'CAPTURE_RESET') {
-        transcriptVersion++;
-        methods.reset();
+        resetDuringLoad = true;
+        queued.length = 0;
+        deliver(() => {
+          const { squares, overrides } = game.board$.get();
+          game.restart(squares, overrides);
+        });
       }
-      if (message.type === 'TRANSCRIPT_SEGMENT' && message.segment)
-        methods.ingestSegment(message.segment);
+      const segment = message.segment;
+      if (message.type === 'TRANSCRIPT_SEGMENT' && segment)
+        deliver(() => game.ingestSegment(segment));
       if (message.type === 'CAPTURE_LEVEL' && typeof message.level === 'number') {
         if (message.source === 'mic') setMicLevel(message.level);
         if (message.source === 'tab') setTabLevel(message.level);
       }
       if (message.type === 'CAPTURE_STATUS' && message.phase) {
-        setCapture({
-          phase: message.phase,
-          progress: message.progress,
-          error: message.error,
-          micConnected: message.micConnected,
-        });
-        if (message.phase === 'idle') methods.flush();
+        const phase = message.phase;
+        deliver(() =>
+          setCapture({
+            phase,
+            progress: message.progress,
+            error: message.error,
+            micConnected: message.micConnected,
+          })
+        );
+        if (phase === 'idle') deliver(game.flush);
       }
     };
     chrome.runtime.onMessage.addListener(listener);
     void (async () => {
       try {
-        const initialTranscriptVersion = transcriptVersion;
         const [local, session] = await Promise.all([
           chrome.storage.local.get(['board', 'packId', 'customSquares']),
           chrome.storage.session.get(['segments', 'capture']),
@@ -87,7 +84,7 @@ const BingoView = () => {
         const storedBoard = local.board as BingoBoard | undefined;
         if (storedBoard?.squares?.length === 25) {
           try {
-            bingoMethods.restoreBoard(storedBoard);
+            game.restart(storedBoard.squares, storedBoard.overrides);
             const savedPack = local.packId;
             if (savedPack === 'custom' || bingoPacks.some(pack => pack.id === savedPack))
               setPackId(savedPack as BingoPackId | 'custom');
@@ -101,22 +98,28 @@ const BingoView = () => {
             // Keep the default card if saved settings were from an incompatible version.
           }
         }
-        if (initialTranscriptVersion === transcriptVersion) {
-          for (const segment of (session.segments ?? []) as TranscriptSegment[])
-            methods.ingestSegment(segment);
+        if (!resetDuringLoad) {
+          for (const segment of (session.segments ?? []) as TranscriptionSegment[])
+            game.ingestSegment(segment);
+          if ((session.capture as CaptureState | undefined)?.phase === 'idle') game.flush();
           if (session.capture) setCapture(session.capture as CaptureState);
         }
       } catch {
         // A new install without stored state still has a playable default card.
       } finally {
-        if (mounted) setLoaded(true);
+        if (mounted) {
+          ready = true;
+          queued.forEach(action => action());
+          queued.length = 0;
+          setLoaded(true);
+        }
       }
     })();
     return () => {
       mounted = false;
       chrome.runtime.onMessage.removeListener(listener);
     };
-  }, []);
+  }, [game]);
 
   useEffect(() => {
     if (loaded)
@@ -127,7 +130,7 @@ const BingoView = () => {
       });
   }, [board.squares, board.overrides, packId, customSquares, loaded]);
 
-  const { squares, evidence, marked, winningLines: wins } = board;
+  const { squares, spoken, marked, winningLines: wins } = board;
   const count = marked.filter(Boolean).length - 1;
 
   const toggleCapture = async () => {
@@ -144,14 +147,19 @@ const BingoView = () => {
     }
   };
 
+  const restart = (squares: string[]) => {
+    game.restart(squares);
+    void chrome.runtime.sendMessage({ type: 'BINGO_NEW_ROUND' });
+  };
   const choosePack = (next: BingoPackId | 'custom') => {
     if (next === packId) return;
-    bingoMethods.setSquares(next === 'custom' ? customSquares : drawBingoPack(next));
+    restart(next === 'custom' ? customSquares : drawBingoPack(next));
     setPackId(next);
   };
   const hasSavedCustomCard =
     packId === 'custom' || customSquares.some((phrase, index) => phrase !== defaultSquares[index]);
 
+  if (!loaded) return <p role="status">Preparing bingo…</p>;
   return (
     <main className="panel">
       <header className="masthead">
@@ -179,19 +187,13 @@ const BingoView = () => {
               data-free={index === 12}
               data-long={phrase.length > 22}
               aria-pressed={marked[index]}
-              title={
-                evidence[index]
-                  ? `Heard: ${evidence[index]}`
-                  : phrase.length > 22
-                    ? phrase
-                    : undefined
-              }
+              title={spoken[index] ? `Heard: ${phrase}` : phrase.length > 22 ? phrase : undefined}
               onClick={() => {
-                if (index !== 12) bingoMethods.setOverride(index, !marked[index]);
+                if (index !== 12) game.changeSquare(index, !marked[index]);
               }}
             >
               <span>{phrase}</span>
-              {evidence[index] && marked[index] && <span className="heard">Heard</span>}
+              {spoken[index] && marked[index] && <span className="heard">Heard</span>}
             </button>
           ))}
         </div>
@@ -214,10 +216,7 @@ const BingoView = () => {
             </select>
           </span>
           {packId !== 'custom' && (
-            <button
-              className="quiet"
-              onClick={() => bingoMethods.setSquares(drawBingoPack(packId))}
-            >
+            <button className="quiet" onClick={() => restart(drawBingoPack(packId))}>
               Shuffle
             </button>
           )}
@@ -272,8 +271,12 @@ const BingoView = () => {
   );
 };
 
-export const Bingo = () => (
-  <Subscribe source$={view$}>
-    <BingoView />
-  </Subscribe>
-);
+export const Bingo = () => {
+  const [game, setGame] = useState<ReturnType<typeof createBingoSession>>();
+  useEffect(() => {
+    const session = createBingoSession();
+    setGame(session);
+    return session.close;
+  }, []);
+  return game ? <BingoView game={game} /> : null;
+};
