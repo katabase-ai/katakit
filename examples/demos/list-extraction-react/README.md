@@ -67,7 +67,7 @@ lists grow; on narrow screens it stacks below the lists and follows normal page 
 validated event log, and the local extraction plugin. Rules, finalized turns, accepted results,
 text edits, visibility changes, and session clears are logged. Projections derive content and
 Markdown; the log is the sole authority. IDs and evidence are recorded with accepted items.
-Validate serialized events with `ExtractionEventSchema` before passing them as `initialEvents`.
+Pass the recorded history from `runtime.events$.getAll()` as `initialEvents`, including each record's `meta`. The demo validates payloads and metadata and restores timestamps from JSON.
 Replay restores content without calling a model, generating IDs, or restarting capture.
 
 Admission, request cancellation, and error state are transient. Only an explicit **Extract lists**

@@ -119,6 +119,7 @@ test.each([false, true])(
   async developerMode => {
     const { Harness, inputs, clock } = fixture();
     const view = render(<Harness developerMode={developerMode} />);
+    await act(() => vi.dynamicImportSettled());
     await screen.findByRole('button', { name: 'Play' });
     expect(inputs).toHaveLength(0);
     await act(async () => fireEvent.click(screen.getByRole('button', { name: 'Play' })));

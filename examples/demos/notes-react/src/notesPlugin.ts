@@ -1,6 +1,6 @@
-import { makeEffect, makeKatakitPlugin, property } from '@katakit/core';
-import type { makeEventLogPlugin } from '@katakit/event-log';
-import type { TranscriptTurn } from '@katakit/transcript-ingestion';
+import { EventLogPlugin, makeEffect, makeKatakitPlugin, property } from '@katakit/core';
+import type { TranscriptionSegment } from '@katakit/transcription';
+import * as v from 'valibot';
 import { delay } from 'es-toolkit';
 import {
   combineLatest,
@@ -15,7 +15,7 @@ import {
 } from 'rxjs';
 import { match } from 'ts-pattern';
 import { applyNotesResult } from './applyNotesResult';
-import type { NotesEvent } from './notesEvents';
+import { NotesEventSchema, readNotesEvent, type NotesEvent } from './notesEvents';
 import {
   createNotesRequest,
   NotesRequestError,
@@ -33,11 +33,7 @@ type RequestState =
   | { status: 'waiting' | 'paused'; failure: NotesRequestError };
 
 /** The log owns content. Connections, cancellation and retry state belong to this live visit. */
-export const makeNotesPlugin = ({
-  EventLogPlugin,
-}: {
-  EventLogPlugin: ReturnType<typeof makeEventLogPlugin<NotesEvent>>;
-}) =>
+export const makeNotesPlugin = () =>
   makeKatakitPlugin({
     type: 'Notes',
     configure: (_options: {}) => ({
@@ -46,13 +42,14 @@ export const makeNotesPlugin = ({
       closed: new Subject<void>(),
     }),
     observables: ({ options, getObservables }) => {
-      const initial: { notes: Note[]; turns: TranscriptTurn[]; cursor: number } = {
+      const initial: { notes: Note[]; turns: TranscriptionSegment[]; cursor: number } = {
         notes: [],
         turns: [],
         cursor: 0,
       };
       const content$ = property(
         getObservables(EventLogPlugin).events$.pipe(
+          map(readNotesEvent),
           scan(
             (content, event) =>
               match(event)
@@ -105,11 +102,13 @@ export const makeNotesPlugin = ({
     },
     methods: ({ options, observables, getMethods }) => {
       const { content$, state$ } = observables;
-      const { emitEvent } = getMethods(EventLogPlugin);
+      const log = getMethods(EventLogPlugin);
+      const emitEvent = (event: NotesEvent) => log.emitEvent(v.parse(NotesEventSchema, event));
       let connection: NotesConnection | undefined;
       let controller: AbortController | undefined;
       let closed = false;
       return {
+        recordTurn: (turn: TranscriptionSegment) => emitEvent({ type: 'transcriptTurn', turn }),
         connect: (next: NotesConnection) => {
           if (closed) return;
           controller?.abort();

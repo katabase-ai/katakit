@@ -1,27 +1,30 @@
-import { makeKatakit } from '@katakit/core';
-import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
+import { createTranscriptInput } from './transcriptInput';
 import { BehaviorSubject, combineLatest } from 'rxjs';
 
 /** Own the input plugin, projections, and transcript timer without starting background effects. */
 export const createTranscriptionDemo = () => {
-  const transcript = makeTranscriptIngestionPlugin({ turnSilenceMs: 1400 });
-  const kit = makeKatakit({ plugins: [transcript.configure({})] });
-  const methods = kit.start().getMethods(transcript);
-  const { conversationTurns$, currentTurn$, provisional$ } = kit.getObservables(transcript);
+  const input = createTranscriptInput();
+  const { collectedConversationTurns$, pendingConversationTurn$, provisionalUtterance$ } =
+    input.views;
   const state$ = new BehaviorSubject({
-    completedTurns: conversationTurns$.get(),
-    currentTurn: currentTurn$.get(),
-    provisional: provisional$.get(),
+    completedTurns: collectedConversationTurns$.get(),
+    currentTurn: pendingConversationTurn$.get(),
+    provisional: provisionalUtterance$.get()?.text,
   });
-  const subscription = combineLatest([conversationTurns$, currentTurn$, provisional$]).subscribe(
-    ([completedTurns, currentTurn, provisional]) =>
-      state$.next({ completedTurns, currentTurn, provisional })
+  const subscription = combineLatest([
+    collectedConversationTurns$,
+    pendingConversationTurn$,
+    provisionalUtterance$,
+  ]).subscribe(([completedTurns, currentTurn, provisional]) =>
+    state$.next({ completedTurns, currentTurn, provisional: provisional?.text })
   );
   return {
-    ...methods,
+    ingestSegment: input.ingestSegment,
+    updateProvisional: input.updateProvisional,
+    flush: input.flush,
     state$,
     close: () => {
-      methods.close();
+      input.close();
       subscription.unsubscribe();
       state$.complete();
     },
