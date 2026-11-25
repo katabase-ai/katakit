@@ -1,8 +1,8 @@
 import { BrowserBingoDemo } from '../../examples/demos/bingo-react/src/BrowserBingoDemo';
-import { createBrowserBingoDemo } from '../../examples/demos/bingo-react/src/createBrowserBingoDemo';
+import { createBingoSession } from '../../examples/demos/bingo-react/src/bingo/createBingoSession';
 import { createGalleryDemo } from './createGalleryDemo';
 
 export const BingoGalleryDemo = createGalleryDemo({
-  createRuntime: createBrowserBingoDemo,
+  createRuntime: createBingoSession,
   View: BrowserBingoDemo,
 });

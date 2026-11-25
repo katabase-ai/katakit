@@ -63,6 +63,10 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
     }
     return;
   }
+  if (message.type === 'BINGO_NEW_ROUND') {
+    void writeTranscript(() => chrome.storage.session.set({ segments: [] }));
+    return;
+  }
   if (message.type === 'TRANSCRIPT_SEGMENT') {
     if (!validSegment(message.segment)) return;
     void writeTranscript(async () => {

@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as v from 'valibot';
 import { createNotesDemo } from './createNotesDemo';
-import { NotesEventSchema } from './notesEvents';
 import {
   createNotesRequest,
   NotesRequestError,
@@ -63,12 +62,10 @@ describe('structured notes', () => {
     );
     demo.turn('His name is Jon, J O N. Bring the agenda.');
     await expect.poll(() => demo.state.get().pendingTurnCount).toBe(0);
-    const events = v.parse(
-      v.array(NotesEventSchema),
-      JSON.parse(JSON.stringify(demo.runtime.events$.getAll()))
-    );
+    const events = JSON.parse(JSON.stringify(demo.runtime.events$.getAll()));
     const uuid = vi.spyOn(crypto, 'randomUUID');
     const replay = createNotesDemo({ initialEvents: events });
+    expect(replay.events$.getAll()).toEqual(demo.runtime.events$.getAll());
     expect(replay.state$.get().notes.notes).toEqual(demo.state.get().notes);
     expect(replay.state$.get().notes.notes[0]!.id).toBe(originalId);
     expect(replay.state$.get().markdown).toBe('- Meet **Jon** on Tuesday.\n  - Bring the agenda.');

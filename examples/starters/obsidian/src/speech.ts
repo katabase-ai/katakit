@@ -13,7 +13,7 @@ const MODEL = 'Xenova/whisper-tiny.en';
 
 export const createShortClipTranscriber = (callbacks: {
   status(message: string): void;
-  final(text: string): void;
+  final(text: string, durationMs: number): void;
   error?(message: string): void;
 }) => {
   let recognizer: AutomaticSpeechRecognitionPipeline | undefined;
@@ -136,7 +136,7 @@ export const createShortClipTranscriber = (callbacks: {
                   const text = Array.isArray(result)
                     ? result.map(line => line.text).join(' ')
                     : result.text;
-                  callbacks.final(text);
+                  callbacks.final(text, decoded.duration * 1000);
                   callbacks.status('Done. Audio and transcript are not saved.');
                 }
               } finally {

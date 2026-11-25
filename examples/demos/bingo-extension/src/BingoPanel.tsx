@@ -5,11 +5,11 @@ import {
   bingoPacks,
   defaultSquares,
   drawBingoPack,
-  parseBingoEvent,
   type BingoBoard,
   type BingoPackId,
 } from './bingo';
 import { AudioLevelMeter } from './AudioLevelMeter';
+import { validateBoard } from './bingo/plugin';
 import { createPanelRuntime, type PanelRuntime } from './runtime';
 import { isSegment, orderHydration, type TranscriptMessage } from './history';
 
@@ -53,11 +53,9 @@ const BingoView = ({
   const [customSquares] = useState(() => {
     const saved = panel.local.customSquares;
     try {
-      const event = parseBingoEvent({
-        type: 'board-set',
-        board: { squares: saved, overrides: {} },
-      });
-      if (event.type === 'board-set') return event.board.squares;
+      const candidate = { squares: saved, overrides: {} } as BingoBoard;
+      validateBoard(candidate);
+      return candidate.squares;
     } catch {
       // Saved custom cards obey the same schema as the active board.
     }
@@ -79,7 +77,7 @@ const BingoView = ({
     })();
   }, [board.squares, board.overrides, packId, customSquares]);
 
-  const { squares, evidence, marked, winningLines: wins } = board;
+  const { squares, spoken, marked, winningLines: wins } = board;
   const count = marked.filter(Boolean).length - 1;
 
   const toggleCapture = async () => {
@@ -99,6 +97,7 @@ const BingoView = ({
   const choosePack = (next: BingoPackId | 'custom') => {
     if (next === packId) return;
     bingoMethods.setSquares(next === 'custom' ? customSquares : drawBingoPack(next));
+    void chrome.runtime.sendMessage({ type: 'BINGO_NEW_ROUND' });
     setPackId(next);
   };
   const hasSavedCustomCard =
@@ -132,18 +131,14 @@ const BingoView = ({
               data-long={phrase.length > 22}
               aria-pressed={marked[index]}
               title={
-                evidence[index]
-                  ? `Heard: ${evidence[index]}`
-                  : phrase.length > 22
-                    ? phrase
-                    : undefined
+                spoken[index] ? 'Heard in this round' : phrase.length > 22 ? phrase : undefined
               }
               onClick={() => {
                 if (index !== 12) bingoMethods.setOverride(index, !marked[index]);
               }}
             >
               <span>{phrase}</span>
-              {evidence[index] && marked[index] && <span className="heard">Heard</span>}
+              {spoken[index] && marked[index] && <span className="heard">Heard</span>}
             </button>
           ))}
         </div>
@@ -168,7 +163,10 @@ const BingoView = ({
           {packId !== 'custom' && (
             <button
               className="quiet"
-              onClick={() => bingoMethods.setSquares(drawBingoPack(packId))}
+              onClick={() => {
+                bingoMethods.setSquares(drawBingoPack(packId));
+                void chrome.runtime.sendMessage({ type: 'BINGO_NEW_ROUND' });
+              }}
             >
               Shuffle
             </button>

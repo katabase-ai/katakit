@@ -14,6 +14,29 @@ const first = {
 const second = { id: 'next', sourceId: 'meeting-1', text: 'Circle back', startMs: 200, endMs: 300 };
 
 describe('extension event-sourced runtime', () => {
+  it('starts a fresh deal after draining live pending speech and leaves old timers inert', () => {
+    vi.useFakeTimers();
+    const panel = createPanelRuntime();
+    panel.methods.ingestSegment({
+      id: 'untimed',
+      sourceId: 'mic',
+      speaker: 'Alice',
+      text: 'Quick question',
+    });
+    expect(panel.board$.get().marked[0]).toBe(true);
+    panel.bingoMethods.setSquares([...defaultSquares]);
+    expect(panel.board$.get().marked[0]).toBe(false);
+    expect(panel.transcript.segments$.get()).toEqual([]);
+    const history = panel.events$.getAll();
+    expect(history.filter(event => event.type === 'turn')).toHaveLength(1);
+    vi.runAllTimers();
+    expect(panel.events$.getAll()).toEqual(history);
+    panel.methods.ingestSegment(second);
+    expect(panel.board$.get().marked[1]).toBe(true);
+    panel.close();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
   it('closes the board even when final transcript admission rejects inconsistent source times', () => {
     vi.useFakeTimers();
     const panel = createPanelRuntime();

@@ -1,36 +1,26 @@
-import { makeKatakit, property } from '@katakit/core';
-import { makeEventLogPlugin } from '@katakit/event-log';
-import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
-import { combineLatest, map, shareReplay, Subject, takeUntil } from 'rxjs';
-import { NotesEventSchema, type NotesEvent } from './notesEvents';
+import { EventLogPlugin, makeKatakit, property, skipReplay } from '@katakit/core';
+import { combineLatest, map, merge, shareReplay, Subject, takeUntil } from 'rxjs';
+import { readNotesEvent } from './notesEvents';
+import { createTranscriptInput } from './transcriptInput';
 import { makeNotesPlugin } from './notesPlugin';
 
 /** Replaying a visit restores its content; only an explicit connection can start new model work. */
-export const createNotesDemo = ({ initialEvents = [] }: { initialEvents?: NotesEvent[] } = {}) => {
-  const eventLog = makeEventLogPlugin({ validateEvent: NotesEventSchema });
-  const transcript = makeTranscriptIngestionPlugin({
-    forward: {
-      createEvent: event =>
-        event.type === 'turn' ? { type: 'transcriptTurn' as const, turn: event.turn } : undefined,
-      emitEvent: event => kit.getMethods(eventLog).emitEvent(event),
-    },
-  });
-  const notesPlugin = makeNotesPlugin({ EventLogPlugin: eventLog });
+export const createNotesDemo = ({ initialEvents = [] }: { initialEvents?: unknown[] } = {}) => {
+  const notesPlugin = makeNotesPlugin();
   const kit = makeKatakit({
-    plugins: [
-      eventLog.configure({ initialEvents }),
-      transcript.configure({}),
-      notesPlugin.configure({}),
-    ],
+    existingEvents: initialEvents.map(readNotesEvent),
+    plugins: [notesPlugin.configure({})],
   }).start();
-  const input = kit.getMethods(transcript);
+  const input = createTranscriptInput();
   const notes = kit.getMethods(notesPlugin);
-  const {
-    conversationTurns$,
-    currentTurn$,
-    provisional$,
-    events$: transcriptEvents$,
-  } = kit.getObservables(transcript);
+  const turns = input.turns$.subscribe(notes.recordTurn);
+  const { currentTurn$, provisional$ } = input;
+  const transcriptEvents$ = merge(
+    input.views.provisionalUtterances$.pipe(
+      map(({ text }) => ({ type: 'provisional' as const, text }))
+    ),
+    input.views.utterances$.pipe(map(({ text }) => ({ type: 'final' as const, text })))
+  ).pipe(skipReplay());
   const { state$: notesState$, markdown$ } = kit.getObservables(notesPlugin);
   const closed = new Subject<void>();
   const state$ = property(
@@ -53,10 +43,15 @@ export const createNotesDemo = ({ initialEvents = [] }: { initialEvents?: NotesE
     notes,
     state$,
     transcriptEvents$,
-    transcript: { conversationTurns$, currentTurn$, provisional$ },
-    events$: kit.getObservables(eventLog).events$,
+    transcript: {
+      conversationTurns$: notesState$.pipe(map(state => state.turns)),
+      currentTurn$,
+      provisional$,
+    },
+    events$: kit.getObservables(EventLogPlugin).events$,
     close: () => {
       notes.close();
+      turns.unsubscribe();
       input.close();
       closed.next();
       closed.complete();

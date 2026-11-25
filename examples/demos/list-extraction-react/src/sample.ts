@@ -1,4 +1,4 @@
-import type { TranscriptTurn } from '@katakit/transcript-ingestion';
+import type { TranscriptTurn } from './extractionPlugin';
 import type { ExtractedItem, ListRule } from './extractionModel';
 
 /** An explicit fixture, never a substitute for model processing of a visitor's dictation. */

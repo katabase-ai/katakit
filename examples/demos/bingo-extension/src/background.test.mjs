@@ -3,6 +3,30 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 afterEach(() => vi.unstubAllGlobals());
 
 describe('extension capture coordinator', () => {
+  it('clears retained speech at the deal boundary without dropping later segments', async () => {
+    let listener;
+    let segments = [];
+    vi.stubGlobal('chrome', {
+      runtime: { onMessage: { addListener: fn => (listener = fn) } },
+      storage: {
+        session: {
+          get: async () => ({ segments }),
+          set: async data => {
+            segments = data.segments;
+          },
+        },
+      },
+    });
+    vi.resetModules();
+    await import('../public/background.js');
+    const old = { id: 'old', sourceId: 'mic', text: 'old' };
+    const next = { id: 'new', sourceId: 'mic', text: 'new' };
+    listener({ type: 'TRANSCRIPT_SEGMENT', segment: old });
+    listener({ type: 'BINGO_NEW_ROUND' });
+    listener({ type: 'TRANSCRIPT_SEGMENT', segment: next });
+    await vi.waitFor(() => expect(segments).toEqual([next]));
+  });
+
   it('a stop during startup waits for the owner, then drains and closes it', async () => {
     vi.resetModules();
     let listener;

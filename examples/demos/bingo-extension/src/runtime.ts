@@ -1,6 +1,13 @@
-import { EventLogPlugin, makeKatakit, type KatakitEvent } from '@katakit/core';
+import { EventLogPlugin, makeKatakit, property, type KatakitEvent } from '@katakit/core';
 import { makeTranscriptIngestionPlugin, type TranscriptEvent } from '@katakit/transcript-ingestion';
-import { makeBingoPlugin, type BingoBoard } from './bingo';
+import { BehaviorSubject, filter, Subject, switchMap, takeUntil } from 'rxjs';
+import {
+  BingoPlugin,
+  defaultSquares,
+  validateBoard,
+  type BingoBoard,
+  type BingoState,
+} from './bingo/plugin';
 import { isSegment, restoreSegments } from './history';
 
 type RecordedEvent = Exclude<TranscriptEvent, { type: 'provisional' }>;
@@ -65,35 +72,82 @@ export const createPanelRuntime = (
       },
     },
   });
-  const bingo = makeBingoPlugin({ TranscriptIngestionPlugin: transcript });
-  const kit = makeKatakit({ plugins: [transcript.configure({}), bingo.configure({})] });
+  const kit = makeKatakit({ plugins: [transcript.configure({})] });
   const running = kit.start();
-  const methods = running.getMethods(transcript);
-  const bingoMethods = running.getMethods(bingo);
+  const input = running.getMethods(transcript);
+  const transcriptState = kit.getObservables(transcript);
+  let initialBoard: BingoBoard = { squares: [...defaultSquares], overrides: {} };
   let restoredBoard = false;
   if (board !== undefined) {
     try {
-      bingoMethods.restoreBoard(board as BingoBoard);
+      validateBoard(board as BingoBoard);
+      initialBoard = board as BingoBoard;
       restoredBoard = true;
     } catch {
       // Old or damaged storage leaves the default board playable.
     }
   }
+  const createBoard = (value: BingoBoard) => {
+    validateBoard(value);
+    const boardKit = makeKatakit({ plugins: [BingoPlugin.configure({})] }).start();
+    const commands = boardKit.getMethods(BingoPlugin);
+    commands.startGame(value.squares);
+    for (const [index, marked] of Object.entries(value.overrides))
+      commands.changeSquare(Number(index), marked);
+    return { commands, state$: boardKit.getObservables(BingoPlugin).state$ };
+  };
+  // Only the current runtime handle is mutable; its core log owns all board content.
+  const boards = new BehaviorSubject(createBoard(initialBoard));
+  const stopped = new Subject<void>();
+  const board$ = property(
+    boards.pipe(
+      switchMap(value => value.state$),
+      filter((value): value is BingoState => value !== undefined),
+      takeUntil(stopped)
+    )
+  );
+  const projection = transcriptState.state$.subscribe(state => {
+    for (const turn of state.conversationTurns) boards.value.commands.hearTurn(turn.text);
+    if (state.currentTurn) boards.value.commands.hearTurn(state.currentTurn.text);
+  });
   let closed = false;
+  const reset = (value: BingoBoard) => {
+    if (closed) return;
+    validateBoard(value);
+    input.flush();
+    boards.next(createBoard(value));
+    input.reset();
+  };
+  const methods = {
+    ...input,
+    reset: () => {
+      const { squares, overrides } = board$.get();
+      reset({ squares, overrides });
+    },
+  };
+  const bingoMethods = {
+    setSquares: (squares: string[]) => reset({ squares, overrides: {} }),
+    setOverride: (index: number, marked: boolean) => {
+      if (!closed) boards.value.commands.changeSquare(index, marked);
+    },
+  };
   return {
     methods,
     bingoMethods,
     restoredBoard,
     events$,
-    transcript: kit.getObservables(transcript),
-    board$: kit.getObservables(bingo).state$,
+    transcript: transcriptState,
+    board$,
     close: () => {
       if (closed) return;
       closed = true;
       try {
         methods.close();
       } finally {
-        bingoMethods.close();
+        projection.unsubscribe();
+        stopped.next();
+        stopped.complete();
+        boards.complete();
       }
     },
   };

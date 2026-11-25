@@ -49,7 +49,7 @@ Squares match complete normalized phrases against finalized transcript turns.
 They do not use a semantic classifier. Click a square to correct a mark; the
 center is free. Choose from seven built-in word lists or select **Shuffle** for
 another draw. Previously saved custom cards remain selectable. Switching lists
-or shuffling rechecks the current transcript and clears manual corrections.
+or shuffling starts a fresh round, clearing the prior transcript and manual corrections.
 Interim recognition text is not displayed or used for bingo.
 
 Board edits and the selected pack are stored in extension local storage;
@@ -61,8 +61,8 @@ may require manual correction. No account or external bingo API is required.
 Each panel mount creates an in-memory core `EventLogPlugin` transcript log in
 `src/runtime.ts`. Finalized segments, completed turns, and resets are recorded events;
 the ingestion plugin derives its transcript from those records. The canonical Bingo
-plugin records board commands and combines its board projection with the transcript
-projection to compute evidence and wins. Replay does not start recognition, capture,
+plugin records an opening deal, manual marks, and spoken-square facts. The panel host
+feeds its atomic transcript projection into that canonical plugin. Replay does not start recognition, capture,
 silence timers, or replacement IDs.
 
 The host validates both restored records and live writes before core admission.
@@ -74,7 +74,7 @@ The existing storage boundaries remain separate:
 
 - `chrome.storage.local` keeps the board's squares/manual overrides, selected pack,
   and saved custom card. Existing board snapshots are validated and imported through
-  `restoreBoard`, which records a board command. Invalid boards fall back to the default.
+  a fresh Bingo runtime's opening deal and manual-mark commands. Invalid boards fall back to the default.
   Transcript evidence is never persisted with the board.
 - `chrome.storage.session` keeps the background host's latest 2000 unique finalized
   segments in delivery order. These transport snapshots seed transcript events when
@@ -89,6 +89,9 @@ The existing storage boundaries remain separate:
 - Starting a new capture resets transcript history and evidence, while keeping board
   choices and manual corrections. Closing the panel leaves capture running in its
   offscreen owner. Reopening restores the board and current session independently.
+- A new deal drains pending live speech once, replaces the board runtime, and resets
+  the transcript. The background serializes its retained-history clear with incoming
+  segments so reopening cannot restore speech from before the deal.
 
 The panel registers its message listener before reading storage, then hydrates the
 snapshot before applying queued live messages. A reset received during the read

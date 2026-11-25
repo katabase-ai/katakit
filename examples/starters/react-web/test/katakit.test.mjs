@@ -6,11 +6,11 @@ test('final recognized speech becomes a Katakit turn; stopping flushes the remai
   const session = createTranscriptSession();
   try {
     session.onProvisional('hello');
-    assert.equal(session.provisional$.get(), 'hello');
+    assert.equal(session.provisional$.get()?.text, 'hello');
     session.onFinal({ id: '1', sourceId: 'mic', text: 'Hello Katakit.' });
     session.onStop();
     assert.deepEqual(
-      session.conversationTurns$.get().map(turn => turn.text),
+      session.turns$.get().map(turn => turn.text),
       ['Hello Katakit.']
     );
   } finally {
