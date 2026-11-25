@@ -37,11 +37,9 @@
     "rxjs": "^7.8.2"
   },
   "devDependencies": {
-    "@katakit/core": "workspace:*",
-    "@katakit/event-log": "workspace:*"
+    "@katakit/core": "workspace:*"
   },
   "peerDependencies": {
-    "@katakit/core": "workspace:^",
-    "@katakit/event-log": "workspace:^"
+    "@katakit/core": "workspace:^"
   }
 }

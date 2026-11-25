@@ -3,7 +3,7 @@
 ## Run it locally
 
 The event-log integration on this branch requires the updated transcript-ingestion
-package. Registry pins remain at `0.1.0`; an npm release and pin update are required
+and core packages. Registry pins remain at `0.1.0`; npm releases and pin updates are required
 before the standalone registry install below includes this API. Contributor copy
 checks use freshly packed local libraries instead.
 
@@ -77,6 +77,11 @@ preserves IDs, source, speaker, and timestamps without starting capture, models,
 timers. Closing a restored-only runtime writes nothing. Fresh input continues its
 pending turn; `reset()` records a reset and permits segment IDs to be reused.
 Persistence remains a host choice; the standalone page still clears on reload.
+The authoritative log is core's built-in `EventLogPlugin`. Restored core metadata is
+validated and retained. Older snapshots without emission metadata receive deterministic
+sequence positions and an epoch metadata timestamp; their source/audio timestamps and IDs
+are unchanged. This adapter accepts `Date` metadata in memory; a storage adapter must decode
+and validate serialized dates before restoration.
 
 Automated tests cover synthetic callback stop/drain, replay/continuation/reset/close,
 and rendering. Manually verify microphone permission, first model download, recording,
