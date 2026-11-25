@@ -101,7 +101,7 @@ export const buildNav = (directory = pages) => {
 export const generateNav = ({ check = false } = {}) => {
   const content = `${JSON.stringify(buildNav(), null, 2)}\n`;
   if (check) {
-    if (readFileSync(output, 'utf8') !== content) {
+    if (readFileSync(output, 'utf8').replaceAll('\r\n', '\n') !== content) {
       throw new Error(
         'docs/src/nav.json is stale; run pnpm -F @katakit/docs dev or pnpm --filter @katakit/docs exec node scripts/generate-nav.mjs'
       );

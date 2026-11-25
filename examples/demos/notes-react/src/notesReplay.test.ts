@@ -52,6 +52,41 @@ describe('notes history boundary', () => {
 });
 
 describe('notes transcript replay', () => {
+  it('drains live input across source and speaker boundaries without inventing audio times', () => {
+    vi.useFakeTimers();
+    const runtime = createNotesDemo();
+    runtime.ingestSegment({ id: 'one', sourceId: 'mic', speaker: 'Ada', text: 'First' });
+    runtime.ingestSegment({ id: 'two', sourceId: 'mic', speaker: 'Ben', text: 'Second' });
+    runtime.ingestSegment({
+      id: 'three',
+      sourceId: 'remote',
+      speaker: 'Ben',
+      text: 'Third',
+      startMs: 20,
+      endMs: 40,
+    });
+    runtime.close();
+    runtime.close();
+    expect(vi.getTimerCount()).toBe(0);
+    const replay = createNotesDemo({
+      initialEvents: JSON.parse(JSON.stringify(runtime.events$.getAll())),
+    });
+    expect(replay.transcript.conversationTurns$.get()).toEqual([
+      { id: 'mic\0one', sourceId: 'mic', speaker: 'Ada', text: 'First' },
+      { id: 'mic\0two', sourceId: 'mic', speaker: 'Ben', text: 'Second' },
+      {
+        id: 'remote\0three',
+        sourceId: 'remote',
+        speaker: 'Ben',
+        text: 'Third',
+        startMs: 20,
+        endMs: 40,
+      },
+    ]);
+    expect(replay.state$.get().turns).toEqual(replay.transcript.conversationTurns$.get());
+    expect(replay.state$.get().notes.pendingTurnCount).toBe(3);
+    replay.close();
+  });
   it('validates live writes and continues core metadata after restored history', () => {
     const runtime = createNotesDemo({ initialEvents: [turn] });
     expect(() =>

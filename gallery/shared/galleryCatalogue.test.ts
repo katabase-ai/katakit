@@ -1,5 +1,6 @@
 import { expect, test, vi } from 'vitest';
-import { build } from 'vite';
+import { build, normalizePath } from 'vite';
+import { isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { galleryDemoDetails, bingoDemoDetails, galleryDataHandling } from './galleryDemoDetails';
 import { galleryDemos, registerGalleryDemo } from './galleryDemos';
@@ -64,7 +65,7 @@ test('a host selecting Bingo retains its lazy chunk but no unselected demo modul
       rolldownOptions: {
         input: entry,
         preserveEntrySignatures: 'strict',
-        external: id => id !== entry && !id.startsWith('.') && !id.startsWith('/'),
+        external: id => id !== entry && !id.startsWith('.') && !isAbsolute(id),
         output: { format: 'es' },
       },
     },
@@ -73,7 +74,7 @@ test('a host selecting Bingo retains its lazy chunk but no unselected demo modul
     'output' in result ? result.output : []
   );
   const chunks = outputs.filter(output => output.type === 'chunk');
-  const modules = chunks.flatMap(chunk => Object.keys(chunk.modules));
+  const modules = chunks.flatMap(chunk => Object.keys(chunk.modules).map(normalizePath));
   expect(modules.some(id => id.endsWith('/BingoGalleryDemo.tsx'))).toBe(true);
   expect(chunks.find(chunk => chunk.isEntry)?.dynamicImports.length).toBeGreaterThan(0);
   for (const name of [

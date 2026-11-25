@@ -1,6 +1,6 @@
 import { createTranscriptSession } from './kit';
 
-const session = createTranscriptSession();
+let session = createTranscriptSession();
 const list = document.querySelector<HTMLOListElement>('#turns')!;
 const clear = document.querySelector<HTMLButtonElement>('#clear')!;
 const button = document.querySelector<HTMLButtonElement>('#toggle')!;
@@ -43,8 +43,8 @@ micSetup.onclick = async () => {
 };
 
 const render = () => {
-  const turns = session.conversationTurns$.get();
-  const current = session.currentTurn$.get();
+  const turns = session.turns$.get();
+  const current = session.pending$.get();
   list.replaceChildren(
     ...[...turns, ...(current ? [current] : [])].map(turn => {
       const item = document.createElement('li');
@@ -54,26 +54,28 @@ const render = () => {
   );
   clear.disabled = turns.length === 0 && !current;
 };
-const completed = session.conversationTurns$.subscribe(render);
-const active = session.currentTurn$.subscribe(render);
+const subscribe = () => [session.turns$.subscribe(render), session.pending$.subscribe(render)];
+let subscriptions = subscribe();
+const release = () => {
+  for (const subscription of subscriptions) subscription.unsubscribe();
+  session.close();
+};
 
 clear.onclick = async () => {
   clear.disabled = true;
   try {
     const result = await chrome.runtime.sendMessage({ type: 'CLEAR_TRANSCRIPT' });
     if (!result?.ok) throw new Error(result?.error || 'Could not clear transcript.');
-    session.clear();
+    release();
+    session = createTranscriptSession();
+    subscriptions = subscribe();
   } catch (error) {
     show(error instanceof Error ? error.message : String(error));
   } finally {
     render();
   }
 };
-window.addEventListener('pagehide', () => {
-  completed.unsubscribe();
-  active.unsubscribe();
-  session.close();
-});
+window.addEventListener('pagehide', release);
 
 const show = (text: string) => {
   status.textContent = text;

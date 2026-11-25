@@ -61,7 +61,7 @@ in italics and is not used for bingo.
 Choose a word list. Built-in packs draw a mix of familiar, less familiar, and
 wildcard entries; choose **Shuffle** for another draw. Rare names and tricky words
 may be misheard by the recognizer; click a square to correct it. Switching lists
-or shuffling rechecks the current transcript and clears manual corrections. You
+or shuffling starts a fresh round with an empty transcript and no manual corrections. You
 can do either without stopping transcription.
 
 ## Modifying and hosting

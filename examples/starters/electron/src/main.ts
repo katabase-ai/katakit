@@ -11,8 +11,8 @@ const preview = document.querySelector<HTMLElement>('#preview')!;
 let running = false;
 
 const render = () => {
-  const turns = session.conversationTurns$.get();
-  const current = session.currentTurn$.get();
+  const turns = session.turns$.get();
+  const current = session.pending$.get();
   notes.replaceChildren(
     ...[...turns, ...(current ? [current] : [])].map(turn => {
       const item = document.createElement('li');
@@ -21,11 +21,11 @@ const render = () => {
     })
   );
   empty.hidden = notes.childElementCount > 0;
-  preview.textContent = session.provisional$.get() ?? '';
+  preview.textContent = session.provisional$.get()?.text ?? '';
 };
 const subscriptions = [
-  session.conversationTurns$.subscribe(render),
-  session.currentTurn$.subscribe(render),
+  session.turns$.subscribe(render),
+  session.pending$.subscribe(render),
   session.provisional$.subscribe(render),
 ];
 const speech = createMicrophoneTranscriber({
@@ -55,8 +55,11 @@ button.addEventListener('click', () => {
     }
   })();
 });
-window.addEventListener('pagehide', () => {
+window.addEventListener('pagehide', async () => {
   for (const subscription of subscriptions) subscription.unsubscribe();
-  void speech.dispose();
-  session.close();
+  try {
+    await speech.dispose();
+  } finally {
+    session.close();
+  }
 });

@@ -7,7 +7,7 @@ import {
 } from '@katakit/core';
 import * as v from 'valibot';
 import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
-import { combineLatest, map, shareReplay, Subject, takeUntil, type Observable } from 'rxjs';
+import { combineLatest, filter, map, shareReplay, Subject, takeUntil, type Observable } from 'rxjs';
 import {
   NotesEventSchema,
   notesTranscriptEvent,
@@ -54,8 +54,17 @@ export const createNotesDemo = ({ initialEvents = [] }: { initialEvents?: unknow
     segments$,
     currentTurn$,
     provisional$,
-    events$: transcriptEvents$,
+    events$: ingestionEvents$,
   } = kit.getObservables(transcript);
+  // Preview notifications remain live-only; content views read the mapped history above.
+  const transcriptEvents$ = ingestionEvents$.pipe(
+    filter(event => event.type === 'provisional' || event.type === 'segment'),
+    map(event =>
+      event.type === 'segment'
+        ? { type: 'final' as const, text: event.segment.text }
+        : { type: 'provisional' as const, text: event.text ?? '' }
+    )
+  );
   const { state$: notesState$, markdown$ } = kit.getObservables(notesPlugin);
   const closed = new Subject<void>();
   const state$ = property(

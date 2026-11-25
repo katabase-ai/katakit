@@ -1,7 +1,7 @@
 import * as v from 'valibot';
 import { toJsonSchema } from '@valibot/to-json-schema';
 import { encode } from '@toon-format/toon';
-import type { TranscriptTurn } from '@katakit/transcript-ingestion';
+import type { TranscriptionSegment } from '@katakit/transcription';
 
 const noteText = v.pipe(v.string(), v.minLength(1), v.maxLength(500), v.regex(/\S/));
 const noteItem = v.strictObject({ id: v.string(), text: noteText });
@@ -141,7 +141,7 @@ export const createNotesRequest = ({
   connection,
 }: {
   notes: Note[];
-  turns: TranscriptTurn[];
+  turns: TranscriptionSegment[];
   cursor: number;
   connection: NotesConnection;
 }) => {

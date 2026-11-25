@@ -301,9 +301,9 @@ This cleanup covers React's subscriptions. It does not stop a runtime, release s
 
 For a view that reads several bound streams, create a stable
 `combineLatest([firstState$, secondState$])` from RxJS and pass it to the boundary's `source$`.
-The [browser bingo runtime](https://github.com/katabase-ai/katakit/blob/main/examples/demos/bingo-react/src/createBrowserBingoDemo.ts)
-also demonstrates combining transcript and board state into one view stream. Its synchronous
-transcript bridge owns a separate subscription and releases it when the runtime closes.
+The [Bingo session](https://github.com/katabase-ai/katakit/blob/main/examples/demos/bingo-react/src/bingo/createBingoSession.ts)
+keeps a stable microphone sink across rounds. Its board and transcript views follow the
+current runtime; a new deal disconnects them from the previous round.
 
 For a source without a synchronous initial emission, [`bind`](https://react-rxjs.org/docs/api/core/bind) accepts a default value, or `Subscribe` can display a `fallback` while waiting. Choose an intentional initial UI. The example above uses a replaying property and needs neither a fabricated default nor custom Suspense handling.
 

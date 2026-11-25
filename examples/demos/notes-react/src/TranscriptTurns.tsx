@@ -1,6 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import type { TranscriptTurn } from '@katakit/transcript-ingestion';
+import type { TranscriptionSegment } from '@katakit/transcription';
 import { combineLatest, type Observable } from 'rxjs';
+
+type PendingTurn = Pick<TranscriptionSegment, 'text' | 'startMs'>;
 
 const formatTime = (ms?: number) => {
   if (ms === undefined) return undefined;
@@ -19,15 +21,15 @@ export const TranscriptTurns = ({
 }: {
   /** The transcript ingestion plugin's observables. */
   transcript: {
-    conversationTurns$: Observable<TranscriptTurn[]>;
-    currentTurn$: Observable<TranscriptTurn | undefined>;
+    conversationTurns$: Observable<TranscriptionSegment[]>;
+    currentTurn$: Observable<PendingTurn | undefined>;
     provisional$: Observable<string | undefined>;
   };
   /** A short note about the transcript, shown beneath its turns. */
   children?: ReactNode;
 }) => {
   const [state, setState] = useState<{
-    turns: TranscriptTurn[];
+    turns: (TranscriptionSegment | PendingTurn)[];
     provisional?: string;
   }>({ turns: [] });
   useEffect(() => {
@@ -55,7 +57,7 @@ export const TranscriptTurns = ({
           .map((turn, index) => ({ turn, number: index + 1 }))
           .toReversed()
           .map(({ turn, number }) => (
-            <article className="transcript-turn" key={turn.id}>
+            <article className="transcript-turn" key={'id' in turn ? String(turn.id) : 'pending'}>
               <span className="transcript-turn-index">{String(number).padStart(2, '0')}</span>
               <p>{turn.text}</p>
               <time>{formatTime(turn.startMs)}</time>

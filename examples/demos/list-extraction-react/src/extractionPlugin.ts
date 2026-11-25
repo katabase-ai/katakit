@@ -1,7 +1,5 @@
-import { makeKatakitPlugin, property } from '@katakit/core';
-import type { makeEventLogPlugin } from '@katakit/event-log';
-import type { TranscriptTurn } from '@katakit/transcript-ingestion';
-import { scan, shareReplay, startWith, Subject, takeUntil } from 'rxjs';
+import { EventLogPlugin, makeKatakitPlugin, property } from '@katakit/core';
+import { map, scan, shareReplay, startWith, Subject, takeUntil } from 'rxjs';
 import * as v from 'valibot';
 import {
   defaultRules,
@@ -21,7 +19,7 @@ export const ExtractionEventSchema = v.variant('type', [
       speaker: v.optional(v.string()),
       startMs: v.optional(v.number()),
       endMs: v.optional(v.number()),
-    }) satisfies v.GenericSchema<TranscriptTurn>,
+    }),
   }),
   v.strictObject({ type: v.literal('rulesChanged'), rules: RulesSchema }),
   v.strictObject({
@@ -40,6 +38,25 @@ export const ExtractionEventSchema = v.variant('type', [
   v.strictObject({ type: v.literal('sessionCleared') }),
 ]);
 export type ExtractionEvent = v.InferOutput<typeof ExtractionEventSchema>;
+export type TranscriptTurn = Extract<ExtractionEvent, { type: 'transcriptTurn' }>['turn'];
+export const readExtractionEvent = (record: unknown, index: number) => {
+  // Payload-only histories predate core metadata. Preserve order; epoch denotes unknown time.
+  if (typeof record === 'object' && record !== null && !('meta' in record))
+    return {
+      ...v.parse(ExtractionEventSchema, record),
+      meta: { seq: index, timestamp: new Date(0) },
+    };
+  const { meta, ...payload } = v.parse(
+    v.looseObject({
+      meta: v.object({
+        seq: v.pipe(v.number(), v.integer(), v.minValue(0)),
+        timestamp: v.pipe(v.union([v.date(), v.pipe(v.string(), v.isoTimestamp())]), v.toDate()),
+      }),
+    }),
+    record
+  );
+  return { ...v.parse(ExtractionEventSchema, payload), meta };
+};
 export type ExtractionContent = {
   rules: ListRule[];
   turns: TranscriptTurn[];
@@ -47,16 +64,15 @@ export type ExtractionContent = {
 };
 
 /** All durable content is projected from events. No replay runs inference or allocates IDs. */
-export const makeExtractionPlugin = (
-  EventLog: ReturnType<typeof makeEventLogPlugin<ExtractionEvent>>
-) =>
+export const makeExtractionPlugin = () =>
   makeKatakitPlugin({
     type: 'ListExtraction',
     configure: (_options: {}) => ({ closed: new Subject<void>() }),
     observables: ({ options, getObservables }) => {
       const initial: ExtractionContent = { rules: v.parse(RulesSchema, defaultRules), turns: [] };
       const content$ = property(
-        getObservables(EventLog).events$.pipe(
+        getObservables(EventLogPlugin).events$.pipe(
+          map(readExtractionEvent),
           scan((content: ExtractionContent, event): ExtractionContent => {
             switch (event.type) {
               case 'transcriptTurn':
@@ -100,7 +116,8 @@ export const makeExtractionPlugin = (
       return { content$ };
     },
     methods: ({ options, getMethods }) => ({
-      record: (event: ExtractionEvent) => getMethods(EventLog).emitEvent(event),
+      record: (event: ExtractionEvent) =>
+        getMethods(EventLogPlugin).emitEvent(v.parse(ExtractionEventSchema, event)),
       close: () => {
         options.closed.next();
         options.closed.complete();
