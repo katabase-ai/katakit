@@ -1,11 +1,11 @@
 import {
-  makeKatakit,
+  EventLogPlugin,
   makeKatakitPlugin,
   optionalProperty,
   property,
   skipReplay,
 } from '@katakit/core';
-import { makeEventLogPlugin } from '@katakit/event-log';
+import type { ProvisionalUtterance, Utterance } from './events';
 import {
   Observable,
   ReplaySubject,
@@ -47,15 +47,15 @@ export type TranscriptState = {
   currentTurn: TranscriptTurn | undefined;
 };
 /**
- * Connect to a caller-owned @katakit/event-log runtime. The stream must replay its
+ * Connect to a caller-owned core EventLogPlugin runtime. The stream must replay its
  * complete ordered history synchronously; emitEvent must validate and publish synchronously.
  * Validate restored history before constructing the runtime. Mappings must round-trip
  * all recorded variants; return undefined only for unrelated host events.
  */
-export type TranscriptEventLog<TEvent> = {
+export type TranscriptEventLog<TEvent, TInput = TEvent> = {
   events$: Observable<TEvent>;
-  emitEvent: (event: TEvent) => void;
-  toEvent: (event: TranscriptRecordedEvent) => TEvent;
+  emitEvent: (event: TInput) => void;
+  toEvent: (event: TranscriptRecordedEvent) => TInput;
   fromEvent: (event: TEvent) => TranscriptRecordedEvent | undefined;
 };
 const emptyState = (): TranscriptState => ({
@@ -96,6 +96,46 @@ export const parseTranscriptRecordedEvent = (value: unknown): TranscriptRecorded
   return event;
 };
 const validateRecord = parseTranscriptRecordedEvent;
+
+/** Map canonical records to core-log payloads. Core adds metadata only on live emission. */
+export const toTranscriptIngestionEvent = (event: TranscriptRecordedEvent) => {
+  validateRecord(event);
+  switch (event.type) {
+    case 'segment':
+      return { ...event.segment, type: 'utteranceAdded' as const };
+    case 'turn':
+      return { ...event.turn, type: 'conversationTurnAdded' as const };
+    case 'reset':
+      return { type: 'transcriptReset' as const };
+  }
+};
+
+/**
+ * Validate/map core transcript payloads, ignoring unrelated records and legacy provisional
+ * records. Legacy utterances/turns without sourceId use the stable source `default`.
+ * The host separately validates metadata and other application event variants.
+ */
+export const fromTranscriptIngestionEvent = (
+  value: unknown
+): TranscriptRecordedEvent | undefined => {
+  if (!value || typeof value !== 'object') return undefined;
+  const event = value as Record<string, unknown>;
+  if (event.type === 'transcriptReset') return { type: 'reset' };
+  if (event.type !== 'utteranceAdded' && event.type !== 'conversationTurnAdded') return undefined;
+  const content = {
+    id: event.id,
+    sourceId: event.sourceId === undefined ? 'default' : event.sourceId,
+    text: event.text,
+    ...(event.speaker === undefined ? {} : { speaker: event.speaker }),
+    ...(event.startMs === undefined ? {} : { startMs: event.startMs }),
+    ...(event.endMs === undefined ? {} : { endMs: event.endMs }),
+  };
+  return parseTranscriptRecordedEvent(
+    event.type === 'utteranceAdded'
+      ? { type: 'segment', segment: content }
+      : { type: 'turn', turn: content }
+  );
+};
 /**
  * Pure projection for hosts deriving other content from the same log. Segment identity
  * is (sourceId,id); reset starts a fresh identity scope. Raw segment-only snapshots
@@ -139,17 +179,17 @@ export const reduceTranscriptEvent = (
 };
 /**
  * Assemble source-neutral segments from a caller's event log. Without eventLog, a
- * private in-memory @katakit/event-log preserves the original zero-configuration API.
+ * runtime's built-in core EventLogPlugin is the content authority.
  * Only live ingest starts silence timers. close drains live pending input, cancels the
  * timer and releases this plugin's subscriptions; it does not stop host audio or the log.
  */
-export const makeTranscriptIngestionPlugin = <TEvent = never>({
+export const makeTranscriptIngestionPlugin = <TEvent = never, TInput = TEvent>({
   turnSilenceMs = 1400,
   eventLog,
   forward,
 }: {
   turnSilenceMs?: number;
-  eventLog?: TranscriptEventLog<TEvent>;
+  eventLog?: TranscriptEventLog<TEvent, TInput>;
   /** Legacy live notification sink; not a content authority. Prefer eventLog. */
   forward?: {
     createEvent: (event: TranscriptEvent) => TEvent | undefined;
@@ -160,41 +200,34 @@ export const makeTranscriptIngestionPlugin = <TEvent = never>({
     throw new Error('turnSilenceMs must be a nonnegative number');
   const controlKey = Symbol('transcript-controls');
   type Controls = {
-    append: (event: TranscriptRecordedEvent) => void;
+    append: ((event: TranscriptRecordedEvent) => void) | undefined;
     provisional: Subject<Extract<TranscriptEvent, { type: 'provisional' }>>;
+    provisionalUtterance: Subject<ProvisionalUtterance | null>;
     stop: Subject<void>;
   };
   return makeKatakitPlugin({
     type: 'TranscriptIngestion',
     configure: (_options: {}) => ({}),
-    observables: () => {
-      const local = makeEventLogPlugin<TranscriptRecordedEvent>({
-        validateEvent: {
-          '~standard': {
-            version: 1,
-            vendor: 'transcript-ingestion',
-            validate: value => ({ value: validateRecord(value as TranscriptRecordedEvent) }),
-          },
-        },
-      });
-      const runtime = eventLog
-        ? undefined
-        : makeKatakit({ plugins: [local.configure({ initialEvents: [] })] }).start();
+    observables: ({ getObservables }) => {
       const source$ = eventLog
         ? eventLog.events$.pipe(
             map(eventLog.fromEvent),
             filter((event): event is TranscriptRecordedEvent => event !== undefined),
             map(validateRecord)
           )
-        : runtime!.getObservables(local).events$;
+        : getObservables(EventLogPlugin).events$.pipe(
+            map(fromTranscriptIngestionEvent),
+            filter((event): event is TranscriptRecordedEvent => event !== undefined)
+          );
       const records$ = new Observable<TranscriptRecordedEvent>(subscriber =>
         source$.subscribe(subscriber)
       );
       const append = eventLog
         ? (event: TranscriptRecordedEvent) => eventLog.emitEvent(eventLog.toEvent(event))
-        : runtime!.getMethods(local).emitEvent;
+        : undefined;
       const stop = new ReplaySubject<void>(1);
       const provisional = new Subject<Extract<TranscriptEvent, { type: 'provisional' }>>();
+      const provisionalUtterance = new Subject<ProvisionalUtterance | null>();
       const state$ = property(
         records$.pipe(
           scan((state, event) => reduceTranscriptEvent(state, event, turnSilenceMs), emptyState()),
@@ -225,7 +258,7 @@ export const makeTranscriptIngestionPlugin = <TEvent = never>({
         merge(
           provisional.pipe(map(event => event.text)),
           records$.pipe(
-            filter(event => event.type === 'reset'),
+            skipReplay(),
             map(() => undefined)
           )
         ).pipe(
@@ -241,8 +274,36 @@ export const makeTranscriptIngestionPlugin = <TEvent = never>({
         )
       );
       const events$ = merge(records$.pipe(skipReplay()), provisional).pipe(takeUntil(stop));
+      const provisionalUtterance$ = property(
+        merge(
+          provisionalUtterance,
+          provisional.pipe(
+            filter(event => event.text === undefined),
+            map(() => null)
+          ),
+          records$.pipe(
+            skipReplay(),
+            map(() => null)
+          )
+        ).pipe(startWith(null), takeUntil(stop), shareReplay({ bufferSize: 1, refCount: true }))
+      );
+      const pendingConversationTurn$ = property(
+        state$.pipe(map(state => state.currentTurn ?? null))
+      );
+      const utterances$ = records$.pipe(
+        filter(event => event.type === 'segment'),
+        map(event => event.segment),
+        takeUntil(stop)
+      );
+      const conversationTurnEvents$ = records$.pipe(
+        filter(event => event.type === 'turn'),
+        map(event => event.turn),
+        takeUntil(stop)
+      );
       // Recorder wrappers proxy streams but replace the observable collection.
-      Object.defineProperty(state$, controlKey, { value: { append, provisional, stop } });
+      Object.defineProperty(state$, controlKey, {
+        value: { append, provisional, provisionalUtterance, stop },
+      });
       const observables = {
         state$,
         segments$,
@@ -251,13 +312,31 @@ export const makeTranscriptIngestionPlugin = <TEvent = never>({
         provisional$,
         lastHeard$,
         events$,
+        utterances$,
+        collectedUtterances$: segments$,
+        collectedConversationTurns$: conversationTurns$,
+        conversationTurnEvents$,
+        pendingConversationTurn$,
+        provisionalUtterance$,
+        provisionalUtterances$: provisionalUtterance$.pipe(
+          filter((value): value is ProvisionalUtterance => value !== null)
+        ),
       };
       return observables;
     },
-    methods: ({ observables }) => {
-      const { append, provisional, stop } = (
-        observables.state$ as typeof observables.state$ & { [controlKey]: Controls }
-      )[controlKey];
+    methods: ({ observables, getMethods }) => {
+      const {
+        append: mappedAppend,
+        provisional,
+        provisionalUtterance,
+        stop,
+      } = (observables.state$ as typeof observables.state$ & { [controlKey]: Controls })[
+        controlKey
+      ];
+      const append =
+        mappedAppend ??
+        ((event: TranscriptRecordedEvent) =>
+          getMethods(EventLogPlugin).emitEvent(toTranscriptIngestionEvent(event)));
       let timer: ReturnType<typeof setTimeout> | undefined;
       let closed = false;
       let livePending = false;
@@ -289,31 +368,41 @@ export const makeTranscriptIngestionPlugin = <TEvent = never>({
           livePending = false;
         }
       });
+      const ingestSegment = (segment: TranscriptSegment) => {
+        if (closed) return;
+        if (observables.segments$.get().some(existing => identity(existing) === identity(segment)))
+          return;
+        const text = segment.text.trim();
+        if (!text) return;
+        validateRecord({ type: 'segment', segment });
+        const current = observables.currentTurn$.get();
+        if (current && boundary(current, segment, turnSilenceMs)) flush();
+        clearProvisional();
+        publish({ type: 'segment', segment: { ...segment, text } });
+        livePending = true;
+        cancelTimer();
+        timer = setTimeout(flush, turnSilenceMs);
+      };
+      const updateProvisionalUtterance = (utterance: ProvisionalUtterance) => {
+        if (closed) return;
+        const text = utterance.text.trim();
+        publish({ type: 'provisional', text: text || undefined });
+        provisionalUtterance.next(text ? { ...utterance, text } : null);
+      };
       return {
         reset: () => {
           if (closed) return;
           publish({ type: 'reset' });
         },
         updateProvisional: (text: string) => {
-          if (!closed) publish({ type: 'provisional', text: text.trim() || undefined });
+          updateProvisionalUtterance({ text });
         },
-        ingestSegment: (segment: TranscriptSegment) => {
-          if (closed) return;
-          if (
-            observables.segments$.get().some(existing => identity(existing) === identity(segment))
-          )
-            return;
-          const text = segment.text.trim();
-          if (!text) return;
-          validateRecord({ type: 'segment', segment });
-          const current = observables.currentTurn$.get();
-          if (current && boundary(current, segment, turnSilenceMs)) flush();
-          clearProvisional();
-          publish({ type: 'segment', segment: { ...segment, text } });
-          livePending = true;
-          cancelTimer();
-          timer = setTimeout(flush, turnSilenceMs);
-        },
+        ingestSegment,
+        /** Accept the core utterance shape; omitted sourceId uses the stable `default` source. */
+        ingestUtterance: (utterance: Utterance) =>
+          ingestSegment({ ...utterance, sourceId: utterance.sourceId ?? 'default' }),
+        /** Provisional speaker/text are transient and are never recorded. */
+        updateProvisionalUtterance,
         /** Explicitly finalize even a hydrated pending turn; no-op after close. */
         flush,
         /** Flush live input only, then release timers/readers. Host stops and drains its sources first. */
@@ -327,6 +416,7 @@ export const makeTranscriptIngestionPlugin = <TEvent = never>({
           stop.next();
           stop.complete();
           provisional.complete();
+          provisionalUtterance.complete();
         },
       };
     },

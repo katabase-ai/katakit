@@ -232,7 +232,7 @@ are not copied into spans.
 
 ## React-RxJS bindings
 
-Use [React-RxJS](https://react-rxjs.org/docs/getting-started) to render runtime observables. Install `@react-rxjs/core`, `rxjs`, `react`, and `react-dom` in the application alongside its Katakit packages. The example below also uses `@katakit/event-log` and `valibot`.
+Use [React-RxJS](https://react-rxjs.org/docs/getting-started) to render runtime observables. Install `@react-rxjs/core`, `rxjs`, `react`, and `react-dom` in the application alongside its Katakit packages.
 
 `@react-rxjs/core` supplies the `bind` and `Subscribe` APIs used below; it is an external
 library, not a subpath or feature of `@katakit/react`. Applications do not need to install
@@ -247,20 +247,15 @@ This complete client entry point expects an HTML element with `id="root"`:
 ```tsx
 import { createRoot } from 'react-dom/client';
 import { bind, Subscribe } from '@react-rxjs/core';
-import { scan, shareReplay, startWith } from 'rxjs';
-import { makeKatakit, makeKatakitPlugin, property } from '@katakit/core';
-import { makeEventLogPlugin } from '@katakit/event-log';
-import * as v from 'valibot';
-
-const EventLog = makeEventLogPlugin({
-  validateEvent: v.strictObject({ type: v.literal('increment') }),
-});
+import { filter, scan, shareReplay, startWith } from 'rxjs';
+import { EventLogPlugin, makeKatakit, makeKatakitPlugin, property } from '@katakit/core';
 const Counter = makeKatakitPlugin({
   type: 'Counter',
   configure: (options: {}) => options,
   observables: ({ getObservables }) => ({
     count$: property(
-      getObservables(EventLog).events$.pipe(
+      getObservables(EventLogPlugin).events$.pipe(
+        filter(event => event.type === 'increment'),
         scan(count => count + 1, 0),
         startWith(0),
         shareReplay({ bufferSize: 1, refCount: true })
@@ -268,11 +263,11 @@ const Counter = makeKatakitPlugin({
     ),
   }),
   methods: ({ getMethods }) => ({
-    increment: () => getMethods(EventLog).emitEvent({ type: 'increment' }),
+    increment: () => getMethods(EventLogPlugin).emitEvent({ type: 'increment' }),
   }),
 });
 const running = makeKatakit({
-  plugins: [EventLog.configure({ initialEvents: [] }), Counter.configure({})],
+  plugins: [Counter.configure({})],
 }).start();
 const { count$ } = running.getObservables(Counter);
 const { increment } = running.getMethods(Counter);

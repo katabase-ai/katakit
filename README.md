@@ -54,24 +54,14 @@ Read [Why Katakit?](https://katabase.com/docs/why-katakit) for the motivation an
 
 ## A small example
 
-Record a typed event and observe it through the runtime's replayable history. This example uses
-supplied text so you can see the behavior without a microphone or model. It uses Valibot as its
-synchronous Standard Schema validator:
+Record a message and observe it through the runtime's built-in event log:
 
 ```ts
-import { makeKatakit } from '@katakit/core';
-import { makeEventLogPlugin } from '@katakit/event-log';
-import * as v from 'valibot';
+import { EventLogPlugin, makeKatakit } from '@katakit/core';
 
-const EventLog = makeEventLogPlugin({
-  validateEvent: v.strictObject({
-    type: v.literal('message'),
-    text: v.string(),
-  }),
-});
-const kit = makeKatakit({ plugins: [EventLog.configure({ initialEvents: [] })] }).start();
-const { events$ } = kit.getObservables(EventLog);
-const { emitEvent } = kit.getMethods(EventLog);
+const kit = makeKatakit({ plugins: [] }).start();
+const { events$ } = kit.getObservables(EventLogPlugin);
+const { emitEvent } = kit.getMethods(EventLogPlugin);
 
 const subscription = events$.subscribe(event => {
   console.log(event.text);
@@ -83,7 +73,7 @@ console.log(events$.getAll().length); // 1
 subscription.unsubscribe();
 ```
 
-The subscription logs `Let’s map the next steps.`; the history contains one validated event.
+The subscription logs `Let’s map the next steps.`; the recorded message includes its sequence number and timestamp.
 New subscribers receive recorded events before subsequent live events. Plugins can derive
 application state from this history; saving it across visits requires a storage connection.
 
@@ -113,8 +103,7 @@ platform setup, permissions, and current verification.
 | ------------------------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------- |
 | [@katakit/core](https://katabase.com/docs/reference/core)                                         | Runtime | Typed plugin composition, effects, and reactive primitives.                                                    |
 | [@katakit/transcript-ingestion](https://katabase.com/docs/reference/plugins/transcript-ingestion) | Plugin  | Finalized text segments grouped into observable conversation turns.                                            |
-| [@katakit/event-log](https://katabase.com/docs/reference/plugins/event-log)                       | Plugin  | Validated live events and replayable in-memory history.                                                        |
-| [@katakit/persistence](https://katabase.com/docs/reference/plugins/persistence)                   | Plugin  | Batched event writes through your storage callback or browser local storage.                                   |
+| [@katakit/persistence](https://katabase.com/docs/reference/plugins/persistence)                   | Plugin  | Batched event writes through your storage callback.                                                            |
 | [@katakit/transcription](https://katabase.com/docs/reference/transcription)                       | Utility | Moonshine/Whisper recognition, browser microphone and PCM helpers, runtime assets, and an optional React hook. |
 
 The transcription utility works independently of the plugin runtime. Add persistent storage
