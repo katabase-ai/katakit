@@ -216,6 +216,23 @@ test('clear cancels restored pending work, replays empty content, and retains de
   expect(next.state$.value.notes.map(note => note.text)).toEqual(['Orca']);
 });
 
+test('settings cannot silently discard unjudged text in a restored finished round', () => {
+  const history: BrainstormEvent[] = [
+    { type: 'started', roundId: 'round', deadline: 60000 },
+    { type: 'heard', id: 'mic:one', text: 'seal' },
+    { type: 'finishing', at: 10000 },
+    { type: 'finished' },
+  ];
+  const replay = restored(history);
+  expect(replay.state$.value.interrupted).toBe(true);
+  replay.configure({ challengeId: 'animals-02' });
+  expect(historyOf(replay)).toEqual(history);
+  expect(replay.state$.value.segments).toEqual([{ id: 'mic:one', text: 'seal' }]);
+  replay.clear();
+  replay.configure({ challengeId: 'animals-02' });
+  expect(replay.state$.value.challengeId).toBe('animals-02');
+});
+
 test.each([
   null,
   [{ type: 'configured', challengeId: 'missing', seconds: 60 }],

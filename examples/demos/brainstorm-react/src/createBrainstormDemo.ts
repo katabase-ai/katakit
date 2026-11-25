@@ -405,7 +405,8 @@ export const createBrainstormDemo = ({ initialEvents = [] }: { initialEvents?: u
       challengeId?: string;
       seconds?: number | null;
     }) => {
-      if (closed || ['running', 'finishing'].includes(content.phase)) return;
+      if (closed || transient.interrupted || ['running', 'finishing'].includes(content.phase))
+        return;
       if (
         !findChallenge(challengeId) ||
         (seconds !== null && (!Number.isFinite(seconds) || seconds <= 0))

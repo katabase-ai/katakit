@@ -130,7 +130,9 @@ A restored running/finishing round, or a finished round with unjudged text, has 
 `interrupted: true`. Its recorded phase remains intact. Connecting a host or retrying does not
 process this history until an explicit `recover()` command. **Close interrupted round** invokes
 that command: it seals the old input, records completion if necessary, and permits judging only
-the pending transcript suffix with the connected host. It never resumes capture or the old clock.
+the pending transcript suffix with the connected host. Settings stay locked until the round is
+closed or cleared; they cannot silently discard pending input. Recovery never resumes capture or
+the old clock.
 If disconnected, the suffix waits for a later explicit host connection. Already accepted answers
 are not judged again. `clear()` instead aborts pending work and appends a `configured` event,
 resetting the board/transcript/removals/cursor while keeping the selected challenge and duration.
