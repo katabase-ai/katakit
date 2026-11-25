@@ -2,6 +2,11 @@
 
 ## Run it locally
 
+The event-log integration on this branch requires the updated transcript-ingestion
+and core packages. Registry pins remain at `0.1.0`; npm releases and pin updates are required
+before the standalone registry install below includes this API. Contributor copy
+checks use freshly packed local libraries instead.
+
 Copy this demo from GitHub and start it. You need Node.js 24 or newer and pnpm:
 
 ```sh
@@ -63,6 +68,24 @@ current turn. Change models only between recordings: the old model is closed,
 existing turns remain visible, and each recording gets a distinct source ID.
 
 ## Modifying and hosting
+
+`createTranscriptionDemo({ initialEvents })` restores validated in-memory history;
+`getHistory()` returns the ordered log snapshot. `events$` exposes the replaying log,
+and `state$` is a read-only projection, not a writable content store. Each finalized
+segment appears immediately, while silence/Stop records its turn boundary. Replay
+preserves IDs, source, speaker, and timestamps without starting capture, models, or
+timers. Closing a restored-only runtime writes nothing. Fresh input continues its
+pending turn; `reset()` records a reset and permits segment IDs to be reused.
+Persistence remains a host choice; the standalone page still clears on reload.
+The authoritative log is core's built-in `EventLogPlugin`. Restored core metadata is
+validated and retained. Older snapshots without emission metadata receive deterministic
+sequence positions and an epoch metadata timestamp; their source/audio timestamps and IDs
+are unchanged. This adapter accepts `Date` metadata in memory; a storage adapter must decode
+and validate serialized dates before restoration.
+
+Automated tests cover synthetic callback stop/drain, replay/continuation/reset/close,
+and rendering. Manually verify microphone permission, first model download, recording,
+Stop, model switching, and navigation cleanup in a browser for live capture evidence.
 
 Edit `src/App.tsx` for React UI and transcript wiring, `src/controls.tsx` and
 `src/AudioLevelMeter.tsx` for controls, and `src/base.css`, `src/style.css`, and
