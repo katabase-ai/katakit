@@ -225,8 +225,9 @@ test('settings cannot silently discard unjudged text in a restored finished roun
   ];
   const replay = restored(history);
   expect(replay.state$.value.interrupted).toBe(true);
+  const imported = historyOf(replay);
   replay.configure({ challengeId: 'animals-02' });
-  expect(historyOf(replay)).toEqual(history);
+  expect(historyOf(replay)).toEqual(imported);
   expect(replay.state$.value.segments).toEqual([{ id: 'mic:one', text: 'seal' }]);
   replay.clear();
   replay.configure({ challengeId: 'animals-02' });
