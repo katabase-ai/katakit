@@ -64,13 +64,20 @@ export const createListExtractionDemo = ({
   const input = transcriptKit.getMethods(transcript);
   const logged = kit.getMethods(extraction);
   const { content$: extractionContent$ } = kit.getObservables(extraction);
-  const { conversationTurns$, currentTurn$, provisional$ } =
-    transcriptKit.getObservables(transcript);
+  const {
+    state$: transcriptState$,
+    currentTurn$,
+    provisional$,
+  } = transcriptKit.getObservables(transcript);
   const closed$ = new Subject<void>();
   // Use ingestion's canonical log projection for every transcript consumer, including extraction.
   const content$ = property(
-    combineLatest([extractionContent$, conversationTurns$]).pipe(
-      map(([content, turns]) => ({ ...content, turns })),
+    combineLatest([extractionContent$, transcriptState$]).pipe(
+      map(([content, transcript]) => ({
+        ...content,
+        turns: transcript.conversationTurns,
+        current: transcript.currentTurn,
+      })),
       takeUntil(closed$),
       shareReplay({ bufferSize: 1, refCount: true })
     )
@@ -84,10 +91,9 @@ export const createListExtractionDemo = ({
     )
   );
   const state$ = property(
-    combineLatest([content$, currentTurn$, provisional$, request$]).pipe(
-      map(([content, current, provisional, request]) => ({
+    combineLatest([content$, provisional$, request$]).pipe(
+      map(([content, provisional, request]) => ({
         ...content,
-        current,
         provisional,
         request,
         stale:

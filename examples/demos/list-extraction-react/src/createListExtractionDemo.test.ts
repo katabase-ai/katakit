@@ -416,6 +416,20 @@ test('closing hydrated history does not write; repeated close and flush are iner
   expect(vi.getTimerCount()).toBe(0);
 });
 
+test('flush never emits a completed turn that is still displayed as pending', () => {
+  const runtime = create();
+  const duplicates: string[] = [];
+  const subscription = runtime.state$.subscribe(state => {
+    if (state.current && state.turns.some(turn => turn.id === state.current!.id))
+      duplicates.push(state.current.id);
+  });
+  runtime.ingestSegment({ id: 'one', sourceId: 'mic', text: 'A commitment.' });
+  runtime.flush();
+  subscription.unsubscribe();
+  expect(duplicates).toEqual([]);
+  expect(runtime.state$.get().turns).toHaveLength(1);
+});
+
 test('segment-only history uses the canonical transcript projection for extraction sources', async () => {
   const history = [
     { type: 'transcriptSegment', segment: { id: 'one', sourceId: 'first', text: 'First source.' } },
