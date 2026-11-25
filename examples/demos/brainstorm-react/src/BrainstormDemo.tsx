@@ -80,7 +80,7 @@ const BrainstormView = ({
   const challenge = findChallenge(state.challengeId);
   const active = state.phase === 'running' || state.phase === 'finishing';
   const revealed = state.phase !== 'idle';
-  const locked = active || !!setup.step;
+  const locked = active || state.interrupted || !!setup.step;
 
   useEffect(() => {
     if (state.interrupted || state.phase !== 'finishing' || stopping.current === state.roundId)
