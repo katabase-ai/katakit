@@ -2,31 +2,47 @@ import { makeKatakit, property } from '@katakit/core';
 import { makeEventLogPlugin } from '@katakit/event-log';
 import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
 import { combineLatest, map, shareReplay, Subject, takeUntil } from 'rxjs';
-import { NotesEventSchema, type NotesEvent } from './notesEvents';
+import {
+  NotesEventSchema,
+  notesTranscriptEvent,
+  parseNotesHistory,
+  type NotesEvent,
+} from './notesEvents';
 import { makeNotesPlugin } from './notesPlugin';
 
 /** Replaying a visit restores its content; only an explicit connection can start new model work. */
-export const createNotesDemo = ({ initialEvents = [] }: { initialEvents?: NotesEvent[] } = {}) => {
+export const createNotesDemo = ({ initialEvents = [] }: { initialEvents?: unknown } = {}) => {
+  const history = parseNotesHistory(initialEvents);
   const eventLog = makeEventLogPlugin({ validateEvent: NotesEventSchema });
+  const logKit = makeKatakit({ plugins: [eventLog.configure({ initialEvents: history })] }).start();
+  const { events$ } = logKit.getObservables(eventLog);
+  const { emitEvent } = logKit.getMethods(eventLog);
   const transcript = makeTranscriptIngestionPlugin({
-    forward: {
-      createEvent: event =>
-        event.type === 'turn' ? { type: 'transcriptTurn' as const, turn: event.turn } : undefined,
-      emitEvent: event => kit.getMethods(eventLog).emitEvent(event),
+    eventLog: {
+      events$,
+      emitEvent,
+      toEvent: (event): NotesEvent => {
+        switch (event.type) {
+          case 'segment':
+            return { type: 'transcriptSegment', segment: event.segment };
+          case 'turn':
+            return { type: 'transcriptTurn', turn: event.turn };
+          case 'reset':
+            return { type: 'transcriptReset' };
+        }
+      },
+      fromEvent: notesTranscriptEvent,
     },
   });
-  const notesPlugin = makeNotesPlugin({ EventLogPlugin: eventLog });
+  const notesPlugin = makeNotesPlugin({ eventLog: { events$, emitEvent } });
   const kit = makeKatakit({
-    plugins: [
-      eventLog.configure({ initialEvents }),
-      transcript.configure({}),
-      notesPlugin.configure({}),
-    ],
+    plugins: [transcript.configure({}), notesPlugin.configure({})],
   }).start();
   const input = kit.getMethods(transcript);
   const notes = kit.getMethods(notesPlugin);
   const {
     conversationTurns$,
+    segments$,
     currentTurn$,
     provisional$,
     events$: transcriptEvents$,
@@ -53,8 +69,8 @@ export const createNotesDemo = ({ initialEvents = [] }: { initialEvents?: NotesE
     notes,
     state$,
     transcriptEvents$,
-    transcript: { conversationTurns$, currentTurn$, provisional$ },
-    events$: kit.getObservables(eventLog).events$,
+    transcript: { conversationTurns$, segments$, currentTurn$, provisional$ },
+    events$,
     close: () => {
       notes.close();
       input.close();

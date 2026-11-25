@@ -1,5 +1,4 @@
 import { makeEffect, makeKatakitPlugin, property } from '@katakit/core';
-import type { makeEventLogPlugin } from '@katakit/event-log';
 import type { TranscriptTurn } from '@katakit/transcript-ingestion';
 import { delay } from 'es-toolkit';
 import {
@@ -12,6 +11,7 @@ import {
   startWith,
   Subject,
   takeUntil,
+  type Observable,
 } from 'rxjs';
 import { match } from 'ts-pattern';
 import { applyNotesResult } from './applyNotesResult';
@@ -34,9 +34,9 @@ type RequestState =
 
 /** The log owns content. Connections, cancellation and retry state belong to this live visit. */
 export const makeNotesPlugin = ({
-  EventLogPlugin,
+  eventLog,
 }: {
-  EventLogPlugin: ReturnType<typeof makeEventLogPlugin<NotesEvent>>;
+  eventLog: { events$: Observable<NotesEvent>; emitEvent: (event: NotesEvent) => void };
 }) =>
   makeKatakitPlugin({
     type: 'Notes',
@@ -45,14 +45,14 @@ export const makeNotesPlugin = ({
       retry: new Subject<void>(),
       closed: new Subject<void>(),
     }),
-    observables: ({ options, getObservables }) => {
+    observables: ({ options }) => {
       const initial: { notes: Note[]; turns: TranscriptTurn[]; cursor: number } = {
         notes: [],
         turns: [],
         cursor: 0,
       };
       const content$ = property(
-        getObservables(EventLogPlugin).events$.pipe(
+        eventLog.events$.pipe(
           scan(
             (content, event) =>
               match(event)
@@ -66,10 +66,13 @@ export const makeNotesPlugin = ({
                   cursor,
                 }))
                 .with({ type: 'notesCleared' }, ({ cursor }) => ({ ...content, notes: [], cursor }))
+                .with({ type: 'transcriptSegment' }, () => content)
+                .with({ type: 'transcriptReset' }, () => ({ ...content, turns: [], cursor: 0 }))
                 .exhaustive(),
             initial
           ),
           startWith(initial),
+          distinctUntilChanged(),
           takeUntil(options.closed),
           shareReplay({ bufferSize: 1, refCount: true })
         )
@@ -103,9 +106,9 @@ export const makeNotesPlugin = ({
       );
       return { content$, state$, markdown$ };
     },
-    methods: ({ options, observables, getMethods }) => {
+    methods: ({ options, observables }) => {
       const { content$, state$ } = observables;
-      const { emitEvent } = getMethods(EventLogPlugin);
+      const { emitEvent } = eventLog;
       let connection: NotesConnection | undefined;
       let controller: AbortController | undefined;
       let closed = false;

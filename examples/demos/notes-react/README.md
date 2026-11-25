@@ -112,16 +112,38 @@ client build output. It sets local dev/preview headers; your production server o
 
 ## Behavior and verification
 
-`createNotesDemo({ initialEvents })` registers `@katakit/event-log` with `NotesEventSchema`.
-Finalized transcript turns append `transcriptTurn` events. Each validated model result appends a
+`createNotesDemo({ initialEvents })` validates restored history before starting the runtime and
+registers `@katakit/event-log` with `NotesEventSchema`. Finalized recognition segments append
+`transcriptSegment` events; assembled turns append `transcriptTurn` events. Each validated model result appends a
 `notesUpdated` event containing the complete accepted outline, stable IDs, and processed-turn cursor.
 Clear appends `notesCleared` with the current cursor. The notes plugin derives content from these
 events. Admission, retries, cancellation, and errors remain transient.
 
-Read `runtime.events$.getAll()` to capture the event history. Validate serialized history with
-`NotesEventSchema` before supplying it as `initialEvents`. Replay restores the outline and original
-transcript without generating IDs or calling a model. An explicit connection can process turns
-remaining after the recorded cursor. The example keeps its history in memory for one visit.
+Read `runtime.events$.getAll()` to capture the event history. Supply that array (or parsed JSON)
+as `initialEvents` to restore a visit. `parseNotesHistory` checks event shapes, duplicate segment/turn
+identities, segment/turn consistency, unique outline IDs, and ordered cursors bounded by the
+recorded turns. Restore the complete event sequence, including turn boundaries; do not filter it
+down to segments alone. Invalid history
+throws before the runtime starts. Replay restores the outline, Markdown, finalized segments,
+completed turns, and unfinished turn without generating IDs, calling a model, starting silence
+timers, or appending events. The exposed `runtime.transcript` views and `runtime.state$` read the
+same history. Provisional recognition and expiring preview lines are not restored.
+
+Fresh input continues a restored unfinished turn with its original ID. Segment identities prevent
+retransmission from duplicating content, including after restoration. Older turn-only histories
+remain readable, but cannot deduplicate segment IDs that they never recorded. An explicit
+connection can process turns remaining after the recorded cursor; already processed or cleared
+turns are not processed again. Clearing notes preserves the transcript. The example keeps its
+history in memory for one visit and does not add browser persistence.
+
+```ts
+const history = JSON.parse(JSON.stringify(runtime.events$.getAll()));
+const restored = createNotesDemo({ initialEvents: history });
+// Host admission is still explicit: restored.notes.connect(connection).
+restored.ingestSegment({ sourceId: 'host', id: 'next-segment', text: 'A fresh idea.' });
+restored.flush();
+restored.close();
+```
 
 Markdown is a projection of the structured outline. The model still returns validated additions
 and rewords. A thin Transcript column sits to the right of the notes and stays in view as they grow.
@@ -139,6 +161,8 @@ before advancing the cursor. Clearing notes aborts the request and discards late
 Unmounting aborts admission and model requests immediately. The input owner then drains capture
 before closing the runtime. The gallery retains a ready recognizer across routes; standalone
 unmount releases it. Pending microphone permission is cancelled, including late grants.
+Closing a restored visit without new input does not finalize its unfinished turn; explicit `flush`
+or new input resumes live assembly. Closing live ingestion drains its turn and cancels its timer.
 
 ## Copy outside the workspace
 

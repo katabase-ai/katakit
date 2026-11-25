@@ -3,7 +3,8 @@
 `createNotesDemo.ts` owns one visit's runtime. `NotesDemo.tsx` renders it. `useNotesConnection.ts`
 owns admission while the host is listening, retry, and visit cancellation.
 `App.tsx` owns standalone capture through `useMicrophoneTranscriber`; the gallery supplies shared input.
-`notesEvents.ts` defines finalized turns, accepted outlines, and clears. `notesPlugin.ts` derives
+`notesEvents.ts` defines finalized segments/turns, accepted outlines, and clears, and validates
+restored histories before runtime construction. `notesPlugin.ts` derives
 the outline, processed-turn cursor, and Markdown from that log. `applyNotesResult.ts` validates a
 whole model result and copies the accepted outline without mutating recorded events. `notesModel.ts` owns the public
 host contract, prompt, schema, and wire sizing.
@@ -23,6 +24,10 @@ Record IDs and cursors with accepted outlines. Replay restores content without g
 calling a model. Keep connection, retry, and cancellation state outside the log. Bound only the
 visible transcript by age; inference retains all finalized turns. Hosts place model controls and errors
 through `renderModelControls`; the Markdown output contains only notes.
+The ingestion adapter reads and appends the same caller-owned log. Its segment, completed-turn,
+and unfinished-turn views must hydrate alongside notes; replay must not start silence/display timers.
+Notes clear leaves transcript history intact. Preserve old turn-only histories, while new segment
+events provide retransmission deduplication across restoration.
 
 Retain all pending finalized turns across single-flight requests. Advance the cursor only after
 validated output. Rewords replace existing note text; they never rewrite the transcript.
