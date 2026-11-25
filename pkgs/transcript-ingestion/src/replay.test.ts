@@ -12,7 +12,7 @@ const segment = (id: string, text = id, sourceId = 'mic'): TranscriptRecordedEve
   type: 'segment',
   segment: { id, text, sourceId, speaker: 'Ada', startMs: 10, endMs: 20 },
 });
-const setup = (history: unknown[] = []) => {
+const setup = (history: unknown[] = [], rejectTurns = false) => {
   const runtime = makeKatakit({
     plugins: [],
     existingEvents: history.map((value, seq) => ({
@@ -24,8 +24,10 @@ const setup = (history: unknown[] = []) => {
   const withoutMeta = ({ meta: _meta, ...event }: Record<string, unknown>) =>
     parseTranscriptRecordedEvent(event);
   const events$ = logEvents$.pipe(map(withoutMeta));
-  const emitEvent = (event: TranscriptRecordedEvent) =>
+  const emitEvent = (event: TranscriptRecordedEvent) => {
+    if (rejectTurns && event.type === 'turn') throw new Error('Turn rejected');
     runtime.getMethods(EventLogPlugin).emitEvent(parseTranscriptRecordedEvent(event));
+  };
   const transcript = makeTranscriptIngestionPlugin({
     turnSilenceMs: 1000,
     eventLog: { events$, emitEvent, toEvent: event => event, fromEvent: event => event },
@@ -174,4 +176,37 @@ it('keeps method ownership when the devtools hook wraps the observable collectio
   } finally {
     Reflect.deleteProperty(globalThis, key);
   }
+});
+
+it.each(['close', 'reset'] as const)(
+  'does not rearm a timer when a synchronous consumer requests %s',
+  action => {
+    vi.useFakeTimers();
+    const t = setup();
+    t.events$.subscribe(event => {
+      if (event.type === 'segment') t[action]();
+    });
+    t.ingestSegment({ sourceId: 'mic', id: 'one', text: 'accepted' });
+    expect(vi.getTimerCount()).toBe(0);
+    expect(t.currentTurn$.get()).toBeUndefined();
+    expect(t.conversationTurns$.get().map(turn => turn.text)).toEqual(
+      action === 'close' ? ['accepted'] : []
+    );
+    t.close();
+  }
+);
+
+it('releases readers and rejects later input even when the host rejects the final close write', () => {
+  vi.useFakeTimers();
+  const t = setup([], true);
+  t.ingestSegment({ sourceId: 'mic', id: 'one', text: 'accepted' });
+  const complete = vi.fn();
+  t.events$.subscribe({ complete });
+  expect(() => t.close()).toThrow('Turn rejected');
+  expect(complete).toHaveBeenCalledOnce();
+  expect(vi.getTimerCount()).toBe(0);
+  t.ingestSegment({ sourceId: 'mic', id: 'two', text: 'ignored' });
+  t.close();
+  t.flush();
+  expect(t.history().map(event => event.type)).toEqual(['segment']);
 });

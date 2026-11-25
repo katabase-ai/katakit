@@ -70,7 +70,7 @@ const TranscriptIngestionPlugin = makeTranscriptIngestionPlugin({
 `fromEvent` maps those host records back and returns `undefined` for unrelated events.
 Core's emitter does not validate writes. When supplying `eventLog`, wrap `emitEvent` with
 the host's synchronous validator (for example, Standard Schema) before calling core's emitter.
-Before supplying `initialEvents`, validate the entire restored array with the host schema;
+Before supplying core's `existingEvents`, validate the entire restored array with the host schema;
 `parseTranscriptRecordedEvent(unknown)` validates transcript records and throws on malformed
 identity, text, speaker, or nonfinite timestamps. It does not generate IDs or normalize saved text.
 The ingestion projection validates mapped records too, but cannot validate unrelated host content.
@@ -100,6 +100,12 @@ canonical transcript records; `toTranscriptIngestionEvent` performs the inverse 
 The host still validates core metadata and other event variants. Legacy records lacking
 `sourceId` use the stable `default` source. Legacy `provisionalUtteranceAdded` records are
 ignored on replay, and new provisional updates are never logged.
+
+If core adds metadata to your host events, use the separate read/write type parameters
+`makeTranscriptIngestionPlugin<HostEventWithMeta, HostInput>`. Mapping receives a canonical
+record and produces `HostInput`; the replaying observable delivers `HostEventWithMeta`.
+If a mapped host rejects the final turn on close, the error is rethrown after readers and
+timers are released. Accepted pending segments remain in the log for a future restore.
 
 `ingestUtterance` and `updateProvisionalUtterance` accept the core-style input names.
 `collectedUtterances$` aliases `segments$`, and `collectedConversationTurns$` aliases the
