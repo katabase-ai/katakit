@@ -7,8 +7,8 @@ import {
 } from './extractionModel';
 
 const runtimes: ListExtractionRuntime[] = [];
-const create = () => {
-  const runtime = createListExtractionDemo();
+const create = (initialEvents?: unknown) => {
+  const runtime = createListExtractionDemo({ initialEvents });
   runtimes.push(runtime);
   return runtime;
 };
@@ -261,5 +261,157 @@ test('visit close completes content and transient projections and cancels ingest
   expect(vi.getTimerCount()).toBe(1);
   runtime.close();
   expect(complete).toHaveBeenCalledOnce();
+  expect(vi.getTimerCount()).toBe(0);
+});
+
+test('restored pending segments retain identity without replay timers or duplicate events', () => {
+  vi.useFakeTimers();
+  const live = create();
+  const first = { id: 'first', sourceId: 'mic', speaker: 'Sam', text: 'We should', startMs: 10 };
+  live.ingestSegment(first);
+  live.updateProvisional('transient hypothesis');
+  const history = JSON.parse(JSON.stringify(live.events$.getAll()));
+  const pending = live.state$.get().current;
+  live.close();
+  const replay = create(history);
+  expect(replay.state$.get().current).toEqual(pending);
+  expect(replay.state$.get().provisional).toBeUndefined();
+  expect(replay.events$.getAll()).toEqual(history);
+  expect(vi.getTimerCount()).toBe(0);
+  replay.ingestSegment(first);
+  expect(replay.events$.getAll()).toEqual(history);
+  replay.ingestSegment({
+    id: 'second',
+    sourceId: 'mic',
+    speaker: 'Sam',
+    text: 'email Sam.',
+    endMs: 50,
+  });
+  replay.flush();
+  expect(replay.state$.get().turns).toEqual([
+    { ...pending, text: 'We should email Sam.', endMs: 50 },
+  ]);
+  const restored = create(JSON.parse(JSON.stringify(replay.events$.getAll())));
+  expect(restored.state$.get()).toEqual(replay.state$.get());
+  restored.ingestSegment(first);
+  restored.flush();
+  expect(restored.events$.getAll()).toEqual(replay.events$.getAll());
+});
+
+test('clear discards pending input once, retains rules and allows segment IDs in a new session', () => {
+  vi.useFakeTimers();
+  const live = create();
+  live.loadSample();
+  live.setRules([{ ...live.state$.get().rules[0]!, name: 'My actions' }]);
+  const segment = { id: 'one', sourceId: 'mic', text: 'A fresh commitment.' };
+  live.ingestSegment(segment);
+  live.updateProvisional('discard this');
+  live.clear();
+  expect(live.events$.getAll().filter(event => event.type === 'sessionCleared')).toHaveLength(1);
+  expect(live.state$.get()).toMatchObject({
+    turns: [],
+    current: undefined,
+    provisional: undefined,
+  });
+  expect(live.state$.get().result).toBeUndefined();
+  expect(vi.getTimerCount()).toBe(0);
+  const replay = create(JSON.parse(JSON.stringify(live.events$.getAll())));
+  expect(replay.state$.get()).toEqual(live.state$.get());
+  for (const runtime of [live, replay]) {
+    runtime.ingestSegment(segment);
+    runtime.flush();
+  }
+  expect(replay.state$.get()).toEqual(live.state$.get());
+  expect(replay.events$.getAll()).toEqual(live.events$.getAll());
+  expect(replay.state$.get().turns).toHaveLength(1);
+  expect(replay.state$.get().rules[0]!.name).toBe('My actions');
+});
+
+test('duplicate recorded turns are projected once and legacy history continues on a new source', () => {
+  const turn = { id: 'recorded-id', sourceId: 'old', text: 'Original speech', speaker: 'Sam' };
+  const history = [
+    { type: 'transcriptTurn', turn },
+    { type: 'transcriptTurn', turn },
+  ];
+  const replay = create(history);
+  expect(replay.state$.get().turns).toEqual([turn]);
+  expect(replay.events$.getAll()).toEqual(history);
+  replay.ingestSegment({ id: 'new', sourceId: 'other', text: 'New speech' });
+  replay.flush();
+  expect(replay.state$.get().turns.map(turn => turn.id)).toEqual(['recorded-id', 'other\0new']);
+});
+
+test('restored results remain equivalent through explicit extraction and cancellation', async () => {
+  const live = create();
+  turn(live);
+  await live.extract(async () => connection(async () => response(live)));
+  const id = live.state$.get().result!.items[0]!.id;
+  live.edit(id, 'Reviewed');
+  live.setHidden(id, true);
+  const history = JSON.parse(JSON.stringify(live.events$.getAll()));
+  const replay = create(history);
+  expect(replay.state$.get()).toEqual(live.state$.get());
+  let finish!: (value: unknown) => void;
+  const request = vi.fn(
+    () =>
+      new Promise(resolve => {
+        finish = resolve;
+      })
+  );
+  const job = replay.extract(async () => connection(request));
+  await Promise.resolve();
+  replay.cancel(true); // Host source/model changes invalidate even a transport ignoring abort.
+  finish(response(replay));
+  await job;
+  expect(replay.events$.getAll()).toEqual(history);
+  expect(replay.state$.get()).toEqual(live.state$.get());
+  expect(request).toHaveBeenCalledOnce();
+});
+
+test('restored history is validated before any ingestion resources start', () => {
+  vi.useFakeTimers();
+  expect(() =>
+    create([{ type: 'transcriptSegment', segment: { id: 'one', text: 'missing source' } }])
+  ).toThrow(/Invalid/);
+  expect(() => create([{ type: 'visibilityChanged', id: 'item', hidden: 'yes' }])).toThrow(
+    /Invalid/
+  );
+  expect(() => create({ events: [] })).toThrow(/Invalid/);
+  expect(vi.getTimerCount()).toBe(0);
+});
+
+test('live and restored pending turns have identical source and speaker boundaries', () => {
+  vi.useFakeTimers();
+  const live = create();
+  live.ingestSegment({ id: 'one', sourceId: 'mic', speaker: 'Sam', text: 'First source.' });
+  const replay = create(JSON.parse(JSON.stringify(live.events$.getAll())));
+  for (const runtime of [live, replay]) {
+    runtime.ingestSegment({ id: 'two', sourceId: 'mic', speaker: 'Lee', text: 'Second speaker.' });
+    runtime.ingestSegment({ id: 'one', sourceId: 'other', speaker: 'Lee', text: 'Second source.' });
+    runtime.flush();
+  }
+  expect(replay.events$.getAll()).toEqual(live.events$.getAll());
+  expect(replay.state$.get()).toEqual(live.state$.get());
+  expect(replay.state$.get().turns.map(turn => turn.id)).toEqual([
+    'mic\0one',
+    'mic\0two',
+    'other\0one',
+  ]);
+});
+
+test('closing hydrated history does not write; repeated close and flush are inert', () => {
+  vi.useFakeTimers();
+  const history = [
+    {
+      type: 'transcriptSegment',
+      segment: { id: 'pending', sourceId: 'mic', text: 'Unfinished turn' },
+    },
+  ];
+  const replay = create(history);
+  replay.close();
+  replay.close();
+  replay.flush();
+  replay.ingestSegment({ id: 'late', sourceId: 'mic', text: 'Too late' });
+  expect(replay.events$.getAll()).toEqual(history);
   expect(vi.getTimerCount()).toBe(0);
 });

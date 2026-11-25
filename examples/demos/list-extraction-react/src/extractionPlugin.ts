@@ -11,17 +11,20 @@ import {
   type ListRule,
 } from './extractionModel';
 
+const TranscriptEntrySchema = v.object({
+  id: v.pipe(v.string(), v.minLength(1)),
+  sourceId: v.pipe(v.string(), v.minLength(1)),
+  text: v.pipe(v.string(), v.minLength(1)),
+  speaker: v.optional(v.string()),
+  startMs: v.optional(v.pipe(v.number(), v.finite())),
+  endMs: v.optional(v.pipe(v.number(), v.finite())),
+}) satisfies v.GenericSchema<TranscriptTurn>;
+
 export const ExtractionEventSchema = v.variant('type', [
+  v.strictObject({ type: v.literal('transcriptSegment'), segment: TranscriptEntrySchema }),
   v.strictObject({
     type: v.literal('transcriptTurn'),
-    turn: v.object({
-      id: v.string(),
-      sourceId: v.string(),
-      text: v.string(),
-      speaker: v.optional(v.string()),
-      startMs: v.optional(v.number()),
-      endMs: v.optional(v.number()),
-    }) satisfies v.GenericSchema<TranscriptTurn>,
+    turn: TranscriptEntrySchema,
   }),
   v.strictObject({ type: v.literal('rulesChanged'), rules: RulesSchema }),
   v.strictObject({
@@ -59,8 +62,12 @@ export const makeExtractionPlugin = (
         getObservables(EventLog).events$.pipe(
           scan((content: ExtractionContent, event): ExtractionContent => {
             switch (event.type) {
+              case 'transcriptSegment':
+                return content;
               case 'transcriptTurn':
-                return { ...content, turns: [...content.turns, event.turn] };
+                return content.turns.some(turn => turn.id === event.turn.id)
+                  ? content
+                  : { ...content, turns: [...content.turns, event.turn] };
               case 'rulesChanged':
                 return { ...content, rules: event.rules };
               case 'extracted':

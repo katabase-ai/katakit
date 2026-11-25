@@ -32,6 +32,11 @@ The gallery's **Run locally** panel pins this command to the host's source revis
 The copy contains its own source, runtime configuration, and registry dependencies.
 No gallery, sibling example, private package, or outside source alias is required.
 
+This migration requires the log-backed `eventLog` API in `@katakit/transcript-ingestion`.
+The currently pinned npm release (`0.1.0`) does not yet provide it: until that API is released
+and the registry pin is updated, use the checkout or the contributor copy check with freshly
+packed libraries. A registry-only copy cannot yet build this revision.
+
 **Try sample** loads an explicitly labeled transcript fixture and preset results without a
 microphone, admission, or model request. Custom instructions have no fixture results. The sample
 does not overwrite real dictation. **Use my own dictation** beside the sample notice clears the
@@ -64,11 +69,25 @@ lists grow; on narrow screens it stacks below the lists and follows normal page 
 ## Behavior and ownership
 
 `createListExtractionDemo` owns a visit's Katakit runtime. It composes transcript ingestion, a
-validated event log, and the local extraction plugin. Rules, finalized turns, accepted results,
+validated event log, and the local extraction plugin. Rules, finalized segments and turns, accepted results,
 text edits, visibility changes, and session clears are logged. Projections derive content and
 Markdown; the log is the sole authority. IDs and evidence are recorded with accepted items.
-Validate serialized events with `ExtractionEventSchema` before passing them as `initialEvents`.
-Replay restores content without calling a model, generating IDs, or restarting capture.
+The factory validates all `initialEvents` with `ExtractionEventSchema` before starting either
+runtime. Transcript ingestion reads that same log, including sample turns and session clears;
+its live notifications are not a second source of transcript history.
+
+For an in-memory restore, take `runtime.events$.getAll()` and pass that snapshot to
+`createListExtractionDemo({ initialEvents })`. A JSON round trip is supported. Replay restores
+rules, pending finalized segments, completed turns, accepted IDs, evidence, edits, and visibility
+without calling a model, allocating replacement IDs, scheduling silence timers, or appending
+events. Provisional recognition text and request/error state are transient and start empty.
+There is no automatic storage or reload persistence.
+
+Recorded source/segment IDs suppress retransmission after restore. A pending turn continues
+with its recorded ID when fresh speech arrives; explicit flush/extraction can finalize it.
+Legacy turn-only history remains readable, but cannot deduplicate segment IDs it never recorded.
+Duplicate turn IDs project once. **New dictation** discards pending input and records one clear
+event, retaining list rules while clearing results and resetting transcript deduplication.
 
 Admission, request cancellation, and error state are transient. Only an explicit **Extract lists**
 calls `connect({ signal })` and `requestCompletion({ body, signal })`. The host supplies `model`,
@@ -93,8 +112,11 @@ new extraction replaces the visible results. Earlier events remain in the visit 
 
 Changing rules, reviewing an item, clearing, cancelling, or unmounting invalidates pending model
 work and discards late responses. Capture start cancels extraction. The input owner stops/drains
-capture before closing the runtime; `close` cancels admission/model work, flushes/closes ingestion,
-and completes its projections and subscriptions. It does not claim a generic core disposal API.
+capture before closing the runtime; `close` cancels admission/model work, flushes live pending
+input, closes ingestion, and completes its projections and subscriptions. Closing a runtime that
+only hydrated history does not append a turn; explicit `flush` can finalize that pending history
+before close. Repeated close and post-close input/flush are inert. This is application-owned
+cleanup, not a generic core disposal API.
 
 ## Gallery integration
 
@@ -113,7 +135,8 @@ pnpm demos:copy-check list-extraction-react
 pnpm demos:copy-check gallery
 ```
 
-Controlled tests cover validation, source integrity, replay, cancellation/late responses,
+Controlled tests cover validation, source integrity, JSON replay equivalence, pending-turn
+continuation, duplicate segments/turns, clear and reuse of segment IDs, cancellation/late responses,
 terminal failures, and source/model changes. Copy checks install/build/test outside the checkout
 and verify runtime assets and isolation headers. They do not establish recognition accuracy,
 model judgment quality, provider latency, or real microphone permissions.

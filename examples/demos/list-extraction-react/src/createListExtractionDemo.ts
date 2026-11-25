@@ -24,27 +24,47 @@ type RequestState = { phase: 'idle' | 'connecting' | 'extracting'; error?: Extra
 /** One visit owns its transcript, event projections, admission, and cancellable on-demand request. */
 export const createListExtractionDemo = ({
   initialEvents = [],
-}: { initialEvents?: ExtractionEvent[] } = {}) => {
+}: { initialEvents?: unknown } = {}) => {
+  // EventLog deliberately trusts initial history; validate before starting any resources.
+  const history = v.parse(v.array(ExtractionEventSchema), initialEvents);
   const EventLog = makeEventLogPlugin({ validateEvent: ExtractionEventSchema });
-  const transcript = makeTranscriptIngestionPlugin({
-    forward: {
-      createEvent: event =>
-        event.type === 'turn' ? { type: 'transcriptTurn' as const, turn: event.turn } : undefined,
-      emitEvent: event => kit.getMethods(EventLog).emitEvent(event),
-    },
-  });
   const extraction = makeExtractionPlugin(EventLog);
   const kit = makeKatakit({
-    plugins: [
-      EventLog.configure({ initialEvents }),
-      transcript.configure({}),
-      extraction.configure({}),
-    ],
+    plugins: [EventLog.configure({ initialEvents: history }), extraction.configure({})],
   }).start();
-  const input = kit.getMethods(transcript);
+  const transcript = makeTranscriptIngestionPlugin<ExtractionEvent>({
+    eventLog: {
+      events$: kit.getObservables(EventLog).events$,
+      emitEvent: kit.getMethods(EventLog).emitEvent,
+      toEvent: event => {
+        switch (event.type) {
+          case 'segment':
+            return { type: 'transcriptSegment', segment: event.segment };
+          case 'turn':
+            return { type: 'transcriptTurn', turn: event.turn };
+          case 'reset':
+            return { type: 'sessionCleared' };
+        }
+      },
+      fromEvent: event => {
+        switch (event.type) {
+          case 'transcriptSegment':
+            return { type: 'segment', segment: event.segment };
+          case 'transcriptTurn':
+            return { type: 'turn', turn: event.turn };
+          case 'sessionCleared':
+            return { type: 'reset' };
+          default:
+            return undefined;
+        }
+      },
+    },
+  });
+  const transcriptKit = makeKatakit({ plugins: [transcript.configure({})] }).start();
+  const input = transcriptKit.getMethods(transcript);
   const logged = kit.getMethods(extraction);
   const { content$ } = kit.getObservables(extraction);
-  const { currentTurn$, provisional$ } = kit.getObservables(transcript);
+  const { currentTurn$, provisional$ } = transcriptKit.getObservables(transcript);
   const closed$ = new Subject<void>();
   const requests = new Subject<RequestState>();
   const request$ = property(
@@ -120,7 +140,6 @@ export const createListExtractionDemo = ({
       if (closed) return;
       cancel();
       input.reset();
-      logged.record({ type: 'sessionCleared' });
     },
     loadSample: () => {
       if (
