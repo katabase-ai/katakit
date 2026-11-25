@@ -14,6 +14,19 @@ const first = {
 const second = { id: 'next', sourceId: 'meeting-1', text: 'Circle back', startMs: 200, endMs: 300 };
 
 describe('extension event-sourced runtime', () => {
+  it('closes the board even when final transcript admission rejects inconsistent source times', () => {
+    vi.useFakeTimers();
+    const panel = createPanelRuntime();
+    const complete = vi.fn();
+    panel.board$.subscribe({ complete });
+    panel.methods.ingestSegment({ ...first, startMs: 100, endMs: 200 });
+    panel.methods.ingestSegment({ ...second, startMs: 0, endMs: 10 });
+    expect(() => panel.close()).toThrow('Invalid transcript record');
+    expect(complete).toHaveBeenCalledOnce();
+    expect(vi.getTimerCount()).toBe(0);
+    panel.close();
+  });
+
   it('imports legacy metadata deterministically and preserves full core metadata on continuation', () => {
     const legacy = createPanelRuntime([first]);
     expect(legacy.events$.getAll()[0]?.meta).toEqual({ seq: 0, timestamp: new Date(0) });

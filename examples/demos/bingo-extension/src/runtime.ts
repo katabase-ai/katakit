@@ -90,8 +90,11 @@ export const createPanelRuntime = (
     close: () => {
       if (closed) return;
       closed = true;
-      methods.close();
-      bingoMethods.close();
+      try {
+        methods.close();
+      } finally {
+        bingoMethods.close();
+      }
     },
   };
 };
