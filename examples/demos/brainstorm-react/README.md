@@ -98,10 +98,49 @@ survive round resets.
 
 ## State and input lifecycle
 
-`createBrainstormDemo` derives board content from a Katakit event log. Events record challenge
+`createBrainstormDemo` derives board content from core's built-in `EventLogPlugin`. Events record challenge
 selection, round start/deadline, finalized text, accepted notes/cursors, removals, and completion.
-Clocks, admission, provisional text, requests, and failures remain transient. History lasts for
-one visit. Notes receive stable IDs when accepted.
+Clocks, admission, provisional text, requests, and failures remain transient. The snapshot subject
+is a delivery cache of the event projection plus that transient state, not a second content store.
+History lasts for one visit. Notes and rounds receive stable IDs only in live commands.
+
+### Restore an in-memory history
+
+An embedding host can collect `BrainstormEvent` values from `runtime.events$` (which replays
+the complete history) and pass their JSON round-trip to
+`createBrainstormDemo({ initialEvents })`. The factory validates both event shapes and history
+ordering before constructing the runtime: known challenges, finite durations/times, unique
+recorded IDs, valid phase transitions, forward-only cursors within the transcript, and note
+evidence backed by recorded qualifying judgments. Invalid history throws; it is not partially loaded.
+
+Core attaches `meta.seq` and `meta.timestamp` to live events. Restoration preserves that metadata,
+revives JSON timestamp strings to `Date`, and requires contiguous zero-based sequence numbers.
+Older histories without metadata receive their array index and an epoch timestamp deterministically;
+replay does not read the wall clock to fabricate historical timestamps. This consumer requires the
+core event-log API introduced in #108; until released, use the packed-library copy check rather
+than the older npm core build. The manifest retains registry version syntax.
+
+Replay preserves recorded round/note IDs, transcript, judgments, removals, and cursor. It does not
+allocate IDs, append events, call a model, start capture, or restart a clock. Segment-delivery
+deduplication is reconstructed from all `heard` events, including earlier rounds. Hosts must use
+fresh source/segment IDs for genuinely new speech. Duplicate final delivery remains a no-op after
+restoration and after clearing the board; removed labels suppress repeated answers within a round.
+
+A restored running/finishing round, or a finished round with unjudged text, has transient
+`interrupted: true`. Its recorded phase remains intact. Connecting a host or retrying does not
+process this history until an explicit `recover()` command. **Close interrupted round** invokes
+that command: it seals the old input, records completion if necessary, and permits judging only
+the pending transcript suffix with the connected host. Settings stay locked until the round is
+closed or cleared; they cannot silently discard pending input. Recovery never resumes capture or
+the old clock.
+If disconnected, the suffix waits for a later explicit host connection. Already accepted answers
+are not judged again. `clear()` instead aborts pending work and appends a `configured` event,
+resetting the board/transcript/removals/cursor while keeping the selected challenge and duration.
+Clear retains the log; it is not a storage erasure operation. Both paths allow a fresh round.
+
+The standalone app and gallery still create fresh visits; neither automatically stores or restores
+history. Persistence remains the embedding application's choice. `remaining` is display state
+computed from the recorded deadline/end time and the current clock, not replayable content.
 
 Only finalized speech during a round is queued for judging. At expiry the clock stops, and the
 host stops and drains capture. Final recognition results are accepted until `flush` seals input.
@@ -126,7 +165,9 @@ pnpm -F @katakit/demo-brainstorm test:ci
 pnpm -F @katakit/gallery test:ci
 ```
 
-Controlled tests cover deadlines, untimed play, duplicates, queueing, retries, evidence validation,
+Controlled tests cover JSON replay equivalence, stable IDs, restored-history validation, interrupted
+round recovery, pending-suffix continuation, clear/cancellation, replayed deduplication,
+deadlines, untimed play, duplicates, queueing, retries, evidence validation,
 Jev decisions/refusals, bounded batches, retained probabilities, removals, cancellation, unmount,
 and final capture draining. The clothing regression uses simulated extraction and Jev responses:
 it verifies wiring for skirt, pants, and joggers, not real-model accuracy. Real recognition and model quality

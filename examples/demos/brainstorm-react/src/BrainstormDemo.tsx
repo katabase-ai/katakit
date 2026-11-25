@@ -80,10 +80,11 @@ const BrainstormView = ({
   const challenge = findChallenge(state.challengeId);
   const active = state.phase === 'running' || state.phase === 'finishing';
   const revealed = state.phase !== 'idle';
-  const locked = active || !!setup.step;
+  const locked = active || state.interrupted || !!setup.step;
 
   useEffect(() => {
-    if (state.phase !== 'finishing' || stopping.current === state.roundId) return;
+    if (state.interrupted || state.phase !== 'finishing' || stopping.current === state.roundId)
+      return;
     stopping.current = state.roundId;
     void (async () => {
       try {
@@ -94,7 +95,7 @@ const BrainstormView = ({
         if (runtime.state$.value.roundId === state.roundId) runtime.flush();
       }
     })();
-  }, [state.phase, state.roundId, runtime, stopListening]);
+  }, [state.phase, state.roundId, state.interrupted, runtime, stopListening]);
 
   const prepareRound = (categoryId = category, seconds = state.seconds) => {
     runtime.configure({ challengeId: drawChallenge(categoryId, state.challengeId).id, seconds });
@@ -105,8 +106,9 @@ const BrainstormView = ({
     });
   const failure = setup.error ?? state.failure;
   const roundButton: RoundButton = {
-    label:
-      state.phase === 'finishing'
+    label: state.interrupted
+      ? 'Close interrupted round'
+      : state.phase === 'finishing'
         ? 'Finishing…'
         : active
           ? 'End round'
@@ -119,16 +121,24 @@ const BrainstormView = ({
                 : 'Start round',
     className: roundControlClassName,
     secondary: active || !!setup.step,
-    'aria-disabled': state.phase === 'finishing' || setup.step === 'cancelling' || undefined,
+    'aria-disabled':
+      (!state.interrupted && state.phase === 'finishing') ||
+      setup.step === 'cancelling' ||
+      undefined,
     disabled:
-      (state.phase === 'finished' && state.busy) ||
-      (!active &&
-        !setup.step &&
-        (captureDisabled ||
-          (!startListening && !listening) ||
-          (!connect && !state.connected) ||
-          !!(state.failure?.policy.terminal && !state.failure.policy.restart))),
+      !state.interrupted &&
+      ((state.phase === 'finished' && state.busy) ||
+        (!active &&
+          !setup.step &&
+          (captureDisabled ||
+            (!startListening && !listening) ||
+            (!connect && !state.connected) ||
+            !!(state.failure?.policy.terminal && !state.failure.policy.restart)))),
     onClick: () => {
+      if (state.interrupted) {
+        runtime.recover();
+        return;
+      }
       if (state.phase === 'finishing' || setup.step === 'cancelling') return;
       if (active) runtime.finish();
       else if (setup.step) setup.cancel();
@@ -162,6 +172,13 @@ const BrainstormView = ({
   );
   const modelControls = (
     <section className="brainstorm-connection" aria-label="Answer judging">
+      {state.interrupted && (
+        <p role="status">
+          This restored round is paused. Close it to seal input and allow pending judging after
+          connecting, or clear it.
+        </p>
+      )}
+      {state.interrupted && <Button onClick={runtime.clear}>Clear interrupted round</Button>}
       {state.connected && !failure && <p role="status">Judge connected.</p>}
       {!connect &&
         !state.connected &&
@@ -234,14 +251,16 @@ const BrainstormView = ({
           <div className="brainstorm-board-heading">
             <h2>The shared board</h2>
             <p role="status" aria-live="polite">
-              {state.busy
-                ? 'Judging your latest answers…'
-                : state.phase === 'finishing'
-                  ? 'Finishing the last words…'
-                  : state.phase === 'finished'
-                    ? `Round complete. ${state.notes.length} ${state.notes.length === 1 ? 'answer' : 'answers'} collected.`
-                    : state.feedback ||
-                      (state.phase === 'running' ? 'Listening for your ideas…' : '')}
+              {state.interrupted
+                ? 'Restored round paused.'
+                : state.busy
+                  ? 'Judging your latest answers…'
+                  : state.phase === 'finishing'
+                    ? 'Finishing the last words…'
+                    : state.phase === 'finished'
+                      ? `Round complete. ${state.notes.length} ${state.notes.length === 1 ? 'answer' : 'answers'} collected.`
+                      : state.feedback ||
+                        (state.phase === 'running' ? 'Listening for your ideas…' : '')}
             </p>
           </div>
           <div className="brainstorm-board" aria-label="Collected answers">

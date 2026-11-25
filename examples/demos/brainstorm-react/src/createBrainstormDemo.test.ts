@@ -1,5 +1,5 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { createBrainstormDemo } from './createBrainstormDemo';
+import { createBrainstormDemo, type BrainstormEvent } from './createBrainstormDemo';
 import { BrainstormRequestError, type BrainstormConnection } from './brainstormModel';
 import { challengeCategories, challenges, drawChallenge } from './challenges';
 
@@ -47,6 +47,223 @@ afterEach(() => {
   games.forEach(runtime => runtime.close());
   games.length = 0;
   vi.useRealTimers();
+  vi.restoreAllMocks();
+});
+
+const restored = (initialEvents: unknown) => {
+  const runtime = createBrainstormDemo({ initialEvents });
+  games.push(runtime);
+  return runtime;
+};
+const historyOf = (runtime: ReturnType<typeof createBrainstormDemo>) => {
+  const events: BrainstormEvent[] = [];
+  runtime.events$.subscribe(event => events.push(event)).unsubscribe();
+  return JSON.parse(JSON.stringify(events)) as BrainstormEvent[];
+};
+const contentOf = (runtime: ReturnType<typeof createBrainstormDemo>) => {
+  const {
+    remaining: _remaining,
+    provisional: _provisional,
+    busy: _busy,
+    connected: _connected,
+    feedback: _feedback,
+    failure: _failure,
+    interrupted: _interrupted,
+    ...content
+  } = runtime.state$.value;
+  return content;
+};
+
+test('JSON replay preserves all content and IDs without clocks, inference, or new events', async () => {
+  const live = game();
+  live.connect(connection(async () => completion('Seal', 'seal')));
+  live.begin();
+  hear(live, 'seal');
+  await vi.waitFor(() => expect(live.state$.value.cursor).toBe(1));
+  live.remove(live.state$.value.notes[0]!.id);
+  live.finish();
+  live.flush();
+  const history = historyOf(live);
+  live.close();
+  vi.useFakeTimers();
+  const ids = vi.spyOn(crypto, 'randomUUID').mockImplementation(() => {
+    throw new Error('replay allocated an ID');
+  });
+  const replay = restored(history);
+  const request = vi.fn();
+  replay.connect(connection(request));
+  expect(contentOf(replay)).toEqual(contentOf(live));
+  expect(historyOf(replay)).toEqual(history);
+  expect(replay.state$.value.interrupted).toBe(false);
+  expect(vi.getTimerCount()).toBe(0);
+  expect(ids).not.toHaveBeenCalled();
+  expect(request).not.toHaveBeenCalled();
+});
+
+test('core metadata survives JSON replay and continuation; legacy envelopes upgrade deterministically', () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date('2026-11-25T00:00:00.000Z'));
+  const legacy = restored([{ type: 'configured', challengeId: 'animals-01', seconds: 60 }]);
+  expect(legacy.events$.getAll()[0]!.meta).toEqual({ seq: 0, timestamp: new Date(0) });
+  legacy.clear();
+  const history = historyOf(legacy);
+  const replay = restored(history);
+  expect(replay.events$.getAll()).toEqual(legacy.events$.getAll());
+  replay.clear();
+  expect(replay.events$.getAll().map(event => event.meta.seq)).toEqual([0, 1, 2]);
+  expect(replay.events$.getAll()[2]!.meta.timestamp).toEqual(new Date('2026-11-25T00:00:00.000Z'));
+});
+
+test.each([
+  null,
+  { seq: 2, timestamp: new Date(0) },
+  { seq: 0, timestamp: 'not a date' },
+  { seq: 0, timestamp: 0 },
+])('rejects invalid core metadata before replay: %j', meta => {
+  expect(() =>
+    createBrainstormDemo({
+      initialEvents: [{ type: 'configured', challengeId: 'animals-01', seconds: 60, meta }],
+    })
+  ).toThrow(/Invalid brainstorm event/);
+});
+
+test.each(['running', 'finishing', 'finished'] as const)(
+  'restored %s input requires explicit recovery and judges only the pending suffix',
+  async phase => {
+    const history: BrainstormEvent[] = [
+      { type: 'started', roundId: 'round', deadline: 60000 },
+      { type: 'heard', id: 'mic:one', text: 'seal' },
+      {
+        type: 'judged',
+        notes: [{ id: 'note', text: 'Seal', evidence: 'seal' }],
+        judgments: [{ text: 'Seal', evidence: 'seal', probability: 1 }],
+        cursor: 1,
+      },
+      { type: 'heard', id: 'mic:two', text: 'orca' },
+    ];
+    if (phase !== 'running') history.push({ type: 'finishing', at: 10000 });
+    if (phase === 'finished') history.push({ type: 'finished' });
+    vi.useFakeTimers();
+    const replay = restored(history);
+    const imported = historyOf(replay);
+    const request = vi.fn<BrainstormConnection['requestCompletion']>(async () =>
+      completion('Orca', 'orca')
+    );
+    replay.connect(connection(request));
+    replay.retry();
+    replay.finish();
+    replay.flush();
+    replay.ingestSegment({ sourceId: 'mic', id: 'three', text: 'dolphin' });
+    expect(historyOf(replay)).toEqual(imported);
+    expect(request).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+    replay.recover();
+    replay.recover();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(request).toHaveBeenCalledOnce();
+    expect(
+      JSON.parse(JSON.parse(request.mock.calls[0]![0].body).messages[1].content).newTranscript
+    ).toBe('orca');
+    expect(replay.state$.value.notes.map(note => note.id)[0]).toBe('note');
+    expect(replay.state$.value.notes.map(note => note.text)).toEqual(['Seal', 'Orca']);
+    expect(replay.state$.value.phase).toBe('finished');
+    const twice = restored(historyOf(replay));
+    expect(contentOf(twice)).toEqual(contentOf(replay));
+    expect(twice.state$.value.interrupted).toBe(false);
+  }
+);
+
+test('clear cancels restored pending work, replays empty content, and retains delivery deduplication across rounds', async () => {
+  const replay = restored([
+    { type: 'started', roundId: 'round', deadline: 60000 },
+    { type: 'heard', id: 'mic:one', text: 'seal' },
+  ]);
+  let complete!: (value: unknown) => void;
+  let signal!: AbortSignal;
+  const request = vi.fn<BrainstormConnection['requestCompletion']>(input => {
+    signal = input.signal;
+    return new Promise(resolve => {
+      complete = resolve;
+    });
+  });
+  replay.connect(connection(request));
+  replay.recover();
+  replay.clear();
+  expect(signal.aborted).toBe(true);
+  const cleared = historyOf(replay);
+  complete(completion('Seal', 'seal'));
+  await Promise.resolve();
+  await Promise.resolve();
+  expect(historyOf(replay)).toEqual(cleared);
+  expect(replay.state$.value).toMatchObject({
+    phase: 'idle',
+    notes: [],
+    segments: [],
+    cursor: 0,
+    removed: [],
+    judgments: [],
+    interrupted: false,
+  });
+  const next = restored(cleared);
+  expect(contentOf(next)).toEqual(contentOf(replay));
+  next.connect(connection(async () => completion('Orca', 'orca')));
+  next.begin();
+  next.ingestSegment({ sourceId: 'mic', id: 'one', text: 'seal' });
+  expect(next.state$.value.segments).toEqual([]);
+  next.ingestSegment({ sourceId: 'mic', id: 'two', text: 'orca' });
+  next.ingestSegment({ sourceId: 'mic', id: 'two', text: 'orca' });
+  await vi.waitFor(() => expect(next.state$.value.cursor).toBe(1));
+  expect(next.state$.value.notes.map(note => note.text)).toEqual(['Orca']);
+});
+
+test('settings cannot silently discard unjudged text in a restored finished round', () => {
+  const history: BrainstormEvent[] = [
+    { type: 'started', roundId: 'round', deadline: 60000 },
+    { type: 'heard', id: 'mic:one', text: 'seal' },
+    { type: 'finishing', at: 10000 },
+    { type: 'finished' },
+  ];
+  const replay = restored(history);
+  expect(replay.state$.value.interrupted).toBe(true);
+  const imported = historyOf(replay);
+  replay.configure({ challengeId: 'animals-02' });
+  expect(historyOf(replay)).toEqual(imported);
+  expect(replay.state$.value.segments).toEqual([{ id: 'mic:one', text: 'seal' }]);
+  replay.clear();
+  replay.configure({ challengeId: 'animals-02' });
+  expect(replay.state$.value.challengeId).toBe('animals-02');
+});
+
+test.each([
+  null,
+  [{ type: 'configured', challengeId: 'missing', seconds: 60 }],
+  [{ type: 'configured', challengeId: 'animals-01', seconds: -1 }],
+  [{ type: 'started', roundId: 'round', deadline: Infinity }],
+  [{ type: 'heard', id: 'one', text: 'seal' }],
+  [{ type: 'finished' }],
+  [
+    { type: 'started', roundId: 'round', deadline: 10 },
+    { type: 'heard', id: 'one', text: 'seal' },
+    { type: 'heard', id: 'one', text: 'seal' },
+  ],
+  [
+    { type: 'started', roundId: 'round', deadline: 10 },
+    { type: 'judged', notes: [], judgments: [], cursor: 1 },
+  ],
+  [
+    { type: 'started', roundId: 'round', deadline: 10 },
+    { type: 'heard', id: 'one', text: 'seal' },
+    {
+      type: 'judged',
+      notes: [],
+      judgments: [{ text: 'Seal', evidence: 'invented', probability: 1 }],
+      cursor: 1,
+    },
+  ],
+])('rejects malformed or impossible history before creating resources: %j', history => {
+  vi.useFakeTimers();
+  expect(() => createBrainstormDemo({ initialEvents: history })).toThrow(/Invalid/);
+  expect(vi.getTimerCount()).toBe(0);
 });
 
 test('the complete library has twenty categories, ten challenges each, and unique prompts and IDs', () => {
