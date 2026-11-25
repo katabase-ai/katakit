@@ -2,9 +2,11 @@ import { defineConfig } from 'tsdown';
 import { createGenerator, LAYER_IMPORTS } from 'unocss';
 import UnoCSS from 'unocss/rolldown';
 import config from './uno.config.mjs';
+import { readFileSync } from 'node:fs';
 
 const stylesheetId = 'virtual:katakit-stylesheet';
 const marker = '__KATAKIT_UNO_STYLESHEET_URL__';
+const timelineCss = readFileSync(new URL('./src/timeline.css', import.meta.url), 'utf8');
 
 // UnoCSS emits its asset after transforming all JSX. Replace the virtual
 // module's one-line string with a one-line URL so mapped TSX lines don't move.
@@ -32,9 +34,15 @@ const embedStylesheet = {
       const entry = bundle['index.js'];
       if (!css || entry?.type !== 'chunk' || !entry.code.includes(marker))
         this.error('Missing UnoCSS stylesheet or its reference');
-      const url = `data:text/css;base64,${Buffer.from(css.source).toString('base64')}`;
+      const url = `data:text/css;base64,${Buffer.from(String(css.source) + '\n' + timelineCss).toString('base64')}`;
       entry.code = entry.code.replace(marker, url) + '//# sourceMappingURL=index.js.map\n';
       delete bundle[css.fileName];
+      this.emitFile({ type: 'asset', fileName: 'timeline.css', source: timelineCss });
+      this.emitFile({
+        type: 'asset',
+        fileName: 'timeline.css.d.ts',
+        source: 'declare const stylesheet: string;\nexport default stylesheet;\n',
+      });
     },
   },
 };

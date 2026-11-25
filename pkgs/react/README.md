@@ -1,5 +1,21 @@
 # @katakit/react
 
+Render a caller-owned timeline without capture:
+
+```tsx
+import { Timeline } from '@katakit/react';
+import '@katakit/react/timeline.css';
+
+<Timeline
+  lanes={[{ id: 'jobs', label: 'Jobs' }]}
+  events={[{ id: 'job-1', laneId: 'jobs', time: 1000 }]}
+  selectedId={selectedId}
+  onSelect={setSelectedId}
+/>;
+```
+
+See the [public timeline guide](../../docs/pages/reference/react.md#data-driven-timeline).
+
 Render `<KatakitDevTools />` from `@katakit/react` alongside your app in development.
 See the [observable timeline guide](../../docs/pages/reference/react.md#observable-timeline).
 

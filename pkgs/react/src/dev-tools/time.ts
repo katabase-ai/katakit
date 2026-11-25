@@ -1,5 +1,3 @@
-import type { Delivery } from './deliveries';
-
 export const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
 export const stamp = (ms: number) => `${(ms / 1000).toFixed(3)}s`;
 export const palette = ['#5eead4', '#c4b5fd', '#93c5fd', '#fdba74', '#f9a8d4', '#bef264'];
@@ -20,8 +18,8 @@ export const rulerTicks = (offset: number, width: number, scale: number) => {
   );
 };
 
-export const cluster = (events: readonly Delivery[], x: (event: Delivery) => number) => {
-  const groups: { x: number; events: Delivery[] }[] = [];
+export const cluster = <T>(events: readonly T[], x: (event: T) => number) => {
+  const groups: { x: number; events: T[] }[] = [];
   for (const event of events) {
     const last = groups.at(-1);
     if (last && x(event) - last.x < 16) last.events.push(event);

@@ -19,13 +19,7 @@ const directory = dirname(fileURLToPath(import.meta.url));
 const root = resolve(directory, '../../..');
 const portable = path => path.split(sep).join('/');
 const relative = (from, to) => portable(relativePath(from, to));
-const packages = [
-  'core',
-  'persistence',
-  'transcript-ingestion',
-  'transcription',
-  'react',
-];
+const packages = ['core', 'persistence', 'transcript-ingestion', 'transcription', 'react'];
 const walk = (node, visit) => {
   visit(node);
   for (const child of node.children ?? []) walk(child, visit);
@@ -85,12 +79,20 @@ export const exportDocs = async ({ output }) => {
     const manifest = JSON.parse(await readFile(join(packageRoot, 'package.json'), 'utf8'));
     const exports = Object.entries(manifest.exports);
     for (const [subpath, conditions] of exports) {
-      if (typeof conditions === 'string' && conditions.endsWith('.json')) {
-        nonCodeExports.push({ package: manifest.name, subpath, target: conditions });
+      if (
+        subpath.endsWith('.css') ||
+        (typeof conditions === 'string' && conditions.endsWith('.json'))
+      ) {
+        nonCodeExports.push({
+          package: manifest.name,
+          subpath,
+          target: typeof conditions === 'string' ? conditions : conditions.default,
+        });
         continue;
       }
       // The React entry needs its JSX styles compiled before it can be consumed.
-      const source = conditions.source ?? (name === 'react' && subpath === '.' ? './src/index.ts' : undefined);
+      const source =
+        conditions.source ?? (name === 'react' && subpath === '.' ? './src/index.ts' : undefined);
       if (!source) throw new Error(`${manifest.name} ${subpath} has no source export`);
       entryPoints.push(portable(join(packageRoot, source)));
       coverage.push({

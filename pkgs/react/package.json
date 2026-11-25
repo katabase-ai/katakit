@@ -14,13 +14,19 @@
     "THIRD_PARTY_NOTICES.txt"
   ],
   "type": "module",
-  "sideEffects": false,
+  "sideEffects": [
+    "./dist/timeline.css"
+  ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./timeline.css": {
+      "types": "./dist/timeline.css.d.ts",
+      "default": "./dist/timeline.css"
     }
   },
   "publishConfig": {
