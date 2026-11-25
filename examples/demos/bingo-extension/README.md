@@ -106,7 +106,7 @@ retention, reset during hydration, legacy boards, and capture resource cleanup.
 From the repository also run `pnpm demos:copy-check bingo-extension` and
 `pnpm bingo:check-copy`. Copy checks use freshly packed local libraries; registry
 pins must be updated after those library changes are published before a registry-only
-copy can use newly added ingestion APIs.
+copy can use the built-in core event log and new ingestion APIs.
 
 Native Chrome checks require a meeting tab and microphone: start capture, hear a
 matching phrase, correct a square, close/reopen the panel during capture, stop and
