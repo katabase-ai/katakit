@@ -1,2 +1,13 @@
-export { makeTranscriptIngestionPlugin } from './plugin';
-export type { TranscriptSegment, TranscriptTurn, TranscriptEvent } from './plugin';
+export {
+  makeTranscriptIngestionPlugin,
+  reduceTranscriptEvent,
+  parseTranscriptRecordedEvent,
+} from './plugin';
+export type {
+  TranscriptSegment,
+  TranscriptTurn,
+  TranscriptEvent,
+  TranscriptRecordedEvent,
+  TranscriptEventLog,
+  TranscriptState,
+} from './plugin';
