@@ -13,11 +13,11 @@ pnpm dev
 
 The gallery's **Get the code** control shows the same command and a prompt for a coding agent.
 
-The replay migration currently depends on the unreleased transcript-ingestion API from
+The replay migration currently depends on core's built-in event log and the unreleased transcript-ingestion API from
 [PR #115](https://github.com/katabase-ai/katakit/pull/115). Until that package is released and this
-demo's registry version is updated, verify this branch with the checkout and
+demo's registry versions are updated, verify this branch with the checkout and
 `pnpm demos:copy-check notes-react` (freshly packed libraries). An npm-only copy using the current
-`@katakit/transcript-ingestion@0.1.0` cannot build the new replay integration.
+core/transcript-ingestion 0.1.0 versions cannot build the new replay integration.
 
 ## Prepare an independent copy from a checkout
 
