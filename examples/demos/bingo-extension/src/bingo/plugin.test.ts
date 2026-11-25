@@ -50,7 +50,9 @@ describe('Bingo plugin', () => {
     expect(restored.state.get().marked[2]).toBe(true);
   });
   it('validates restored history and legacy boards before accepting them', () => {
-    expect(() => setup([{ type: 'override-set', index: 12, value: false }])).toThrow();
+    expect(() => setup([{ type: 'override-set', index: 12, value: false }])).toThrow(
+      'Invalid bingo square index.'
+    );
     expect(() =>
       setup([
         {
@@ -63,7 +65,9 @@ describe('Bingo plugin', () => {
       ])
     ).toThrow('Duplicate');
     const live = setup();
-    expect(() => live.methods.restoreBoard({ squares: [], overrides: {} })).toThrow();
+    expect(() => live.methods.restoreBoard({ squares: [], overrides: {} })).toThrow(
+      'A bingo card needs 24 phrases and a free center square.'
+    );
     expect(live.history).toEqual([]);
     live.methods.restoreBoard({
       squares: makeSquares(Array(24).fill('phrase')),
