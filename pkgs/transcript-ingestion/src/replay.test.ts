@@ -1,5 +1,5 @@
-import { makeKatakit } from '@katakit/core';
-import { makeEventLogPlugin } from '@katakit/event-log';
+import { EventLogPlugin, makeKatakit } from '@katakit/core';
+import { map } from 'rxjs';
 import { afterEach, expect, it, vi } from 'vitest';
 import {
   makeTranscriptIngestionPlugin,
@@ -13,20 +13,19 @@ const segment = (id: string, text = id, sourceId = 'mic'): TranscriptRecordedEve
   segment: { id, text, sourceId, speaker: 'Ada', startMs: 10, endMs: 20 },
 });
 const setup = (history: unknown[] = []) => {
-  const log = makeEventLogPlugin({
-    validateEvent: {
-      '~standard': {
-        version: 1,
-        vendor: 'test',
-        validate: (value: unknown) => ({ value: parseTranscriptRecordedEvent(value) }),
-      },
-    },
-  });
   const runtime = makeKatakit({
-    plugins: [log.configure({ initialEvents: history.map(parseTranscriptRecordedEvent) })],
+    plugins: [],
+    existingEvents: history.map((value, seq) => ({
+      ...parseTranscriptRecordedEvent(value),
+      meta: { seq, timestamp: new Date(0) },
+    })),
   }).start();
-  const events$ = runtime.getObservables(log).events$;
-  const emitEvent = runtime.getMethods(log).emitEvent;
+  const logEvents$ = runtime.getObservables(EventLogPlugin).events$;
+  const withoutMeta = ({ meta: _meta, ...event }: Record<string, unknown>) =>
+    parseTranscriptRecordedEvent(event);
+  const events$ = logEvents$.pipe(map(withoutMeta));
+  const emitEvent = (event: TranscriptRecordedEvent) =>
+    runtime.getMethods(EventLogPlugin).emitEvent(parseTranscriptRecordedEvent(event));
   const transcript = makeTranscriptIngestionPlugin({
     turnSilenceMs: 1000,
     eventLog: { events$, emitEvent, toEvent: event => event, fromEvent: event => event },
@@ -35,7 +34,7 @@ const setup = (history: unknown[] = []) => {
   return {
     ...kit.getMethods(transcript),
     ...kit.getObservables(transcript),
-    history: () => events$.getAll(),
+    history: () => logEvents$.getAll().map(withoutMeta),
     emitEvent,
   };
 };

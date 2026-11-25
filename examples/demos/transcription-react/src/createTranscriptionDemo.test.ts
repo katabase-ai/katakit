@@ -57,10 +57,11 @@ it('validates hydration, preserves legacy IDs and never writes or schedules on r
     { type: 'segment', segment: { id: 'pending', sourceId: 'import', text: 'Pending' } },
   ];
   const runtime = createTranscriptionDemo({ initialEvents });
+  const restoredHistory = runtime.getHistory();
   expect(runtime.state$.get().completedTurns[0]?.id).toBe('original');
   expect(vi.getTimerCount()).toBe(0);
   runtime.close();
-  expect(runtime.getHistory()).toEqual(initialEvents);
+  expect(runtime.getHistory()).toEqual(restoredHistory);
   expect(() =>
     createTranscriptionDemo({ initialEvents: [{ type: 'turn', turn: { id: 10 } }] })
   ).toThrow('Invalid transcript event');

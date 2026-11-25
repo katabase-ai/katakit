@@ -10,6 +10,7 @@ export {
 } from './plugin';
 
 export { makeKatakit, type KatakitConfig, type Katakit, type AliveKatakit } from './katakit';
+export { EventLogPlugin } from './EventLog/plugin';
 
 export { type GetMethods, type MethodsObj } from './methods';
 
@@ -37,3 +38,5 @@ export { type InferObservableValue } from './utils/reactive/observable';
 export { type BackpressureStrategy } from './utils/reactive/backpressure';
 
 export { type EmptyObj } from './utils/EmptyObj';
+
+export { type KatakitEvent } from './EventLog/event';
