@@ -13,11 +13,17 @@ The host owns its audio source and stops it separately.
 Configure `turnSilenceMs` to adjust turn boundaries. A source that delivers only long,
 late final segments cannot be made low-latency by this setting; it must provide
 interim updates. Transcripts are in memory by default and are **not persisted**. Install
-`@katakit/core`, `@katakit/event-log`, and `rxjs` alongside this package. Pass `eventLog`
+`@katakit/core` and `rxjs` alongside this package. Pass `eventLog`
 with the caller's replaying `events$`, synchronous `emitEvent`, and `toEvent`/`fromEvent`
 mappings to derive content from the application's log. Validate restored records before
 constructing the log; `parseTranscriptRecordedEvent` validates the transcript portion.
-The zero-configuration API uses a private in-memory event log for compatibility.
+The zero-configuration API uses the same runtime's built-in core `EventLogPlugin`.
+It writes `utteranceAdded`, `conversationTurnAdded`, and `transcriptReset` records;
+provisional input stays transient. `ingestUtterance`/`updateProvisionalUtterance` and
+collected/pending observable aliases support the core-style API. Core's default emitter
+does not validate: callers supplying a mapped log must validate live writes and restored
+history before core sees them. `fromTranscriptIngestionEvent` and
+`toTranscriptIngestionEvent` bridge flat core payloads and canonical transcript records.
 
 `state$` provides atomic `{ segments, conversationTurns, currentTurn }` snapshots.
 `reduceTranscriptEvent` supports pure projections in other plugins. Replay does not

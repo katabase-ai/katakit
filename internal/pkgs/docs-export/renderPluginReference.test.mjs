@@ -23,19 +23,15 @@ test('real plugin contracts expose inferred members, optional inputs and empty c
     return renderPluginReference({ checker, source, symbol, markdown });
   };
 
-  const eventLog = render('event-log', 'makeEventLogPlugin');
-  assert.match(eventLog, /validateEvent: StandardSchemaV1<unknown, TEvent>/);
-  assert.match(eventLog, /initialEvents: TEvent\[\]/);
-  assert.match(eventLog, /events\$: WithEager<Observable<TEvent>>/);
-  assert.match(eventLog, /emitEvent: \(event: TEvent\) => void/);
-  assert.match(eventLog, /Previously loaded events, replayed as supplied without revalidation/);
-  assert.match(eventLog, /getAll\(\) returns a snapshot array/);
-  assert.match(eventLog, /asynchronous validators are rejected/);
-  assert.match(eventLog, /### Returns\n\nOriginal linked return type/);
-  assert.ok(eventLog.indexOf('## Methods') < eventLog.indexOf('Full inferred signature'));
+  const transcript = render('transcript-ingestion', 'makeTranscriptIngestionPlugin');
+  assert.match(transcript, /collectedConversationTurns\$: WithProperty/);
+  assert.match(transcript, /ingestUtterance: \(utterance: Utterance\) => void/);
+  assert.match(transcript, /Stop the plugin's timer/);
+  assert.match(transcript, /### Returns\n\nOriginal linked return type/);
+  assert.ok(transcript.indexOf('## Methods') < transcript.indexOf('Full inferred signature'));
 
   const persistence = render('persistence', 'makeEventPersistencePlugin');
-  assert.match(persistence, /appendEvents: \(events: TEvent\[\]\) => void \| Promise<void>/);
+  assert.match(persistence, /appendEvents: \(events: KatakitEvent\[\]\) => void \| Promise<void>/);
   assert.match(persistence, /persistInterval\?: number \| undefined/);
   assert.match(persistence, /No configuration fields; pass `\{\}` to `configure`/);
   assert.match(persistence, /This plugin exposes no observables/);

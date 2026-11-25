@@ -3,13 +3,12 @@
 This plugin accepts source-neutral text segments and assembles conversation turns.
 Recognition, raw audio, permissions, model loading, and diarization adapters stay outside it.
 
-- Preserve caller-supplied source IDs, segment IDs, speaker information, and timestamps.
-  Keep retransmission deduplication and source/speaker turn boundaries explicit.
-- Separate provisional text and live silence timers from replayable finalized content.
-  Finalized transcript content must ultimately derive from the caller's event log.
-  The current local Subject plus optional `forward` adapter is an identified migration
-  gap; do not describe it as event-log-backed replay or copy it into new stateful plugins.
-- Keep event mapping caller-owned. Design the log-backed migration with explicit reset,
-  hydration, deduplication, and live-versus-replay semantics; preserve generic text input.
-- When changing lifecycle behavior, verify stop/drain, flush, repeated close, pending
-  timers, and multiple source/speaker boundaries. The host stops its audio sources.
+- Preserve supplied source/segment/turn IDs, speaker, text and audio timestamps.
+  Deduplicate segments by source and segment identity, including after hydration.
+- Derive finalized pending and completed views from core's built-in log through one
+  atomic projection. Provisional input is transient and never restored.
+- Replay must not append events, start a silence timer, or generate replacement IDs.
+  Source/speaker/timestamp boundaries are deterministic; wall-clock silence is live-only.
+- The host stops and drains its sources. Explicit flush may finalize restored content;
+  close flushes live-owned pending content only and releases timers/readers. Reset
+  discards pending content and opens a fresh identity scope.

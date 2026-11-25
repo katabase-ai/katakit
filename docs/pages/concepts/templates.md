@@ -8,11 +8,10 @@ Keep `eventLog.ts` and `messageList.ts`. For a plain browser view, add `<ul id="
 
 ```ts
 import { makeKatakit } from '@katakit/core';
-import { EventLogPlugin } from './eventLog';
 import { MessageListPlugin } from './messageList';
 
 const running = makeKatakit({
-  plugins: [EventLogPlugin.configure({ initialEvents: [] }), MessageListPlugin.configure({})],
+  plugins: [MessageListPlugin.configure({})],
 }).start();
 const list = document.querySelector<HTMLUListElement>('#messages')!;
 const subscription = running.getObservables(MessageListPlugin).messages$.subscribe(messages => {
@@ -39,7 +38,7 @@ The example uses `textContent` so message text is displayed as text. In React, u
 
 Use [transcription utilities](../reference/transcription.md) to recognize audio. Their `onFinal` callback receives a finalized text segment; it can call the same `addMessage(segment.text)` method. Provisional text changes while recognition runs, so display it separately until it becomes final.
 
-For conversation turns rather than individual recognition segments, connect the recognizer to [transcript ingestion](../reference/plugins/transcript-ingestion.md). That plugin groups segments and flushes an unfinished turn on Stop. Its event-log integration forwards new events; restoring saved conversation turns remains the application's responsibility.
+For conversation turns rather than individual recognition segments, adapt the recognizer callbacks to [transcript ingestion](../reference/plugins/transcript-ingestion.md). Its projections reconstruct pending and completed turns from the built-in event log.
 
 ## Choose a platform starter
 
