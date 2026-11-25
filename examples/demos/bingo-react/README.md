@@ -66,6 +66,31 @@ can do either without stopping transcription.
 
 ## Modifying and hosting
 
+### Replay and lifecycle
+
+`createBrowserBingoDemo()` owns an in-memory `@katakit/event-log` containing
+finalized transcript segments/turns/resets and board/override commands.
+`runtime.getHistory()` returns a copied history; construct
+`createBrowserBingoDemo({ initialEvents: history })` to validate and replay it.
+The default app still resets on reload: this API adds no automatic persistence.
+
+Board draws record their actual squares. Evidence, marks and wins are projected
+from those squares and the finalized transcript, including the unfinished turn.
+Changing the board immediately rematches existing text. Replay preserves source,
+segment and turn IDs and does not start microphones, models, timers or new log
+writes. Provisional text and preview expiry are live display state only.
+
+The microphone/gallery host stops and drains its input before `runtime.close()`.
+Ingestion owns live turn-silence timers; Bingo detaches its content subscriptions
+on close. Closing a restored, untouched history does not create a new turn.
+
+Manual browser verification: start microphone recognition, say a board phrase,
+confirm it marks before the turn silence timeout, switch/shuffle the board while
+speaking, apply a manual correction, then stop and navigate away/back. Confirm
+input releases and the new visit has a fresh transcript. Synthetic replay and
+copy tests do not verify microphone permissions, speech accuracy, model downloads,
+browser isolation headers in a deployed host, or native extension capture.
+
 Edit `src/App.tsx` for React UI and transcript wiring, `src/bingo/` for board state,
 matching rules, and word lists, and `src/controls.tsx` and `src/AudioLevelMeter.tsx`
 for controls. Styling lives in `src/base.css`, `src/style.css`, and
