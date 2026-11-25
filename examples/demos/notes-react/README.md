@@ -119,7 +119,8 @@ client build output. It sets local dev/preview headers; your production server o
 ## Behavior and verification
 
 `createNotesDemo({ initialEvents })` validates restored history before starting the runtime and
-registers `@katakit/event-log` with `NotesEventSchema`. Finalized recognition segments append
+loads core's built-in `EventLogPlugin`. The host validates every live write with `NotesEventSchema`
+before calling core's emitter. Finalized recognition segments append
 `transcriptSegment` events; assembled turns append `transcriptTurn` events. Each validated model result appends a
 `notesUpdated` event containing the complete accepted outline, stable IDs, and processed-turn cursor.
 Clear appends `notesCleared` with the current cursor. The notes plugin derives content from these
@@ -134,6 +135,11 @@ throws before the runtime starts. Replay restores the outline, Markdown, finaliz
 completed turns, and unfinished turn without generating IDs, calling a model, starting silence
 timers, or appending events. The exposed `runtime.transcript` views and `runtime.state$` read the
 same history. Provisional recognition and expiring preview lines are not restored.
+
+Core log metadata is validated too: sequences must match the complete history's array order,
+and timestamps must be valid dates (JSON timestamp strings are restored as dates). Legacy
+metadata-free records receive deterministic sequence numbers and epoch timestamps; transcript
+IDs and audio timestamps are preserved. Fresh writes receive core's next sequence and live time.
 
 Fresh input continues a restored unfinished turn with its original ID. Segment identities prevent
 retransmission from duplicating content, including after restoration. Older turn-only histories

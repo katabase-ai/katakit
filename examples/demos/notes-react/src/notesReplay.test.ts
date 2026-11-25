@@ -13,6 +13,9 @@ describe('notes history boundary', () => {
   it.each(
     [
       null,
+      [{ ...turn, meta: { seq: 4, timestamp: new Date(0) } }],
+      [{ ...turn, meta: { seq: 0, timestamp: 'not a date' } }],
+      [{ ...turn, meta: { seq: -1, timestamp: new Date(0) } }],
       [{ type: 'unknown' }],
       [{ ...turn, turn: { id: 'first' } }],
       [turn, turn],
@@ -41,12 +44,30 @@ describe('notes history boundary', () => {
   it('parses a detached snapshot without changing recorded IDs', () => {
     const history = [turn, { type: 'notesUpdated', notes: [note], cursor: 1 }];
     const restored = parseNotesHistory(history);
-    expect(restored).toEqual(history);
+    expect(restored).toEqual(
+      history.map((event, seq) => ({ ...event, meta: { seq, timestamp: new Date(0) } }))
+    );
     expect(restored[0]).not.toBe(history[0]);
   });
 });
 
 describe('notes transcript replay', () => {
+  it('validates live writes and continues core metadata after restored history', () => {
+    const runtime = createNotesDemo({ initialEvents: [turn] });
+    expect(() =>
+      runtime.ingestSegment({ id: 'bad', sourceId: '', text: 'Invalid source' })
+    ).toThrow(/length/);
+    expect(runtime.events$.getAll()).toHaveLength(1);
+    runtime.ingestSegment(segment('next', 'Continue'));
+    runtime.flush();
+    expect(runtime.events$.getAll().map(event => event.meta.seq)).toEqual([0, 1, 2]);
+    const snapshot = JSON.parse(JSON.stringify(runtime.events$.getAll()));
+    const restored = createNotesDemo({ initialEvents: snapshot });
+    expect(restored.events$.getAll()).toEqual(runtime.events$.getAll());
+    expect(restored.transcript.conversationTurns$.get()).toEqual(runtime.state$.get().turns);
+    runtime.close();
+    restored.close();
+  });
   it('hydrates every finalized view, preserves pending segments and deduplicates continuation', () => {
     vi.useFakeTimers();
     const live = createNotesDemo();
@@ -75,7 +96,7 @@ describe('notes transcript replay', () => {
     expect(replay.state$.get().turns).toEqual(replay.transcript.conversationTurns$.get());
     replay.ingestSegment(segment('one', 'First idea'));
     replay.ingestSegment(segment('two', 'Second'));
-    expect(replay.events$.getAll()).toEqual(history);
+    expect(replay.events$.getAll()).toEqual(live.events$.getAll());
     expect(notifications).not.toHaveBeenCalled();
     expect(previewLines).not.toHaveBeenCalled();
     for (const runtime of [live, replay]) {
@@ -101,7 +122,7 @@ describe('notes transcript replay', () => {
     replay.close();
     replay.flush();
     replay.ingestSegment(segment('late', 'Too late'));
-    expect(replay.events$.getAll()).toEqual(history);
+    expect(replay.events$.getAll()).toEqual(parseNotesHistory(history));
   });
 
   it('continues after a restored clear without reprocessing cleared turns', async () => {

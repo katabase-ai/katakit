@@ -8,6 +8,18 @@ import {
 import { NoteSchema } from './notesModel';
 
 const cursor = v.pipe(v.number(), v.integer(), v.minValue(0));
+const metadata = {
+  meta: v.optional(
+    v.strictObject({
+      seq: v.pipe(v.number(), v.safeInteger(), v.minValue(0)),
+      timestamp: v.pipe(
+        v.union([v.date(), v.string()]),
+        v.transform(value => new Date(value)),
+        v.check(value => Number.isFinite(value.getTime()), 'Invalid event timestamp')
+      ),
+    })
+  ),
+};
 const transcriptItem = v.strictObject({
   id: v.pipe(v.string(), v.minLength(1)),
   sourceId: v.pipe(v.string(), v.minLength(1)),
@@ -20,13 +32,19 @@ const transcriptItem = v.strictObject({
 /** Accepted outlines include their IDs and cursor, so replay needs neither a model nor new IDs. */
 export const NotesEventSchema = v.variant('type', [
   v.strictObject({
+    ...metadata,
     type: v.literal('transcriptTurn'),
     turn: transcriptItem,
   }),
-  v.strictObject({ type: v.literal('transcriptSegment'), segment: transcriptItem }),
-  v.strictObject({ type: v.literal('transcriptReset') }),
-  v.strictObject({ type: v.literal('notesUpdated'), notes: v.array(NoteSchema), cursor }),
-  v.strictObject({ type: v.literal('notesCleared'), cursor }),
+  v.strictObject({ ...metadata, type: v.literal('transcriptSegment'), segment: transcriptItem }),
+  v.strictObject({ ...metadata, type: v.literal('transcriptReset') }),
+  v.strictObject({
+    ...metadata,
+    type: v.literal('notesUpdated'),
+    notes: v.array(NoteSchema),
+    cursor,
+  }),
+  v.strictObject({ ...metadata, type: v.literal('notesCleared'), cursor }),
 ]);
 
 export type NotesEvent = v.InferOutput<typeof NotesEventSchema>;
@@ -45,8 +63,12 @@ export const notesTranscriptEvent = (event: NotesEvent): TranscriptRecordedEvent
 };
 
 /** Validate untrusted history before starting any runtime or acquiring live resources. */
-export const parseNotesHistory = (history: unknown): NotesEvent[] => {
-  const events = v.parse(v.array(NotesEventSchema), history);
+export const parseNotesHistory = (history: unknown) => {
+  const events = v.parse(v.array(NotesEventSchema), history).map((event, seq) => {
+    if (event.meta && event.meta.seq !== seq)
+      throw new Error('Invalid event sequence in notes history');
+    return { ...event, meta: event.meta ?? { seq, timestamp: new Date(0) } };
+  });
   const turns = new Set<string>();
   const segments = new Set<string>();
   let transcript: TranscriptState = { segments: [], conversationTurns: [], currentTurn: undefined };

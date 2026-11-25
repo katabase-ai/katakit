@@ -1,7 +1,13 @@
-import { makeKatakit, property } from '@katakit/core';
-import { makeEventLogPlugin } from '@katakit/event-log';
+import {
+  EventLogPlugin,
+  makeKatakit,
+  property,
+  type KatakitEvent,
+  type WithEager,
+} from '@katakit/core';
+import * as v from 'valibot';
 import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
-import { combineLatest, map, shareReplay, Subject, takeUntil } from 'rxjs';
+import { combineLatest, map, shareReplay, Subject, takeUntil, type Observable } from 'rxjs';
 import {
   NotesEventSchema,
   notesTranscriptEvent,
@@ -13,11 +19,14 @@ import { makeNotesPlugin } from './notesPlugin';
 /** Replaying a visit restores its content; only an explicit connection can start new model work. */
 export const createNotesDemo = ({ initialEvents = [] }: { initialEvents?: unknown } = {}) => {
   const history = parseNotesHistory(initialEvents);
-  const eventLog = makeEventLogPlugin({ validateEvent: NotesEventSchema });
-  const logKit = makeKatakit({ plugins: [eventLog.configure({ initialEvents: history })] }).start();
-  const { events$ } = logKit.getObservables(eventLog);
-  const { emitEvent } = logKit.getMethods(eventLog);
-  const transcript = makeTranscriptIngestionPlugin({
+  const logKit = makeKatakit({ plugins: [], existingEvents: history }).start();
+  // This private runtime only receives validated notes events.
+  const events$ = logKit.getObservables(EventLogPlugin).events$ as WithEager<
+    Observable<KatakitEvent<NotesEvent>>
+  >;
+  const emitEvent = (event: NotesEvent) =>
+    logKit.getMethods(EventLogPlugin).emitEvent(v.parse(NotesEventSchema, event));
+  const transcript = makeTranscriptIngestionPlugin<KatakitEvent<NotesEvent>, NotesEvent>({
     eventLog: {
       events$,
       emitEvent,
