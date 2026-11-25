@@ -2,12 +2,12 @@ import { KatakitDevTools } from '@katakit/react';
 import { useMicrophoneTranscriber } from '@katakit/transcription/react';
 import { Button } from './controls';
 import { AudioLevelMeter } from './AudioLevelMeter';
-import { createBrowserBingoDemo } from './createBrowserBingoDemo';
+import { createBingoSession } from './bingo/createBingoSession';
 import { BrowserBingoDemo as BingoView } from './BrowserBingoDemo';
 
 /** The copied example owns its input and runtime without importing any gallery code. */
 export const BrowserBingoDemo = () => {
-  const microphone = useMicrophoneTranscriber({ createSink: createBrowserBingoDemo });
+  const microphone = useMicrophoneTranscriber({ createSink: createBingoSession });
   if (!microphone.sink) return <p role="status">Preparing bingo…</p>;
   return (
     <BingoView

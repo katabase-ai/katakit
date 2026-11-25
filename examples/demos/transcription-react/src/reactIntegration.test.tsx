@@ -74,19 +74,18 @@ test('one boundary owns multiple bound streams and renders updates from each', (
   expect(board$.observed).toBe(false);
 });
 
-test('transcription bindings render initially undefined values and update across resets', () => {
+test('transcription bindings render empty, pending and completed turns across remounts', () => {
   const TranscriptIngestionPlugin = makeTranscriptIngestionPlugin();
   const kit = makeKatakit({ plugins: [TranscriptIngestionPlugin.configure({})] });
   const methods = kit.start().getMethods(TranscriptIngestionPlugin);
-  const { conversationTurns$, currentTurn$, provisional$, lastHeard$ } =
+  const { collectedConversationTurns$, pendingConversationTurn$, provisionalUtterance$ } =
     kit.getObservables(TranscriptIngestionPlugin);
-  const [useTurns, turnsState$] = bind(conversationTurns$);
-  const [useCurrent, currentState$] = bind(currentTurn$);
-  const [useProvisional, provisionalState$] = bind(provisional$);
-  const [useLastHeard, lastHeardState$] = bind(lastHeard$);
-  const view$ = combineLatest([turnsState$, currentState$, provisionalState$, lastHeardState$]);
+  const [useTurns, turnsState$] = bind(collectedConversationTurns$);
+  const [useCurrent, currentState$] = bind(pendingConversationTurn$);
+  const [useProvisional, provisionalState$] = bind(provisionalUtterance$);
+  const view$ = combineLatest([turnsState$, currentState$, provisionalState$]);
   const View = () => (
-    <output>{`${useTurns().length}|${useCurrent()?.text ?? '-'}|${useProvisional() ?? '-'}|${useLastHeard() ?? '-'}`}</output>
+    <output>{`${useTurns().length}|${useCurrent()?.text ?? '-'}|${useProvisional()?.text ?? '-'}`}</output>
   );
   const view = render(
     <Subscribe source$={view$}>
@@ -94,15 +93,15 @@ test('transcription bindings render initially undefined values and update across
     </Subscribe>
   );
 
-  expect(view.getByRole('status').textContent).toBe('0|-|-|-');
-  act(() => methods.updateProvisional('Hello'));
-  expect(view.getByRole('status').textContent).toBe('0|-|Hello|-');
-  act(() => methods.ingestSegment({ id: '1', sourceId: 'mic', text: 'Hello.' }));
-  expect(view.getByRole('status').textContent).toBe('0|Hello.|-|Hello.');
+  expect(view.getByRole('status').textContent).toBe('0|-|-');
+  act(() => methods.updateProvisionalUtterance({ text: 'Hello', speaker: 'mic' }));
+  expect(view.getByRole('status').textContent).toBe('0|-|Hello');
+  act(() =>
+    methods.ingestUtterance({ id: '1', speaker: 'mic', text: 'Hello.', startMs: 0, endMs: 100 })
+  );
+  expect(view.getByRole('status').textContent).toBe('0|Hello.|-');
   act(() => methods.flush());
-  expect(view.getByRole('status').textContent).toBe('1|-|-|Hello.');
-  act(() => methods.reset());
-  expect(view.getByRole('status').textContent).toBe('0|-|-|-');
+  expect(view.getByRole('status').textContent).toBe('1|-|-');
 
   view.unmount();
   const remounted = render(
@@ -110,7 +109,7 @@ test('transcription bindings render initially undefined values and update across
       <View />
     </Subscribe>
   );
-  expect(remounted.getByRole('status').textContent).toBe('0|-|-|-');
+  expect(remounted.getByRole('status').textContent).toBe('1|-|-');
   remounted.unmount();
   methods.close();
 });

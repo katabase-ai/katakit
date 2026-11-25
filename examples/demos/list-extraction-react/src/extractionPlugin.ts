@@ -10,6 +10,8 @@ import {
   type ListRule,
 } from './extractionModel';
 
+export type { TranscriptTurn } from '@katakit/transcript-ingestion';
+
 const TranscriptEntrySchema = v.object({
   id: v.pipe(v.string(), v.minLength(1)),
   sourceId: v.pipe(v.string(), v.minLength(1)),

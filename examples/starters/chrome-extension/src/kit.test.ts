@@ -1,16 +1,18 @@
 import { expect, test } from 'vitest';
 import { createTranscriptSession } from './kit';
 
-test('recognized segments become Katakit turns and reset clears them', () => {
+test('a saved segment and its queued delivery produce one turn; a new source can reuse its ID', () => {
   const session = createTranscriptSession();
   try {
-    session.onFinal({ id: '1', sourceId: 'tab', text: 'Hello from the tab.' });
+    const segment = { id: '1', sourceId: 'tab', text: 'Hello from the tab.' };
+    session.onFinal(segment);
+    session.onFinal(segment);
+    session.onFinal({ ...segment, sourceId: 'next-tab', text: 'Another tab.' });
     session.onStop();
-    expect(session.conversationTurns$.get().map(turn => turn.text)).toEqual([
+    expect(session.turns$.get().map(turn => turn.text)).toEqual([
       'Hello from the tab.',
+      'Another tab.',
     ]);
-    session.clear();
-    expect(session.conversationTurns$.get()).toEqual([]);
   } finally {
     session.close();
   }
