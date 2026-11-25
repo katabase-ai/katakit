@@ -100,6 +100,33 @@ test('JSON replay preserves all content and IDs without clocks, inference, or ne
   expect(request).not.toHaveBeenCalled();
 });
 
+test('core metadata survives JSON replay and continuation; legacy envelopes upgrade deterministically', () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(new Date('2026-11-25T00:00:00.000Z'));
+  const legacy = restored([{ type: 'configured', challengeId: 'animals-01', seconds: 60 }]);
+  expect(legacy.events$.getAll()[0]!.meta).toEqual({ seq: 0, timestamp: new Date(0) });
+  legacy.clear();
+  const history = historyOf(legacy);
+  const replay = restored(history);
+  expect(replay.events$.getAll()).toEqual(legacy.events$.getAll());
+  replay.clear();
+  expect(replay.events$.getAll().map(event => event.meta.seq)).toEqual([0, 1, 2]);
+  expect(replay.events$.getAll()[2]!.meta.timestamp).toEqual(new Date('2026-11-25T00:00:00.000Z'));
+});
+
+test.each([
+  null,
+  { seq: 2, timestamp: new Date(0) },
+  { seq: 0, timestamp: 'not a date' },
+  { seq: 0, timestamp: 0 },
+])('rejects invalid core metadata before replay: %j', meta => {
+  expect(() =>
+    createBrainstormDemo({
+      initialEvents: [{ type: 'configured', challengeId: 'animals-01', seconds: 60, meta }],
+    })
+  ).toThrow(/Invalid brainstorm event/);
+});
+
 test.each(['running', 'finishing', 'finished'] as const)(
   'restored %s input requires explicit recovery and judges only the pending suffix',
   async phase => {
@@ -118,6 +145,7 @@ test.each(['running', 'finishing', 'finished'] as const)(
     if (phase === 'finished') history.push({ type: 'finished' });
     vi.useFakeTimers();
     const replay = restored(history);
+    const imported = historyOf(replay);
     const request = vi.fn<BrainstormConnection['requestCompletion']>(async () =>
       completion('Orca', 'orca')
     );
@@ -126,7 +154,7 @@ test.each(['running', 'finishing', 'finished'] as const)(
     replay.finish();
     replay.flush();
     replay.ingestSegment({ sourceId: 'mic', id: 'three', text: 'dolphin' });
-    expect(historyOf(replay)).toEqual(history);
+    expect(historyOf(replay)).toEqual(imported);
     expect(request).not.toHaveBeenCalled();
     expect(vi.getTimerCount()).toBe(0);
     replay.recover();

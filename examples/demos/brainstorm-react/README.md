@@ -98,7 +98,7 @@ survive round resets.
 
 ## State and input lifecycle
 
-`createBrainstormDemo` derives board content from a Katakit event log. Events record challenge
+`createBrainstormDemo` derives board content from core's built-in `EventLogPlugin`. Events record challenge
 selection, round start/deadline, finalized text, accepted notes/cursors, removals, and completion.
 Clocks, admission, provisional text, requests, and failures remain transient. The snapshot subject
 is a delivery cache of the event projection plus that transient state, not a second content store.
@@ -112,6 +112,13 @@ the complete history) and pass their JSON round-trip to
 ordering before constructing the runtime: known challenges, finite durations/times, unique
 recorded IDs, valid phase transitions, forward-only cursors within the transcript, and note
 evidence backed by recorded qualifying judgments. Invalid history throws; it is not partially loaded.
+
+Core attaches `meta.seq` and `meta.timestamp` to live events. Restoration preserves that metadata,
+revives JSON timestamp strings to `Date`, and requires contiguous zero-based sequence numbers.
+Older histories without metadata receive their array index and an epoch timestamp deterministically;
+replay does not read the wall clock to fabricate historical timestamps. This consumer requires the
+core event-log API introduced in #108; until released, use the packed-library copy check rather
+than the older npm core build. The manifest retains registry version syntax.
 
 Replay preserves recorded round/note IDs, transcript, judgments, removals, and cursor. It does not
 allocate IDs, append events, call a model, start capture, or restart a clock. Segment-delivery

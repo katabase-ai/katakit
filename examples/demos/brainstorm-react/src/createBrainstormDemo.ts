@@ -1,7 +1,6 @@
-import { makeKatakit } from '@katakit/core';
-import { makeEventLogPlugin } from '@katakit/event-log';
+import { EventLogPlugin, makeKatakit, type KatakitEvent, type WithEager } from '@katakit/core';
 import type { MicrophoneOptions } from '@katakit/transcription/browser';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, type Observable } from 'rxjs';
 import * as v from 'valibot';
 import { answerKey, findChallenge } from './challenges';
 import {
@@ -114,8 +113,30 @@ const reduce = (state: Content, event: BrainstormEvent): Content => {
 };
 
 /** Validate the entire imported history before constructing a runtime or starting any work. */
-const restore = (input: unknown): BrainstormEvent[] => {
+const restore = (input: unknown): KatakitEvent<BrainstormEvent>[] => {
   const events = v.parse(v.array(EventSchema), input);
+  const history = events.map((event, seq): KatakitEvent<BrainstormEvent> => {
+    const meta = (input as { meta?: unknown }[])[seq]!.meta;
+    // Older demo histories had no core envelope. Upgrade deterministically.
+    if (meta === undefined) return { ...event, meta: { seq, timestamp: new Date(0) } };
+    if (
+      !meta ||
+      typeof meta !== 'object' ||
+      !('seq' in meta) ||
+      meta.seq !== seq ||
+      !('timestamp' in meta)
+    )
+      throw new Error(`Invalid brainstorm event metadata at event ${seq}`);
+    const timestamp =
+      meta.timestamp instanceof Date
+        ? new Date(meta.timestamp)
+        : typeof meta.timestamp === 'string'
+          ? new Date(meta.timestamp)
+          : new Date(NaN);
+    if (!Number.isFinite(timestamp.getTime()))
+      throw new Error(`Invalid brainstorm event timestamp at event ${seq}`);
+    return { ...event, meta: { seq, timestamp } };
+  });
   let state = initial();
   const segments = new Set<string>();
   const ids = new Set<string>();
@@ -182,7 +203,7 @@ const restore = (input: unknown): BrainstormEvent[] => {
     if (!valid) throw new Error(`Invalid brainstorm history at event ${index} (${event.type})`);
     state = reduce(state, event);
   }
-  return events;
+  return history;
 };
 
 export type BrainstormSnapshot = Content & {
@@ -198,10 +219,13 @@ export type BrainstormSnapshot = Content & {
 /** One visit owns its event log, single-flight judging queue, and round clock. */
 export const createBrainstormDemo = ({ initialEvents = [] }: { initialEvents?: unknown } = {}) => {
   const history = restore(initialEvents);
-  const log = makeEventLogPlugin({ validateEvent: EventSchema });
-  const kit = makeKatakit({ plugins: [log.configure({ initialEvents: history })] }).start();
-  const { emitEvent } = kit.getMethods(log);
-  const { events$ } = kit.getObservables(log);
+  const kit = makeKatakit({ plugins: [], existingEvents: history }).start();
+  // Core accepts arbitrary events; this application owns validation at every write boundary.
+  const emitEvent = (event: BrainstormEvent) =>
+    kit.getMethods(EventLogPlugin).emitEvent(v.parse(EventSchema, event));
+  const events$ = kit.getObservables(EventLogPlugin).events$ as WithEager<
+    Observable<KatakitEvent<BrainstormEvent>>
+  >;
   let content = initial();
   let connection: BrainstormConnection | undefined;
   let controller: AbortController | undefined;
