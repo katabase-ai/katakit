@@ -15,19 +15,15 @@ const speech = createMicrophoneTranscriber({
 });
 
 const App = () => {
-  const [turns, setTurns] = useState(session.conversationTurns$.get());
-  const [current, setCurrent] = useState(session.currentTurn$.get());
-  const [provisional, setProvisional] = useState(session.provisional$.get());
+  const [turns, setTurns] = useState(session.turns$.get());
+  const [current, setCurrent] = useState(session.pending$.get());
+  const [provisional, setProvisional] = useState(session.provisional$.get()?.text);
   const [state, setState] = useState<TranscriptionState>({ phase: 'idle' });
 
   useEffect(() => {
-    const completed = session.conversationTurns$.subscribe(() =>
-      setTurns(session.conversationTurns$.get())
-    );
-    const active = session.currentTurn$.subscribe(() => setCurrent(session.currentTurn$.get()));
-    const preview = session.provisional$.subscribe(() =>
-      setProvisional(session.provisional$.get())
-    );
+    const completed = session.turns$.subscribe(setTurns);
+    const active = session.pending$.subscribe(setCurrent);
+    const preview = session.provisional$.subscribe(value => setProvisional(value?.text));
     const onState = (event: Event) => setState((event as CustomEvent<TranscriptionState>).detail);
     window.addEventListener('speech-state', onState);
     return () => {
@@ -35,8 +31,13 @@ const App = () => {
       active.unsubscribe();
       preview.unsubscribe();
       window.removeEventListener('speech-state', onState);
-      void speech.dispose();
-      session.close();
+      void (async () => {
+        try {
+          await speech.dispose();
+        } finally {
+          session.close();
+        }
+      })();
     };
   }, []);
 
@@ -69,8 +70,8 @@ const App = () => {
       <h2>Conversation turns</h2>
       {turns.length === 0 && !current && <p>No speech recognized yet.</p>}
       <ul>
-        {turns.map((turn, index) => (
-          <li key={`${turn.sourceId}-${index}`}>{turn.text}</li>
+        {turns.map(turn => (
+          <li key={turn.id}>{turn.text}</li>
         ))}
         {current && <li>{current.text}</li>}
       </ul>

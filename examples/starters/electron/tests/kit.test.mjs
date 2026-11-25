@@ -9,7 +9,7 @@ test('final recognized speech becomes a Katakit turn on stop', () => {
     session.onFinal({ id: '1', sourceId: 'mic', text: 'Follow up.' });
     session.onStop();
     assert.deepEqual(
-      session.conversationTurns$.get().map(turn => turn.text),
+      session.turns$.get().map(turn => turn.text),
       ['Follow up.']
     );
   } finally {
