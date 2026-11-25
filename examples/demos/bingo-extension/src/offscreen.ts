@@ -126,11 +126,9 @@ const stopSession = () => {
       throw error_;
     } finally {
       try {
-        if (error) {
-          const current = recognizer;
-          recognizer = undefined;
-          await current?.dispose();
-        }
+        const current = recognizer;
+        recognizer = undefined;
+        await current?.dispose();
       } finally {
         stopping = undefined;
       }

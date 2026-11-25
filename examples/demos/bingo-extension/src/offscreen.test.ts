@@ -101,14 +101,22 @@ describe('offscreen transcription host', () => {
     );
     expect(capture.start).toHaveBeenCalledWith('tab-stream');
     expect(await dispatch('OFFSCREEN_STOP')).toEqual({ ok: true });
-    expect(events).toEqual(['model start', 'capture stop', 'pcm', 'model stop', 'final', 'idle']);
+    expect(events).toEqual([
+      'model start',
+      'capture stop',
+      'pcm',
+      'model stop',
+      'final',
+      'idle',
+      'dispose',
+    ]);
     expect(sendMessage).toHaveBeenCalledWith({
       type: 'TRANSCRIPT_SEGMENT',
       segment: { sourceId: 'session', id: '1', text: 'Final.' },
     });
-    expect(transcriber.dispose).not.toHaveBeenCalled();
+    expect(transcriber.dispose).toHaveBeenCalledOnce();
     expect(await dispatch('OFFSCREEN_START')).toEqual({ ok: true });
-    expect(mocks.transcriber).toHaveBeenCalledOnce();
+    expect(mocks.transcriber).toHaveBeenCalledTimes(2);
     await dispatch('OFFSCREEN_STOP');
   });
 

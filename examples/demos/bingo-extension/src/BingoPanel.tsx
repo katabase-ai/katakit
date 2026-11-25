@@ -1,131 +1,77 @@
 import { bind, Subscribe } from '@react-rxjs/core';
 import { combineLatest } from 'rxjs';
 import { useEffect, useState } from 'react';
-import { makeKatakit } from '@katakit/core';
 import {
   bingoPacks,
   defaultSquares,
   drawBingoPack,
-  makeBingoPlugin,
   type BingoBoard,
   type BingoPackId,
 } from './bingo';
-import {
-  makeTranscriptIngestionPlugin,
-  type TranscriptSegment,
-} from '@katakit/transcript-ingestion';
 import { AudioLevelMeter } from './AudioLevelMeter';
+import { createPanelRuntime, type PanelRuntime } from './runtime';
+import { isSegment, orderHydration, type TranscriptMessage } from './history';
 
-const transcriptIngestion = makeTranscriptIngestionPlugin();
-const bingo = makeBingoPlugin({ TranscriptIngestionPlugin: transcriptIngestion });
-const kit = makeKatakit({ plugins: [transcriptIngestion.configure({}), bingo.configure({})] });
-const running = kit.start();
-const methods = running.getMethods(transcriptIngestion);
-const bingoMethods = running.getMethods(bingo);
-const { lastHeard$ } = kit.getObservables(transcriptIngestion);
-const board$ = kit.getObservables(bingo).state$;
-const [useLastHeard, lastHeardState$] = bind(lastHeard$);
-const [useBoard, boardState$] = bind(board$);
-const view$ = combineLatest([lastHeardState$, boardState$]);
+const bindRuntime = (runtime: PanelRuntime) => {
+  const [useLastHeard, lastHeardState$] = bind(runtime.transcript.lastHeard$);
+  const [useBoard, boardState$] = bind(runtime.board$);
+  return { useLastHeard, useBoard, view$: combineLatest([lastHeardState$, boardState$]) };
+};
+type ReadyPanel = ReturnType<typeof bindRuntime> & {
+  runtime: PanelRuntime;
+  local: Record<string, unknown>;
+};
 
 type Phase = 'idle' | 'loading' | 'recording' | 'error';
 type CaptureState = { phase: Phase; progress?: number; error?: string; micConnected?: boolean };
 
-const BingoView = () => {
-  const lastHeard = useLastHeard();
-  const board = useBoard();
-  const [capture, setCapture] = useState<CaptureState>({ phase: 'idle' });
-  const [micLevel, setMicLevel] = useState(0);
-  const [tabLevel, setTabLevel] = useState(0);
-  const [loaded, setLoaded] = useState(false);
-  const [packId, setPackId] = useState<BingoPackId | 'custom'>('meeting');
-  const [customSquares, setCustomSquares] = useState([...defaultSquares]);
+const BingoView = ({
+  panel,
+  capture,
+  setCapture,
+  micLevel,
+  tabLevel,
+}: {
+  panel: ReadyPanel;
+  capture: CaptureState;
+  setCapture: (capture: CaptureState) => void;
+  micLevel: number;
+  tabLevel: number;
+}) => {
+  const lastHeard = panel.useLastHeard();
+  const board = panel.useBoard();
+  const { bingoMethods, restoredBoard } = panel.runtime;
+  const [packId, setPackId] = useState<BingoPackId | 'custom'>(() => {
+    const saved = panel.local.packId;
+    if (restoredBoard && (saved === 'custom' || bingoPacks.some(pack => pack.id === saved)))
+      return saved as BingoPackId | 'custom';
+    return board.squares.some((phrase, index) => phrase !== defaultSquares[index])
+      ? 'custom'
+      : 'meeting';
+  });
+  const [customSquares] = useState(() => {
+    const saved = panel.local.customSquares;
+    return Array.isArray(saved) &&
+      saved.length === 25 &&
+      saved.every(value => typeof value === 'string')
+      ? (saved as string[])
+      : [...board.squares];
+  });
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    let mounted = true;
-    let transcriptVersion = 0;
-    const listener = (message: {
-      type?: string;
-      segment?: TranscriptSegment;
-      phase?: Phase;
-      progress?: number;
-      error?: string;
-      micConnected?: boolean;
-      source?: 'mic' | 'tab';
-      level?: number;
-    }) => {
-      if (message.type === 'CAPTURE_RESET') {
-        transcriptVersion++;
-        methods.reset();
-      }
-      if (message.type === 'TRANSCRIPT_SEGMENT' && message.segment)
-        methods.ingestSegment(message.segment);
-      if (message.type === 'CAPTURE_LEVEL' && typeof message.level === 'number') {
-        if (message.source === 'mic') setMicLevel(message.level);
-        if (message.source === 'tab') setTabLevel(message.level);
-      }
-      if (message.type === 'CAPTURE_STATUS' && message.phase) {
-        setCapture({
-          phase: message.phase,
-          progress: message.progress,
-          error: message.error,
-          micConnected: message.micConnected,
-        });
-        if (message.phase === 'idle') methods.flush();
-      }
-    };
-    chrome.runtime.onMessage.addListener(listener);
     void (async () => {
       try {
-        const initialTranscriptVersion = transcriptVersion;
-        const [local, session] = await Promise.all([
-          chrome.storage.local.get(['board', 'packId', 'customSquares']),
-          chrome.storage.session.get(['segments', 'capture']),
-        ]);
-        if (!mounted) return;
-        const storedBoard = local.board as BingoBoard | undefined;
-        if (storedBoard?.squares?.length === 25) {
-          try {
-            bingoMethods.restoreBoard(storedBoard);
-            const savedPack = local.packId;
-            if (savedPack === 'custom' || bingoPacks.some(pack => pack.id === savedPack))
-              setPackId(savedPack as BingoPackId | 'custom');
-            else if (storedBoard.squares.some((phrase, index) => phrase !== defaultSquares[index]))
-              setPackId('custom');
-            if (Array.isArray(local.customSquares) && local.customSquares.length === 25)
-              setCustomSquares(local.customSquares as string[]);
-            else if (!savedPack || savedPack === 'custom')
-              setCustomSquares([...storedBoard.squares]);
-          } catch {
-            // Keep the default card if saved settings were from an incompatible version.
-          }
-        }
-        if (initialTranscriptVersion === transcriptVersion) {
-          for (const segment of (session.segments ?? []) as TranscriptSegment[])
-            methods.ingestSegment(segment);
-          if (session.capture) setCapture(session.capture as CaptureState);
-        }
+        await chrome.storage.local.set({
+          board: { squares: board.squares, overrides: board.overrides } satisfies BingoBoard,
+          packId,
+          customSquares,
+        });
       } catch {
-        // A new install without stored state still has a playable default card.
-      } finally {
-        if (mounted) setLoaded(true);
+        /* Storage failure must not interrupt the current card. */
       }
     })();
-    return () => {
-      mounted = false;
-      chrome.runtime.onMessage.removeListener(listener);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (loaded)
-      void chrome.storage.local.set({
-        board: { squares: board.squares, overrides: board.overrides } satisfies BingoBoard,
-        packId,
-        customSquares,
-      });
-  }, [board.squares, board.overrides, packId, customSquares, loaded]);
+  }, [board.squares, board.overrides, packId, customSquares]);
 
   const { squares, evidence, marked, winningLines: wins } = board;
   const count = marked.filter(Boolean).length - 1;
@@ -272,8 +218,82 @@ const BingoView = () => {
   );
 };
 
-export const Bingo = () => (
-  <Subscribe source$={view$}>
-    <BingoView />
-  </Subscribe>
-);
+export const Bingo = () => {
+  const [panel, setPanel] = useState<ReadyPanel>();
+  const [capture, setCapture] = useState<CaptureState>({ phase: 'idle' });
+  const [micLevel, setMicLevel] = useState(0);
+  const [tabLevel, setTabLevel] = useState(0);
+  useEffect(() => {
+    let mounted = true;
+    let runtime: PanelRuntime | undefined;
+    let liveStatus = false;
+    let stopped = false;
+    const queued: TranscriptMessage[] = [];
+    const listener = (message: Record<string, unknown>) => {
+      let transcriptMessage: TranscriptMessage | undefined;
+      if (message.type === 'CAPTURE_RESET') transcriptMessage = { type: 'CAPTURE_RESET' };
+      if (message.type === 'TRANSCRIPT_SEGMENT' && isSegment(message.segment))
+        transcriptMessage = { type: 'TRANSCRIPT_SEGMENT', segment: message.segment };
+      if (transcriptMessage) {
+        if (!runtime) queued.push(transcriptMessage);
+        else if (transcriptMessage.type === 'CAPTURE_RESET') runtime.methods.reset();
+        else runtime.methods.ingestSegment(transcriptMessage.segment);
+      }
+      if (message.type === 'CAPTURE_LEVEL' && typeof message.level === 'number') {
+        if (message.source === 'mic') setMicLevel(message.level);
+        if (message.source === 'tab') setTabLevel(message.level);
+      }
+      if (
+        message.type === 'CAPTURE_STATUS' &&
+        ['idle', 'loading', 'recording', 'error'].includes(String(message.phase))
+      ) {
+        liveStatus = true;
+        stopped = message.phase === 'idle';
+        setCapture(message as CaptureState);
+        if (stopped) runtime?.methods.flush();
+      }
+    };
+    chrome.runtime.onMessage.addListener(listener);
+    void (async () => {
+      const [localResult, sessionResult] = await Promise.allSettled([
+        chrome.storage.local.get(['board', 'packId', 'customSquares']),
+        chrome.storage.session.get(['segments', 'capture']),
+      ]);
+      if (!mounted) return;
+      const local = localResult.status === 'fulfilled' ? localResult.value : {};
+      const session = sessionResult.status === 'fulfilled' ? sessionResult.value : {};
+      const { initialSegments, live } = orderHydration(session.segments, queued);
+      runtime = createPanelRuntime(initialSegments, local.board);
+      for (const message of live)
+        if (message.type === 'TRANSCRIPT_SEGMENT') runtime.methods.ingestSegment(message.segment);
+      if (stopped) runtime.methods.flush();
+      if (
+        !liveStatus &&
+        session.capture &&
+        typeof session.capture === 'object' &&
+        'phase' in session.capture &&
+        ['idle', 'loading', 'recording', 'error'].includes(String(session.capture.phase))
+      )
+        setCapture(session.capture as CaptureState);
+      setPanel({ runtime, local, ...bindRuntime(runtime) });
+    })();
+    return () => {
+      mounted = false;
+      chrome.runtime.onMessage.removeListener(listener);
+      runtime?.close();
+    };
+  }, []);
+  return panel ? (
+    <Subscribe source$={panel.view$}>
+      <BingoView
+        panel={panel}
+        capture={capture}
+        setCapture={setCapture}
+        micLevel={micLevel}
+        tabLevel={tabLevel}
+      />
+    </Subscribe>
+  ) : (
+    <p role="status">Restoring your card…</p>
+  );
+};

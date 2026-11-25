@@ -6,6 +6,6 @@ export default defineConfig({
   test: {
     name: 'bingo-extension',
     environment: 'node',
-    include: ['src/**/*.test.{ts,mjs}'],
+    include: ['src/**/*.test.{ts,tsx,mjs}'],
   },
 });
