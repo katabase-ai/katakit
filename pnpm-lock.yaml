@@ -361,6 +361,9 @@ importers:
       '@katakit/core':
         specifier: workspace:*
         version: link:../../../pkgs/core
+      '@katakit/event-log':
+        specifier: workspace:*
+        version: link:../../../pkgs/event-log
       '@katakit/transcript-ingestion':
         specifier: workspace:*
         version: link:../../../pkgs/transcript-ingestion
