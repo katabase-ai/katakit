@@ -339,6 +339,7 @@ export const makeTranscriptIngestionPlugin = <TEvent = never, TInput = TEvent>({
           getMethods(EventLogPlugin).emitEvent(toTranscriptIngestionEvent(event)));
       let timer: ReturnType<typeof setTimeout> | undefined;
       let closed = false;
+      let closing = false;
       let livePending = false;
       const cancelTimer = () => {
         if (timer !== undefined) clearTimeout(timer);
@@ -369,7 +370,7 @@ export const makeTranscriptIngestionPlugin = <TEvent = never, TInput = TEvent>({
         }
       });
       const ingestSegment = (segment: TranscriptSegment) => {
-        if (closed) return;
+        if (closed || closing) return;
         if (observables.segments$.get().some(existing => identity(existing) === identity(segment)))
           return;
         const text = segment.text.trim();
@@ -378,20 +379,29 @@ export const makeTranscriptIngestionPlugin = <TEvent = never, TInput = TEvent>({
         const current = observables.currentTurn$.get();
         if (current && boundary(current, segment, turnSilenceMs)) flush();
         clearProvisional();
-        publish({ type: 'segment', segment: { ...segment, text } });
+        if (closed || closing) return;
+        const previouslyPending = livePending;
         livePending = true;
+        try {
+          publish({ type: 'segment', segment: { ...segment, text } });
+        } catch (error) {
+          livePending = previouslyPending;
+          throw error;
+        }
+        // Synchronous subscribers may reset/flush/close while the record is delivered.
+        if (closed || !livePending) return;
         cancelTimer();
         timer = setTimeout(flush, turnSilenceMs);
       };
       const updateProvisionalUtterance = (utterance: ProvisionalUtterance) => {
-        if (closed) return;
+        if (closed || closing) return;
         const text = utterance.text.trim();
         publish({ type: 'provisional', text: text || undefined });
         provisionalUtterance.next(text ? { ...utterance, text } : null);
       };
       return {
         reset: () => {
-          if (closed) return;
+          if (closed || closing) return;
           publish({ type: 'reset' });
         },
         updateProvisional: (text: string) => {
@@ -407,16 +417,20 @@ export const makeTranscriptIngestionPlugin = <TEvent = never, TInput = TEvent>({
         flush,
         /** Flush live input only, then release timers/readers. Host stops and drains its sources first. */
         close: () => {
-          if (closed) return;
-          if (livePending) flush();
-          else clearProvisional();
-          cancelTimer();
-          closed = true;
-          subscription.unsubscribe();
-          stop.next();
-          stop.complete();
-          provisional.complete();
-          provisionalUtterance.complete();
+          if (closed || closing) return;
+          closing = true;
+          try {
+            if (livePending) flush();
+            else clearProvisional();
+          } finally {
+            cancelTimer();
+            closed = true;
+            subscription.unsubscribe();
+            stop.next();
+            stop.complete();
+            provisional.complete();
+            provisionalUtterance.complete();
+          }
         },
       };
     },
