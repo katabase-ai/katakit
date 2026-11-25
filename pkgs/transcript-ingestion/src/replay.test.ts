@@ -141,7 +141,9 @@ it('rejects malformed restored and live content without losing the next valid se
     'Invalid transcript event'
   );
   const t = setup();
-  expect(() => t.ingestSegment({ id: 'x', sourceId: 'mic', text: 'bad', startMs: NaN })).toThrow();
+  expect(() => t.ingestSegment({ id: 'x', sourceId: 'mic', text: 'bad', startMs: NaN })).toThrow(
+    'Invalid transcript event'
+  );
   expect(t.history()).toEqual([]);
   t.ingestSegment({ id: 'x', sourceId: 'mic', text: 'good' });
   t.close();
@@ -155,4 +157,22 @@ it('releases log readers on close and leaves host log writable', () => {
   t.emitEvent(segment('two'));
   expect(t.history()).toHaveLength(2);
   expect(t.state$.get()).toBe(before);
+  const complete = vi.fn();
+  t.events$.subscribe({ complete });
+  expect(complete).toHaveBeenCalledOnce();
+});
+
+it('keeps method ownership when the devtools hook wraps the observable collection', () => {
+  const key = Symbol.for('katakit.devtools.observables.v1');
+  Reflect.set(globalThis, key, (_runtime: object, _plugin: string, streams: object) => ({
+    ...streams,
+  }));
+  try {
+    const t = setup();
+    t.ingestSegment({ id: 'one', sourceId: 'mic', text: 'recorded' });
+    t.close();
+    expect(t.conversationTurns$.get()[0]?.text).toBe('recorded');
+  } finally {
+    Reflect.deleteProperty(globalThis, key);
+  }
 });

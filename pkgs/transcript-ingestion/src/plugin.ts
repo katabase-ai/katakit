@@ -8,6 +8,7 @@ import {
 import { makeEventLogPlugin } from '@katakit/event-log';
 import {
   Observable,
+  ReplaySubject,
   Subject,
   distinctUntilChanged,
   filter,
@@ -157,14 +158,12 @@ export const makeTranscriptIngestionPlugin = <TEvent = never>({
 } = {}) => {
   if (!Number.isFinite(turnSilenceMs) || turnSilenceMs < 0)
     throw new Error('turnSilenceMs must be a nonnegative number');
-  const controls = new WeakMap<
-    object,
-    {
-      append: (event: TranscriptRecordedEvent) => void;
-      provisional: Subject<Extract<TranscriptEvent, { type: 'provisional' }>>;
-      stop: Subject<void>;
-    }
-  >();
+  const controlKey = Symbol('transcript-controls');
+  type Controls = {
+    append: (event: TranscriptRecordedEvent) => void;
+    provisional: Subject<Extract<TranscriptEvent, { type: 'provisional' }>>;
+    stop: Subject<void>;
+  };
   return makeKatakitPlugin({
     type: 'TranscriptIngestion',
     configure: (_options: {}) => ({}),
@@ -194,7 +193,7 @@ export const makeTranscriptIngestionPlugin = <TEvent = never>({
       const append = eventLog
         ? (event: TranscriptRecordedEvent) => eventLog.emitEvent(eventLog.toEvent(event))
         : runtime!.getMethods(local).emitEvent;
-      const stop = new Subject<void>();
+      const stop = new ReplaySubject<void>(1);
       const provisional = new Subject<Extract<TranscriptEvent, { type: 'provisional' }>>();
       const state$ = property(
         records$.pipe(
@@ -242,6 +241,8 @@ export const makeTranscriptIngestionPlugin = <TEvent = never>({
         )
       );
       const events$ = merge(records$.pipe(skipReplay()), provisional).pipe(takeUntil(stop));
+      // Recorder wrappers proxy streams but replace the observable collection.
+      Object.defineProperty(state$, controlKey, { value: { append, provisional, stop } });
       const observables = {
         state$,
         segments$,
@@ -251,11 +252,12 @@ export const makeTranscriptIngestionPlugin = <TEvent = never>({
         lastHeard$,
         events$,
       };
-      controls.set(observables, { append, provisional, stop });
       return observables;
     },
     methods: ({ observables }) => {
-      const { append, provisional, stop } = controls.get(observables)!;
+      const { append, provisional, stop } = (
+        observables.state$ as typeof observables.state$ & { [controlKey]: Controls }
+      )[controlKey];
       let timer: ReturnType<typeof setTimeout> | undefined;
       let closed = false;
       let livePending = false;
