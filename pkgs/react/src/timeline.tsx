@@ -35,14 +35,17 @@ export const Timeline = ({
   const [filter, setFilter] = useState(false);
   const [query, setQuery] = useState('');
   const [hidden, setHidden] = useState<ReadonlySet<string>>(() => new Set());
+  const laneIds = new Set(lanes.map(lane => lane.id));
   let zero = Infinity;
   let end = -Infinity;
   for (const event of events) {
+    if (!laneIds.has(event.laneId)) continue;
     zero = Math.min(zero, event.time);
     end = Math.max(end, event.time);
   }
-  if (!events.length) zero = 0;
-  const last = events.length ? end - zero : 0;
+  const hasVisibleEvents = zero !== Infinity;
+  if (!hasVisibleEvents) zero = 0;
+  const last = hasVisibleEvents ? end - zero : 0;
   const {
     viewport,
     heading,

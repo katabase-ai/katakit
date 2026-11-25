@@ -49,3 +49,19 @@ test('renders empty caller data without a capture source and selects by keyboard
   expect(onSelect).toHaveBeenCalledWith('stable');
   view.unmount();
 });
+
+test('an event for an undeclared lane cannot shift the visible time origin', () => {
+  const view = render(
+    <Timeline
+      lanes={[{ id: 'known', label: 'Known' }]}
+      events={[
+        { id: 'ignored', laneId: 'unknown', time: -10_000 },
+        { id: 'shown', laneId: 'known', time: 1_000 },
+      ]}
+      playheadTime={1_000}
+    />
+  );
+  expect(view.getByRole('button', { name: 'Known, 0.000s, 1 event' })).toBeTruthy();
+  expect(view.container.querySelector('.katakit-timeline-playhead')?.getAttribute('x1')).toBe('14');
+  view.unmount();
+});
