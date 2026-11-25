@@ -415,7 +415,7 @@ export const makeTranscriptIngestionPlugin = <TEvent = never, TInput = TEvent>({
         updateProvisionalUtterance,
         /** Explicitly finalize even a hydrated pending turn; no-op after close. */
         flush,
-        /** Flush live input only, then release timers/readers. Host stops and drains its sources first. */
+        /** Stop the plugin's timer and release readers even if flushing live input throws. Host stops and drains its sources first. */
         close: () => {
           if (closed || closing) return;
           closing = true;
