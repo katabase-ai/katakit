@@ -8,18 +8,34 @@ Import it from `./bingo` in either application. Register `makeBingoPlugin().conf
 with `makeKatakit`, then use `getMethods(Bingo).setTurns(turns)` to supply the complete
 current turn list (`{ id, text }[]`). Alternatively, pass a `TranscriptIngestionPlugin` to
 `makeBingoPlugin({ TranscriptIngestionPlugin })` when both are registered in one runtime.
-The bingo plugin then reacts to finalized segments, completed turns, and resets
-through a runtime effect, including when no UI is mounted. It includes the current
-turn, whose words are finalized, but not provisional text. Replacing the list
-recomputes matches; duplicates and removed turns cannot leave stale matches.
+The bingo plugin synchronously projects the ingestion plugin's atomic transcript
+state, including when no UI is mounted. It includes the current turn, whose words
+are finalized, but not provisional text. In this mode ingestion owns input and
+`setTurns` is unavailable. In standalone mode `setTurns` records a replacement;
+identical replacements are ignored and `setTurns([])` clears transcript evidence.
 
 `state$` exposes the 25 squares, manual `overrides`, matched `evidence`, `marked`
 flags, and `winningLines`. The center is always free. `setOverride(index, value)`
 sets or clears a manual correction; `setSquares(makeSquares(phrases))` replaces a
-card of 24 phrases. `restoreBoard({ squares, overrides })` restores host-owned
-board state. The plugin holds no audio, UI, storage, network access, or timers;
-the host persists board settings if desired. Runtime effects currently have no
-whole-runtime disposal hook; unmounting React does not stop the bingo effect.
+card of 24 phrases. Each command appends to `@katakit/event-log`; deterministic
+projections derive the board, evidence, marks and wins. `restoreBoard({ squares,
+overrides })` migrates a legacy persisted board by appending one validated
+`board-set` event. It never restores transcript content.
+
+By default the plugin owns an in-memory log. Capture its replaying `events$` and
+restore with `configure({ initialEvents })`; every restored event is validated.
+For a caller-owned log pass `eventLog: { events$, emitEvent }` to the factory.
+The host must validate initial history with `parseBingoEvent` and live writes
+with `bingoEventSchema`, and provide a replaying, synchronous event stream.
+Filter a host union down to `BingoEvent` before binding it. Do not also pass
+`initialEvents` when binding a host log.
+
+The log records actual shuffled squares, explicit override additions/removals,
+and standalone transcript replacements. Replay never shuffles, generates IDs,
+appends events, or opens resources. Hosts that persist only board preferences
+can retain `board-set`/`override-set` events separately from session transcript
+history. The browser demo uses one host log for both kinds of content; the
+extension owns its board persistence policy.
 
 `bingoPacks` provides meeting phrases, animals, US states, world capitals,
 tricky-to-pronounce words, corporate jargon, and AI technical jargon. Each
@@ -54,5 +70,7 @@ replaces Malabo for Equatorial Guinea. Jakarta remains Indonesia's capital
 The chosen English spellings are for card play; uncommon names and alternate
 transliterations may not be recognized by Moonshine. Hosts allow manual corrections.
 
-When an application releases a card, call its `close()` method to complete the state stream.
-The application owns any transcript bridge subscriptions and must unsubscribe those separately.
+When an application releases a card, call its idempotent `close()` method to
+complete projections and detach log/transcript subscriptions. Late commands are
+ignored. The host separately stops/drains audio and closes transcript ingestion,
+which owns its live silence timer. Bingo owns no timers, network or storage.
