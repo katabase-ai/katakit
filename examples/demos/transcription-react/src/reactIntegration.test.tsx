@@ -6,8 +6,41 @@ import { BehaviorSubject, combineLatest, Observable } from 'rxjs';
 import { makeKatakit, property } from '@katakit/core';
 import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
 import { afterEach, expect, test } from 'vitest';
+import { createTranscriptionDemo } from './createTranscriptionDemo';
+import { TranscriptionDemo } from './TranscriptionDemo';
 
 afterEach(cleanup);
+
+test('the demo view follows its runtime through updates, remount and replacement', () => {
+  const first = createTranscriptionDemo();
+  first.ingestSegment({ id: 'one', sourceId: 'first', text: 'First visit' });
+  first.flush();
+  const view = render(
+    <StrictMode>
+      <TranscriptionDemo runtime={first} />
+    </StrictMode>
+  );
+  expect(view.getByText('First visit')).toBeTruthy();
+  act(() => first.updateProvisional('Draft'));
+  expect(view.getByText('Draft')).toBeTruthy();
+  view.unmount();
+
+  const replay = createTranscriptionDemo({ initialEvents: first.events$.getAll() });
+  const remount = render(<TranscriptionDemo runtime={replay} />);
+  expect(remount.getByText('First visit')).toBeTruthy();
+  expect(remount.getByText('Draft')).toBeTruthy();
+  const next = createTranscriptionDemo();
+  remount.rerender(<TranscriptionDemo runtime={next} />);
+  expect(remount.queryByText('First visit')).toBeNull();
+  act(() => replay.updateProvisional('Old visit'));
+  expect(remount.queryByText('Old visit')).toBeNull();
+  act(() => next.ingestSegment({ id: 'one', sourceId: 'next', text: 'Next visit' }));
+  expect(remount.getByText('Next visit')).toBeTruthy();
+  remount.unmount();
+  first.close();
+  replay.close();
+  next.close();
+});
 
 test('bind and Subscribe render property updates and release the UI subscription', () => {
   const subject = new BehaviorSubject(1);

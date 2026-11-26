@@ -1,4 +1,5 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import { Subscribe } from '@react-rxjs/core';
 import type { createTranscriptionDemo } from './createTranscriptionDemo';
 import './style.css';
 
@@ -8,27 +9,30 @@ const formatTime = (ms?: number) => {
   return `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
 };
 
-/** Instance-owned presentation; the caller supplies capture controls and releases the runtime. */
-export const TranscriptionDemo = ({
-  runtime,
-  controls,
-  introduction,
-  afterFirstSpeech,
-  showIntroduction = true,
-}: {
+type Props = {
   runtime: ReturnType<typeof createTranscriptionDemo>;
   controls?: ReactNode;
   introduction?: ReactNode;
   afterFirstSpeech?: ReactNode;
   /** Embedded hosts can supply their own page header. Standalone introductions remain the default. */
   showIntroduction?: boolean;
-}) => {
-  const [snapshot, setSnapshot] = useState(() => runtime.state$.getValue());
-  useEffect(() => {
-    const subscription = runtime.state$.subscribe(setSnapshot);
-    return () => subscription.unsubscribe();
-  }, [runtime]);
-  const { completedTurns, currentTurn, provisional } = snapshot;
+};
+
+/** Instance-owned presentation; the caller supplies capture controls and releases the runtime. */
+export const TranscriptionDemo = (props: Props) => (
+  <Subscribe source$={props.runtime.transcript$}>
+    <TranscriptView {...props} />
+  </Subscribe>
+);
+
+const TranscriptView = ({
+  runtime,
+  controls,
+  introduction,
+  afterFirstSpeech,
+  showIntroduction = true,
+}: Props) => {
+  const { completedTurns, currentTurn, provisional } = runtime.useTranscript();
   const turns = currentTurn ? [...completedTurns, currentTurn] : completedTurns;
   return (
     <section

@@ -32,6 +32,8 @@ starts from an application that was not event-sourced.
 2. Complete the [design brief](references/design-brief.md) before implementation. Select events
    and projections from the inventory, then compare the design with implementation constraints.
    Adapt frontend interfaces when needed to express the better model while preserving behavior.
+   If a reused plugin already owns the required events, use its log and projections instead of
+   introducing a second history merely to migrate a UI wrapper.
 3. If the proposed events simply mirror setters or a catch-all state object, do a fresh design
    pass using the behavior inventory and constraints. This does not require a new session or
    delegation. Do not discard product requirements to obtain a cleaner-looking model.
@@ -93,6 +95,10 @@ starts from an application that was not event-sourced.
 
 ## Worked references
 
+- [Transcription runtime](../../../examples/demos/transcription-react/src/createTranscriptionDemo.ts),
+  [input adapter](../../../examples/demos/transcription-react/src/transcriptInput.ts), and
+  [replay checks](../../../examples/demos/transcription-react/src/createTranscriptionDemo.test.ts):
+  reuse existing ingestion events, replace a writable view mirror, and restore source deduplication.
 - [Bingo events](../../../examples/demos/bingo-react/src/bingo/events.ts),
   [projections](../../../examples/demos/bingo-react/src/bingo/plugin.ts), and
   [reconstruction checks](../../../examples/demos/bingo-react/src/bingo/plugin.test.ts):

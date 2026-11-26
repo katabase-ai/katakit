@@ -25,12 +25,12 @@ it('connects standalone speech callbacks to local transcript events and turns', 
   });
   await input.start({ sourceId: 'plain-pcm' });
   input.write(new Float32Array(1600), 16_000);
-  expect(methods.state$.value.provisional).toBe('unfinished');
+  expect(methods.state$.get().provisional).toBe('unfinished');
   await input.stop();
-  expect(methods.state$.value.completedTurns).toMatchObject([
+  expect(methods.state$.get().completedTurns).toMatchObject([
     { startMs: 0, endMs: 100, text: 'Final words.' },
   ]);
-  expect(methods.state$.value.provisional).toBeUndefined();
+  expect(methods.state$.get().provisional).toBeUndefined();
   await input.dispose();
   methods.close();
 });

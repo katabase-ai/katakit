@@ -135,7 +135,8 @@ and release resources. For session replacement, ensure old producers and late re
 write to the replacement session.
 
 Core has [no general stop/dispose API](core.md#ownership-and-shutdown). Ingestion's `close()`
-flushes its local stream; it does not stop every plugin, microphone, or request. Removing a
+cancels its timer; the input owner must call `flush()` separately to finalize pending input.
+It does not stop every plugin, microphone, or request. Removing a
 UI subscription does not release the runtime's eager subscriptions either. State exactly
 which owner stops each resource rather than promising automatic cleanup.
 
