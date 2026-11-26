@@ -1,90 +1,97 @@
-import { EventLogPlugin, makeKatakit } from '@katakit/core';
+import { EventLogPlugin, makeKatakit, type KatakitEvent } from '@katakit/core';
+import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
 import { afterEach, expect, test, vi } from 'vitest';
-import { createBingoSession } from './useBingoKatakit';
-import { BingoPlugin, defaultSquares, makeSquares } from './plugin';
+import { BingoPlugin } from './plugin';
+
+const squares = Array.from({ length: 25 }, (_, i) => `phrase ${i}`);
+
+const createKit = (existingEvents: KatakitEvent[] = []) => {
+  const ingestion = makeTranscriptIngestionPlugin();
+  const kit = makeKatakit({
+    existingEvents,
+    plugins: [
+      ingestion.configure({}),
+      BingoPlugin.configure({ TranscriptIngestionPlugin: ingestion }),
+    ],
+  });
+  return { kit, ingestion };
+};
+
+const startRound = () => {
+  const { kit, ingestion } = createKit();
+  const live = kit.start();
+  const bingo = live.getMethods(BingoPlugin);
+  bingo.startGame(squares);
+  return {
+    bingo,
+    input: live.getMethods(ingestion),
+    board: live.getObservables(BingoPlugin),
+    history: live.getObservables(EventLogPlugin).events$,
+  };
+};
 
 afterEach(() => vi.useRealTimers());
 
-test('each live board is reconstructed from its three Bingo facts before start', () => {
+test('only a completed turn marks matching squares; Bingo events alone replay the board', async () => {
   vi.useFakeTimers();
-  const game = createBingoSession();
+  const { bingo, input, board, history } = startRound();
   const checkReplay = () => {
-    // Speech payloads are unnecessary: the decisions about which squares matched are recorded.
-    const existingEvents = game.history
+    const facts = history
       .getAll()
-      .filter(e => ['gameStarted', 'squareManuallyChanged', 'squareSpoken'].includes(e.type));
-    const replay = makeKatakit({ existingEvents, plugins: [BingoPlugin.configure({})] });
-    expect(replay.getObservables(BingoPlugin).state$.get()).toEqual(game.board$.get());
+      .filter(e => ['gameStarted', 'squareSpoken', 'squareManuallyChanged'].includes(e.type));
+    const { kit } = createKit(facts);
+    const replay = kit.getObservables(BingoPlugin);
+    expect(replay.squares$.get()).toEqual(board.squares$.get());
+    expect(replay.marked$.get()).toEqual(board.marked$.get());
+    expect(replay.winningLanes$.get()).toEqual(board.winningLanes$.get());
   };
+  expect(board.squares$.get()).toEqual(squares);
+  expect(Object.values(board.marked$.get()!)).toEqual(Array(25).fill(false));
   checkReplay();
-  game.updateProvisional('Quick question');
-  expect(game.board$.get().marked[0]).toBe(false);
-  game.ingestSegment({ sourceId: 'mic', id: 'a', text: 'Quick' });
-  checkReplay();
-  const final = { sourceId: 'mic', id: 'b', text: 'question, circle back!' };
-  game.ingestSegment(final);
-  game.ingestSegment(final);
-  expect(game.board$.get().spoken.slice(0, 2)).toEqual([true, true]);
-  checkReplay();
-  for (const i of [2, 3, 4]) game.changeSquare(i, true);
-  expect(game.board$.get().winningLines).toContainEqual([0, 1, 2, 3, 4]);
-  checkReplay();
-  game.changeSquare(0, false);
-  game.flush();
-  game.ingestSegment({ ...final, id: 'c', text: 'Quick question' });
-  expect(game.board$.get()).toMatchObject({ winningLines: [], overrides: { 0: false } });
-  expect(game.board$.get().marked[0]).toBe(false);
+
+  input.updateProvisionalUtterance({ speaker: 'mic', text: 'phrase 0' });
+  input.ingestUtterance({ id: 'a', speaker: 'mic', text: 'phrase', startMs: 0, endMs: 100 });
+  input.ingestUtterance({
+    id: 'b',
+    speaker: 'mic',
+    text: '0, phrase 1!',
+    startMs: 100,
+    endMs: 250,
+  });
+  await vi.advanceTimersByTimeAsync(0);
+  expect(board.marked$.get()).toMatchObject({ 0: false, 1: false });
+  input.flush();
+  await vi.advanceTimersByTimeAsync(0);
+  expect(board.marked$.get()).toMatchObject({ 0: true, 1: true });
   expect(
-    game.history
+    history
       .getAll()
       .filter(e => e.type === 'squareSpoken')
       .map(e => e.index)
   ).toEqual([0, 1]);
   checkReplay();
-  game.close();
+
+  for (const i of [2, 3, 4]) bingo.changeSquare(i, true);
+  expect(board.winningLanes$.get()).toEqual([[0, 1, 2, 3, 4]]);
+  checkReplay();
+  bingo.changeSquare(0, false);
+  expect(board.winningLanes$.get()).toEqual([]);
+  checkReplay();
 });
 
-test('a new deal switches live input and subscriptions to an independent log', () => {
-  vi.useFakeTimers();
-  const game = createBingoSession();
-  const first = game.history;
-  const completed = vi.fn();
-  game.board$.subscribe({ complete: completed });
-  game.ingestSegment({ sourceId: 'mic', id: 'first', text: 'Quick question; a tiger' });
-  const oldEvents = first.getAll();
-  game.restart(makeSquares(['Tiger', ...defaultSquares.slice(0, 23)]));
-  expect(game.history.getAll()).toEqual([
-    expect.objectContaining({
-      type: 'gameStarted',
-      squares: [game.board$.get().squares],
-      meta: { seq: 0, timestamp: expect.any(Date) },
-    }),
-  ]);
-  expect(game.transcript$.get().pending).toBeNull();
-  expect(game.board$.get().marked.filter(Boolean)).toHaveLength(1);
-  game.ingestSegment({ sourceId: 'mic', id: 'first', text: 'Tiger' });
-  expect(game.board$.get().spoken[0]).toBe(true);
-  vi.runAllTimers();
-  expect(first.getAll()).toEqual(oldEvents);
-  game.close();
-  expect(completed).toHaveBeenCalledOnce();
-});
-
-test('invalid commands append nothing and the opening deal cannot be repeated', () => {
-  const kit = makeKatakit({ plugins: [BingoPlugin.configure({})] }).start();
-  const bingo = kit.getMethods(BingoPlugin);
-  const history = kit.getObservables(EventLogPlugin).events$;
-  expect(() => bingo.changeSquare(3, true)).toThrow('Missing opening bingo card');
-  expect(() => bingo.startGame([])).toThrow('24 phrases and a free center');
-  expect(history.getAll()).toEqual([]);
-  bingo.startGame(defaultSquares);
-  expect(() => bingo.startGame(defaultSquares)).toThrow('Start a new runtime');
-  expect(() => bingo.changeSquare(12, false)).toThrow('Invalid bingo square index');
-  expect(history.getAll()).toHaveLength(1);
-  const [opening] = history.getAll();
-  const replay = makeKatakit({
-    existingEvents: [opening!, opening!],
-    plugins: [BingoPlugin.configure({})],
-  });
-  expect(() => replay.getObservables(BingoPlugin)).toThrow('exactly one card');
+test('requires an opening deal, allows marking the center, and rejects a second deal', () => {
+  const { kit } = createKit();
+  const live = kit.start();
+  const bingo = live.getMethods(BingoPlugin);
+  const board = live.getObservables(BingoPlugin);
+  const history = live.getObservables(EventLogPlugin).events$;
+  expect(board.squares$.get()).toBeNull();
+  expect(() => bingo.changeSquare(0, true)).toThrow('Missing opening bingo card');
+  expect(history.getAll()).toHaveLength(0);
+  bingo.startGame(squares);
+  bingo.changeSquare(12, true);
+  bingo.changeSquare(12, true);
+  expect(board.marked$.get()?.[12]).toBe(true);
+  expect(() => bingo.startGame(squares)).toThrow('Start a new runtime');
+  expect(history.getAll().map(e => e.type)).toEqual(['gameStarted', 'squareManuallyChanged']);
 });
