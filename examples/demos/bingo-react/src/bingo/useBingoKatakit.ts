@@ -23,7 +23,10 @@ export const useBingoKatakit = (squares: string[]) => {
           BingoPlugin.configure({ TranscriptIngestionPlugin }),
         ],
       }),
-    katakit => katakit.getMethods(TranscriptIngestionPlugin).close()
+    katakit => {
+      katakit.getMethods(TranscriptIngestionPlugin).flush();
+      katakit.getMethods(TranscriptIngestionPlugin).close();
+    }
   );
 
   useEffect(() => {
