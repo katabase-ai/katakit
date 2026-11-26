@@ -1,7 +1,8 @@
-import { EventLogPlugin, evolve, makeKatakitPlugin } from '@katakit/core';
+import { EventLogPlugin, evolve, makeEffect, makeKatakitPlugin } from '@katakit/core';
 import { filter, map, startWith } from 'rxjs';
-import { BingoEvent, GameStartedBingoEvent } from './events';
+import { BingoEvent, GameStartedBingoEvent, SquareSpokenBingoEvent } from './events';
 import { property } from '@katakit/core';
+import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
 
 export const normalizePhrase = (text: string) =>
   text
@@ -13,12 +14,6 @@ export const normalizePhrase = (text: string) =>
 export const matchPhrase = (phrase: string, transcript: string) => {
   const needle = normalizePhrase(phrase);
   return !!needle && ` ${normalizePhrase(transcript)} `.includes(` ${needle} `);
-};
-
-export const makeSquares = (phrases: string[]) => {
-  const squares = [...phrases];
-  squares.splice(12, 0, 'Free space');
-  return squares;
 };
 
 export const getWinningLanes = (marked: Record<number, boolean>) => {
@@ -33,7 +28,9 @@ export const getWinningLanes = (marked: Record<number, boolean>) => {
 
 export const BingoPlugin = makeKatakitPlugin({
   type: 'Bingo',
-  configure: (_options: {}) => ({}),
+  configure: (options: {
+    TranscriptIngestionPlugin: ReturnType<typeof makeTranscriptIngestionPlugin>;
+  }) => options,
   observables: ({ getObservables }) => {
     const marked$ = property(
       getObservables(EventLogPlugin).events$.pipe(
@@ -108,11 +105,33 @@ export const BingoPlugin = makeKatakitPlugin({
       // hearTurn: (text: string) => {
       //   const state = state$.get();
       //   if (!state) throw new Error("Missing opening bingo card.");
-      //   state.squares.forEach((phrase, index) => {
-      //     if (index !== 12 && !state.spoken[index] && matchPhrase(phrase, text))
-      //       emit({ type: "squareSpoken", index });
-      //   });
+      // state.squares.forEach((phrase, index) => {
+      //   if (index !== 12 && !state.spoken[index] && matchPhrase(phrase, text))
+      //     emit({ type: "squareSpoken", index });
+      // });
       // },
     };
   },
+  effects: ({ options, getObservables, getMethods, observables: { squares$, marked$ } }) => [
+    makeEffect({
+      on: getObservables(options.TranscriptIngestionPlugin).conversationTurns$,
+      handler: conversationTurn => {
+        const squares = squares$.get();
+        const marked = marked$.get();
+        if (!squares || !marked) return;
+
+        for (const [index, square] of squares.entries()) {
+          if (marked[index]) return;
+
+          if (matchPhrase(square, conversationTurn.text)) {
+            getMethods(EventLogPlugin).emitEvent({ type: 'squareSpoken', index } satisfies Omit<
+              SquareSpokenBingoEvent,
+              'meta'
+            >);
+          }
+        }
+      },
+      backpressure: 'latest',
+    }),
+  ],
 });

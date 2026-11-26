@@ -1,5 +1,3 @@
-import { makeSquares } from './plugin';
-
 type BingoPack = {
   id: string;
   label: string;
@@ -27,7 +25,6 @@ export const bingoPacks = [
         'Make sense',
       ],
       [
-        'Free space',
         'Let us revisit',
         'Any questions',
         'Action item',
@@ -507,5 +504,5 @@ export const drawBingoPack = (id: BingoPackId, random: () => number = Math.rando
     }
     return items;
   };
-  return makeSquares(shuffle(pack.tiers.flatMap(tier => shuffle([...tier]).slice(0, 8))));
+  return shuffle(pack.tiers.flatMap(tier => shuffle([...tier]).slice(0, 9))).slice(0, 25);
 };

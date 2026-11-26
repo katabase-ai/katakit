@@ -158,7 +158,6 @@ const BingoBody = ({
                 key={index}
                 type="button"
                 data-marked={marked[index]}
-                data-free={index === 12}
                 data-long={phrase.length > 22}
                 aria-pressed={marked[index]}
                 aria-disabled={index === 12}
