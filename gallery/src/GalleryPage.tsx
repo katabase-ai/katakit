@@ -3,6 +3,7 @@ import { ClientOnly, Link, Navigate, useNavigate } from '@tanstack/react-router'
 import { Gallery } from '../shared/Gallery';
 import { GallerySpeechControls } from '../shared/GallerySpeechControls';
 import { galleryDemos } from '../shared/galleryDemos';
+import type { GalleryDemoSection } from '../shared/galleryDemoDetails';
 import { useGalleryMode } from '../shared/GalleryModeProvider';
 import type { GalleryDeveloperPage, GalleryOperation } from '../shared/operationDetails';
 import { useLocalInference } from './localInference';
@@ -11,10 +12,12 @@ import { usePreviewInference } from './previewInference';
 /** Browser demos are mounted only after hydration, never by the SSR Worker. */
 export const GalleryPage = ({
   demo,
+  section,
   developerPage,
   settingsPage,
 }: {
   demo?: (typeof galleryDemos)[number];
+  section?: GalleryDemoSection;
   developerPage?: GalleryDeveloperPage;
   settingsPage?: boolean;
 }) => {
@@ -33,6 +36,16 @@ export const GalleryPage = ({
   return (
     <Gallery
       demos={galleryDemos}
+      activeSection={section}
+      renderSectionLink={({ section, children, current }) => (
+        <Link
+          to="/sections/$sectionId"
+          params={{ sectionId: section.toLowerCase() }}
+          aria-current={current ? 'page' : undefined}
+        >
+          {children}
+        </Link>
+      )}
       sourceRevision={import.meta.env.VITE_GALLERY_SOURCE_REVISION}
       connectModel={previewConnect ?? localConnect}
       modelConnectionLabel={localConnect ? 'Server environment' : undefined}

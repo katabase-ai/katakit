@@ -10,7 +10,7 @@ export const ColorClashGalleryDemo = () => {
   const session = useGallerySpeech();
   const hasHeader = useGalleryDemoHeader();
   const { report } = useGalleryEvents();
-  if (!session) return <p role="status">Preparing Color Clash…</p>;
+  if (!session) return <p role="status">Preparing Color clash…</p>;
   const { snapshot, owner } = session;
   // Preserve typed microphone errors so the game can show its permission-recovery instructions.
   const error = snapshot.blocked
@@ -22,7 +22,7 @@ export const ColorClashGalleryDemo = () => {
     <>
       {!hasHeader && (
         <>
-          <h1>Color Clash</h1>
+          <h1>Color clash</h1>
           <p className="gallery-intro">
             Say the ink color, not the word. Speech stays on your device.
           </p>

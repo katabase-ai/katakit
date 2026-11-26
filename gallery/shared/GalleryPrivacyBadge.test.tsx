@@ -5,6 +5,9 @@ import { GalleryPrivacyBadge } from './GalleryPrivacyBadge';
 import { Gallery } from './Gallery';
 import {
   galleryDemoDetails,
+  notesDemoDetails,
+  transcriptionDemoDetails,
+  bingoDemoDetails,
   galleryDataHandling,
   requiresGalleryCapability,
 } from './galleryDemoDetails';
@@ -49,7 +52,7 @@ test('hover details remain reachable by pointer and keyboard, and Escape restore
   vi.useFakeTimers();
   const view = render(
     <GalleryPrivacyBadge
-      dataHandling={galleryDataHandling(galleryDemoDetails[2].requiredCapabilities)}
+      dataHandling={galleryDataHandling(notesDemoDetails.requiredCapabilities)}
       privacyUrl="https://example.com/privacy"
     />
   );
@@ -94,7 +97,7 @@ test('tapping pins the disclosure until another tap or an outside interaction', 
   render(
     <>
       <GalleryPrivacyBadge
-        dataHandling={galleryDataHandling(galleryDemoDetails[0].requiredCapabilities)}
+        dataHandling={galleryDataHandling(transcriptionDemoDetails.requiredCapabilities)}
       />
       <button type="button">Outside</button>
     </>
@@ -114,7 +117,7 @@ test('tapping pins the disclosure until another tap or an outside interaction', 
 
 const hostPromise = 'Transcribed text is processed on secure servers';
 const GalleryContent = ({
-  demo = galleryDemoDetails[2],
+  demo = notesDemoDetails,
   connectModel,
 }: {
   demo?: (typeof galleryDemoDetails)[number];
@@ -165,7 +168,7 @@ test('no managed backend means no host security claim, and navigating closes the
   const view = render(<GalleryContent />);
   fireEvent.click(screen.getByRole('button', { name: 'Cloud-assisted' }));
   expect(screen.queryByText(hostPromise)).toBeNull();
-  view.rerender(<GalleryContent demo={galleryDemoDetails[1]} />);
+  view.rerender(<GalleryContent demo={bingoDemoDetails} />);
   expect(screen.queryByRole('dialog')).toBeNull();
   expect(screen.getByRole('button', { name: 'On-device' }).getAttribute('aria-expanded')).toBe(
     'false'

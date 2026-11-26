@@ -37,7 +37,7 @@ test('requirements preserve the existing privacy claims and game classification'
   const cloudIds = galleryDemoDetails
     .filter(demo => galleryDataHandling(demo.requiredCapabilities).transcribedText === 'cloud')
     .map(demo => demo.id);
-  expect(cloudIds).toEqual(['notes', 'list-extraction', 'brainstorm']);
+  expect(cloudIds).toEqual(['brainstorm', 'notes', 'list-extraction']);
   expect(
     galleryDemoDetails
       .filter(demo => (demo.tags as readonly string[]).includes('game'))
