@@ -38,10 +38,13 @@ export const createTranscriptInput = (initialEvents: readonly unknown[] = []) =>
       const endMs = segment.endMs ?? startMs;
       if (endMs < startMs) throw new Error('Transcript audio timestamps must be ordered.');
       const previous = views.collectedUtterances$.get().at(-1);
+      const pending = views.pendingConversationTurn$.get();
+      // A reset clock or missing timestamps must not produce an end before the turn's start.
       if (
-        previous &&
-        (previous.speaker !== segment.sourceId ||
-          (segment.startMs !== undefined && segment.startMs - previous.endMs > turnSilenceMs))
+        (pending && endMs < pending.startMs) ||
+        (previous &&
+          (previous.speaker !== segment.sourceId ||
+            (segment.startMs !== undefined && segment.startMs - previous.endMs > turnSilenceMs)))
       )
         input.flush();
       input.ingestUtterance({

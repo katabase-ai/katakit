@@ -86,6 +86,33 @@ test('splits a resumed pending turn at an audio gap without replaying a silence 
   resumed.close();
 });
 
+test.each([
+  { startMs: undefined, endMs: undefined },
+  { startMs: 0, endMs: 5 },
+])('keeps live and resumed histories restorable when audio time moves backwards: %j', times => {
+  const first = createTranscriptionDemo();
+  first.ingestSegment(segment);
+  first.close();
+  const resumed = createTranscriptionDemo({ initialEvents: first.events$.getAll() });
+  const live = createTranscriptionDemo();
+  live.ingestSegment(segment);
+
+  for (const demo of [live, resumed]) {
+    demo.ingestSegment({ ...segment, ...times, id: 'earlier', text: 'Earlier audio' });
+    demo.flush();
+    demo.close();
+    expect(demo.state$.get().completedTurns.map(turn => turn.text)).toEqual([
+      'Hello',
+      'Earlier audio',
+    ]);
+    const replay = createTranscriptionDemo({
+      initialEvents: JSON.parse(JSON.stringify(demo.events$.getAll())),
+    });
+    expect(replay.state$.get()).toEqual(demo.state$.get());
+    replay.close();
+  }
+});
+
 test('close cancels pending work, completes the view, and ignores every late input', () => {
   const demo = createTranscriptionDemo();
   const complete = vi.fn();

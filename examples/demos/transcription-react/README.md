@@ -88,6 +88,8 @@ person. A different source or an audio gap greater than 1,400 ms flushes the pre
 Otherwise, delivery-time silence or an explicit `flush()` completes it. Missing start time
 defaults to zero and missing end time to the start; gap checks use those recorded boundaries
 and a supplied next start time, consistently for live and restored histories.
+If a segment ends before the pending turn's start (for example after a clock reset or missing
+timestamps), the adapter completes the pending turn first so both turns retain valid ranges.
 
 `src/createTranscriptionDemo.ts` combines ingestion projections into a read-only `state$`
 with `.get()`. It replaces the former writable `BehaviorSubject` mirror. React bindings are
