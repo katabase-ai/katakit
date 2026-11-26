@@ -112,8 +112,7 @@ const BingoBody = ({
 
   useMicrophoneTranscriberCallbacks(microphone, {
     onUtterance: bingoKatakit.ingestUtterance,
-    onProvisionalUtterance: provisionalUtterance =>
-      bingoKatakit.updateProvisionalUtterance(provisionalUtterance.text),
+    onProvisionalUtterance: bingoKatakit.updateProvisionalUtterance,
     onFlush: bingoKatakit.flush,
     onClose: bingoKatakit.close,
   });

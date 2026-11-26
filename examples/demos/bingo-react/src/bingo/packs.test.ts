@@ -25,16 +25,17 @@ describe('bingo packs', () => {
       'ai-jargon',
     ]);
   });
-  it('draws 24 distinct squares and a free center from each pack', () => {
+  it('draws 25 distinct phrases with at most nine from each tier', () => {
     for (const pack of bingoPacks) {
       const squares = drawBingoPack(pack.id, () => 0.5);
       expect(squares).toHaveLength(25);
-      expect(squares[12]).toBe('Free space');
       expect(new Set(squares.map(normalizePhrase)).size).toBe(25);
-      for (const tier of pack.tiers)
-        expect(squares.filter(square => (tier as readonly string[]).includes(square))).toHaveLength(
-          8
-        );
+      const phrases = new Set<string>(pack.tiers.flat());
+      expect(squares.every(square => phrases.has(square))).toBe(true);
+      for (const tier of pack.tiers) {
+        const entries = new Set<string>(tier);
+        expect(squares.filter(square => entries.has(square)).length).toBeLessThanOrEqual(9);
+      }
     }
   });
   it('contains exactly the 50 US states, without DC or territories', () => {

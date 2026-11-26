@@ -1,7 +1,7 @@
 type BingoPack = {
   id: string;
   label: string;
-  /** Familiar, less familiar, and wildcard entries. A card draws eight from each. */
+  /** Familiar, less familiar, and wildcard entries. */
   tiers: readonly [readonly string[], readonly string[], readonly string[]];
 };
 
@@ -493,7 +493,7 @@ export const bingoPacks = [
 
 export type BingoPackId = (typeof bingoPacks)[number]['id'];
 
-/** Balanced draw: eight entries per familiarity tier, then shuffle positions. */
+/** Draw 25 phrases from a shuffled pool of up to nine entries per tier. */
 export const drawBingoPack = (id: BingoPackId, random: () => number = Math.random) => {
   const pack = bingoPacks.find(item => item.id === id);
   if (!pack) throw new Error('Unknown bingo pack.');

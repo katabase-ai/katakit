@@ -17,7 +17,7 @@ export type MicrophoneSink = {
 type MicrophoneEvents = {
   level: number;
   utterance: TranscriptionSegment;
-  provisionalUtterance: TranscriptionSegment;
+  provisionalUtterance: string;
   flush: void;
   close: void;
 };
@@ -62,8 +62,8 @@ export const useMicrophoneTranscriber = ({
         onFinal: utterance => {
           emitterRef.current.emit('utterance', utterance);
         },
-        onProvisional: utterance => {
-          emitterRef.current.emit('provisionalUtterance', utterance);
+        onProvisional: text => {
+          emitterRef.current.emit('provisionalUtterance', text);
         },
         onStop: () => {
           emitterRef.current.emit('flush');
@@ -129,7 +129,7 @@ export const useMicrophoneTranscriberCallbacks = (
   }: {
     onLevelChange?: (level: number) => void;
     onUtterance?: (utterance: TranscriptionSegment) => void;
-    onProvisionalUtterance?: (utterance: TranscriptionSegment) => void;
+    onProvisionalUtterance?: MicrophoneOptions['onProvisional'];
     onFlush?: () => void;
     onClose?: () => void;
   }

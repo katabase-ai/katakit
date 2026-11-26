@@ -3,7 +3,11 @@ import { StrictMode } from 'react';
 import { act, cleanup, renderHook } from '@testing-library/react';
 import { afterEach, expect, test, vi } from 'vitest';
 import { createMicrophoneTranscriber, type MicrophoneOptions } from './microphone';
-import { useMicrophoneTranscriber } from './react';
+import {
+  useMicrophoneLevel,
+  useMicrophoneTranscriber,
+  useMicrophoneTranscriberCallbacks,
+} from './react';
 
 vi.mock('./microphone', () => ({ createMicrophoneTranscriber: vi.fn() }));
 
@@ -60,19 +64,27 @@ test('unmount while listening drains the last segment before closing the sink', 
   expect(order).toEqual(['stop', 'segment', 'flush', 'dispose', 'close']);
 });
 
-test('toggle stops a running session and reports level and failures from the transcriber', async () => {
-  const { transcribers, createSink } = setup();
-  const view = renderHook(() => useMicrophoneTranscriber({ createSink }));
-  await act(() => view.result.current.toggle());
+test('toggle stops a running session and forwards level, provisional text, and state', async () => {
+  const { transcribers } = setup();
+  const onProvisionalUtterance = vi.fn();
+  const view = renderHook(() => {
+    const microphone = useMicrophoneTranscriber();
+    const level = useMicrophoneLevel(microphone);
+    useMicrophoneTranscriberCallbacks(microphone, { onProvisionalUtterance });
+    return { microphone, level };
+  });
+  await act(() => view.result.current.microphone.toggle());
   act(() => transcribers[0]!.options.onLevel?.(0.5));
   expect(view.result.current.level).toBe(0.5);
+  act(() => transcribers[0]!.options.onProvisional?.('partial words'));
+  expect(onProvisionalUtterance).toHaveBeenCalledWith('partial words');
 
-  await act(() => view.result.current.toggle());
+  await act(() => view.result.current.microphone.toggle());
   expect(transcribers[0]!.stop).toHaveBeenCalledOnce();
-  expect(view.result.current.listening).toBe(false);
+  expect(view.result.current.microphone.listening).toBe(false);
 
   act(() => transcribers[0]!.options.onState?.({ phase: 'loading', progress: 0.5 }));
-  expect(view.result.current.busy).toBe(true);
+  expect(view.result.current.microphone.busy).toBe(true);
 });
 
 test('Strict Mode closes the discarded session and keeps one live sink', async () => {

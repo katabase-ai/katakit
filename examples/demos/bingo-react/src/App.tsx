@@ -1,5 +1,9 @@
 import { KatakitDevTools } from '@katakit/react';
-import { MicrophoneTranscriberContext, useMicrophoneLevel, useMicrophoneTranscriber } from '@katakit/transcription/react';
+import {
+  MicrophoneTranscriberContext,
+  useMicrophoneLevel,
+  useMicrophoneTranscriber,
+} from '@katakit/transcription/react';
 import { Button } from './controls';
 import { AudioLevelMeter } from './AudioLevelMeter';
 import { BrowserBingoDemo as BingoView } from './BrowserBingoDemo';
@@ -9,7 +13,7 @@ export const BrowserBingoDemo = () => {
   const microphone = useMicrophoneTranscriber();
 
   const microphoneLevel = useMicrophoneLevel(microphone);
-  
+
   return (
     <MicrophoneTranscriberContext value={microphone}>
       <BingoView
