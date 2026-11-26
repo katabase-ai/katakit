@@ -94,6 +94,9 @@ importers:
       '@katakit/core':
         specifier: workspace:*
         version: link:../../../pkgs/core
+      '@katakit/react':
+        specifier: workspace:*
+        version: link:../../../pkgs/react
       '@katakit/transcript-ingestion':
         specifier: workspace:*
         version: link:../../../pkgs/transcript-ingestion
@@ -113,6 +116,9 @@ importers:
         specifier: ^7.8.2
         version: 7.8.2
     devDependencies:
+      '@testing-library/react':
+        specifier: ^16.1.0
+        version: 16.3.3(@testing-library/dom@10.4.2)(@types/react-dom@19.0.0)(@types/react@19.0.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@types/chrome':
         specifier: ^0.1.37
         version: 0.1.43
@@ -128,6 +134,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^4.4.0
         version: 4.7.0(vite@6.4.6(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.33.0)(yaml@2.9.1))
+      happy-dom:
+        specifier: ^18.0.1
+        version: 18.0.1
       typescript:
         specifier: ^7.0.2
         version: 7.0.2
@@ -403,6 +412,9 @@ importers:
       '@katakit/core':
         specifier: workspace:*
         version: link:../pkgs/core
+      '@katakit/react':
+        specifier: workspace:*
+        version: link:../pkgs/react
       '@katakit/transcript-ingestion':
         specifier: workspace:*
         version: link:../pkgs/transcript-ingestion
@@ -430,6 +442,9 @@ importers:
       lucide-react:
         specifier: 1.70.0
         version: 1.70.0(@types/react@19.0.0)(react@19.3.1)
+      mitt:
+        specifier: ^3.0.1
+        version: 3.0.1
       react:
         specifier: ^19.0.0
         version: 19.3.1

@@ -4,8 +4,8 @@ This module implements the browser and extension examples’ conversation bingo
 card. Each application imports its own `./bingo` source directory. It is not
 published as a standalone package.
 
-One Katakit runtime is one round. Its first event, `gameStarted({ cards })`, records
-one 25-square layout in row-major order, including its free center. A live final
+One Katakit runtime is one round. Its first event, `gameStarted({ squares })`, records
+one 25-phrase layout in row-major order. A live final
 utterance can produce `squareSpoken({ index })` for each newly heard phrase.
 A click records `squareManuallyChanged({ index, marked })`. A manual mark wins
 over speech, including when someone later says a phrase the player unmarked.
@@ -22,8 +22,7 @@ switches to a new log and transcript without stopping the host's microphone.
 `bingoPacks` provides meeting phrases, animals, US states, world capitals,
 tricky-to-pronounce words, corporate jargon, and AI technical jargon. Each
 pack has familiar, less familiar, and wildcard entries. `drawBingoPack(id)`
-chooses eight from each tier and shuffles the resulting card. Hosts may still
-pass a custom 24-phrase list to `makeSquares`.
+samples up to nine phrases per tier, shuffles the pool, and deals 25 phrases.
 
 ## Geography coverage and sources
 

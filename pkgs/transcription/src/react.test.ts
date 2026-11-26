@@ -18,7 +18,11 @@ afterEach(() => {
 
 const setup = () => {
   const order: string[] = [];
-  const transcribers: { options: MicrophoneOptions; stop: ReturnType<typeof vi.fn> }[] = [];
+  const transcribers: {
+    options: MicrophoneOptions;
+    stop: ReturnType<typeof vi.fn>;
+    dispose: ReturnType<typeof vi.fn>;
+  }[] = [];
   vi.mocked(createMicrophoneTranscriber).mockImplementation(options => {
     const transcriber = {
       options,
@@ -37,31 +41,25 @@ const setup = () => {
     transcribers.push(transcriber);
     return transcriber;
   });
-  const sinks: { ingestSegment: ReturnType<typeof vi.fn>; close: ReturnType<typeof vi.fn> }[] = [];
-  const createSink = () => {
-    const sink = {
-      ingestSegment: vi.fn(() => order.push('segment')),
-      flush: vi.fn(() => order.push('flush')),
-      close: vi.fn(() => order.push('close')),
-    };
-    sinks.push(sink);
-    return sink;
-  };
-  return { order, transcribers, sinks, createSink };
+  return { order, transcribers };
 };
 
-test('unmount while listening drains the last segment before closing the sink', async () => {
-  const { order, sinks, createSink } = setup();
-  const view = renderHook(() => useMicrophoneTranscriber({ createSink }));
-  expect(view.result.current.sink).toBe(sinks[0]);
+test('unmount while listening stops capture, emits the final segment and flush, then disposes and closes', async () => {
+  const { order } = setup();
+  const view = renderHook(() => useMicrophoneTranscriber());
+  const { emitter } = view.result.current;
+  emitter.on('utterance', segment => order.push(segment.text));
+  emitter.on('flush', () => order.push('flush'));
+  emitter.on('close', () => order.push('close'));
   expect(view.result.current.listening).toBe(false);
 
   await act(() => view.result.current.toggle());
   expect(view.result.current.listening).toBe(true);
 
   view.unmount();
-  await vi.waitFor(() => expect(sinks[0]!.close).toHaveBeenCalledOnce());
-  expect(order).toEqual(['stop', 'segment', 'flush', 'dispose', 'close']);
+  await vi.waitFor(() =>
+    expect(order).toEqual(['stop', 'last words', 'flush', 'dispose', 'close'])
+  );
 });
 
 test('toggle stops a running session and forwards level, provisional text, and state', async () => {
@@ -87,11 +85,14 @@ test('toggle stops a running session and forwards level, provisional text, and s
   expect(view.result.current.microphone.busy).toBe(true);
 });
 
-test('Strict Mode closes the discarded session and keeps one live sink', async () => {
-  const { sinks, createSink } = setup();
-  const view = renderHook(() => useMicrophoneTranscriber({ createSink }), { wrapper: StrictMode });
-  await vi.waitFor(() => expect(sinks[0]!.close).toHaveBeenCalledOnce());
-  expect(sinks).toHaveLength(2);
-  expect(view.result.current.sink).toBe(sinks[1]);
-  expect(sinks[1]!.close).not.toHaveBeenCalled();
+test('Strict Mode disposes the discarded transcriber and keeps the replacement usable', async () => {
+  const { transcribers } = setup();
+  const view = renderHook(() => useMicrophoneTranscriber(), { wrapper: StrictMode });
+  expect(transcribers).toHaveLength(2);
+  expect(transcribers[0]!.dispose).toHaveBeenCalledOnce();
+  await act(() => view.result.current.toggle());
+  expect(view.result.current.listening).toBe(true);
+  expect(transcribers[1]!.dispose).not.toHaveBeenCalled();
+  view.unmount();
+  await vi.waitFor(() => expect(transcribers[1]!.dispose).toHaveBeenCalledOnce());
 });
