@@ -91,6 +91,9 @@
     "test:runtime": "node scripts/verify-runtime.mjs",
     "test:package": "node scripts/verify-package.mjs"
   },
+  "dependencies": {
+    "mitt": "^3.0.1"
+  },
   "devDependencies": {
     "@moonshine-ai/moonshine-wasm": "0.1.5",
     "@testing-library/react": "^16.1.0",
