@@ -155,3 +155,15 @@ export const useMicrophoneTranscriberCallbacks = (
     };
   }, [microphoneTranscriber]);
 };
+
+export const useMicrophoneLevel = (
+  microphoneTranscriber: ReturnType<typeof useMicrophoneTranscriber>
+) => {
+  const [level, setLevel] = useState<number>(0);
+
+  useMicrophoneTranscriberCallbacks(microphoneTranscriber, {
+    onLevelChange: setLevel,
+  });
+
+  return level;
+};
