@@ -66,6 +66,27 @@ can do either without stopping transcription.
 
 ## Modifying and hosting
 
+### Event model
+
+The local [event definitions](src/bingo/events.ts) and [plugin](src/bingo/plugin.ts) model one
+round. `gameStarted` records the actual dealt squares; `squareManuallyChanged` records a
+player's explicit mark or unmark; `squareSpoken` records a speech match that marks a square.
+The two input events preserve their different behavior and provenance. The plugin derives
+`squares$`, `marked$`, and `winningLanes$` from these facts, without a second writable board.
+
+A new round gets a new runtime and history. The microphone owner can keep transcription
+running while the board changes. Replay reads the recorded layout and marks rather than
+dealing again or matching the transcript again. History remains in memory for the round;
+this demo does not import saved games. [Projection tests](src/bingo/plugin.test.ts) compare
+live board content with a fresh runtime seeded with the recorded Bingo events.
+
+`useBingoKatakit` closes its ingestion plugin on cleanup; microphone ownership lives outside
+that plugin. Closing ingestion is not a general runtime disposal operation. See
+[Designing event-sourced applications](https://github.com/katabase-ai/katakit/blob/main/docs/pages/reference/event-sourcing.md)
+for the general design method and resource-ownership requirements.
+
+### Files and hosting
+
 Edit `src/App.tsx` for React UI and transcript wiring, `src/bingo/` for board state,
 matching rules, and word lists, and `src/controls.tsx` and `src/AudioLevelMeter.tsx`
 for controls. Styling lives in `src/base.css`, `src/style.css`, and

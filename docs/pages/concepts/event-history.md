@@ -33,6 +33,18 @@ console.log(messages$.get()); // ['Hello', 'Let’s make a plan.']
 
 The list has no separate setter. Adding a message means recording an event; the projection updates the list. Keep this calculation deterministic so the same events produce the same list.
 
+## Why these events and this projection?
+
+This feature accepts messages and displays their texts in order. The event records the
+accepted text; the array is a view of that history. We do not need a separate `listChanged`
+event whenever the array grows. The empty array is the projection's initial value.
+
+This small feature only appends messages. If users must edit or remove particular messages,
+give messages stable IDs and define those actions before extending the projection. Generate
+IDs in the live path and record them, rather than assigning new ones while replaying.
+See [choosing facts that preserve meaning](../reference/event-sourcing.md#choose-facts-that-preserve-meaning)
+for a richer example with manual and spoken input.
+
 ## Rebuild from history
 
 To seed that runtime, add the following to the `makeKatakit` options beside `plugins`:

@@ -4,6 +4,12 @@ Build a small message list to learn how Katakit's pieces work together. You'll r
 
 Keeping the events lets you reconstruct the list instead of maintaining a separately editable copy. This is **event sourcing**. Katakit's event-log plugin keeps that history in memory; you choose how to store it across visits.
 
+This walkthrough builds a new feature. For your own domain, use
+[Designing event-sourced applications](../reference/event-sourcing.md) to choose events,
+projections, and session boundaries. If you already have a mutable-state application, use
+[Migrate an existing application](../getting-started/migrate-to-event-sourcing.md) for the cutover
+and handling of existing saved data.
+
 ## Follow the walkthrough
 
 1. [Start a runtime](runtime.md): configure an event log and emit a message.

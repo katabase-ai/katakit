@@ -118,6 +118,25 @@ Finalized transcript turns append `transcriptTurn` events. Each validated model 
 Clear appends `notesCleared` with the current cursor. The notes plugin derives content from these
 events. Admission, retries, cancellation, and errors remain transient.
 
+### Why these events?
+
+The complete outline in `notesUpdated` is an accepted model result, not a second writable
+store. Recording the result with its IDs and cursor lets the
+[projection](src/notesPlugin.ts) restore exactly what was accepted without rerunning a prompt
+or generating replacement IDs. Markdown is calculated from that outline rather than logged
+separately. The cursor says which turns the accepted result covers, so coalescing request
+triggers does not discard turns that arrive during a request.
+
+Clear remains part of the same visit: `notesCleared` removes the outline while retaining the
+transcript and moving the cursor past existing turns. This differs from Bingo's new-runtime
+boundary for each round. Both follow their domain's carry-over requirements. See
+[Designing event-sourced applications](https://github.com/katabase-ai/katakit/blob/main/docs/pages/reference/event-sourcing.md)
+for the shared principles, or
+[Migrate an existing application](https://github.com/katabase-ai/katakit/blob/main/docs/pages/getting-started/migrate-to-event-sourcing.md)
+to move from mutable state to this pattern.
+
+### Replay and live ownership
+
 Read `runtime.events$.getAll()` to capture the event history, including each record's `meta`.
 The demo validates payloads and metadata and restores timestamps from JSON when loading `initialEvents`. Replay restores the outline and original
 transcript without generating IDs or calling a model. An explicit connection can process turns

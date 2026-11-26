@@ -74,6 +74,11 @@ Reading `messages$` reconstructs the list from the built-in log before effects s
 
 A model request can follow the same separation: an effect reads new input, calls a host-supplied connection, validates the result, and records an event. An observable derives the displayed result from that event. Replay then restores the accepted result without calling the model again.
 
+Before adding the request, decide what result is accepted, which input it covers, and what
+happens if it completes after a clear or close. The
+[design guide](../reference/event-sourcing.md#own-live-work-and-shutdown) explains those choices,
+including when a complete accepted result is a useful event.
+
 The [structured notes demo](https://github.com/katabase-ai/katakit/tree/main/examples/demos/notes-react) implements that pattern with cancellation and retries. Those resources need application-owned cleanup; core has no general stop method. See [effect ownership](../reference/core.md#ownership-and-shutdown) before replacing the console notification with external work.
 
 Next: [restore and save the message history](persistence.md).
