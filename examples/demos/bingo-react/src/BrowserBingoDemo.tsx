@@ -138,7 +138,9 @@ const BingoBody = ({
       <div className="bingo-layout">
         <section className="bingo-game" aria-label="Bingo card">
           <div className="bingo-score">
-            <strong>{winningLines.length ? 'Bingo!' : `${markedCount} of 24 squares`}</strong>
+            <strong>
+              {winningLines.length ? 'Bingo!' : `${markedCount} of ${squares.length} squares`}
+            </strong>
             {winningLines.length > 0 && (
               <span>
                 {`${winningLines.length} line${winningLines.length === 1 ? '' : 's'} complete`}
@@ -159,7 +161,6 @@ const BingoBody = ({
                 data-marked={marked[index]}
                 data-long={phrase.length > 22}
                 aria-pressed={marked[index]}
-                aria-disabled={index === 12}
                 onClick={() => {
                   bingoKatakit.katakit.getMethods(BingoPlugin).changeSquare(index, !marked[index]);
                 }}

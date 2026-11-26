@@ -15,13 +15,15 @@ export const useBingoKatakit = (squares: string[]) => {
   const [TranscriptIngestionPlugin] = useState(() =>
     makeTranscriptIngestionPlugin({ turnSilenceMs })
   );
-  const katakit = useKatakitInit(() =>
-    makeKatakit({
-      plugins: [
-        TranscriptIngestionPlugin.configure({}),
-        BingoPlugin.configure({ TranscriptIngestionPlugin }),
-      ],
-    })
+  const katakit = useKatakitInit(
+    () =>
+      makeKatakit({
+        plugins: [
+          TranscriptIngestionPlugin.configure({}),
+          BingoPlugin.configure({ TranscriptIngestionPlugin }),
+        ],
+      }),
+    katakit => katakit.getMethods(TranscriptIngestionPlugin).close()
   );
 
   useEffect(() => {
