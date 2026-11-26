@@ -46,8 +46,8 @@ denied, bingo continues using tab audio only. Stop capture before reloading the
 extension.
 
 Squares match complete normalized phrases against finalized transcript turns.
-They do not use a semantic classifier. Click a square to correct a mark; the
-center is free. Choose from seven built-in word lists or select **Shuffle** for
+They do not use a semantic classifier. Click any of the 25 squares to correct a mark.
+Choose from seven built-in word lists or select **Shuffle** for
 another draw. Previously saved custom cards remain selectable. Switching lists
 or shuffling starts a fresh round, clearing the prior transcript and manual corrections.
 Interim recognition text is not displayed or used for bingo.

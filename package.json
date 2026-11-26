@@ -14,7 +14,7 @@
     "format:check": "oxfmt --check \"**/*.{js,jsx,ts,tsx,json,md}\"",
     "prepare": "husky install",
     "test": "vitest",
-    "test:ci": "vitest run --passWithNoTests",
+    "test:ci": "pnpm -F @katakit/react build && vitest run --passWithNoTests",
     "check": "pnpm format:check && pnpm lint && pnpm licenses:check && pnpm templates:check && pnpm examples:check && pnpm release:check && pnpm tsc && pnpm test:ci && pnpm -F @katakit/docs check && pnpm -F @katakit/docs-export test:ci && pnpm build && pnpm publint",
     "release:plan": "node scripts/release.mjs plan",
     "release:pack": "node scripts/release.mjs pack",

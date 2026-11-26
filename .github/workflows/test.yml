@@ -31,8 +31,6 @@ jobs:
             script: licenses:check
           - name: Template manifests
             script: templates:check
-          - name: Example copy destinations
-            script: examples:check
           - name: Release tooling
             script: release:check
           - name: Typecheck
@@ -58,6 +56,16 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Run ${{ matrix.name }}
         run: pnpm ${{ matrix.script }}
+  copy-destinations:
+    name: Example copy destinations
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+      - run: node --test scripts/copy-example.test.mjs
   standalone-copy:
     name: Standalone ${{ matrix.kind }} copies
     runs-on: ubuntu-latest

@@ -1,15 +1,35 @@
-import type { ComponentProps } from 'react';
-import { useMicrophoneTranscriber } from '@katakit/transcription/react';
+import { useEffect, useState, type ComponentProps } from 'react';
+import {
+  useMicrophoneTranscriber,
+  useMicrophoneTranscriberCallbacks,
+} from '@katakit/transcription/react';
 import { createListExtractionDemo } from './createListExtractionDemo';
 import { ListExtractionDemo } from './ListExtractionDemo';
 
 /** Standalone input ownership; gallery embeds supply their own shared capture controls. */
 export const App = ({ connect }: Pick<ComponentProps<typeof ListExtractionDemo>, 'connect'>) => {
-  const microphone = useMicrophoneTranscriber({ createSink: createListExtractionDemo });
-  if (!microphone.sink) return <p role="status">Preparing dictation…</p>;
+  const microphone = useMicrophoneTranscriber();
+  const [runtime, setRuntime] = useState<ReturnType<typeof createListExtractionDemo>>();
+
+  useEffect(() => {
+    const demo = createListExtractionDemo();
+    setRuntime(demo);
+    return () => {
+      demo.flush();
+      demo.close();
+    };
+  }, []);
+
+  useMicrophoneTranscriberCallbacks(microphone, {
+    onUtterance: runtime?.ingestSegment,
+    onProvisionalUtterance: runtime?.updateProvisional,
+    onFlush: runtime?.flush,
+  });
+
+  if (!runtime) return <p role="status">Preparing dictation…</p>;
   return (
     <ListExtractionDemo
-      runtime={microphone.sink}
+      runtime={runtime}
       connect={connect}
       listening={microphone.listening}
       captureBusy={microphone.busy}

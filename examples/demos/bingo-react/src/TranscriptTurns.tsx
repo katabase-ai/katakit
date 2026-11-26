@@ -1,6 +1,5 @@
 import type { ReactNode } from 'react';
-import { useBingoValue } from './bingo/useBingoValue';
-import type { createBingoSession } from './bingo/createBingoSession';
+import { useBingoKatakit } from './bingo/useBingoKatakit';
 
 const formatTime = (ms?: number) => {
   if (ms === undefined) return undefined;
@@ -14,23 +13,28 @@ const formatTime = (ms?: number) => {
  * bingo examples each carry this file so either can be copied alone.
  */
 export const TranscriptTurns = ({
-  runtime,
+  bingoKatakit,
   children,
 }: {
-  runtime: ReturnType<typeof createBingoSession>;
+  bingoKatakit: NonNullable<ReturnType<typeof useBingoKatakit>>;
   /** A short note about the transcript, shown beneath its turns. */
   children?: ReactNode;
 }) => {
-  const { completed, pending, provisional } = useBingoValue(runtime.transcript$);
-  const turns = pending ? [...completed, { ...pending, id: 'pending' }] : completed;
+  const collectedConversationTurns = bingoKatakit.useCollectedConversationTurns();
+  const pendingConversationTurn = bingoKatakit.usePendingConversationTurn();
+  const provisionalUtterance = bingoKatakit.useProvisionalUtterance();
+
+  const turns = pendingConversationTurn
+    ? [...collectedConversationTurns, { ...pendingConversationTurn, id: 'pending' }]
+    : collectedConversationTurns;
   return (
     <aside className="transcript-turns" aria-label="Transcript">
       <h2>Transcript</h2>
       <div className="transcript-turns-list" aria-live="polite" aria-relevant="additions text">
-        {provisional && (
+        {provisionalUtterance && (
           <article className="transcript-turn" data-interim="true">
             <span className="transcript-turn-index">··</span>
-            <p>{provisional}</p>
+            <p>{provisionalUtterance.text}</p>
           </article>
         )}
         {turns

@@ -26,7 +26,6 @@ h2 { font: 700 1.1rem/1.2 var(--font-display); text-wrap: balance; overflow-wrap
 .square:hover { background: var(--color-paper-3); }
 .square[data-marked="true"] { background: var(--color-accent); color: var(--color-accent-ink); }
 .square[data-marked="true"]:hover { background: var(--color-accent-deep); }
-.square[data-free="true"] { font: 700 0.82rem var(--font-display); }
 .square[data-long="true"] { font-size: 0.62rem; line-height: 1.05; }
 .heard { font-size: 0.7rem; font-weight: 400; }
 .pack-picker { border-top: 1px solid var(--color-rule); margin-top: var(--space-lg); padding-top: var(--space-md); }
