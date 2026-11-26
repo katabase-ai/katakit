@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useBingoValue } from './bingo/useBingoValue';
-import type { createBingoSession } from './bingo/createBingoSession';
+import type { createBingoSession } from './bingo/useBingoKatakit';
 
 const formatTime = (ms?: number) => {
   if (ms === undefined) return undefined;

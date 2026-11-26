@@ -1,6 +1,6 @@
 import { EventLogPlugin, makeKatakit } from '@katakit/core';
 import { afterEach, expect, test, vi } from 'vitest';
-import { createBingoSession } from './createBingoSession';
+import { createBingoSession } from './useBingoKatakit';
 import { BingoPlugin, defaultSquares, makeSquares } from './plugin';
 
 afterEach(() => vi.useRealTimers());

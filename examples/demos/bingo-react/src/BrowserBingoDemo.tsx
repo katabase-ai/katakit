@@ -1,22 +1,28 @@
-import { useState, type ReactNode } from 'react';
-import { useBingoValue } from './bingo/useBingoValue';
+import { use, useEffect, useState, type ReactNode } from 'react';
 import { bingoPacks, drawBingoPack, type BingoPackId } from './bingo';
 import { Button, SelectField } from './controls';
-import type { createBingoSession } from './bingo/createBingoSession';
+import { createBingoKatakit, useBingoKatakit, type createBingoSession } from './bingo/useBingoKatakit';
 import { TranscriptTurns } from './TranscriptTurns';
 import './style.css';
+import { MicrophoneTranscriberContext } from '@katakit/transcription/react';
+import { useKatakit, useKatakitInit } from '@katakit/react';
 
 export const BrowserBingoDemo = ({
-  runtime,
   controls,
   showIntroduction = true,
 }: {
-  runtime: ReturnType<typeof createBingoSession>;
   controls?: ReactNode;
   /** Embedded hosts can supply their own page header. */
   showIntroduction?: boolean;
-}) => {
-  const board = useBingoValue(runtime.board$);
+  }) => {
+  const microphone = use(MicrophoneTranscriberContext);
+  if (!microphone) {
+    throw new Error('MicrophoneTranscriberContext is not available');
+  }
+
+  const katakit = useBingoKatakit(null!);
+
+  const board = useBingoValue(microphone.board$);
   const [packId, setPackId] = useState<BingoPackId>('meeting');
   const markedCount = board.marked.filter(Boolean).length - 1;
   const choosePack = (next: BingoPackId) => {
