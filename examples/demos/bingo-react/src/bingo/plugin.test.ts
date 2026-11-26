@@ -56,7 +56,7 @@ test('a new deal switches live input and subscriptions to an independent log', (
   expect(game.history.getAll()).toEqual([
     expect.objectContaining({
       type: 'gameStarted',
-      cards: [game.board$.get().squares],
+      squares: [game.board$.get().squares],
       meta: { seq: 0, timestamp: expect.any(Date) },
     }),
   ]);

@@ -1,11 +1,14 @@
-import { use, useEffect, useState, type ReactNode } from 'react';
-import { bingoPacks, drawBingoPack, type BingoPackId } from './bingo';
-import { Button, SelectField } from './controls';
-import { createBingoKatakit, useBingoKatakit, type createBingoSession } from './bingo/useBingoKatakit';
+import { use, useState, type ReactNode } from 'react';
+import { SelectField } from './controls';
+import { useBingoKatakit } from './bingo/useBingoKatakit';
 import { TranscriptTurns } from './TranscriptTurns';
 import './style.css';
-import { MicrophoneTranscriberContext } from '@katakit/transcription/react';
-import { useKatakit, useKatakitInit } from '@katakit/react';
+import {
+  MicrophoneTranscriberContext,
+  useMicrophoneTranscriberCallbacks,
+} from '@katakit/transcription/react';
+import { BingoPlugin } from './bingo/plugin';
+import { BingoPackId, bingoPacks, drawBingoPack } from './bingo/packs';
 
 export const BrowserBingoDemo = ({
   controls,
@@ -14,29 +17,68 @@ export const BrowserBingoDemo = ({
   controls?: ReactNode;
   /** Embedded hosts can supply their own page header. */
   showIntroduction?: boolean;
-  }) => {
-  const microphone = use(MicrophoneTranscriberContext);
-  if (!microphone) {
-    throw new Error('MicrophoneTranscriberContext is not available');
-  }
+}) => {
+  const [pack, setPack] = useState<{ id: BingoPackId; squares: string[] }>({
+    id: bingoPacks[0].id,
+    squares: drawBingoPack(bingoPacks[0].id),
+  });
 
-  const katakit = useBingoKatakit(null!);
+  return (
+    <BingoKatakitWrapper
+      key={pack.id}
+      squares={pack.squares}
+      controls={controls}
+      showIntroduction={showIntroduction}
+      packPicker={
+        <PackPicker value={pack.id} onChange={id => setPack({ id, squares: drawBingoPack(id) })} />
+      }
+    />
+  );
+};
 
-  const board = useBingoValue(microphone.board$);
-  const [packId, setPackId] = useState<BingoPackId>('meeting');
-  const markedCount = board.marked.filter(Boolean).length - 1;
-  const choosePack = (next: BingoPackId) => {
-    if (next === packId) return;
-    runtime.restart(drawBingoPack(next));
-    setPackId(next);
-  };
-  const packPicker = (
+const BingoKatakitWrapper = ({
+  squares,
+  controls,
+  showIntroduction,
+  packPicker,
+}: {
+  squares: string[];
+  controls?: ReactNode;
+  showIntroduction?: boolean;
+  packPicker: ReactNode;
+}) => {
+  const bingoKatakit = useBingoKatakit(squares);
+
+  if (!bingoKatakit) return null;
+
+  return (
+    <BingoBody
+      bingoKatakit={bingoKatakit}
+      controls={controls}
+      showIntroduction={showIntroduction}
+      packPicker={packPicker}
+    />
+  );
+};
+
+const PackPicker = ({
+  value,
+  onChange,
+}: {
+  value: BingoPackId;
+  onChange: (next: BingoPackId) => void;
+}) => {
+  return (
     <div className="bingo-pack-picker">
       <SelectField
         id="bingo-pack"
         label="Word list"
-        value={packId}
-        onChange={event => choosePack(event.target.value as BingoPackId)}
+        value={value}
+        onChange={event => {
+          const pack = event.target.value as BingoPackId;
+          if (pack === value) return;
+          onChange(pack);
+        }}
       >
         {bingoPacks.map(pack => (
           <option key={pack.id} value={pack.id}>
@@ -44,33 +86,42 @@ export const BrowserBingoDemo = ({
           </option>
         ))}
       </SelectField>
-      <Button
-        variant="ghost"
-        size="icon"
-        aria-label="Shuffle"
-        title="Shuffle"
-        onClick={() => runtime.restart(drawBingoPack(packId))}
-      >
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="m18 14 4 4-4 4" />
-          <path d="m18 2 4 4-4 4" />
-          <path d="M2 18h1.973a4 4 0 0 0 3.3-1.7l5.454-8.6a4 4 0 0 1 3.3-1.7H22" />
-          <path d="M2 6h1.972a4 4 0 0 1 3.6 2.2" />
-          <path d="M22 18h-6.041a4 4 0 0 1-3.3-1.8l-.359-.45" />
-        </svg>
-      </Button>
     </div>
   );
+};
+
+const BingoBody = ({
+  bingoKatakit,
+  controls,
+  showIntroduction,
+  packPicker,
+}: {
+  bingoKatakit: NonNullable<ReturnType<typeof useBingoKatakit>>;
+  controls?: ReactNode;
+  showIntroduction?: boolean;
+  packPicker: ReactNode;
+}) => {
+  const squares = bingoKatakit.useSquares();
+  const marked = bingoKatakit.useMarked();
+  const winningLines = bingoKatakit.useWinningLanes();
+
+  const microphone = use(MicrophoneTranscriberContext);
+  if (!microphone) {
+    throw new Error('MicrophoneTranscriberContext is not available');
+  }
+
+  useMicrophoneTranscriberCallbacks(microphone, {
+    onUtterance: bingoKatakit.ingestUtterance,
+    onProvisionalUtterance: provisionalUtterance =>
+      bingoKatakit.updateProvisionalUtterance(provisionalUtterance.text),
+    onFlush: bingoKatakit.flush,
+    onClose: bingoKatakit.close,
+  });
+
+  if (!squares || !marked) return null;
+
+  const markedCount = Object.values(marked).filter(Boolean).length;
+
   return (
     <section
       className="browser-bingo"
@@ -88,10 +139,10 @@ export const BrowserBingoDemo = ({
       <div className="bingo-layout">
         <section className="bingo-game" aria-label="Bingo card">
           <div className="bingo-score">
-            <strong>{board.winningLines.length ? 'Bingo!' : `${markedCount} of 24 squares`}</strong>
-            {board.winningLines.length > 0 && (
+            <strong>{winningLines.length ? 'Bingo!' : `${markedCount} of 24 squares`}</strong>
+            {winningLines.length > 0 && (
               <span>
-                {`${board.winningLines.length} line${board.winningLines.length === 1 ? '' : 's'} complete`}
+                {`${winningLines.length} line${winningLines.length === 1 ? '' : 's'} complete`}
               </span>
             )}
             {packPicker}
@@ -101,22 +152,18 @@ export const BrowserBingoDemo = ({
             role="group"
             aria-label="Click squares to mark or correct them"
           >
-            {board.squares.map((phrase, index) => (
+            {squares.map((phrase, index) => (
               <button
                 className="bingo-square"
                 key={index}
                 type="button"
-                data-marked={board.marked[index]}
+                data-marked={marked[index]}
                 data-free={index === 12}
                 data-long={phrase.length > 22}
-                aria-pressed={board.marked[index]}
+                aria-pressed={marked[index]}
                 aria-disabled={index === 12}
-                aria-label={`${phrase}${board.spoken[index] ? ', heard' : ''}`}
-                title={
-                  board.spoken[index] ? `Heard: ${phrase}` : phrase.length > 22 ? phrase : undefined
-                }
                 onClick={() => {
-                  if (index !== 12) runtime.changeSquare(index, !board.marked[index]);
+                  bingoKatakit.katakit.getMethods(BingoPlugin).changeSquare(index, !marked[index]);
                 }}
               >
                 {phrase}
@@ -126,7 +173,7 @@ export const BrowserBingoDemo = ({
         </section>
         <aside className="bingo-controls" aria-label="Bingo controls">
           {controls}
-          <TranscriptTurns runtime={runtime} />
+          <TranscriptTurns bingoKatakit={bingoKatakit} />
         </aside>
       </div>
     </section>

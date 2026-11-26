@@ -4,7 +4,7 @@ This module implements the browser and extension examples’ conversation bingo
 card. Each application imports its own `./bingo` source directory. It is not
 published as a standalone package.
 
-One Katakit runtime is one round. Its first event, `gameStarted({ cards })`, records
+One Katakit runtime is one round. Its first event, `gameStarted({ squares })`, records
 one 25-square layout in row-major order, including its free center. A live final
 utterance can produce `squareSpoken({ index })` for each newly heard phrase.
 A click records `squareManuallyChanged({ index, marked })`. A manual mark wins

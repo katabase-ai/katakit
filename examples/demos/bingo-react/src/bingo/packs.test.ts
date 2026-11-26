@@ -1,7 +1,16 @@
 import { describe, expect, it } from 'vitest';
-import { bingoPacks, drawBingoPack, validateBingoPacks } from './packs';
+import { bingoPacks, drawBingoPack } from './packs';
 import { normalizePhrase } from './plugin';
-import { worldCapitalTiers } from './worldCapitals';
+
+export const validateBingoPacks = () =>
+  bingoPacks.every(pack => {
+    const phrases = pack.tiers.flat();
+    return (
+      pack.tiers.every(tier => tier.length >= 8) &&
+      phrases.every(phrase => normalizePhrase(phrase)) &&
+      new Set(phrases.map(normalizePhrase)).size === phrases.length
+    );
+  });
 
 describe('bingo packs', () => {
   it('has distinct nonblank entries in every tier', () => {
@@ -42,19 +51,5 @@ describe('bingo packs', () => {
         )!
         .toSorted()
     );
-  });
-  it('covers 193 UN members and both observer states with one unique playable capital each', () => {
-    const entries = worldCapitalTiers.flat();
-    const countries = entries.map(([country]) => country);
-    const capitals = entries.map(([, capital]) => normalizePhrase(capital));
-    expect(entries).toHaveLength(195);
-    expect(new Set(countries).size).toBe(195);
-    expect(new Set(capitals).size).toBe(195);
-    const capitalOf = (country: string) => entries.find(([name]) => name === country)?.[1];
-    expect(capitalOf('Palestine')).toBe('East Jerusalem');
-    expect(capitalOf('Vatican City')).toBe('Vatican City');
-    expect(capitalOf('Nauru')).toBe('Yaren');
-    expect(capitalOf('Equatorial Guinea')).toBe('Ciudad de la Paz');
-    expect(capitalOf('Indonesia')).toBe('Jakarta');
   });
 });

@@ -1,24 +1,13 @@
-import {
-  EventLogPlugin,
-  evolve,
-  makeKatakitPlugin,
-} from "@katakit/core";
-import { filter, map, startWith } from "rxjs";
-import { BingoEvent, GameStartedBingoEvent } from "./events";
-import { property } from "@katakit/core";
-
-export type BingoBoard = { squares: string[] };
-export type BingoState = BingoBoard & {
-  spoken: boolean[];
-  marked: boolean[];
-  winningLines: number[][];
-};
+import { EventLogPlugin, evolve, makeKatakitPlugin } from '@katakit/core';
+import { filter, map, startWith } from 'rxjs';
+import { BingoEvent, GameStartedBingoEvent } from './events';
+import { property } from '@katakit/core';
 
 export const normalizePhrase = (text: string) =>
   text
-    .normalize("NFKC")
+    .normalize('NFKC')
     .toLowerCase()
-    .replace(/[^\p{L}\p{N}]+/gu, " ")
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .trim();
 
 export const matchPhrase = (phrase: string, transcript: string) => {
@@ -27,13 +16,8 @@ export const matchPhrase = (phrase: string, transcript: string) => {
 };
 
 export const makeSquares = (phrases: string[]) => {
-  if (
-    phrases.length !== 24 ||
-    phrases.some((phrase) => !normalizePhrase(phrase))
-  )
-    throw new Error("A bingo card needs exactly 24 nonblank phrases.");
   const squares = [...phrases];
-  squares.splice(12, 0, "Free space");
+  squares.splice(12, 0, 'Free space');
   return squares;
 };
 
@@ -44,38 +28,39 @@ export const getWinningLanes = (marked: Record<number, boolean>) => {
   for (let col = 0; col < 5; col++)
     lines.push(Array.from({ length: 5 }, (_, row) => row * 5 + col));
   lines.push([0, 6, 12, 18, 24], [4, 8, 12, 16, 20]);
-  return lines.filter((line) => line.every((index) => marked[index]));
+  return lines.filter(line => line.every(index => marked[index]));
 };
 
 export const BingoPlugin = makeKatakitPlugin({
-  type: "Bingo",
+  type: 'Bingo',
   configure: (_options: {}) => ({}),
   observables: ({ getObservables }) => {
     const marked$ = property(
       getObservables(EventLogPlugin).events$.pipe(
         filter(
           (e): e is BingoEvent =>
-            e.type === "gameStarted" ||
-            e.type === "squareManuallyChanged" ||
-            e.type === "squareSpoken",
+            e.type === 'gameStarted' ||
+            e.type === 'squareManuallyChanged' ||
+            e.type === 'squareSpoken'
         ),
         evolve(
           (acc, event) => {
-            if (event.type === "gameStarted") {
-              return Object.fromEntries(
-                Array.from({ length: 25 }, (_, i) => [i, false]),
-              ) as Record<number, boolean>;
+            if (event.type === 'gameStarted') {
+              return Object.fromEntries(Array.from({ length: 25 }, (_, i) => [i, false])) as Record<
+                number,
+                boolean
+              >;
             }
             if (acc === null) {
-              throw new Error("Missing opening bingo event.");
+              throw new Error('Missing opening bingo event.');
             }
-            if (event.type === "squareSpoken") {
+            if (event.type === 'squareSpoken') {
               return {
                 ...acc,
                 [event.index]: true,
               };
             }
-            if (event.type === "squareManuallyChanged") {
+            if (event.type === 'squareManuallyChanged') {
               return {
                 ...acc,
                 [event.index]: event.marked,
@@ -83,22 +68,24 @@ export const BingoPlugin = makeKatakitPlugin({
             }
             return acc;
           },
-          null as Record<number, boolean> | null,
+          null as Record<number, boolean> | null
         ),
-        startWith(null),
-      ),
+        startWith(null)
+      )
     );
-    const winningLanes$ = marked$.pipe(
-      map((marked) => (marked ? getWinningLanes(marked) : [])),
-      startWith([]),
+    const winningLanes$ = property(
+      marked$.pipe(
+        map(marked => (marked ? getWinningLanes(marked) : [])),
+        startWith([])
+      )
     );
     return {
       squares$: property(
         getObservables(EventLogPlugin).events$.pipe(
-          filter((e): e is GameStartedBingoEvent => e.type === "gameStarted"),
-          map((e) => e.cards),
-          startWith(null),
-        ),
+          filter((e): e is GameStartedBingoEvent => e.type === 'gameStarted'),
+          map(e => e.squares),
+          startWith(null)
+        )
       ),
       marked$,
       winningLanes$,
@@ -109,14 +96,13 @@ export const BingoPlugin = makeKatakitPlugin({
     return {
       startGame: (squares: string[]) => {
         if (getObservables(EventLogPlugin).eventCount$.get() !== 0)
-          throw new Error("Start a new runtime for a new game.");
-        emitEvent({ type: "gameStarted", cards: [...squares] });
+          throw new Error('Start a new runtime for a new game.');
+        emitEvent({ type: 'gameStarted', squares: [...squares] });
       },
       changeSquare: (index: number, marked: boolean) => {
         const current = marked$.get();
-        if (!current) throw new Error("Missing opening bingo card.");
-        if (current[index] !== marked)
-          emitEvent({ type: "squareManuallyChanged", index, marked });
+        if (!current) throw new Error('Missing opening bingo card.');
+        if (current[index] !== marked) emitEvent({ type: 'squareManuallyChanged', index, marked });
       },
       /** Live recognition records each matched square once; replay only consumes its index. */
       // hearTurn: (text: string) => {

@@ -1,18 +1,18 @@
-import { KatakitEvent } from "@katakit/core";
+import { KatakitEvent } from '@katakit/core';
 
 export type GameStartedBingoEvent = KatakitEvent<{
-  type: "gameStarted";
-  cards: string[];
+  type: 'gameStarted';
+  squares: string[];
 }>;
 
 export type SquareManuallyChangedBingoEvent = KatakitEvent<{
-  type: "squareManuallyChanged";
+  type: 'squareManuallyChanged';
   index: number;
   marked: boolean;
 }>;
 
 export type SquareSpokenBingoEvent = KatakitEvent<{
-  type: "squareSpoken";
+  type: 'squareSpoken';
   index: number;
 }>;
 

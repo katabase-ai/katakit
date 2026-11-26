@@ -1,11 +1,16 @@
 import { AliveKatakit, Katakit } from '@katakit/core';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export const useKatakit = (katakit: Katakit, cleanup?: (katakit: AliveKatakit) => void) => {
   const [alive, setAlive] = useState<AliveKatakit | null>(null);
 
+  const aliveRef = useRef<boolean>(false);
+
   useEffect(() => {
+    if (aliveRef.current) return;
+
     const aliveKatakit = katakit.start();
+    aliveRef.current = true;
 
     setAlive(aliveKatakit);
 
