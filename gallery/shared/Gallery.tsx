@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import {
   galleryDataHandling,
   galleryDemoSections,
@@ -239,7 +239,6 @@ export const Gallery = ({
                 if (!sectionDemos.length) return null;
                 const expanded = !collapsedSections.includes(section);
                 const childrenId = `${navigationId}-${section}`;
-                const Chevron = expanded ? ChevronDown : ChevronRight;
                 return (
                   <div
                     className="gallery-nav-section"
@@ -275,7 +274,7 @@ export const Gallery = ({
                           )
                         }
                       >
-                        <Chevron size={16} aria-hidden="true" />
+                        <ChevronRight size={16} aria-hidden="true" />
                       </button>
                     </div>
                     <div className="gallery-nav-children" id={childrenId} hidden={!expanded}>

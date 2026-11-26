@@ -190,6 +190,17 @@
   background: var(--color-surface-muted, var(--color-paper-2));
   color: var(--color-ink);
 }
+.katakit-gallery .gallery-nav-toggle svg {
+  transition: transform var(--dur-micro) var(--ease-out);
+}
+.katakit-gallery .gallery-nav-toggle[aria-expanded='true'] svg {
+  transform: rotate(90deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .katakit-gallery .gallery-nav-toggle svg {
+    transition: none;
+  }
+}
 .katakit-gallery :is(a, button, input, select, textarea, summary):focus-visible {
   outline: 2px solid var(--color-focus);
   outline-offset: 4px;
