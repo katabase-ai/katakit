@@ -27,13 +27,16 @@ type MicrophoneEvents = {
  * Unmount stops capture, waits for pending results, releases the model, and only then
  * closes the sink, so the last words are never written to a closed sink.
  *
- * Pass a stable `createSink`. A new function, or a new `model`, ends the session and
- * starts another with a fresh sink.
+ * Pass a stable `createSink` when capture and its destination share a lifetime. The
+ * sink stays attached until stop and dispose finish, even after React unmounts.
+ * A new function, or a new `model`, ends the session and starts another with a fresh sink.
  */
 export const useMicrophoneTranscriber = ({
   model,
+  createSink,
 }: {
   model?: TranscriptionModelId;
+  createSink?: () => MicrophoneSink;
 } = {}) => {
   const [state, setState] = useState<TranscriptionState>({ phase: 'idle' });
   const session = useRef<{
@@ -45,6 +48,7 @@ export const useMicrophoneTranscriber = ({
 
   useEffect(() => {
     let mounted = true;
+    const sink = createSink?.();
 
     const current: NonNullable<typeof session.current> = {
       phase: 'idle',
@@ -60,12 +64,15 @@ export const useMicrophoneTranscriber = ({
           }
         },
         onFinal: utterance => {
+          sink?.ingestSegment(utterance);
           emitterRef.current.emit('utterance', utterance);
         },
         onProvisional: text => {
+          sink?.updateProvisional?.(text);
           emitterRef.current.emit('provisionalUtterance', text);
         },
         onStop: () => {
+          sink?.flush?.();
           emitterRef.current.emit('flush');
         },
       }),
@@ -85,11 +92,15 @@ export const useMicrophoneTranscriber = ({
         } catch (error) {
           reportError(error);
         } finally {
-          emitterRef.current.emit('close');
+          try {
+            sink?.close();
+          } finally {
+            emitterRef.current.emit('close');
+          }
         }
       })();
     };
-  }, [model]);
+  }, [model, createSink]);
 
   /** Start or stop listening. Call from a user action; failures arrive in `state.error`. */
   const toggle = useCallback(async () => {
