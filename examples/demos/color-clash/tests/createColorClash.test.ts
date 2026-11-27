@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest';
-import { createColorClash } from './createColorClash';
+import { createColorClash } from '../src/color-clash/createColorClash';
 
 const fixture = () => {
   let time = 0;

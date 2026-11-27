@@ -56,7 +56,6 @@ local `AGENTS.md` for its concrete setup and manual checks.
   follow its narrower instructions. Hosts own admission, credentials, and service URLs.
 - Run focused tests and `pnpm check`; verify a prepared copy with no existing
   `node_modules` using `pnpm demos:copy-check <name>`. Run `pnpm gallery:copy-check`
-  when gallery consumption changes, and `pnpm bingo:check-copy` after canonical Bingo
-  behavior edits. Check the documented interaction manually when possible, including
-  resource cleanup on navigation. Distinguish synthetic/build evidence from live
-  microphone, model, and platform verification in the report.
+  when gallery consumption changes. Check the documented interaction manually when
+  possible, including resource cleanup on navigation. Distinguish synthetic/build
+  evidence from live microphone, model, and platform verification in the report.

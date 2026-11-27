@@ -69,16 +69,18 @@ for (const example of ['starters/react-web', 'demos/transcription', 'gallery']) 
       );
       if (example === 'gallery') {
         assert.ok(existsSync(join(target, 'sources/notes/src/NotesDemo.tsx')));
-        assert.ok(
-          existsSync(join(target, 'sources/list-extraction/src/ListExtractionDemo.tsx'))
-        );
+        assert.ok(existsSync(join(target, 'sources/list-extraction/src/ListExtractionDemo.tsx')));
         assert.match(
           readFileSync(join(target, 'shared/ListExtractionGalleryDemo.tsx'), 'utf8'),
           /\.\.\/sources\/list-extraction\//
         );
         assert.ok(existsSync(join(target, 'sources/word-rush/src/WordRushDemo.tsx')));
         assert.ok(existsSync(join(target, 'sources/word-rush/src/challenges.json')));
-        assert.ok(existsSync(join(target, 'sources/color-clash/src/ColorClash.tsx')));
+        assert.ok(existsSync(join(target, 'sources/color-clash/src/color-clash/ColorClash.tsx')));
+        assert.match(
+          readFileSync(join(target, 'shared/ColorClashGalleryDemo.tsx'), 'utf8'),
+          /\.\.\/sources\/color-clash\/src\/color-clash\//
+        );
         assert.match(
           readFileSync(join(target, 'shared/WordRushGalleryDemo.tsx'), 'utf8'),
           /\.\.\/sources\/word-rush\//
