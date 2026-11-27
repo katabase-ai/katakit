@@ -1,7 +1,10 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { createNotesDemo } from './createNotesDemo';
-import { createTranscriptPreview, type TranscriptPreviewLine } from './createTranscriptPreview';
-import type { NotesConnection } from './notesModel';
+import { createNotesDemo } from '../src/createNotesDemo';
+import {
+  createTranscriptPreview,
+  type TranscriptPreviewLine,
+} from '../src/createTranscriptPreview';
+import type { NotesConnection } from '../src/notesModel';
 
 afterEach(() => vi.useRealTimers());
 

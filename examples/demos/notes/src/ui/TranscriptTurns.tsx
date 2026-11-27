@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import type { TranscriptionSegment } from '@katakit/transcription';
 import { combineLatest, type Observable } from 'rxjs';
+import './transcript-turns.css';
 
 type PendingTurn = Pick<TranscriptionSegment, 'text' | 'startMs'>;
 
@@ -12,8 +13,7 @@ const formatTime = (ms?: number) => {
 
 /**
  * A thin column of the conversation so far, in the Local transcription demo's numbered-turn form
- * but newest first, with each turn's start time right-aligned beneath it. The structured-notes and
- * bingo examples each carry this file so either can be copied alone.
+ * but newest first, with each turn's start time right-aligned beneath it.
  */
 export const TranscriptTurns = ({
   transcript,

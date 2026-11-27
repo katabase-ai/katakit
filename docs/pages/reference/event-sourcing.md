@@ -163,6 +163,6 @@ and gallery navigation separately when those paths change.
 
 Use the [Bingo projection tests](https://github.com/katabase-ai/katakit/blob/main/examples/demos/bingo/tests/plugin.test.ts)
 for board reconstruction and the
-[structured notes tests](https://github.com/katabase-ai/katakit/blob/main/examples/demos/notes/src/notesPlugin.test.ts)
+[structured notes tests](https://github.com/katabase-ai/katakit/blob/main/examples/demos/notes/tests/notesPlugin.test.ts)
 for accepted model output, replay, cancellation, and pending work. They demonstrate specific
 contracts; a passing test is not evidence for every lifecycle path in a demo.

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
-import { applyNotesResult } from './applyNotesResult';
-import type { Note } from './notesModel';
+import { applyNotesResult } from '../src/applyNotesResult';
+import type { Note } from '../src/notesModel';
 
 test('corrections and additions preserve recorded outlines and existing note IDs', () => {
   const notes: Note[] = [

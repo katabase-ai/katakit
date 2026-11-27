@@ -1,0 +1,57 @@
+/* Numbered transcript turns are local to this independently copyable widget. */
+.transcript-turns {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+.transcript-turns h2 {
+  margin: 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-rule, color-mix(in srgb, currentColor 18%, transparent));
+  color: var(--color-ink, inherit);
+  font-size: var(--text-lg, 1.25rem);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: normal;
+}
+/* Turns fill the column to its end and scroll there; their content never sizes the column. */
+.transcript-turns-list {
+  flex: 1 1 0;
+  min-height: 6rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.transcript-turn {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr);
+  gap: 0.25rem 0.5rem;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--color-rule, color-mix(in srgb, currentColor 18%, transparent));
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.transcript-turn p {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+.transcript-turn-index,
+.transcript-turn time {
+  color: var(--color-muted, color-mix(in srgb, currentColor 70%, transparent));
+  font-family: var(--font-outlier, ui-monospace, monospace);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+.transcript-turn-index {
+  padding-top: 0.15rem;
+}
+/* The turn's start time sits beneath its text, at the column's right edge. */
+.transcript-turn time {
+  grid-column: 2;
+  justify-self: end;
+}
+.transcript-turn[data-interim='true'] p {
+  color: var(--color-muted, color-mix(in srgb, currentColor 70%, transparent));
+  font-style: italic;
+}

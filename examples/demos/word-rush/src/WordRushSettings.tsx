@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { challengeCategories } from './challenges';
-import { Button, SelectField } from './controls';
+import { Button, SelectField } from './ui/controls';
 
 type WordRushSettingsProps = {
   category: string;

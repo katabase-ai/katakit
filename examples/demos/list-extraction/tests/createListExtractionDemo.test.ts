@@ -1,10 +1,13 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { createListExtractionDemo, type ListExtractionRuntime } from './createListExtractionDemo';
+import {
+  createListExtractionDemo,
+  type ListExtractionRuntime,
+} from '../src/createListExtractionDemo';
 import {
   ExtractionError,
   type ExtractionConnect,
   type ExtractionConnection,
-} from './extractionModel';
+} from '../src/extractionModel';
 
 const runtimes: ListExtractionRuntime[] = [];
 const create = () => {
