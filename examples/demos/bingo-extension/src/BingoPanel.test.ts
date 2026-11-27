@@ -19,7 +19,7 @@ test('restores an older saved card, consumes buffered speech, and routes new inp
   const remove = vi.fn();
   vi.stubGlobal('chrome', {
     storage: {
-      local: { get: async () => ({ board: saved, packId: 'meeting' }), set: write },
+      local: { get: async () => ({ board: saved, wordListId: 'animals' }), set: write },
       session: {
         get: async () => ({
           segments: [{ id: 'saved', sourceId: 'tab', text: 'saved 0' }],
@@ -33,6 +33,7 @@ test('restores an older saved card, consumes buffered speech, and routes new inp
   const board = () =>
     within(screen.getByRole('group', { name: 'Click squares to mark or correct them' }));
   await screen.findByText('2 of 25 squares');
+  expect(write).toHaveBeenCalledWith(expect.objectContaining({ wordListId: 'animals' }));
   expect(board().getByRole('button', { name: 'saved 0 Heard' }).getAttribute('aria-pressed')).toBe(
     'true'
   );

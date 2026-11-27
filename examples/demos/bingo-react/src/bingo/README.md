@@ -19,16 +19,16 @@ matching text again. With no opening event this returns `undefined`.
 `createBingoSession()` owns the active runtime for the demo. Its `restart(squares)`
 switches to a new log and transcript without stopping the host's microphone.
 
-`bingoPacks` provides meeting phrases, animals, US states, world capitals,
+`wordLists` provides meeting phrases, animals, US states, world capitals,
 tricky-to-pronounce words, corporate jargon, and AI technical jargon. Each
-pack has familiar, less familiar, and wildcard entries. `drawBingoPack(id)`
+word list has familiar, less familiar, and wildcard entries. `drawBingoWordList(id)`
 samples up to nine phrases per tier, shuffles the pool, and deals 25 phrases.
 
 ## Geography coverage and sources
 
-The **US states** pack includes all 50 states (not Washington, DC or territories),
+The **US states** word list includes all 50 states (not Washington, DC or territories),
 checked against the [US Census Bureau state list](https://www2.census.gov/programs-surveys/bps/guidance/states-by-region.pdf).
-The **world capitals** pack includes one capital or government seat for each of
+The **world capitals** word list includes one capital or government seat for each of
 the [193 UN member states](https://research.un.org/en/unmembers/currentmembers)
 plus the two [UN observer states](https://research.un.org/en/unmembers/observers),
 the Holy See (represented by Vatican City) and Palestine. Country/capital pairs

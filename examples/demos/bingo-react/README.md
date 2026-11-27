@@ -58,7 +58,7 @@ downloads a model. Audio stays in the browser; the board and transcript reset on
 reload. Finalized words appear in Transcript, newest line first; interim recognition text is shown there
 in italics and is not used for bingo.
 
-Choose a word list. Built-in packs draw a mix of familiar, less familiar, and
+Choose a built-in word list to draw a mix of familiar, less familiar, and
 wildcard entries; choose **Shuffle** for another draw. Rare names and tricky words
 may be misheard by the recognizer; click a square to correct it. Switching lists
 or shuffling starts a fresh round with an empty transcript and no manual corrections. You

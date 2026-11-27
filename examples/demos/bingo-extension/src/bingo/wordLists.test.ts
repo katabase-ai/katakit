@@ -1,21 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import { bingoPacks, drawBingoPack } from './packs';
+import { wordLists, drawBingoWordList } from './wordLists';
 import { normalizePhrase } from './plugin';
 
-export const validateBingoPacks = () =>
-  bingoPacks.every(pack => {
-    const phrases = pack.tiers.flat();
+export const validateBingoWordLists = () =>
+  wordLists.every(wordList => {
+    const phrases = wordList.tiers.flat();
     return (
-      pack.tiers.every(tier => tier.length >= 8) &&
+      wordList.tiers.every(tier => tier.length >= 8) &&
       phrases.every(phrase => normalizePhrase(phrase)) &&
       new Set(phrases.map(normalizePhrase)).size === phrases.length
     );
   });
 
-describe('bingo packs', () => {
+describe('bingo word lists', () => {
   it('has distinct nonblank entries in every tier', () => {
-    expect(validateBingoPacks()).toBe(true);
-    expect(bingoPacks.map(pack => pack.id)).toEqual([
+    expect(validateBingoWordLists()).toBe(true);
+    expect(wordLists.map(list => list.id)).toEqual([
       'meeting',
       'animals',
       'us-states',
@@ -26,20 +26,20 @@ describe('bingo packs', () => {
     ]);
   });
   it('draws 25 distinct phrases with at most nine from each tier', () => {
-    for (const pack of bingoPacks) {
-      const squares = drawBingoPack(pack.id, () => 0.5);
+    for (const wordList of wordLists) {
+      const squares = drawBingoWordList(wordList.id, () => 0.5);
       expect(squares).toHaveLength(25);
       expect(new Set(squares.map(normalizePhrase)).size).toBe(25);
-      const phrases = new Set<string>(pack.tiers.flat());
+      const phrases = new Set<string>(wordList.tiers.flat());
       expect(squares.every(square => phrases.has(square))).toBe(true);
-      for (const tier of pack.tiers) {
+      for (const tier of wordList.tiers) {
         const entries = new Set<string>(tier);
         expect(squares.filter(square => entries.has(square)).length).toBeLessThanOrEqual(9);
       }
     }
   });
   it('contains exactly the 50 US states, without DC or territories', () => {
-    const states = bingoPacks.find(pack => pack.id === 'us-states')!.tiers.flat();
+    const states = wordLists.find(list => list.id === 'us-states')!.tiers.flat();
     const expected = `Alabama Alaska Arizona Arkansas California Colorado Connecticut Delaware Florida Georgia
       Hawaii Idaho Illinois Indiana Iowa Kansas Kentucky Louisiana Maine Maryland Massachusetts Michigan
       Minnesota Mississippi Missouri Montana Nebraska Nevada New Hampshire New Jersey New Mexico New York

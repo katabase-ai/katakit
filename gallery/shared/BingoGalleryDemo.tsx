@@ -8,7 +8,7 @@ import { useGallerySpeech } from './GallerySpeechProvider';
 
 type Microphone = NonNullable<ContextType<typeof MicrophoneTranscriberContext>>;
 
-// One emitter per gallery visit. Capture stays with the gallery across pack changes.
+// One emitter per gallery visit. Capture stays with the gallery across word list changes.
 const createBingoInput = () => {
   const emitter: Microphone['emitter'] = mitt();
   return {
