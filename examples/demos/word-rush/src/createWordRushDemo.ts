@@ -1,6 +1,6 @@
-import { EventLogPlugin, makeKatakit } from '@katakit/core';
+import { EventLogPlugin, makeKatakit, type KatakitEvent } from '@katakit/core';
 import type { MicrophoneOptions } from '@katakit/transcription/browser';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, type Observable } from 'rxjs';
 import * as v from 'valibot';
 import { answerKey, findChallenge } from './challenges';
 import {
@@ -116,9 +116,12 @@ export type WordRushSnapshot = Content & {
   failure?: WordRushRequestError;
 };
 
-/** One visit owns its event log, single-flight judging queue, and round clock. */
-export const createWordRushDemo = () => {
-  const kit = makeKatakit({ plugins: [] }).start();
+/** One visit owns its event log, single-flight judging queue, and round clock.
+ * existingEvents is typed in-memory history; callers loading storage decode it first.
+ */
+export const createWordRushDemo = (existingEvents: KatakitEvent[] = []) => {
+  // Restoring typed in-memory facts reconstructs content; no connection or clock is restored.
+  const kit = makeKatakit({ plugins: [], existingEvents }).start();
   const log = kit.getMethods(EventLogPlugin);
   const emitEvent = (event: GameEvent) => log.emitEvent(v.parse(EventSchema, event));
   const { events$ } = kit.getObservables(EventLogPlugin);
@@ -137,7 +140,7 @@ export const createWordRushDemo = () => {
     feedback: '',
   } as Omit<WordRushSnapshot, keyof Content | 'remaining'>;
   const snapshot = (): WordRushSnapshot => ({
-    ...content,
+    ...structuredClone(content),
     ...transient,
     remaining:
       content.deadline === null
@@ -145,11 +148,15 @@ export const createWordRushDemo = () => {
         : Math.max(0, Math.ceil((content.deadline - (content.endedAt ?? Date.now())) / 1000)),
   });
   const state$ = new BehaviorSubject(snapshot());
+  const publicState$ = Object.defineProperty(state$.asObservable(), 'value', {
+    get: snapshot,
+  }) as Observable<WordRushSnapshot> & { readonly value: WordRushSnapshot };
   const publish = () => {
     if (!closed) state$.next(snapshot());
   };
   const subscription = events$.subscribe(event => {
     content = reduce(content, v.parse(EventSchema, event));
+    if (event.type === 'heard') seen.add(event.id);
     publish();
   });
   const clearTimer = () => {
@@ -268,7 +275,7 @@ export const createWordRushDemo = () => {
   };
 
   return {
-    state$,
+    state$: publicState$,
     events$,
     configure: ({
       challengeId = content.challengeId,
@@ -289,6 +296,13 @@ export const createWordRushDemo = () => {
     },
     connect: (next: WordRushConnection) => {
       if (closed) return;
+      if (connection && connection !== next) {
+        // Explicit replacement cancels the old request before the new connection resumes pending input.
+        generation++;
+        controller?.abort();
+        controller = undefined;
+        transient.busy = false;
+      }
       connection = next;
       transient.connected = true;
       transient.failure = undefined;
@@ -337,7 +351,7 @@ export const createWordRushDemo = () => {
       publish();
     },
     remove: (id: string) => {
-      if (!closed) emitEvent({ type: 'removed', id });
+      if (!closed && content.notes.some(note => note.id === id)) emitEvent({ type: 'removed', id });
     },
     retry: () => {
       if (closed || transient.failure?.policy.terminal) return;

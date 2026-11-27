@@ -45,8 +45,11 @@ adapters in `gallery/`, never in the copied demo.
 Events record challenge selection, round start/deadline, finalized turns, accepted notes and
 cursors, removals, and completion. Notes get stable IDs before recording. Provisional speech,
 clock ticks, retry, connection, and cancellation are transient. Do not keep a second writable
-authority for board content or regenerate IDs on replay. The log lasts for one visit; no storage
-or history-restoration API is exposed by this demo yet.
+authority for board content or regenerate IDs on replay. The log lasts for one visit; there is
+no disk storage. `createWordRushDemo(existingEvents)` reconstructs from typed in-memory history
+without restarting the clock or calling a model. An explicit `connect()` may resume recorded
+pending speech; directly replacing a connection aborts its old request before doing so.
+Decode any serialized history at the application boundary before passing it to the factory.
 
 `App` supplies `connect({ signal })` to the feature view. It returns a `WordRushConnection`
 with model ID, request-byte and output-token limits, `requestCompletion`, and required
