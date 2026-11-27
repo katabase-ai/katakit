@@ -105,7 +105,9 @@ test('drains final results into the outgoing sink before closing it or creating 
     sourceId: inputs[0]!.sourceId!,
     text: 'late old result',
   });
+  inputs[0]!.callbacks.onProvisional?.('late old preview');
   expect(incoming.ingestSegment).not.toHaveBeenCalled();
+  expect(incoming.updateProvisional).not.toHaveBeenCalled();
   expect(owner.getSnapshot().input.phase).toBe('ready');
   await owner.dispose();
 });

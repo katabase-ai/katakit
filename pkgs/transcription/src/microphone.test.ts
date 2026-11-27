@@ -188,6 +188,17 @@ describe('microphone host adapter', () => {
     await expect(input.start()).rejects.toMatchObject({ code: 'disposed' });
   });
 
+  it('ignores a provisional callback after stop while keeping the model ready', async () => {
+    const mock = setup();
+    const { input, onProvisional } = mock;
+    await input.start();
+    mock.callbacks.onProvisional('current draft');
+    await input.stop();
+    mock.callbacks.onProvisional('late draft');
+    expect(onProvisional).toHaveBeenCalledExactlyOnceWith('current draft');
+    await input.dispose();
+  });
+
   it('cancels microphone startup before disposing and releases resources once', async () => {
     const mock = setup();
     const { input, capture, model, states, onFinal, onProvisional } = mock;
