@@ -1,14 +1,27 @@
 import { EventLogPlugin, makeKatakitPlugin, property } from '@katakit/core';
 import { filter, scan, startWith } from 'rxjs';
+import { colorClashColors, type Color, type Target } from './events';
 import type {
-  Color,
   ColorClashEvent,
   RoundEndedEvent,
   RoundStartedEvent,
-  Target,
   TargetMatchedEvent,
   TargetMissedEvent,
 } from './events';
+
+const validTarget = (target: Target, sequence: number, previousInk?: Color) =>
+  Number.isInteger(target?.sequence) &&
+  target.sequence === sequence &&
+  colorClashColors.includes(target.ink) &&
+  colorClashColors.includes(target.word) &&
+  target.ink !== target.word &&
+  target.ink !== previousInk &&
+  Number.isFinite(target.left) &&
+  target.left >= 0 &&
+  target.left <= 100 &&
+  Number.isFinite(target.top) &&
+  target.top >= 0 &&
+  target.top <= 100;
 
 export type GameContent = {
   phase: 'playing' | 'finished';
@@ -64,8 +77,15 @@ export const ColorClashPlugin = makeKatakitPlugin({
     const { emitEvent } = getMethods(EventLogPlugin);
     return {
       startRound: (target: Target, deadline: number) => {
-        if (game$.get()?.phase === 'playing') throw new Error('Round already playing.');
-        emitEvent({ type: 'roundStarted', target, deadline } satisfies Omit<
+        const current = game$.get();
+        if (current?.phase === 'playing') throw new Error('Round already playing.');
+        if (
+          !Number.isFinite(deadline) ||
+          deadline <= 0 ||
+          !validTarget(target, (current?.target.sequence ?? -1) + 1)
+        )
+          throw new Error('Invalid Color Clash round.');
+        emitEvent({ type: 'roundStarted', target: { ...target }, deadline } satisfies Omit<
           RoundStartedEvent,
           'meta'
         >);
@@ -73,13 +93,16 @@ export const ColorClashPlugin = makeKatakitPlugin({
       acceptAnswer: (spokenColor: Color, chooseNext: (target: Target) => Target) => {
         const game = game$.get();
         if (!game || game.phase !== 'playing') return;
+        if (!colorClashColors.includes(spokenColor)) throw new Error('Invalid spoken color.');
         if (spokenColor === game.target.ink) {
           const nextTarget = chooseNext(game.target);
+          if (!validTarget(nextTarget, game.target.sequence + 1, game.target.ink))
+            throw new Error('Invalid next Color Clash target.');
           emitEvent({
             type: 'targetMatched',
             targetSequence: game.target.sequence,
             spokenColor,
-            nextTarget,
+            nextTarget: { ...nextTarget },
           } satisfies Omit<TargetMatchedEvent, 'meta'>);
         } else
           emitEvent({
