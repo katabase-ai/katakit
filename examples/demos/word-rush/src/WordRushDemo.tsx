@@ -3,7 +3,7 @@ import { bind, Subscribe } from '@react-rxjs/core';
 import { drawChallenge, findChallenge } from './challenges';
 import type { WordRushConnection } from './wordRushModel';
 import type { createWordRushDemo } from './createWordRushDemo';
-import { Button } from './controls';
+import { Button } from './ui/controls';
 import { WordRushSettings } from './WordRushSettings';
 import { useRoundSetup } from './useRoundSetup';
 import './style.css';

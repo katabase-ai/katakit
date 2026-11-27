@@ -36,8 +36,9 @@ requests microphone access. Audio stays on the device; finalized text goes to th
 `src/WordRushDemo.tsx` renders the game and settings; `src/useRoundSetup.ts` owns cancellable
 setup. `src/createWordRushDemo.ts` owns one visit's event log, request queue, and round clock.
 `src/wordRushModel.ts` owns the extraction/judging contract; `src/challenges.json` holds 200
-stable challenges across 20 categories and `src/challenges.ts` selects them. Local controls and
-feature styles are in `src/`; `standalone.css` supplies global defaults only to `main.tsx`.
+stable challenges across 20 categories and `src/challenges.ts` selects them. Generic buttons and
+selects and their CSS live in `src/ui/`; feature styles stay in `src/style.css`, while
+`src/standalone.css` supplies global defaults only to `main.tsx`.
 Behavior tests live in `tests/`. Keep model transport/admission in the host and gallery-only
 adapters in `gallery/`, never in the copied demo.
 
