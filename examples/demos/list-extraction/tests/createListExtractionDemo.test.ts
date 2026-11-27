@@ -202,7 +202,7 @@ test('restored history rejects malformed metadata, missing events, and invalid p
     [{ ...history[0], meta: { ...history[0].meta, timestamp: 'not-a-date' } }, ...history.slice(1)],
   ];
   for (const initialEvents of invalid)
-    expect(() => createListExtractionDemo({ initialEvents })).toThrow();
+    expect(() => createListExtractionDemo({ initialEvents })).toThrow(/./);
   expect(runtime.events$.getAll()).toHaveLength(history.length);
 });
 

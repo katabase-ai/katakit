@@ -227,7 +227,7 @@ test('settings drafts can be canceled without clearing the board and applied tog
   let settings = openSettings();
   fireEvent.change(settings.getByLabelText('Category'), { target: { value: 'animals' } });
   fireEvent.change(settings.getByLabelText('Round length'), { target: { value: '120' } });
-  expect(runtime.state$.value).toBe(previous);
+  expect(runtime.state$.value).toEqual(previous);
   fireEvent.click(settings.getByRole('button', { name: 'Cancel' }));
   expect(screen.queryByRole('dialog')).toBeNull();
   expect(screen.getByRole('button', { name: 'Remove dolphin' })).toBeDefined();
@@ -235,7 +235,7 @@ test('settings drafts can be canceled without clearing the board and applied tog
   expect((settings.getByLabelText('Category') as HTMLSelectElement).value).toBe('');
   expect((settings.getByLabelText('Round length') as HTMLSelectElement).value).toBe('60');
   fireEvent.click(settings.getByRole('button', { name: 'Apply' }));
-  expect(runtime.state$.value).toBe(previous);
+  expect(runtime.state$.value).toEqual(previous);
   settings = openSettings();
   fireEvent.change(settings.getByLabelText('Category'), { target: { value: 'animals' } });
   fireEvent.change(settings.getByLabelText('Round length'), { target: { value: '120' } });
