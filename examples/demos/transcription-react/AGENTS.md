@@ -50,8 +50,9 @@ and each recording gets a distinct source ID.
   model disposal and replacement.
 - `src/ui/` contains local visual primitives (`controls.tsx`, `AudioLevelMeter.tsx`)
   and their styles. Keep domain components outside this directory.
-- `src/ui/base.css` contains the standalone theme/reset and control styles; import it
-  only from the standalone entry point. `src/ui/audio-level-meter.css` styles the meter.
+- `src/base.css` contains the standalone theme and global resets; import it only from
+  `src/app.tsx`. `src/ui/controls.tsx` imports its own `controls.css`, and
+  `src/ui/AudioLevelMeter.tsx` imports `audio-level-meter.css`.
 - `src/transcription/style.css` contains demo-specific layout and transcript styling.
 - `tests/` covers model selection, transcript integration, and React subscription behavior.
 

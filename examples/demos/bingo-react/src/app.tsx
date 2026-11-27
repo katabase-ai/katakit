@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client';
-import './ui/base.css';
+import './base.css';
 import { KatakitDevTools } from '@katakit/react';
 import {
   MicrophoneTranscriberContext,

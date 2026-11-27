@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react';
+import './controls.css';
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: 'slate' | 'blue' | 'ghost' | 'border' | 'red';
