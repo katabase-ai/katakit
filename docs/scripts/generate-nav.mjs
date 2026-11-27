@@ -43,12 +43,7 @@ export const buildNav = (directory = pages) => {
       if (entry.isDirectory()) return true;
       if (!entry.isFile() || !entry.name.endsWith('.md') || entry.name === 'README.md')
         return false;
-      // These published legacy URLs link to the new pages but are not navigation entries.
-      return !(
-        (directory === join(pages, 'reference') && entry.name === 'event-sourcing.md') ||
-        (directory === join(pages, 'getting-started') &&
-          entry.name === 'migrate-to-event-sourcing.md')
-      );
+      return true;
     })
     .toSorted((a, b) => {
       if (isRoot) {
