@@ -1,4 +1,4 @@
-import { EventLogPlugin, evolve, makeEffect, makeKatakitPlugin } from '@katakit/core';
+import { EventLogPlugin, evolve, makeEffect, makeKatakitPlugin, skipReplay } from '@katakit/core';
 import { filter, map, startWith } from 'rxjs';
 import { BingoEvent, GameStartedBingoEvent, SquareSpokenBingoEvent } from './events';
 import { property } from '@katakit/core';
@@ -94,11 +94,18 @@ export const BingoPlugin = makeKatakitPlugin({
       startGame: (squares: string[]) => {
         if (getObservables(EventLogPlugin).eventCount$.get() !== 0)
           throw new Error('Start a new runtime for a new game.');
+        if (
+          squares.length !== 25 ||
+          squares.some(square => typeof square !== 'string' || !square.trim())
+        )
+          throw new Error('A Bingo card needs 25 nonempty phrases.');
         emitEvent({ type: 'gameStarted', squares: [...squares] });
       },
       changeSquare: (index: number, marked: boolean) => {
         const current = marked$.get();
         if (!current) throw new Error('Missing opening bingo card.');
+        if (!Number.isInteger(index) || index < 0 || index >= 25 || typeof marked !== 'boolean')
+          throw new Error('Invalid Bingo square change.');
         if (current[index] !== marked) emitEvent({ type: 'squareManuallyChanged', index, marked });
       },
       /** Live recognition records each matched square once; replay only consumes its index. */
@@ -114,14 +121,14 @@ export const BingoPlugin = makeKatakitPlugin({
   },
   effects: ({ options, getObservables, getMethods, observables: { squares$, marked$ } }) => [
     makeEffect({
-      on: getObservables(options.TranscriptIngestionPlugin).conversationTurns$,
+      on: getObservables(options.TranscriptIngestionPlugin).conversationTurns$.pipe(skipReplay()),
       handler: conversationTurn => {
         const squares = squares$.get();
         const marked = marked$.get();
         if (!squares || !marked) return;
 
         for (const [index, square] of squares.entries()) {
-          if (marked[index]) return;
+          if (marked[index]) continue;
 
           if (matchPhrase(square, conversationTurn.text)) {
             getMethods(EventLogPlugin).emitEvent({ type: 'squareSpoken', index } satisfies Omit<
@@ -131,7 +138,7 @@ export const BingoPlugin = makeKatakitPlugin({
           }
         }
       },
-      backpressure: 'latest',
+      backpressure: 'queue',
     }),
   ],
 });
