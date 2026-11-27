@@ -38,8 +38,9 @@ and each recording gets a distinct source ID.
 
 ## Code organization
 
-- `src/main.tsx` mounts React and loads the standalone base and demo styles.
-- `src/App.tsx` owns the standalone runtime, microphone, model selection, and controls.
+- `src/app.tsx` mounts React, loads the standalone styles, and owns the standalone
+  runtime, microphone, model selection, and controls. Import the view and runtime
+  modules directly when embedding the demo; the app entry mounts the page on load.
 - `src/TranscriptionDemo.tsx` displays completed, pending, and provisional transcript text.
 - `src/transcriptInput.ts` adapts recognition callbacks to transcript ingestion,
   including source IDs, duplicate filtering, and turn boundaries.
@@ -63,7 +64,7 @@ Transcript content derives from transcript ingestion's logged events. Keep provi
 speech separate from finalized input, preserve source/segment IDs, and flush final
 results on Stop. Changing models must not discard existing transcript turns.
 
-`App.tsx` owns the microphone/model switcher and transcript runtime. Its cleanup stops
+`app.tsx` owns the microphone/model switcher and transcript runtime. Its cleanup stops
 active capture, disposes the model owner, and then closes the transcript runtime.
 `createTranscriptionDemo` releases its subscription and closes transcript ingestion;
 the view releases its own subscription on unmount. Preserve this ordering and do not

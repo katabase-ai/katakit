@@ -1,3 +1,4 @@
+import { createRoot } from 'react-dom/client';
 import { useEffect, useRef, useState } from 'react';
 import { AudioLevelMeter } from './ui/AudioLevelMeter';
 import { Button, Notice, SelectField } from './ui/controls';
@@ -7,9 +8,11 @@ import { defaultModel, models, type ModelId } from './models';
 import { createModelSwitcher } from './createModelSwitcher';
 import { createTranscriptionDemo } from './createTranscriptionDemo';
 import { TranscriptionDemo as TranscriptView } from './TranscriptionDemo';
+import './ui/base.css';
+import './style.css';
 
 /** Standalone ownership stays in this example, with no gallery dependency. */
-export const TranscriptionDemo = () => {
+const TranscriptionDemo = () => {
   const [runtime, setRuntime] = useState<ReturnType<typeof createTranscriptionDemo>>();
   const [input, setInput] = useState<TranscriptionState>({ phase: 'idle' });
   const [audioLevel, setAudioLevel] = useState(0);
@@ -164,8 +167,10 @@ export const TranscriptionDemo = () => {
   );
 };
 
-export const App = () => (
+const App = () => (
   <main className="shell">
     <TranscriptionDemo />
   </main>
 );
+
+createRoot(document.getElementById('root')!).render(<App />);
