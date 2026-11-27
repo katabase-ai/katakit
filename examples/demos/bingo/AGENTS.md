@@ -66,6 +66,23 @@ for the round and explicitly flushes/closes it on cleanup; callback subscription
 to their mounted components. Preserve that ownership when moving code. Do not assume
 Katakit core provides a general runtime disposal method.
 
+## Event model
+
+The local [event definitions](src/bingo/events.ts) and [plugin](src/bingo/plugin.ts) model one
+round. `gameStarted` records the actual dealt squares; `squareManuallyChanged` records a
+player's explicit mark or unmark; `squareSpoken` records a speech match that marks a square.
+The two input events preserve their different behavior and provenance. The plugin derives
+`squares$`, `marked$`, and `winningLanes$` from these facts, without a second writable board.
+
+A new round gets a new runtime and history. The microphone owner can keep transcription
+running while the board changes. Replay reads the recorded layout and marks rather than
+dealing again or matching the transcript again. History remains in memory for the round;
+this demo does not import saved games. [Projection tests](tests/plugin.test.ts) compare
+live board content with a fresh runtime seeded with the recorded Bingo events.
+
+See [Designing event-sourced applications](https://github.com/katabase-ai/katakit/blob/main/docs/pages/reference/event-sourcing.md)
+for the general design method and resource-ownership requirements.
+
 ## Hosting and verification
 
 Microphone access needs a secure, cross-origin-isolated context. Vite supplies the

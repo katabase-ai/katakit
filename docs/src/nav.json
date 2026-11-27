@@ -6,7 +6,12 @@
   {
     "label": "Quickstart",
     "slug": "getting-started",
-    "children": []
+    "children": [
+      {
+        "label": "Migrate an existing application",
+        "slug": "getting-started/migrate-to-event-sourcing"
+      }
+    ]
   },
   {
     "label": "Tutorial",
@@ -89,6 +94,10 @@
       {
         "label": "@katakit/transcription",
         "slug": "reference/transcription"
+      },
+      {
+        "label": "Designing event-sourced applications",
+        "slug": "reference/event-sourcing"
       }
     ]
   }

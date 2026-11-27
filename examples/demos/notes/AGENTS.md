@@ -56,6 +56,23 @@ without clearing content, then reconnects if still listening. Failed admission a
 twice on their own; a new listening start retries once more. Never fail a whole response for a
 misused note ID: apply the rest (see `applyNotesResult.ts`).
 
+## Event model
+
+The complete outline in `notesUpdated` is an accepted model result, not a second writable
+store. Recording the result with its IDs and cursor lets the
+[projection](src/notesPlugin.ts) restore exactly what was accepted without rerunning a prompt
+or generating replacement IDs. Markdown is calculated from that outline rather than logged
+separately. The cursor says which turns the accepted result covers, so coalescing request
+triggers does not discard turns that arrive during a request.
+
+Clear remains part of the same visit: `notesCleared` removes the outline while retaining the
+transcript and moving the cursor past existing turns. This differs from Bingo's new-runtime
+boundary for each round. Both follow their domain's carry-over requirements. See
+[Designing event-sourced applications](https://github.com/katabase-ai/katakit/blob/main/docs/pages/reference/event-sourcing.md)
+for the shared principles, or
+[Migrate an existing application](https://github.com/katabase-ai/katakit/blob/main/docs/pages/getting-started/migrate-to-event-sourcing.md)
+to move from mutable state to this pattern.
+
 ## Embedding and model admission
 
 Copy the example and render `<App connect={connect} />` with a memoized callback returning

@@ -8,7 +8,12 @@ test('navigation follows the section order and uses directory READMEs as landing
     {
       label: 'Quickstart',
       slug: 'getting-started',
-      children: [],
+      children: [
+        {
+          label: 'Migrate an existing application',
+          slug: 'getting-started/migrate-to-event-sourcing',
+        },
+      ],
     },
     {
       label: 'Tutorial',
@@ -45,6 +50,7 @@ test('navigation follows the section order and uses directory READMEs as landing
         { label: '@katakit/react', slug: 'reference/react' },
         { label: '@katakit/transcript-ingestion', slug: 'reference/plugins/transcript-ingestion' },
         { label: '@katakit/transcription', slug: 'reference/transcription' },
+        { label: 'Designing event-sourced applications', slug: 'reference/event-sourcing' },
       ],
     },
   ]);

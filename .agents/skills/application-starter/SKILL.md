@@ -10,6 +10,12 @@ Work from the repository root. Read `AGENTS.md`, `CONTRIBUTING.md`, `DEVELOPMENT
 `docs/AGENTS.md`, plus any instructions within the chosen starter. The contributor
 checklist is the engineering authority; this skill organizes the authoring workflow.
 
+When creating or changing application content, use the
+[`event-sourced-application` skill](../event-sourced-application/SKILL.md) to design the domain
+events, projections, and session boundaries before wiring them to the platform. It has separate
+workflows for a new app and migration from non-event-sourced state. This starter skill owns
+platform setup, copyability, and reader-facing packaging.
+
 ## Establish the interaction
 
 1. Check the working tree, current main, and requested scope before changing branches

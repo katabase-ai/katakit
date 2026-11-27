@@ -10,4 +10,4 @@ its own shared input and admitted connection. Audio stays on-device; finalized t
 the configured model when listening.
 
 See [AGENTS.md](AGENTS.md) for independent setup, model requirements, code organization,
-embedding, hosting, and manual verification.
+embedding, hosting, and manual verification, including the [event model](AGENTS.md#event-model).
