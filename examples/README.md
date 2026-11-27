@@ -25,6 +25,23 @@ shared CSS it composes. Keep all files in the resulting directory when moving it
 Follow each README for run commands,
 extension installation, model downloads, microphone permissions, and hosting headers.
 
+## Maintaining conversation bingo
+
+The Bingo demo's short README links to its `AGENTS.md`, which owns standalone setup,
+organization, and manual checks. Repository-only maintenance belongs here.
+
+From an installed checkout, build the libraries with `pnpm build:pkgs`, then run
+`pnpm -F @katakit/demo-bingo-react dev`. Prepare an independent copy with
+`pnpm examples:copy demos/bingo-react <destination>` and follow its `AGENTS.md`.
+
+`examples/demos/bingo-react/src/bingo/` is the canonical implementation shared with
+`examples/demos/bingo-extension/src/bingo/`. Keep both local copies, including their
+tests and module README, identical. Run `pnpm bingo:check-copy` after canonical edits.
+The extension remains independently copyable; its UI is maintained separately.
+
+Verify browser-demo changes with `pnpm demos:copy-check bingo-react` and changes to
+gallery consumption with `pnpm gallery:copy-check`.
+
 Run `pnpm examples:copy-check` from an installed checkout to build and pack the current libraries,
 then install, build, and test all examples and the gallery against those packages in temporary directories.
 Real microphone/model and platform behavior still need the manual checks described in each README.
