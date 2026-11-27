@@ -41,8 +41,14 @@ the page to stop and dispose of the standalone microphone owner.
 - `src/color-clash/ColorClash.tsx` renders the game from its runtime and host-owned
   input state. Its timer is cleared on phase change or unmount; it asks its host to
   stop capture when the round finishes.
-- `src/color-clash/createColorClash.ts` owns the session's game state, speech scoring,
-  and subscriber list. `close()` stops updates and clears subscribers; it does not
+- `src/color-clash/createColorClash.ts` records selected targets, round deadlines,
+  scoring and finalized transcript in core's `EventLogPlugin`. Its snapshot projects
+  durable game content from events; provisional speech, word-position deduplication,
+  clock ticks and live-capture eligibility are transient. `events$.getAll()` returns
+  the history (including metadata); supply it as `initialEvents` to replay. JSON
+  timestamps are validated and converted to `Date`. Replay does not choose targets,
+  start capture, or arm a clock; a new `begin()` starts a fresh live round.
+  `close()` unsubscribes from the log and clears subscribers; it does not
   dispose capture. The standalone hook owns capture disposal on unmount; gallery
   lease release stops and drains capture before closing the runtime. The view
   unsubscribes from the runtime on unmount. `src/color-clash/style.css` styles only
@@ -55,10 +61,9 @@ the page to stop and dispose of the standalone microphone owner.
 Keep application code, styles, and assets inside this directory and import Katakit
 through public package entry points. Host-specific microphone and action controls
 belong in the standalone app or the gallery adapter, not in a shared package.
-The existing game runtime keeps a mutable snapshot rather than deriving durable
-game content from an event log. This is pre-existing migration work, not a pattern
-to copy into new examples. If changing that state model, record randomized targets
-and deadlines as events; replay must not redraw targets or restart capture or timers.
+The game log belongs to one runtime visit. The standalone microphone hook and gallery
+lease own capture, while the view owns and clears its 50ms display clock. Neither is
+recreated by a replayed event; no persistent storage is chosen by this example.
 
 ## Hosting and verification
 

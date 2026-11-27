@@ -1,4 +1,4 @@
-import { describe, expect, test } from 'vitest';
+import { describe, expect, test, vi } from 'vitest';
 import { createColorClash } from '../src/color-clash/createColorClash';
 
 const fixture = () => {
@@ -13,6 +13,37 @@ const fixture = () => {
 };
 
 describe('Color Clash transcription and round lifecycle', () => {
+  test('replays targets, deadlines, scoring and final speech without drawing or running a clock', () => {
+    const { game, advance, say } = fixture();
+    game.begin();
+    advance(1600);
+    game.updateProvisional('red');
+    game.updateProvisional('red blue');
+    say('red blue');
+    const events = JSON.parse(JSON.stringify(game.events$.getAll()));
+    const expected = game.getSnapshot();
+    const random = vi.fn(() => 0.5);
+    const replay = createColorClash({ now: () => 1600, random, initialEvents: events });
+    expect(random).not.toHaveBeenCalled();
+    expect(replay.events$.getAll()).toEqual(game.events$.getAll());
+    expect(replay.getSnapshot()).toEqual(expected);
+    expect(replay.isLiveRound()).toBe(false);
+    replay.advance();
+    replay.updateProvisional('green');
+    expect(replay.events$.getAll()).toHaveLength(events.length);
+    replay.begin();
+    expect(random).toHaveBeenCalled();
+    expect(replay.getSnapshot()).toMatchObject({ phase: 'instructions', score: 0, transcript: '' });
+    game.close();
+    replay.close();
+  });
+
+  test('rejects malformed replay history before creating a runtime', () => {
+    expect(() => createColorClash({ initialEvents: [{ type: 'roundStarted' }] })).toThrow(
+      /Invalid/
+    );
+  });
+
   test('gives instructions before a full twenty-second round and ignores late results', () => {
     const { game, advance, say } = fixture();
     game.begin();

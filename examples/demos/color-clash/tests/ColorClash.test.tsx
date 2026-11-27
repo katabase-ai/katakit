@@ -12,6 +12,34 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+test('mounting a replayed round does not finish it or start a display timer without capture', () => {
+  vi.useFakeTimers();
+  vi.setSystemTime(0);
+  const original = createColorClash({ now: Date.now, random: () => 0 });
+  original.begin();
+  vi.advanceTimersByTime(1600);
+  original.advance();
+  const history = original.events$.getAll();
+  const runtime = createColorClash({ now: Date.now, initialEvents: history });
+  const stopped = vi.fn();
+  render(
+    <ColorClash
+      runtime={runtime}
+      input={{ phase: 'ready' }}
+      disabled={false}
+      onPlay={async () => false}
+      onStop={stopped}
+      onCancel={() => undefined}
+    />
+  );
+  act(() => vi.advanceTimersByTime(30000));
+  expect(runtime.events$.getAll()).toHaveLength(history.length);
+  expect(runtime.getSnapshot().phase).toBe('playing');
+  expect(stopped).not.toHaveBeenCalled();
+  original.close();
+  runtime.close();
+});
+
 test('explains a microphone denial and retries without spending the round time', async () => {
   const runtime = createColorClash();
   const retried = vi.fn();

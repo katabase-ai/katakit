@@ -10,9 +10,11 @@
     "test:ci": "vitest run --passWithNoTests"
   },
   "dependencies": {
+    "@katakit/core": "0.2.0",
     "@katakit/transcription": "0.2.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "valibot": "1.4.1"
   },
   "devDependencies": {
     "@testing-library/react": "^16.1.0",

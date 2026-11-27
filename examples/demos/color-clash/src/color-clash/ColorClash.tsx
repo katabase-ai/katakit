@@ -53,7 +53,7 @@ export const ColorClash = ({
     if (requested && !starting && input.phase === 'error') setRequested(false);
   }, [requested, starting, input.phase]);
   useEffect(() => {
-    if (!active) return;
+    if (!active || !runtime.isLiveRound()) return;
     if (!listening) {
       runtime.finish();
       return;

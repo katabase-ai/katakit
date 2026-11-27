@@ -24,6 +24,7 @@ afterEach(() => {
 const fixture = ({ pendingFirstStart = false } = {}) => {
   let now = 0;
   vi.spyOn(performance, 'now').mockImplementation(() => now);
+  vi.spyOn(Date, 'now').mockImplementation(() => now);
   const inputs: {
     callbacks: MicrophoneOptions;
     sourceId?: string;
