@@ -39,7 +39,7 @@ Click a square to mark or unmark it, including to correct recognition mistakes.
 - `src/App.tsx` owns the standalone microphone hook, capture controls, and DevTools.
 - `src/BrowserBingoDemo.tsx` renders the card, word-list picker, and transcript area.
 - `src/bingo/` contains events, the plugin, word lists, and `useBingoKatakit.ts`.
-  Its `*.test.ts` files cover the plugin and word lists.
+- `tests/` covers the plugin and word lists.
 - `src/TranscriptTurns.tsx` renders completed, pending, and provisional transcript text.
 - `src/controls.tsx` and `src/AudioLevelMeter.tsx` provide local visual primitives.
 - `src/base.css`, `src/style.css`, and `src/audio-level-meter.css` contain the

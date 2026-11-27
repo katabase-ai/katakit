@@ -40,8 +40,12 @@ From an installed checkout, build the libraries with `pnpm build:pkgs`, then run
 `pnpm examples:copy demos/bingo-react <destination>` and follow its `AGENTS.md`.
 
 `examples/demos/bingo-react/src/bingo/` is the canonical implementation shared with
-`examples/demos/bingo-extension/src/bingo/`. Keep both local copies, including their
-tests and module README, identical. Run `pnpm bingo:check-copy` after canonical edits.
+`examples/demos/bingo-extension/src/bingo/`. Browser tests live in
+`examples/demos/bingo-react/tests/`; their extension copies remain in `src/bingo/`.
+Keep source, tests, and the module README identical except for the relocated tests'
+import prefix (`../src/bingo/` in the browser, `./` in the extension).
+Run `pnpm bingo:check-copy` after canonical edits; it compares both locations and
+normalizes only that test import prefix.
 The extension remains independently copyable; its UI is maintained separately.
 
 Verify browser-demo changes with `pnpm demos:copy-check bingo-react` and changes to
