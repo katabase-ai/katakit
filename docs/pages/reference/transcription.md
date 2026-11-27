@@ -67,7 +67,14 @@ Model weights download on first use; recognition processes audio locally.
 
 ## React ownership
 
-`useMicrophoneTranscriber({ createSink })` owns capture and the object receiving its results for a component's lifetime. Supply a stable factory returning `ingestSegment`, optional `updateProvisional` and `flush`, and `close`. On unmount the hook drains capture before closing that object. It exposes `sink`, `state`, `level`, `listening`, `busy`, and `toggle`.
+`useMicrophoneTranscriber({ createSink?, model? })` owns capture for a component's lifetime.
+When capture and its destination share that lifetime, supply a stable `createSink` returning
+`ingestSegment`, optional `updateProvisional` and `flush`, and `close`. The hook keeps that
+sink attached while unmount stops and drains capture, then disposes the transcriber and
+closes the sink. It exposes `state`, `listening`, `busy`, `toggle`, and an `emitter` for
+optional UI callbacks. `useMicrophoneTranscriberCallbacks` attaches callbacks to that
+emitter for the mounted component's lifetime; those callbacks alone are not a reliable
+destination for final segments delivered after the component unmounts.
 
 This manages capture resources. Use [React-RxJS](react.md#react-rxjs-bindings) separately for subscriptions to runtime observables. The [React starter](../starters/react-web.md) shows a complete application.
 

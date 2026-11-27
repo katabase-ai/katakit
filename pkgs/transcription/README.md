@@ -110,11 +110,13 @@ const Recorder = () => {
 ```
 
 The hook owns the microphone transcriber and returns `state`, `listening`, `busy`, `toggle`,
-and `emitter`. Pass the returned value to `useMicrophoneTranscriberCallbacks` to handle
-final utterances, provisional text, flush, and close events in the application. Use
-`useMicrophoneLevel` for a live activity meter. On unmount, the hook stops capture and
-releases the model; the application owns its transcript and any connected runtime.
-Changing `model` replaces the transcriber without discarding that application state.
+and `emitter`. When an application runtime should receive final speech even during unmount,
+pass a stable `createSink` returning its `ingestSegment`, optional `updateProvisional` and
+`flush`, and `close` methods. The hook stops and drains capture, releases the model, then
+closes that sink. `useMicrophoneTranscriberCallbacks` subscribes UI callbacks only while
+their component is mounted; do not rely on those listeners to receive the last result
+during unmount. Use `useMicrophoneLevel` for a live activity meter. Changing `model`
+replaces the transcriber and its sink; the application chooses what history survives.
 
 ## Models and results
 
