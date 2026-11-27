@@ -1,6 +1,9 @@
 # @katakit/core
 
-Framework-independent plugin composition, reactive utilities, and runtime APIs.
+**A flexible runtime for responsive applications.** Compose event-sourced plugins that connect
+live state, actions, and asynchronous work—independent of your UI framework, with built-in
+replayable event history. Core also supports plugins that do not derive state from events.
+
 Import the public API from the package root:
 
 ```ts

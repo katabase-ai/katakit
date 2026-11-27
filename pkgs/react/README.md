@@ -1,5 +1,10 @@
 # @katakit/react
 
+**Realtime applications deserve realtime tools.** Start a Katakit runtime from React with
+`useKatakit` or `useKatakitInit`, and inspect observable deliveries with `KatakitDevTools`.
+The richer workbench vision—live state, execution timelines, and conversation-input testing—is
+not part of the released package; see the [workbench availability](../../docs/pages/reference/react.md#developer-workbench).
+
 Render `<KatakitDevTools />` from `@katakit/react` alongside your app in development.
 See the [observable timeline guide](../../docs/pages/reference/react.md#observable-timeline).
 
