@@ -1,5 +1,5 @@
 import { Subscribe } from '@react-rxjs/core';
-import { createTranscriptionDemo } from '../../examples/demos/transcription-react/src/createTranscriptionDemo';
+import { createTranscriptionDemo } from '../../examples/demos/transcription/src/transcription/createTranscriptionDemo';
 import { GalleryDemo } from './GalleryDemo';
 import { GalleryCaptureControls } from './GalleryCaptureControls';
 import { GalleryMicrophoneIndicator } from './GalleryMicrophoneIndicator';

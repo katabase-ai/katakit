@@ -1,4 +1,4 @@
-import { useLayoutEffect, useSyncExternalStore } from 'react';
+import { useLayoutEffect, useRef, useSyncExternalStore } from 'react';
 import { installRecorder, type Delivery } from './deliveries';
 
 const empty: readonly Delivery[] = [];
@@ -12,6 +12,7 @@ const createCaptureStore = () => {
   let pending: Delivery[] = [];
   let stop: (() => void) | undefined;
   let owners = 0;
+  let panels = new WeakSet<object>();
   let frame: number | undefined;
 
   const publish = () => {
@@ -20,7 +21,20 @@ const createCaptureStore = () => {
     pending = [];
     listeners.forEach(notify => notify());
   };
-  const attach = () => {
+  const discardRecording = () => {
+    stop?.();
+    stop = undefined;
+    if (frame !== undefined) cancelAnimationFrame(frame);
+    frame = undefined;
+    pending = [];
+    snapshot = empty;
+    panels = new WeakSet();
+  };
+  const attach = (panel: object) => {
+    // Only a returning panel (e.g. a Strict Mode effect replay) can reclaim an
+    // ownerless recording. A new keyed demo may mount in the very same commit.
+    if (!owners && stop && !panels.has(panel)) discardRecording();
+    panels.add(panel);
     stop ??= installRecorder(event => {
       if (pending.length === retentionLimit) pending.shift();
       pending.push(event);
@@ -29,15 +43,8 @@ const createCaptureStore = () => {
     owners++;
     return () => {
       owners--;
-      // A synchronous Strict Mode remount can reclaim the same recording.
       queueMicrotask(() => {
-        if (owners || !stop) return;
-        stop();
-        stop = undefined;
-        if (frame !== undefined) cancelAnimationFrame(frame);
-        frame = undefined;
-        pending = [];
-        snapshot = empty;
+        if (!owners && stop) discardRecording();
       });
     };
   };
@@ -52,6 +59,7 @@ const createCaptureStore = () => {
 };
 const store = createCaptureStore();
 export const useCapture = () => {
-  useLayoutEffect(store.attach, []);
+  const panel = useRef(null);
+  useLayoutEffect(() => store.attach(panel), []);
   return useSyncExternalStore(store.subscribe, store.getSnapshot, () => empty);
 };

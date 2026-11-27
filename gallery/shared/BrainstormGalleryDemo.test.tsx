@@ -2,9 +2,9 @@
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, expect, test, vi } from 'vitest';
 import type { ComponentProps } from 'react';
-import { BrainstormDemo as BrainstormDemoView } from '../../examples/demos/brainstorm-react/src/BrainstormDemo';
-import { createBrainstormDemo } from '../../examples/demos/brainstorm-react/src/createBrainstormDemo';
-import { findChallenge } from '../../examples/demos/brainstorm-react/src/challenges';
+import { BrainstormDemo as BrainstormDemoView } from '../../examples/demos/brainstorm/src/BrainstormDemo';
+import { createBrainstormDemo } from '../../examples/demos/brainstorm/src/createBrainstormDemo';
+import { findChallenge } from '../../examples/demos/brainstorm/src/challenges';
 
 const decisions = {
   model: 'typesafe/jev-1.13',

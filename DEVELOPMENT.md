@@ -69,8 +69,9 @@ For CSS sharing and the exporter, use the [internal tool and styling contract](#
 
 Include its README, real LICENSE, build script, declared dependencies, platform files, and any
 required runtime assets. Document exact install/run commands, input/model requirements, and
-manual target-platform checks. A starter has its own `pnpm-workspace.yaml` and is run from its
-own directory; never add it to the root workspace. Follow the detailed
+manual target-platform checks. The Bingo and transcription demos keep their READMEs focused on
+purpose and link to standalone `AGENTS.md` files for those instructions. A starter has its own
+`pnpm-workspace.yaml` and is run from its own directory; never add it to the root workspace. Follow the detailed
 [starter checklist](examples/starters/README.md) and the
 [copy workflow](examples/README.md). Update the contributor test-package list in
 `scripts/example-test-packages.mjs` if an example requires another Katakit package.
@@ -98,7 +99,7 @@ Run commands from the repository root:
 For focused work, use `pnpm --filter <package-name> <command>`. Before submitting, run the
 checks appropriate to the change; the CI workflow runs the full set. For template changes,
 also follow the manual platform checks in [examples/starters/README.md](examples/starters/README.md).
-To check one copy, use `pnpm gallery:copy-check`, `pnpm demos:copy-check notes-react`, or
+To check one copy, use `pnpm gallery:copy-check`, `pnpm demos:copy-check notes`, or
 `pnpm templates:copy-check react-web`.
 CI runs structural checks through lint and separately installs/builds/tests all demo and starter
 copies against freshly packed local libraries. The structural checker examines manifests and
@@ -180,22 +181,19 @@ building the host, model connections, and microphone hosting requirements.
 The [starter guides](docs/pages/starters/README.md) help users choose a platform;
 [template contributor guidance](examples/starters/README.md) defines copyability and verification.
 
-The [browser bingo](examples/demos/bingo-react/README.md) and
-[extension bingo](examples/demos/bingo-extension/README.md) examples each own their UI, styling, board
-state, and audio host so they can be copied independently. Their READMEs explain standalone
-setup. Bingo behavior is maintained in `examples/demos/bingo-react/src/bingo/` and copied into the
-extension; `pnpm bingo:check-copy` checks that those copies agree.
+The [Bingo](examples/demos/bingo/README.md) and
+[Color Clash](examples/demos/color-clash/README.md) demos each own their game, UI, and
+audio host so they can be copied independently. Their READMEs explain standalone setup.
 
 ## Website source consumers
 
-A pinned website must update its source aliases when adopting this layout. In Protozoa's
-`pkgs/website`, change `.katakit/source/examples/demos/gallery/shared` (or the older
-`.katakit/source/demos/gallery/shared`) to
-`.katakit/source/gallery/shared` in both `tsconfig.json` and `vite.config.ts`.
-Feature-demo source links use `examples/demos/`; gallery-owned source links use `gallery/`.
-Adopt the new source SHA together with those
-changes; existing pins keep their old layout. `prepareKatakitRuntime.mjs` still builds libraries
-under `pkgs/`, and `prepareDocs.mjs` still invokes `pnpm docs:export`.
+Protozoa's `pkgs/website` imports the portable gallery from
+`.katakit/source/gallery/shared` and follows the exact revision in `katakit-source.json`.
+Adopt a merged Katakit source SHA to pick up the new demo paths in gallery metadata,
+then build and verify the website. Existing pins keep their old layout. Feature-demo
+source links use `examples/demos/`; gallery-owned source links use `gallery/`.
+`prepareKatakitRuntime.mjs` still builds libraries under `pkgs/`, and
+`prepareDocs.mjs` still invokes `pnpm docs:export`.
 
 ## Pull request previews
 

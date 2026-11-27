@@ -99,16 +99,16 @@ starts from an application that was not event-sourced.
 
 ## Worked references
 
-- [Transcription runtime](../../../examples/demos/transcription-react/src/createTranscriptionDemo.ts),
-  [input adapter](../../../examples/demos/transcription-react/src/transcriptInput.ts), and
-  [replay checks](../../../examples/demos/transcription-react/src/createTranscriptionDemo.test.ts):
+- [Transcription runtime](../../../examples/demos/transcription/src/transcription/createTranscriptionDemo.ts),
+  [input adapter](../../../examples/demos/transcription/src/transcription/transcriptInput.ts), and
+  [replay checks](../../../examples/demos/transcription/tests/createTranscriptionDemo.test.ts):
   reuse existing ingestion events, replace a writable view mirror, and restore source deduplication.
-- [Bingo events](../../../examples/demos/bingo-react/src/bingo/events.ts),
-  [projections](../../../examples/demos/bingo-react/src/bingo/plugin.ts), and
-  [reconstruction checks](../../../examples/demos/bingo-react/src/bingo/plugin.test.ts):
+- [Bingo events](../../../examples/demos/bingo/src/bingo/events.ts),
+  [projections](../../../examples/demos/bingo/src/bingo/plugin.ts), and
+  [reconstruction checks](../../../examples/demos/bingo/tests/plugin.test.ts):
   recorded layout, distinct speech/manual facts, and derived winning lines.
-- [Structured notes](../../../examples/demos/notes-react/src/notesPlugin.ts) and
-  [behavior checks](../../../examples/demos/notes-react/src/notesPlugin.test.ts): accepted
+- [Structured notes](../../../examples/demos/notes/src/notesPlugin.ts) and
+  [behavior checks](../../../examples/demos/notes/src/notesPlugin.test.ts): accepted
   model results, recorded cursor, clear within a session, cancellation, and live resumption.
 
 These references establish particular patterns, not blanket approval to copy every hook or

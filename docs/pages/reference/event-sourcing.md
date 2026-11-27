@@ -34,7 +34,7 @@ A command asks the application to do something; an event records what it accepte
 happened. A method can validate a command and emit no event when it would change nothing.
 Projections consume the accepted facts without rerunning command admission.
 
-The [Bingo event definitions](https://github.com/katabase-ai/katakit/blob/main/examples/demos/bingo-react/src/bingo/events.ts)
+The [Bingo event definitions](https://github.com/katabase-ai/katakit/blob/main/examples/demos/bingo/src/bingo/events.ts)
 illustrate three choices:
 
 | Event                                      | Meaning                               | Why record it?                                                 |
@@ -43,7 +43,7 @@ illustrate three choices:
 | `squareManuallyChanged({ index, marked })` | A player set a square's marked state. | Manual input can mark or unmark.                               |
 | `squareSpoken({ index })`                  | Speech matched a square.              | Speech marks it and preserves a different origin from a click. |
 
-The [Bingo plugin](https://github.com/katabase-ai/katakit/blob/main/examples/demos/bingo-react/src/bingo/plugin.ts)
+The [Bingo plugin](https://github.com/katabase-ai/katakit/blob/main/examples/demos/bingo/src/bingo/plugin.ts)
 derives `squares$`, `marked$`, and `winningLanes$`. A winning line needs no separate event
 when it is entirely calculable from the marks. Record an award or notification separately
 if the product must remember that an external action actually happened.
@@ -106,7 +106,7 @@ Keep that history available to projections. An effect driven by projected state 
 explicit live-work policy too: filtering one stream is not a general replay mode.
 
 Reconstruction and resuming unfinished work are separate operations. The
-[structured notes runtime](https://github.com/katabase-ai/katakit/blob/main/examples/demos/notes-react/src/createNotesDemo.ts)
+[structured notes runtime](https://github.com/katabase-ai/katakit/blob/main/examples/demos/notes/src/createNotesDemo.ts)
 restores content without a model connection. An explicit connection can then process turns
 after the recorded cursor. That is new live work, not replaying previously accepted output.
 
@@ -161,8 +161,8 @@ invalid output, late results after clear/close, and final input during shutdown.
 checks establish behavior under controlled inputs. Test real microphone/model interaction
 and gallery navigation separately when those paths change.
 
-Use the [Bingo projection tests](https://github.com/katabase-ai/katakit/blob/main/examples/demos/bingo-react/src/bingo/plugin.test.ts)
+Use the [Bingo projection tests](https://github.com/katabase-ai/katakit/blob/main/examples/demos/bingo/tests/plugin.test.ts)
 for board reconstruction and the
-[structured notes tests](https://github.com/katabase-ai/katakit/blob/main/examples/demos/notes-react/src/notesPlugin.test.ts)
+[structured notes tests](https://github.com/katabase-ai/katakit/blob/main/examples/demos/notes/src/notesPlugin.test.ts)
 for accepted model output, replay, cancellation, and pending work. They demonstrate specific
 contracts; a passing test is not evidence for every lifecycle path in a demo.

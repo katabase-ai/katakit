@@ -1,14 +1,14 @@
 import { useEffect, type ContextType } from 'react';
 import mitt from 'mitt';
 import { MicrophoneTranscriberContext } from '@katakit/transcription/react';
-import { BrowserBingoDemo } from '../../examples/demos/bingo-react/src/BrowserBingoDemo';
+import { Bingo } from '../../examples/demos/bingo/src/bingo/bingo';
 import { createGalleryDemo, type GalleryDemoViewProps } from './createGalleryDemo';
 import type { GalleryInputSink } from './createGallerySpeech';
 import { useGallerySpeech } from './GallerySpeechProvider';
 
 type Microphone = NonNullable<ContextType<typeof MicrophoneTranscriberContext>>;
 
-// One emitter per gallery visit. Capture stays with the gallery across pack changes.
+// One emitter per gallery visit. Capture stays with the gallery across word list changes.
 const createBingoInput = () => {
   const emitter: Microphone['emitter'] = mitt();
   return {
@@ -42,7 +42,7 @@ const BingoView = ({
         },
       }}
     >
-      <BrowserBingoDemo {...props} />
+      <Bingo {...props} />
     </MicrophoneTranscriberContext>
   );
 };

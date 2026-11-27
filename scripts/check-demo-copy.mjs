@@ -51,6 +51,14 @@ const checkServer = async (cwd, gallery) => {
     if (!asset.ok || !(await asset.text()).includes('AudioWorkletProcessor'))
       throw new Error('Invalid worklet response');
     if (gallery) {
+      // SSR can render the demo title even when the browser cannot load the app.
+      const html = await response.text();
+      const entryPath = html.match(/import\(["']([^"']+)["']\)/)?.[1];
+      if (!entryPath) throw new Error('Missing gallery dev client entry in demo HTML');
+      const entry = await fetch(new URL(entryPath, response.url));
+      if (!entry.ok || !entry.headers.get('content-type')?.includes('javascript'))
+        throw new Error(`Invalid gallery dev client entry: ${entry.status} ${entry.url}`);
+
       // The default skin must work in a copied host, including locally served fonts/licenses.
       for (const file of [
         'inter.woff2',
@@ -70,7 +78,7 @@ const checkServer = async (cwd, gallery) => {
       }
     }
     console.log(
-      `HTTP smoke passed: ${cwd}, document, COOP/COEP, worklet${gallery ? ', fonts/licenses' : ''}`
+      `HTTP smoke passed: ${cwd}, document, COOP/COEP, worklet${gallery ? ', client entry, fonts/licenses' : ''}`
     );
   } finally {
     if (server.exitCode === null) {

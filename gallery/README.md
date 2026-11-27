@@ -39,6 +39,10 @@ transcription runs locally; generating notes requires
 a host-supplied model connection. Developer mode can instead use your own OpenRouter key. Extension setup pages are outside this catalogue. Direct links and unknown-demo
 responses are handled by Start. Browser-only demo modules mount after hydration, not during SSR.
 
+Open **Katakit devtools** in the lower-right corner of any demo to inspect its
+observable deliveries. Each demo visit starts a fresh timeline. It is available
+in production and stays active when switching between Developer mode and Public preview.
+
 `shared/ColorClashGalleryDemo.tsx` adapts the existing game to the shared speech owner and runtime
 lease. The game directory is unchanged. Navigation stops/drains capture and releases the game,
 while the loaded speech model remains ready for the next demo. Named `colorClashGalleryDemo`
@@ -51,11 +55,11 @@ finalized transcript to the selected model. Audio remains local. The demo suppor
 quote mode, item corrections/removal/undo, Markdown copying, and a labeled offline sample.
 Capture and setup changes never start model work. Its numbered Transcript column matches the
 other speech demos, and **Use my own dictation** exits the sample without starting capture.
-The header's **Run locally** panel copies its standalone example. See [the copyable example](../examples/demos/list-extraction-react/README.md).
+The header's **Run locally** panel copies its standalone example. See [the copyable example](../examples/demos/list-extraction/README.md).
 Its sources are included in the gallery copy workflow. Hosts with explicit demo selections must
 add the named entry when adopting this revision.
 
-The [brainstorming game](../examples/demos/brainstorm-react/README.md) uses the shared microphone with a sticky
+The [brainstorming game](../examples/demos/brainstorm/README.md) uses the shared microphone with a sticky
 note board, 200 challenges, and 30s, 1min (default), 2min, or unlimited rounds.
 Challenges stay hidden and the clock stays stopped while **Start round** prepares the shared
 microphone and judge. **Cancel setup** cancels preparation; **End round** stops and drains capture.
@@ -361,7 +365,7 @@ With inference configured, notes start when listening begins: that admits a remo
 starts sending finalized transcript text. There is no separate notes control. Stop/start capture
 reuses the connection. Source changes, saving overrides, and key removal abort remote work and
 retain local content; a demo that is still listening reconnects through the new source. Route exit aborts admission and model work before capture drains.
-See [the notes example](../examples/demos/notes-react/README.md) for the generic contract.
+See [the notes example](../examples/demos/notes/README.md) for the generic contract.
 
 List extraction uses a separate on-demand action: **Extract lists** sends the finalized transcript
 only after dictation stops. Capture, rule edits, and source changes never start extraction.

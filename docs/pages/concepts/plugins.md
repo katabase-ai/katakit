@@ -79,6 +79,6 @@ happens if it completes after a clear or close. The
 [design guide](../reference/event-sourcing.md#own-live-work-and-shutdown) explains those choices,
 including when a complete accepted result is a useful event.
 
-The [structured notes demo](https://github.com/katabase-ai/katakit/tree/main/examples/demos/notes-react) implements that pattern with cancellation and retries. Those resources need application-owned cleanup; core has no general stop method. See [effect ownership](../reference/core.md#ownership-and-shutdown) before replacing the console notification with external work.
+The [structured notes demo](https://github.com/katabase-ai/katakit/tree/main/examples/demos/notes) implements that pattern with cancellation and retries. Those resources need application-owned cleanup; core has no general stop method. See [effect ownership](../reference/core.md#ownership-and-shutdown) before replacing the console notification with external work.
 
 Next: [restore and save the message history](persistence.md).

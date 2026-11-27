@@ -1,6 +1,19 @@
-import { lazy, Suspense, useCallback, useContext, useEffect, useMemo, type ReactNode } from 'react';
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useContext,
+  useEffect,
+  useId,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
+import { ChevronRight } from 'lucide-react';
 import {
   galleryDataHandling,
+  galleryDemoSections,
+  type GalleryDemoSection,
   requiresGalleryCapability,
   type galleryDemoDetails,
 } from './galleryDemoDetails';
@@ -40,6 +53,8 @@ const PublicSettings = lazy(async () => ({
 export const Gallery = ({
   demos,
   activeDemo,
+  activeSection,
+  renderSectionLink,
   renderLink,
   children,
   input,
@@ -58,6 +73,14 @@ export const Gallery = ({
 }: {
   demos: readonly (typeof galleryDemoDetails)[number][];
   activeDemo?: (typeof galleryDemoDetails)[number];
+  /** Show an overview of the host's selected demos in this section. */
+  activeSection?: GalleryDemoSection;
+  /** Hosts supply section routes; without this callback section labels remain plain text. */
+  renderSectionLink?: (link: {
+    section: GalleryDemoSection;
+    children: ReactNode;
+    current: boolean;
+  }) => ReactNode;
   renderLink: (link: {
     demo?: (typeof galleryDemoDetails)[number];
     children: ReactNode;
@@ -96,6 +119,9 @@ export const Gallery = ({
    */
   sourceRevision?: string;
 }) => {
+  const navigationId = useId();
+  // Disclosure state belongs to this mounted gallery, not a demo runtime or its event log.
+  const [collapsedSections, setCollapsedSections] = useState<readonly GalleryDemoSection[]>([]);
   const inheritedTermsUrl = useContext(GalleryTermsContext);
   const effectiveTermsUrl = termsUrl ?? inheritedTermsUrl;
   const inference = useGalleryInference();
@@ -206,17 +232,65 @@ export const Gallery = ({
             <nav className="gallery-nav" aria-label="React demos">
               {renderLink({
                 children: 'Welcome',
-                current: !activeDemo && !developerPage && !settingsPage,
+                current: !activeDemo && !activeSection && !developerPage && !settingsPage,
               })}
-              {demos.map(demo => (
-                <span key={demo.id}>
-                  {renderLink({
-                    demo,
-                    children: demo.title,
-                    current: !developerPage && !settingsPage && activeDemo?.id === demo.id,
-                  })}
-                </span>
-              ))}
+              {galleryDemoSections.map(section => {
+                const sectionDemos = demos.filter(demo => demo.section === section);
+                if (!sectionDemos.length) return null;
+                const expanded = !collapsedSections.includes(section);
+                const childrenId = `${navigationId}-${section}`;
+                return (
+                  <div
+                    className="gallery-nav-section"
+                    role="group"
+                    aria-label={section}
+                    key={section}
+                  >
+                    <div className="gallery-nav-label">
+                      {renderSectionLink ? (
+                        renderSectionLink({
+                          section,
+                          children: section,
+                          current:
+                            !developerPage &&
+                            !settingsPage &&
+                            !activeDemo &&
+                            activeSection === section,
+                        })
+                      ) : (
+                        <span>{section}</span>
+                      )}
+                      <button
+                        className="gallery-nav-toggle"
+                        type="button"
+                        aria-label={`${expanded ? 'Hide' : 'Show'} ${section} demos`}
+                        aria-expanded={expanded}
+                        aria-controls={childrenId}
+                        onClick={() =>
+                          setCollapsedSections(current =>
+                            expanded
+                              ? [...current, section]
+                              : current.filter(entry => entry !== section)
+                          )
+                        }
+                      >
+                        <ChevronRight size={16} aria-hidden="true" />
+                      </button>
+                    </div>
+                    <div className="gallery-nav-children" id={childrenId} hidden={!expanded}>
+                      {sectionDemos.map(demo => (
+                        <span key={demo.id}>
+                          {renderLink({
+                            demo,
+                            children: demo.title,
+                            current: !developerPage && !settingsPage && activeDemo?.id === demo.id,
+                          })}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </nav>
             <GalleryFooter>{input}</GalleryFooter>
           </aside>
@@ -246,6 +320,28 @@ export const Gallery = ({
                   )}
                 </Suspense>
               </>
+            ) : activeSection && !activeDemo ? (
+              <GalleryDemoHeader
+                demo={{
+                  title: activeSection,
+                  description: {
+                    Basics: 'Explore the building blocks of voice-driven interfaces.',
+                    Games: 'Play with speech, words, and ideas.',
+                    Meetings: 'Turn conversations into useful notes and lists.',
+                  }[activeSection],
+                }}
+              >
+                <ul className="gallery-demo-list">
+                  {demos
+                    .filter(demo => demo.section === activeSection)
+                    .map(demo => (
+                      <li key={demo.id}>
+                        {renderLink({ demo, children: demo.title, current: false })}
+                        <p>{demo.description}</p>
+                      </li>
+                    ))}
+                </ul>
+              </GalleryDemoHeader>
             ) : (
               <GalleryDemoHeader
                 demo={activeDemo ?? galleryWelcomeDetails}

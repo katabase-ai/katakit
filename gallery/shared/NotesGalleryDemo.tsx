@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
-import { createNotesDemo } from '../../examples/demos/notes-react/src/createNotesDemo';
-import { NotesDemo } from '../../examples/demos/notes-react/src/NotesDemo';
-import { NotesRequestError } from '../../examples/demos/notes-react/src/notesModel';
+import { createNotesDemo } from '../../examples/demos/notes/src/createNotesDemo';
+import { NotesDemo } from '../../examples/demos/notes/src/NotesDemo';
+import { NotesRequestError } from '../../examples/demos/notes/src/notesModel';
 import { GalleryCaptureControls } from './GalleryCaptureControls';
 import { GalleryDemo } from './GalleryDemo';
 import { GalleryModelError, useGalleryModel } from './galleryModel';
