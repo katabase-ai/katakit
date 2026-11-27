@@ -5,9 +5,10 @@ derives a value from that history: a board, an outline, or a list of messages. C
 content means recording another event, rather than editing a second copy of the state.
 
 Use this guide when choosing events and application boundaries. For a first implementation,
-follow the [message-list tutorial](../concepts/README.md). For an application that currently
-stores mutable state, follow [Migrate an existing application](../getting-started/migrate-to-event-sourcing.md).
-The [core reference](core.md) owns the runtime and replay API contracts.
+follow the [message-list tutorial](../concepts/README.md), then use the
+[implementation standards](implementation-standards.md). For an application that currently
+stores mutable state, follow [Migrate an existing application](migration.md).
+The [core reference](../reference/core.md) owns the runtime and replay API contracts.
 
 ## Start with behavior
 
@@ -80,7 +81,7 @@ A derived combined view is fine, including one that combines content and transie
 provided callers cannot edit it independently of its sources.
 
 Event sourcing also does not imply disk storage. Core's log is in memory. Choose
-[persistence](plugins/persistence.md) when history must survive a process or page restart.
+[persistence](../reference/plugins/persistence.md) when history must survive a process or page restart.
 
 ## Make replay sufficient and deterministic
 
@@ -101,7 +102,7 @@ and deduplication at the appropriate input boundary; core does not infer those p
 
 Construct a fresh runtime with `existingEvents` and read projections before `start()` to
 check reconstruction separately from live behavior. On an effect that consumes the event
-log, [`skipReplay()`](core.md#makeeffect) can exclude synchronous subscription-time history.
+log, [`skipReplay()`](../reference/core.md#makeeffect) can exclude synchronous subscription-time history.
 Keep that history available to projections. An effect driven by projected state needs an
 explicit live-work policy too: filtering one stream is not a general replay mode.
 
@@ -132,7 +133,7 @@ that accepts its result. Validate the response before recording it. If requests 
 define which result may still be accepted after a clear, replacement, or close. Aborting a
 request is useful, but the acceptance path must also reject late responses.
 
-Choose [effect backpressure](core.md#makeeffect) according to what can be lost. `latest`
+Choose [effect backpressure](../reference/core.md#makeeffect) according to what can be lost. `latest`
 coalesces pending triggers and does not cancel the active handler. It is suitable for notes
 only because pending turns remain recorded and the cursor advances after accepted output;
 it would lose work if the discarded trigger were the only copy of an input.
@@ -142,7 +143,7 @@ input where required, flush pending turns, finish or cancel external work, end o
 and release resources. For session replacement, ensure old producers and late results cannot
 write to the replacement session.
 
-Core has [no general stop/dispose API](core.md#ownership-and-shutdown). Ingestion's `close()`
+Core has [no general stop/dispose API](../reference/core.md#ownership-and-shutdown). Ingestion's `close()`
 cancels its timer; the input owner must call `flush()` separately to finalize pending input.
 It does not stop every plugin, microphone, or request. Removing a
 UI subscription does not release the runtime's eager subscriptions either. State exactly

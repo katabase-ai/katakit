@@ -4,11 +4,8 @@ Build a small message list to learn how Katakit's pieces work together. You'll r
 
 Keeping the events lets you reconstruct the list instead of maintaining a separately editable copy. This is **event sourcing**. Katakit's event-log plugin keeps that history in memory; you choose how to store it across visits.
 
-This walkthrough builds a new feature. For your own domain, use
-[Designing event-sourced applications](../reference/event-sourcing.md) to choose events,
-projections, and session boundaries. If you already have a mutable-state application, use
-[Migrate an existing application](../getting-started/migrate-to-event-sourcing.md) for the cutover
-and handling of existing saved data.
+This walkthrough builds a new feature. Next, use [Event Sourcing](../event-sourcing/README.md)
+to design your own application, review its implementation, or migrate existing mutable state.
 
 ## Follow the walkthrough
 
@@ -18,7 +15,8 @@ and handling of existing saved data.
 4. [Restore and save history](persistence.md): validate stored events and append new ones.
 5. [Connect an input and a view](templates.md): display the list and choose a platform starter.
 
-Each page extends the same TypeScript example. Use matching event-sourcing versions of core and persistence, plus RxJS and Valibot:
+Each page extends the same TypeScript example. Use matching event-sourcing versions of
+core and persistence, plus RxJS and Valibot:
 
 ```sh
 pnpm add @katakit/core @katakit/persistence rxjs valibot

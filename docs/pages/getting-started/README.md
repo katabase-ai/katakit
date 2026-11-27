@@ -50,8 +50,8 @@ The starter keeps audio processing and transcript text on your computer. Model d
 
 Follow the [Tutorial](../concepts/README.md) to build a message list from events and learn how plugins fit together. Use [Reference](../reference/README.md) for package contracts, or [React-RxJS bindings](../reference/react.md#react-rxjs-bindings) to connect runtime observables to a React view.
 
-For a new application, use [Designing event-sourced applications](../reference/event-sourcing.md)
+For a new application, use [Designing event-sourced applications](../event-sourcing/designing.md)
 to choose its event model. If an existing application currently keeps mutable state, follow
-[Migrate an existing application](migrate-to-event-sourcing.md). The repository's
+[Migrate an existing application](../event-sourcing/migration.md). The repository's
 [`event-sourced-application` skill](https://github.com/katabase-ai/katakit/blob/main/.agents/skills/event-sourced-application/SKILL.md)
 gives agents separate build and migration workflows with a design brief and replay checks.

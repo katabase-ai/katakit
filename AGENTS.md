@@ -20,7 +20,7 @@ unrelated work.
   keep a second writable subject or mutable object as the authority for that content.
   Use the [event-sourced application skill](.agents/skills/event-sourced-application/SKILL.md)
   for new application design or migration from non-event-sourced state, and the
-  [design guide](docs/pages/reference/event-sourcing.md) for shared architectural principles.
+  [design guide](docs/pages/event-sourcing/designing.md) for shared architectural principles.
 - Resource handles, cancellation, retry status, provisional input, and display timing may
   be transient. Explain their owner and lifetime. Replay must not call a model, generate
   replacement IDs, restart timers, or reacquire resources.

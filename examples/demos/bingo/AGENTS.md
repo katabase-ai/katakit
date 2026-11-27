@@ -80,7 +80,7 @@ dealing again or matching the transcript again. History remains in memory for th
 this demo does not import saved games. [Projection tests](tests/plugin.test.ts) compare
 live board content with a fresh runtime seeded with the recorded Bingo events.
 
-See [Designing event-sourced applications](https://github.com/katabase-ai/katakit/blob/main/docs/pages/reference/event-sourcing.md)
+See [Designing event-sourced applications](https://github.com/katabase-ai/katakit/blob/main/docs/pages/event-sourcing/designing.md)
 for the general design method and resource-ownership requirements.
 
 ## Hosting and verification

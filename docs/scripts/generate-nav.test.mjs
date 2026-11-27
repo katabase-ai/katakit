@@ -5,16 +5,7 @@ import { buildNav, generateNav } from './generate-nav.mjs';
 test('navigation follows the section order and uses directory READMEs as landing pages', () => {
   assert.deepEqual(buildNav(), [
     { label: 'Why Katakit?', slug: 'why-katakit' },
-    {
-      label: 'Quickstart',
-      slug: 'getting-started',
-      children: [
-        {
-          label: 'Migrate an existing application',
-          slug: 'getting-started/migrate-to-event-sourcing',
-        },
-      ],
-    },
+    { label: 'Quickstart', slug: 'getting-started', children: [] },
     {
       label: 'Tutorial',
       slug: 'concepts',
@@ -24,6 +15,18 @@ test('navigation follows the section order and uses directory READMEs as landing
         { label: 'Add a plugin and an effect', slug: 'concepts/plugins' },
         { label: 'Restore and save history', slug: 'concepts/persistence' },
         { label: 'Connect an input and a view', slug: 'concepts/templates' },
+      ],
+    },
+    {
+      label: 'Event Sourcing',
+      slug: 'event-sourcing',
+      children: [
+        { label: 'Designing event-sourced applications', slug: 'event-sourcing/designing' },
+        {
+          label: 'Event-sourcing implementation standards',
+          slug: 'event-sourcing/implementation-standards',
+        },
+        { label: 'Migrate an existing application', slug: 'event-sourcing/migration' },
       ],
     },
     {
@@ -50,7 +53,6 @@ test('navigation follows the section order and uses directory READMEs as landing
         { label: '@katakit/react', slug: 'reference/react' },
         { label: '@katakit/transcript-ingestion', slug: 'reference/plugins/transcript-ingestion' },
         { label: '@katakit/transcription', slug: 'reference/transcription' },
-        { label: 'Designing event-sourced applications', slug: 'reference/event-sourcing' },
       ],
     },
   ]);

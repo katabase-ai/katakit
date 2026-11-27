@@ -6,12 +6,7 @@
   {
     "label": "Quickstart",
     "slug": "getting-started",
-    "children": [
-      {
-        "label": "Migrate an existing application",
-        "slug": "getting-started/migrate-to-event-sourcing"
-      }
-    ]
+    "children": []
   },
   {
     "label": "Tutorial",
@@ -36,6 +31,24 @@
       {
         "label": "Connect an input and a view",
         "slug": "concepts/templates"
+      }
+    ]
+  },
+  {
+    "label": "Event Sourcing",
+    "slug": "event-sourcing",
+    "children": [
+      {
+        "label": "Designing event-sourced applications",
+        "slug": "event-sourcing/designing"
+      },
+      {
+        "label": "Event-sourcing implementation standards",
+        "slug": "event-sourcing/implementation-standards"
+      },
+      {
+        "label": "Migrate an existing application",
+        "slug": "event-sourcing/migration"
       }
     ]
   },
@@ -94,10 +107,6 @@
       {
         "label": "@katakit/transcription",
         "slug": "reference/transcription"
-      },
-      {
-        "label": "Designing event-sourced applications",
-        "slug": "reference/event-sourcing"
       }
     ]
   }

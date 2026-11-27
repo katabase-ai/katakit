@@ -2,7 +2,7 @@
 
 Use Reference to configure a building block, look up its methods and observables, or check who owns its resources. For a walkthrough that combines these pieces, follow the [Tutorial](../concepts/README.md).
 
-- [Designing event-sourced applications](event-sourcing.md): choose domain events, projections, session boundaries, and replay-safe live work.
+- [Event Sourcing](../event-sourcing/README.md): design events, projections, session boundaries, and replay-safe live work.
 - [@katakit/core](core.md): framework-independent runtime, plugin composition, and built-in event history.
 - [Built-in event log](core.md#built-in-event-log): replayable in-memory history.
 - [@katakit/persistence](plugins/persistence.md): append new events to application-owned storage.

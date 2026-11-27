@@ -9,6 +9,7 @@ const sectionOrder = [
   'why-katakit.md',
   'getting-started',
   'concepts',
+  'event-sourcing',
   'starters',
   'contributing',
   'reference',
@@ -20,6 +21,7 @@ const conceptOrder = [
   'persistence.md',
   'templates.md',
 ];
+const eventSourcingOrder = ['designing.md', 'implementation-standards.md', 'migration.md'];
 const clientStarters = [
   { label: 'React', slug: 'starters/react-web' },
   { label: 'Chrome extension', slug: 'starters/chrome-extension' },
@@ -37,11 +39,12 @@ const titleOf = path => {
 export const buildNav = (directory = pages) => {
   const isRoot = directory === pages;
   const items = readdirSync(directory, { withFileTypes: true })
-    .filter(
-      entry =>
-        entry.isDirectory() ||
-        (entry.isFile() && entry.name.endsWith('.md') && entry.name !== 'README.md')
-    )
+    .filter(entry => {
+      if (entry.isDirectory()) return true;
+      if (!entry.isFile() || !entry.name.endsWith('.md') || entry.name === 'README.md')
+        return false;
+      return true;
+    })
     .toSorted((a, b) => {
       if (isRoot) {
         const left = sectionOrder.indexOf(a.name);
@@ -51,6 +54,8 @@ export const buildNav = (directory = pages) => {
       // The tutorial's learning sequence is independent of its existing URL names.
       if (directory === join(pages, 'concepts'))
         return conceptOrder.indexOf(a.name) - conceptOrder.indexOf(b.name);
+      if (directory === join(pages, 'event-sourcing'))
+        return eventSourcingOrder.indexOf(a.name) - eventSourcingOrder.indexOf(b.name);
       return (
         Number(a.isDirectory()) - Number(b.isDirectory()) || a.name.localeCompare(b.name, 'en')
       );
