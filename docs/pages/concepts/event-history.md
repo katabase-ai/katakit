@@ -42,7 +42,7 @@ event whenever the array grows. The empty array is the projection's initial valu
 This small feature only appends messages. If users must edit or remove particular messages,
 give messages stable IDs and define those actions before extending the projection. Generate
 IDs in the live path and record them, rather than assigning new ones while replaying.
-See [choosing facts that preserve meaning](event-sourcing.md#choose-facts-that-preserve-meaning)
+See [choosing facts that preserve meaning](../event-sourcing/designing.md#choose-facts-that-preserve-meaning)
 for a richer example with manual and spoken input.
 
 ## Rebuild from history

@@ -1,7 +1,7 @@
 # Event-sourcing implementation standards
 
-After the [message-list tutorial](README.md), use these standards to review a new
-event-sourced feature or a migration. The [design guide](event-sourcing.md) explains how
+After the [message-list tutorial](../concepts/README.md), use these standards to review a new
+event-sourced feature or a migration. The [design guide](designing.md) explains how
 to choose events, projections, sessions, and resource owners; this page says what to
 look for in the implementation.
 
@@ -58,4 +58,4 @@ look for in the implementation.
 These standards do not mandate filenames, one event per action, disk persistence, or
 schemas for purely in-memory events. Choose those according to the application's behavior.
 For a cutover from mutable state, also follow
-[Migrate an existing application](../getting-started/migrate-to-event-sourcing.md).
+[Migrate an existing application](migration.md).

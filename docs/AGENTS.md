@@ -1,7 +1,7 @@
 # Documentation
 
 This directory owns Katakit's authored documentation and its local Vite viewer.
-`pages/` contains Quickstart, Tutorial, Starters, Contributing, and package-named Reference pages;
+`pages/` contains Quickstart, Tutorial, Event Sourcing, Starters, Contributing, and package-named Reference pages;
 `src/` renders them; `scripts/` generates navigation and checks links.
 `../internal/pkgs/docs-export/` combines these pages with generated API reference for
 website consumers. See [EXPORT.md](EXPORT.md) for that boundary and bundle contract.
@@ -9,10 +9,10 @@ website consumers. See [EXPORT.md](EXPORT.md) for that boundary and bundle contr
 ## Editing
 
 - Write introductions and task instructions in `pages/getting-started/`, guided
-  conceptual walkthroughs in `pages/concepts/`, platform walkthroughs in `pages/starters/`,
-  and reusable API behavior, lifecycle, configuration, and examples in
-  `pages/reference/`. The Tutorial also contains event-sourcing design and implementation
-  guidance. The copied `examples/starters/*/README.md` files own the exact
+  conceptual walkthroughs in `pages/concepts/`, event-sourcing design, implementation
+  standards, and migration in `pages/event-sourcing/`, platform walkthroughs in
+  `pages/starters/`, and reusable API behavior, lifecycle, configuration, and examples in
+  `pages/reference/`. The copied `examples/starters/*/README.md` files own the exact
   install and run commands; docs pages explain how and why to adapt them.
 - The Contributing section in `pages/contributing/` links to co-located repository guidance
   and contains the gallery authoring guide; keep detailed area-specific instructions
@@ -34,13 +34,14 @@ website consumers. See [EXPORT.md](EXPORT.md) for that boundary and bundle contr
   `pnpm --filter @katakit/docs exec node scripts/generate-nav.mjs` from the repository
   root and commit `src/nav.json`. Root section order is defined in that script;
   Tutorial follows its explicit learning order; other children are ordered by filename,
-  with pages before subsections. Contributing sits between Application starters and Reference.
+  with pages before subsections. Event Sourcing follows Tutorial; Contributing sits
+  between Application starters and Reference.
   Application starters explicitly orders React, Chrome extension, Electron, and Obsidian directly under
   the section without changing their URLs. The WIP MCP App page is omitted from navigation.
   Reference lists package pages directly under their full `@katakit/*` names, retaining
   existing plugin URLs.
-  Keep API contracts in Reference; Tutorial teaches event-sourcing design and implementation
-  through the message-list example and reviewable application standards.
+  Keep API contracts in Reference; Tutorial teaches through the message-list example.
+  Event Sourcing owns application design, implementation standards, and migration.
 
 ## Verification
 

@@ -5,9 +5,9 @@ derives a value from that history: a board, an outline, or a list of messages. C
 content means recording another event, rather than editing a second copy of the state.
 
 Use this guide when choosing events and application boundaries. For a first implementation,
-follow the [message-list tutorial](README.md), then use the
-[implementation standards](event-sourcing-in-practice.md). For an application that currently
-stores mutable state, follow [Migrate an existing application](../getting-started/migrate-to-event-sourcing.md).
+follow the [message-list tutorial](../concepts/README.md), then use the
+[implementation standards](implementation-standards.md). For an application that currently
+stores mutable state, follow [Migrate an existing application](migration.md).
 The [core reference](../reference/core.md) owns the runtime and replay API contracts.
 
 ## Start with behavior

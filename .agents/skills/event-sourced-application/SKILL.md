@@ -5,10 +5,10 @@ description: Design and implement a new event-sourced application, or migrate an
 
 # Build or migrate an event-sourced application
 
-Use the [design guide](../../../docs/pages/concepts/event-sourcing.md) as the shared authority
+Use the [design guide](../../../docs/pages/event-sourcing/designing.md) as the shared authority
 for architectural principles and the [core reference](../../../docs/pages/reference/core.md)
 for API behavior. This skill organizes the work; do not duplicate those contracts here.
-The [migration walkthrough](../../../docs/pages/getting-started/migrate-to-event-sourcing.md)
+The [migration walkthrough](../../../docs/pages/event-sourcing/migration.md)
 starts from an application that was not event-sourced.
 
 ## Establish the task
