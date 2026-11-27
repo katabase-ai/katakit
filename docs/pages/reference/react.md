@@ -290,7 +290,7 @@ root.render(
 `shareReplay` supplies the current count to new subscribers. The hook renders that value
 and updates when `increment()` records another event; calling `count$.get()` alone in a component
 would not subscribe it to changes. The
-[transcription view](https://github.com/katabase-ai/katakit/blob/main/examples/demos/transcription/src/TranscriptionDemo.tsx)
+[transcription view](https://github.com/katabase-ai/katakit/blob/main/examples/demos/transcription/src/transcription/TranscriptView.tsx)
 renders conversation state from a runtime owned by its host. `currentTurn$` and `provisional$`
 initially emit `undefined` until there is an unfinished turn or provisional text.
 

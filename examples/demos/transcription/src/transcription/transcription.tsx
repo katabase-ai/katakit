@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
-import { AudioLevelMeter } from './AudioLevelMeter';
-import { Button, Notice, SelectField } from './controls';
+import { AudioLevelMeter } from '../ui/AudioLevelMeter';
+import { Button, Notice, SelectField } from '../ui/controls';
 import { createMicrophoneTranscriber } from '@katakit/transcription/browser';
 import type { TranscriptionState } from '@katakit/transcription';
 import { defaultModel, models, type ModelId } from './models';
 import { createModelSwitcher } from './createModelSwitcher';
 import { createTranscriptionDemo } from './createTranscriptionDemo';
-import { TranscriptionDemo as TranscriptView } from './TranscriptionDemo';
+import { TranscriptView } from './TranscriptView';
 
 /** Standalone ownership stays in this example, with no gallery dependency. */
-export const TranscriptionDemo = () => {
+export const Transcription = () => {
   const [runtime, setRuntime] = useState<ReturnType<typeof createTranscriptionDemo>>();
   const [input, setInput] = useState<TranscriptionState>({ phase: 'idle' });
   const [audioLevel, setAudioLevel] = useState(0);
@@ -163,9 +163,3 @@ export const TranscriptionDemo = () => {
     />
   );
 };
-
-export const App = () => (
-  <main className="shell">
-    <TranscriptionDemo />
-  </main>
-);

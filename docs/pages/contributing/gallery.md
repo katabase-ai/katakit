@@ -172,7 +172,9 @@ and [transcription ownership](../reference/transcription.md) for the underlying 
    for publication. Catalogue eligibility does not automatically publish a new demo.
 
 The repository's gallery README owns exact local setup and host configuration commands.
-Example READMEs own their independent install/run instructions. Shared registration
+Example READMEs provide independent install/run instructions or link to a local setup
+guide. Bingo and transcription use standalone `AGENTS.md` files for setup and maintenance.
+Shared registration
 does not require identical standalone and embedded layouts; the embedded layout
 contract is tracked separately in [issue #56](https://github.com/katabase-ai/katakit/issues/56).
 

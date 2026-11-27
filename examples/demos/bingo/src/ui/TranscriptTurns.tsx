@@ -1,5 +1,8 @@
 import type { ReactNode } from 'react';
-import { useBingoKatakit } from './bingo/useBingoKatakit';
+import './transcript-turns.css';
+
+type Turn = { id: string; text: string; startMs?: number };
+type PendingTurn = { text: string; startMs?: number };
 
 const formatTime = (ms?: number) => {
   if (ms === undefined) return undefined;
@@ -9,32 +12,29 @@ const formatTime = (ms?: number) => {
 
 /**
  * A thin column of the conversation so far, in the Local transcription demo's numbered-turn form
- * but newest first, with each turn's start time right-aligned beneath it. The structured-notes and
- * bingo examples each carry this file so either can be copied alone.
+ * but newest first, with each turn's start time right-aligned beneath it.
  */
 export const TranscriptTurns = ({
-  bingoKatakit,
+  completed,
+  current,
+  provisional,
   children,
 }: {
-  bingoKatakit: NonNullable<ReturnType<typeof useBingoKatakit>>;
+  completed: Turn[];
+  current?: PendingTurn;
+  provisional?: string;
   /** A short note about the transcript, shown beneath its turns. */
   children?: ReactNode;
 }) => {
-  const collectedConversationTurns = bingoKatakit.useCollectedConversationTurns();
-  const pendingConversationTurn = bingoKatakit.usePendingConversationTurn();
-  const provisionalUtterance = bingoKatakit.useProvisionalUtterance();
-
-  const turns = pendingConversationTurn
-    ? [...collectedConversationTurns, { ...pendingConversationTurn, id: 'pending' }]
-    : collectedConversationTurns;
+  const turns = current ? [...completed, { ...current, id: 'pending' }] : completed;
   return (
     <aside className="transcript-turns" aria-label="Transcript">
       <h2>Transcript</h2>
       <div className="transcript-turns-list" aria-live="polite" aria-relevant="additions text">
-        {provisionalUtterance && (
+        {provisional && (
           <article className="transcript-turn" data-interim="true">
             <span className="transcript-turn-index">··</span>
-            <p>{provisionalUtterance.text}</p>
+            <p>{provisional}</p>
           </article>
         )}
         {turns
