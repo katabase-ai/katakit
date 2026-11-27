@@ -8,7 +8,7 @@ import {
 } from '@katakit/transcription/react';
 import { Button } from './ui/controls';
 import { AudioLevelMeter } from './ui/AudioLevelMeter';
-import { BrowserBingoDemo as BingoView } from './BrowserBingoDemo';
+import { Bingo as BingoView } from './bingo/bingo';
 
 /** The copied example owns its input and runtime without importing any gallery code. */
 const BrowserBingoDemo = () => {

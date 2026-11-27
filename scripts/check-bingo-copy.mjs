@@ -13,9 +13,11 @@ const files = directory =>
       : [entry.name]
   );
 
-// Tests live outside browser source, but remain checked against the extension's local copies.
-const sourceFiles = new Map(files(canonical).map(file => [file, join(canonical, file)]));
+// Only behavior and its tests are shared; the browser's bingo.tsx and style.css stay local.
+const sharedFiles = ['README.md', 'events.ts', 'plugin.ts', 'useBingoKatakit.ts', 'wordLists.ts'];
+const sourceFiles = new Map(sharedFiles.map(file => [file, join(canonical, file)]));
 for (const file of files(canonicalTests)) {
+  if (!['plugin.test.ts', 'wordLists.test.ts'].includes(file)) continue;
   if (sourceFiles.has(file)) throw new Error(`Duplicate canonical Bingo file: ${file}`);
   sourceFiles.set(file, join(canonicalTests, file));
 }
@@ -40,7 +42,7 @@ const differences = [...new Set([...sourceFiles.keys(), ...copiedFiles])].filter
 
 if (differences.length) {
   throw new Error(
-    `Bingo copy differs: ${differences.join(', ')}. Sync browser src/bingo/ and tests/ into examples/demos/bingo-extension/src/bingo/ (adjust test imports to ./) and run pnpm bingo:check-copy.`
+    `Bingo copy differs: ${differences.join(', ')}. Sync the shared behavior files in browser src/bingo/ and the plugin/word-list tests into examples/demos/bingo-extension/src/bingo/ (adjust test imports to ./), then run pnpm bingo:check-copy.`
   );
 }
 

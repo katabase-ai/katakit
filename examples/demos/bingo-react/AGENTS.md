@@ -38,15 +38,17 @@ Click a square to mark or unmark it, including to correct recognition mistakes.
 - `src/app.tsx` mounts React, loads the standalone base styles, and owns the
   standalone microphone hook, capture controls, and DevTools. Import the domain
   component directly when embedding the demo; the app entry mounts the page on load.
-- `src/BrowserBingoDemo.tsx` renders the card, word-list picker, and transcript area.
-- `src/bingo/` contains events, the plugin, word lists, and `useBingoKatakit.ts`.
+- `src/bingo/bingo.tsx` renders the card and word-list picker, passes transcript data
+  to the local UI widget, and imports the Bingo-specific `style.css`.
+- `src/bingo/` also contains events, the plugin, word lists, and `useBingoKatakit.ts`.
 - `tests/` covers the plugin and word lists.
-- `src/TranscriptTurns.tsx` renders completed, pending, and provisional transcript text.
+- `src/ui/TranscriptTurns.tsx` renders completed, pending, and provisional transcript
+  text from plain props; it does not import Bingo state. Its styles live alongside it.
 - `src/ui/` contains local visual primitives (`controls.tsx`, `AudioLevelMeter.tsx`)
   and their styles. Keep domain components outside this directory.
 - `src/ui/base.css` contains the standalone theme/reset and control styles; import it
   only from the standalone entry point. `src/ui/audio-level-meter.css` styles the meter.
-- `src/style.css` contains demo-specific layout and transcript styling.
+- `src/bingo/style.css` contains Bingo-specific layout styling.
 
 ## Modification rules
 

@@ -184,8 +184,9 @@ The [starter guides](docs/pages/starters/README.md) help users choose a platform
 The [browser bingo](examples/demos/bingo-react/README.md) and
 [extension bingo](examples/demos/bingo-extension/README.md) examples each own their UI, styling, board
 state, and audio host so they can be copied independently. Their READMEs explain standalone
-setup (the browser demo links to its `AGENTS.md`). Bingo behavior is maintained in `examples/demos/bingo-react/src/bingo/` and copied into the
-extension; `pnpm bingo:check-copy` checks that those copies agree.
+setup (the browser demo links to its `AGENTS.md`). Shared Bingo behavior in
+`examples/demos/bingo-react/src/bingo/` is copied into the extension; browser UI stays local.
+`pnpm bingo:check-copy` checks that the shared copies agree.
 
 ## Website source consumers
 
