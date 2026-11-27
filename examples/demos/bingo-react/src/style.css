@@ -65,18 +65,18 @@
 .bingo-controls { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 .bingo-controls > :is(.transcript-preview, .transcript-turns) { flex: 1; }
 /* A native field keeps word-list selection familiar and keyboard accessible. */
-.bingo-pack-picker { display: flex; align-items: center; gap: var(--space-xs); margin-left: auto; max-width: 100%; }
-.bingo-pack-picker .site-field { position: relative; min-width: 0; }
-.bingo-pack-picker .site-field > label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.bingo-pack-picker .site-field::after { content: ''; position: absolute; right: 0.875rem; top: 50%; width: 0.4rem; height: 0.4rem; margin-top: -0.3rem; border-right: 1.5px solid var(--color-muted); border-bottom: 1.5px solid var(--color-muted); transform: rotate(45deg); pointer-events: none; }
-.browser-bingo .bingo-pack-picker .site-select { width: 100%; min-height: 36px; padding: 0.5rem 2.25rem 0.5rem 0.75rem; border: 1px solid var(--color-rule); border-radius: var(--radius-input, 8px); background: var(--color-paper-2); box-shadow: none; color: var(--color-ink); font: 500 var(--text-sm, 0.875rem)/1.4 var(--font-body, system-ui, sans-serif); appearance: none; cursor: pointer; }
-.browser-bingo .bingo-pack-picker .site-select:hover { border-color: var(--color-rule-2, var(--color-muted)); background: var(--color-paper-3); }
-.browser-bingo .bingo-pack-picker .site-select:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
-.browser-bingo .bingo-pack-picker .site-button.site-button--icon { width: 28px; min-height: 28px; color: var(--color-muted); }
-.browser-bingo .bingo-pack-picker .site-button.site-button--icon:hover { color: var(--color-ink); }
-.browser-bingo .bingo-pack-picker .site-button.site-button--icon svg { width: 15px; height: 15px; }
+.bingo-word-list-picker { display: flex; align-items: center; gap: var(--space-xs); margin-left: auto; max-width: 100%; }
+.bingo-word-list-picker .site-field { position: relative; min-width: 0; }
+.bingo-word-list-picker .site-field > label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.bingo-word-list-picker .site-field::after { content: ''; position: absolute; right: 0.875rem; top: 50%; width: 0.4rem; height: 0.4rem; margin-top: -0.3rem; border-right: 1.5px solid var(--color-muted); border-bottom: 1.5px solid var(--color-muted); transform: rotate(45deg); pointer-events: none; }
+.browser-bingo .bingo-word-list-picker .site-select { width: 100%; min-height: 36px; padding: 0.5rem 2.25rem 0.5rem 0.75rem; border: 1px solid var(--color-rule); border-radius: var(--radius-input, 8px); background: var(--color-paper-2); box-shadow: none; color: var(--color-ink); font: 500 var(--text-sm, 0.875rem)/1.4 var(--font-body, system-ui, sans-serif); appearance: none; cursor: pointer; }
+.browser-bingo .bingo-word-list-picker .site-select:hover { border-color: var(--color-rule-2, var(--color-muted)); background: var(--color-paper-3); }
+.browser-bingo .bingo-word-list-picker .site-select:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.browser-bingo .bingo-word-list-picker .site-button.site-button--icon { width: 28px; min-height: 28px; color: var(--color-muted); }
+.browser-bingo .bingo-word-list-picker .site-button.site-button--icon:hover { color: var(--color-ink); }
+.browser-bingo .bingo-word-list-picker .site-button.site-button--icon svg { width: 15px; height: 15px; }
 @media (pointer: coarse) {
-  .browser-bingo .bingo-pack-picker .site-select { min-height: 44px; }
+  .browser-bingo .bingo-word-list-picker .site-select { min-height: 44px; }
 }
 .bingo-controls h2 { font-size: var(--text-lg); }
 .bingo-controls > p { margin: var(--space-sm) 0 var(--space-lg); color: var(--color-muted); font-size: var(--text-sm); }

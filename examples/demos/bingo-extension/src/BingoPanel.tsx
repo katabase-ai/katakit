@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { EventLogPlugin } from '@katakit/core';
-import { bingoPacks, drawBingoPack, type BingoPackId } from './bingo/packs';
+import { wordLists, drawBingoWordList, type BingoWordListId } from './bingo/wordLists';
 import { BingoPlugin } from './bingo/plugin';
 import { useBingoKatakit } from './bingo/useBingoKatakit';
 import {
@@ -18,7 +18,7 @@ type CaptureState = { phase: Phase; progress?: number; error?: string; micConnec
 
 export const Bingo = () => {
   const [deal, setDeal] = useState(() =>
-    createPanelDeal({ squares: drawBingoPack('meeting'), overrides: {} }, 0)
+    createPanelDeal({ squares: drawBingoWordList('meeting'), overrides: {} }, 0)
   );
   const current = useRef(deal);
   const replaceDeal = useCallback((board: SavedBoard) => {
@@ -29,7 +29,7 @@ export const Bingo = () => {
   const [micLevel, setMicLevel] = useState(0);
   const [tabLevel, setTabLevel] = useState(0);
   const [loaded, setLoaded] = useState(false);
-  const [packId, setPackId] = useState<BingoPackId | 'custom'>('meeting');
+  const [wordListId, setWordListId] = useState<BingoWordListId | 'custom'>('meeting');
   const [customSquares, setCustomSquares] = useState<string[]>();
   const [busy, setBusy] = useState(false);
 
@@ -83,18 +83,19 @@ export const Bingo = () => {
     void (async () => {
       try {
         const [local, session] = await Promise.all([
-          chrome.storage.local.get(['board', 'packId', 'customSquares']),
+          chrome.storage.local.get(['board', 'wordListId', 'customSquares']),
           chrome.storage.session.get(['segments', 'capture']),
         ]);
         if (!mounted) return;
-        const storedBoard = readSavedBoard(local.board, local.packId);
+        const storedBoard = readSavedBoard(local.board, local.wordListId);
         if (storedBoard) {
           replaceDeal(storedBoard);
-          const savedPack = bingoPacks.find(pack => pack.id === local.packId)?.id ?? 'custom';
-          setPackId(savedPack);
+          const savedWordList =
+            wordLists.find(list => list.id === local.wordListId)?.id ?? 'custom';
+          setWordListId(savedWordList);
           setCustomSquares(
             readSquares(local.customSquares, 'custom') ??
-              (savedPack === 'custom' ? storedBoard.squares : undefined)
+              (savedWordList === 'custom' ? storedBoard.squares : undefined)
           );
         }
         if (!resetDuringLoad) {
@@ -125,10 +126,10 @@ export const Bingo = () => {
     if (loaded)
       void chrome.storage.local.set({
         board: deal.savedBoard(),
-        packId,
+        wordListId,
         ...(customSquares && { customSquares }),
       });
-  }, [deal, packId, customSquares, loaded]);
+  }, [deal, wordListId, customSquares, loaded]);
 
   const toggleCapture = async () => {
     setBusy(true);
@@ -148,10 +149,10 @@ export const Bingo = () => {
     replaceDeal({ squares, overrides: {} });
     void chrome.runtime.sendMessage({ type: 'BINGO_NEW_ROUND' });
   };
-  const choosePack = (next: BingoPackId | 'custom') => {
-    if (next === packId || (next === 'custom' && !customSquares)) return;
-    restart(next === 'custom' ? customSquares! : drawBingoPack(next));
-    setPackId(next);
+  const chooseWordList = (next: BingoWordListId | 'custom') => {
+    if (next === wordListId || (next === 'custom' && !customSquares)) return;
+    restart(next === 'custom' ? customSquares! : drawBingoWordList(next));
+    setWordListId(next);
   };
 
   if (!loaded) return <p role="status">Preparing bingo…</p>;
@@ -164,25 +165,25 @@ export const Bingo = () => {
         </div>
       </header>
       <PanelRound key={deal.key} deal={deal}>
-        <section className="pack-picker" aria-label="Bingo word list">
-          <label htmlFor="bingo-pack">Word list</label>
+        <section className="word-list-picker" aria-label="Bingo word list">
+          <label htmlFor="bingo-word-list">Word list</label>
           <div>
-            <span className="pack-select">
+            <span className="word-list-select">
               <select
-                id="bingo-pack"
-                value={packId}
-                onChange={event => choosePack(event.target.value as BingoPackId | 'custom')}
+                id="bingo-word-list"
+                value={wordListId}
+                onChange={event => chooseWordList(event.target.value as BingoWordListId | 'custom')}
               >
-                {bingoPacks.map(pack => (
-                  <option key={pack.id} value={pack.id}>
-                    {pack.label}
+                {wordLists.map(wordList => (
+                  <option key={wordList.id} value={wordList.id}>
+                    {wordList.label}
                   </option>
                 ))}
                 {customSquares && <option value="custom">Saved custom card</option>}
               </select>
             </span>
-            {packId !== 'custom' && (
-              <button className="quiet" onClick={() => restart(drawBingoPack(packId))}>
+            {wordListId !== 'custom' && (
+              <button className="quiet" onClick={() => restart(drawBingoWordList(wordListId))}>
                 Shuffle
               </button>
             )}

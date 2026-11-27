@@ -52,7 +52,7 @@ another draw. Previously saved custom cards remain selectable. Switching lists
 or shuffling starts a fresh round, clearing the prior transcript and manual corrections.
 Interim recognition text is not displayed or used for bingo.
 
-Board edits and the selected pack are stored in extension local storage;
+Board edits and the selected word list are stored in extension local storage;
 transcript history lasts for the browser session. Rare names and tricky words
 may require manual correction. No account or external bingo API is required.
 

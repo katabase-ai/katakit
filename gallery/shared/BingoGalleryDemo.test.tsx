@@ -11,7 +11,7 @@ vi.mock('@katakit/transcription/browser', async importOriginal => ({
 }));
 afterEach(cleanup);
 
-test('gallery capture feeds the selected Bingo pack and a new visit starts unmarked', async () => {
+test('gallery capture feeds the selected Bingo word list and a new visit starts unmarked', async () => {
   let sourceId: string | undefined;
   let finalText = '';
   vi.mocked(createMicrophoneTranscriber).mockImplementation(options => ({

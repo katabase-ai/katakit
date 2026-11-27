@@ -8,7 +8,7 @@ import {
   useMicrophoneTranscriberCallbacks,
 } from '@katakit/transcription/react';
 import { BingoPlugin } from './bingo/plugin';
-import { BingoPackId, bingoPacks, drawBingoPack } from './bingo/packs';
+import { BingoWordListId, wordLists, drawBingoWordList } from './bingo/wordLists';
 
 export const BrowserBingoDemo = ({
   controls,
@@ -18,19 +18,22 @@ export const BrowserBingoDemo = ({
   /** Embedded hosts can supply their own page header. */
   showIntroduction?: boolean;
 }) => {
-  const [pack, setPack] = useState<{ id: BingoPackId; squares: string[] }>({
-    id: bingoPacks[0].id,
-    squares: drawBingoPack(bingoPacks[0].id),
+  const [wordList, setWordList] = useState<{ id: BingoWordListId; squares: string[] }>({
+    id: wordLists[0].id,
+    squares: drawBingoWordList(wordLists[0].id),
   });
 
   return (
     <BingoKatakitWrapper
-      key={pack.id}
-      squares={pack.squares}
+      key={wordList.id}
+      squares={wordList.squares}
       controls={controls}
       showIntroduction={showIntroduction}
-      packPicker={
-        <PackPicker value={pack.id} onChange={id => setPack({ id, squares: drawBingoPack(id) })} />
+      wordListPicker={
+        <WordListPicker
+          value={wordList.id}
+          onChange={id => setWordList({ id, squares: drawBingoWordList(id) })}
+        />
       }
     />
   );
@@ -40,12 +43,12 @@ const BingoKatakitWrapper = ({
   squares,
   controls,
   showIntroduction,
-  packPicker,
+  wordListPicker,
 }: {
   squares: string[];
   controls?: ReactNode;
   showIntroduction?: boolean;
-  packPicker: ReactNode;
+  wordListPicker: ReactNode;
 }) => {
   const bingoKatakit = useBingoKatakit(squares);
 
@@ -56,33 +59,33 @@ const BingoKatakitWrapper = ({
       bingoKatakit={bingoKatakit}
       controls={controls}
       showIntroduction={showIntroduction}
-      packPicker={packPicker}
+      wordListPicker={wordListPicker}
     />
   );
 };
 
-const PackPicker = ({
+const WordListPicker = ({
   value,
   onChange,
 }: {
-  value: BingoPackId;
-  onChange: (next: BingoPackId) => void;
+  value: BingoWordListId;
+  onChange: (next: BingoWordListId) => void;
 }) => {
   return (
-    <div className="bingo-pack-picker">
+    <div className="bingo-word-list-picker">
       <SelectField
-        id="bingo-pack"
+        id="bingo-word-list"
         label="Word list"
         value={value}
         onChange={event => {
-          const pack = event.target.value as BingoPackId;
-          if (pack === value) return;
-          onChange(pack);
+          const wordList = event.target.value as BingoWordListId;
+          if (wordList === value) return;
+          onChange(wordList);
         }}
       >
-        {bingoPacks.map(pack => (
-          <option key={pack.id} value={pack.id}>
-            {pack.label}
+        {wordLists.map(wordList => (
+          <option key={wordList.id} value={wordList.id}>
+            {wordList.label}
           </option>
         ))}
       </SelectField>
@@ -94,12 +97,12 @@ const BingoBody = ({
   bingoKatakit,
   controls,
   showIntroduction,
-  packPicker,
+  wordListPicker,
 }: {
   bingoKatakit: NonNullable<ReturnType<typeof useBingoKatakit>>;
   controls?: ReactNode;
   showIntroduction?: boolean;
-  packPicker: ReactNode;
+  wordListPicker: ReactNode;
 }) => {
   const squares = bingoKatakit.useSquares();
   const marked = bingoKatakit.useMarked();
@@ -146,7 +149,7 @@ const BingoBody = ({
                 {`${winningLines.length} line${winningLines.length === 1 ? '' : 's'} complete`}
               </span>
             )}
-            {packPicker}
+            {wordListPicker}
           </div>
           <div
             className="bingo-grid"

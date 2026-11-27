@@ -2,12 +2,12 @@ import { EventLogPlugin } from '@katakit/core';
 import type { TranscriptionSegment } from '@katakit/transcription';
 import { BingoPlugin } from './bingo/plugin';
 import type { useBingoKatakit } from './bingo/useBingoKatakit';
-import { bingoPacks } from './bingo/packs';
+import { wordLists } from './bingo/wordLists';
 
 export type PanelGame = NonNullable<ReturnType<typeof useBingoKatakit>>;
 export type SavedBoard = { squares: string[]; overrides: Record<number, boolean> };
 
-export const readSquares = (value: unknown, packId: unknown): string[] | undefined => {
+export const readSquares = (value: unknown, wordListId: unknown): string[] | undefined => {
   if (
     !Array.isArray(value) ||
     value.length !== 25 ||
@@ -17,15 +17,15 @@ export const readSquares = (value: unknown, packId: unknown): string[] | undefin
   const squares: string[] = [...value];
   // Older panels persisted a non-playable center. Keep the other 24 positions as saved.
   if (squares[12] === 'Free space') {
-    const pack = bingoPacks.find(pack => pack.id === packId) ?? bingoPacks[0];
-    squares[12] = pack.tiers.flat().find(phrase => !squares.includes(phrase))!;
+    const wordList = wordLists.find(wordList => wordList.id === wordListId) ?? wordLists[0];
+    squares[12] = wordList.tiers.flat().find(phrase => !squares.includes(phrase))!;
   }
   return squares;
 };
 
-export const readSavedBoard = (value: unknown, packId: unknown): SavedBoard | undefined => {
+export const readSavedBoard = (value: unknown, wordListId: unknown): SavedBoard | undefined => {
   if (!value || typeof value !== 'object' || !('squares' in value)) return;
-  const squares = readSquares(value.squares, packId);
+  const squares = readSquares(value.squares, wordListId);
   if (!squares) return;
   const overrides: Record<number, boolean> = {};
   if ('overrides' in value && value.overrides && typeof value.overrides === 'object') {

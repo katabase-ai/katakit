@@ -1,11 +1,11 @@
-type BingoPack = {
+type BingoWordList = {
   id: string;
   label: string;
   /** Familiar, less familiar, and wildcard entries. */
   tiers: readonly [readonly string[], readonly string[], readonly string[]];
 };
 
-export const bingoPacks = [
+export const wordLists = [
   {
     id: 'meeting',
     label: 'Meeting phrases',
@@ -489,14 +489,14 @@ export const bingoPacks = [
       ],
     ],
   },
-] as const satisfies readonly BingoPack[];
+] as const satisfies readonly BingoWordList[];
 
-export type BingoPackId = (typeof bingoPacks)[number]['id'];
+export type BingoWordListId = (typeof wordLists)[number]['id'];
 
 /** Draw 25 phrases from a shuffled pool of up to nine entries per tier. */
-export const drawBingoPack = (id: BingoPackId, random: () => number = Math.random) => {
-  const pack = bingoPacks.find(item => item.id === id);
-  if (!pack) throw new Error('Unknown bingo pack.');
+export const drawBingoWordList = (id: BingoWordListId, random: () => number = Math.random) => {
+  const wordList = wordLists.find(item => item.id === id);
+  if (!wordList) throw new Error('Unknown bingo word list.');
   const shuffle = (items: string[]) => {
     for (let i = items.length - 1; i > 0; i--) {
       const j = Math.floor(random() * (i + 1));
@@ -504,5 +504,5 @@ export const drawBingoPack = (id: BingoPackId, random: () => number = Math.rando
     }
     return items;
   };
-  return shuffle(pack.tiers.flatMap(tier => shuffle([...tier]).slice(0, 9))).slice(0, 25);
+  return shuffle(wordList.tiers.flatMap(tier => shuffle([...tier]).slice(0, 9))).slice(0, 25);
 };
