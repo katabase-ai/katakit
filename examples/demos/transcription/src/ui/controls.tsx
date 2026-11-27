@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react';
+import './controls.css';
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: 'slate' | 'blue' | 'ghost' | 'border' | 'red';
@@ -63,3 +64,15 @@ export const SelectField = ({
     </div>
   );
 };
+
+export const Notice = ({
+  children,
+  tone = 'info',
+}: {
+  children: ReactNode;
+  tone?: 'info' | 'error' | 'success';
+}) => (
+  <div role={tone === 'error' ? 'alert' : 'status'} className={`site-notice site-notice--${tone}`}>
+    {children}
+  </div>
+);

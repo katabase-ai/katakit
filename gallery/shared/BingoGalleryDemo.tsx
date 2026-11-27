@@ -1,7 +1,7 @@
 import { useEffect, type ContextType } from 'react';
 import mitt from 'mitt';
 import { MicrophoneTranscriberContext } from '@katakit/transcription/react';
-import { BrowserBingoDemo } from '../../examples/demos/bingo/src/BrowserBingoDemo';
+import { Bingo } from '../../examples/demos/bingo/src/bingo/bingo';
 import { createGalleryDemo, type GalleryDemoViewProps } from './createGalleryDemo';
 import type { GalleryInputSink } from './createGallerySpeech';
 import { useGallerySpeech } from './GallerySpeechProvider';
@@ -42,7 +42,7 @@ const BingoView = ({
         },
       }}
     >
-      <BrowserBingoDemo {...props} />
+      <Bingo {...props} />
     </MicrophoneTranscriberContext>
   );
 };

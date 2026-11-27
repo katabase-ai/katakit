@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { wordLists, drawBingoWordList } from './wordLists';
-import { normalizePhrase } from './plugin';
+import { wordLists, drawBingoWordList } from '../src/bingo/wordLists';
+import { normalizePhrase } from '../src/bingo/plugin';
 
 export const validateBingoWordLists = () =>
   wordLists.every(wordList => {

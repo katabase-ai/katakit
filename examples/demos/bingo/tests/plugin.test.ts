@@ -1,7 +1,7 @@
 import { EventLogPlugin, makeKatakit, type KatakitEvent } from '@katakit/core';
 import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
 import { afterEach, expect, test, vi } from 'vitest';
-import { BingoPlugin } from './plugin';
+import { BingoPlugin } from '../src/bingo/plugin';
 
 const squares = Array.from({ length: 25 }, (_, i) => `phrase ${i}`);
 
