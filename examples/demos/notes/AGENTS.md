@@ -26,6 +26,9 @@ owns admission while the host is listening, retry, and visit cancellation.
 the outline, processed-turn cursor, and Markdown from that log. `applyNotesResult.ts` validates a
 whole model result and copies the accepted outline without mutating recorded events. `notesModel.ts` owns the public
 host contract, prompt, schema, and wire sizing.
+`src/ui/TranscriptTurns.tsx` renders numbered turns from transcript streams; its own
+`transcript-turns.css` styles the widget. The feature's `style.css` owns the surrounding
+notes/transcript layout.
 `TranscriptPreview.tsx` and `createTranscriptPreview.ts` are kept identical to the bingo example's
 copies. `TranscriptPreview.tsx` renders live transcript lines, newest first, lighter with age by position
 (no per-line animation: animated lines in the sticky panel were painted at stale positions).
