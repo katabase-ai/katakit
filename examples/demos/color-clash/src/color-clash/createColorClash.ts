@@ -5,6 +5,9 @@ import { colorClashColors, type Color, type Target } from './events';
 
 export { colorClashColors } from './events';
 
+// Capture eligibility is transient; the event log alone owns the game phase.
+type LivePhase = 'idle' | 'instructions' | 'playing' | 'ended' | 'cancelled';
+
 /** One visit owns game history and transient instruction, recognition and display state. */
 export const createColorClash = ({
   now = Date.now,
@@ -23,16 +26,14 @@ export const createColorClash = ({
   const game = kit.getMethods(ColorClashPlugin);
   const { events$ } = kit.getObservables(EventLogPlugin);
   let instructionsUntil = 0;
-  let showingInstructions = false;
-  let cancelledBeforeRound = false;
-  let liveRound = false;
-  let beganLiveRound = false;
+  let livePhase: LivePhase = 'idle';
   let transcript = '';
   let provisional = '';
   let observedWords: string[] = [];
   let answeredPositions = new Set<number>();
   let closed = false;
   let listeners: (() => void)[] = [];
+  const isLiveRound = () => livePhase === 'instructions' || livePhase === 'playing';
   const choose = <T>(choices: readonly T[]) => choices[Math.floor(random() * choices.length)]!;
   const makeTarget = (sequence: number, previous?: Color): Target => {
     const ink = choose(colorClashColors.filter(color => color !== previous));
@@ -46,10 +47,11 @@ export const createColorClash = ({
   };
   const snapshot = () => {
     const content = game$.get();
+    const showingInstructions = livePhase === 'instructions';
     return {
       phase: showingInstructions
         ? ('instructions' as const)
-        : (content?.phase ?? (cancelledBeforeRound ? 'finished' : 'ready')),
+        : (content?.phase ?? (livePhase === 'cancelled' ? 'finished' : 'ready')),
       score: showingInstructions ? 0 : (content?.score ?? 0),
       remainingMs:
         showingInstructions || !content
@@ -72,23 +74,22 @@ export const createColorClash = ({
   };
   const subscription = game$.subscribe(publish);
   const advance = () => {
-    if (closed || !liveRound) return;
-    if (showingInstructions) {
+    if (closed || !isLiveRound()) return;
+    if (livePhase === 'instructions') {
       if (now() < instructionsUntil) return;
-      showingInstructions = false;
+      livePhase = 'playing';
       const target = makeTarget((game$.get()?.target.sequence ?? -1) + 1);
-      beganLiveRound = true;
       game.startRound(target, now() + 20000);
     }
     const content = game$.get();
     if (content?.phase !== 'playing') return;
     if (now() >= content.deadline) {
-      liveRound = false;
+      livePhase = 'ended';
       game.endRound('deadlineReached');
     } else publish();
   };
   const hear = (text: string) => {
-    if (closed || !liveRound) return;
+    if (closed || !isLiveRound()) return;
     advance();
     const words = text.toLowerCase().match(/[a-z]+/g) ?? [];
     words.forEach((word, index) => {
@@ -111,8 +112,8 @@ export const createColorClash = ({
   return {
     events$,
     game$,
-    isLiveRound: () => liveRound,
-    hasBegunLiveRound: () => beganLiveRound,
+    isLiveRound,
+    hasBegunLiveRound: () => livePhase === 'playing' || livePhase === 'ended',
     getSnapshot: () => state,
     subscribe: (listener: () => void) => {
       listeners.push(listener);
@@ -121,11 +122,8 @@ export const createColorClash = ({
       };
     },
     begin: () => {
-      if (closed || game$.get()?.phase === 'playing') return;
-      liveRound = true;
-      showingInstructions = true;
-      beganLiveRound = false;
-      cancelledBeforeRound = false;
+      if (closed || isLiveRound() || game$.get()?.phase === 'playing') return;
+      livePhase = 'instructions';
       instructionsUntil = now() + 1600;
       observedWords = [];
       answeredPositions = new Set();
@@ -135,13 +133,14 @@ export const createColorClash = ({
     },
     advance,
     finish: () => {
-      if (closed || !liveRound) return;
-      liveRound = false;
-      if (showingInstructions) {
-        showingInstructions = false;
-        cancelledBeforeRound = true;
+      if (closed || !isLiveRound()) return;
+      if (livePhase === 'instructions') {
+        livePhase = 'cancelled';
         publish();
-      } else game.endRound('captureStopped');
+      } else {
+        livePhase = 'ended';
+        game.endRound('captureStopped');
+      }
     },
     ingestSegment: (segment: Parameters<MicrophoneOptions['onFinal']>[0]) => {
       if (closed) return;
@@ -159,7 +158,7 @@ export const createColorClash = ({
     close: () => {
       if (closed) return;
       closed = true;
-      liveRound = false;
+      livePhase = 'idle';
       subscription.unsubscribe();
       listeners = [];
     },

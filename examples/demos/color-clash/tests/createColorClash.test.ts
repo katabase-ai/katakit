@@ -28,6 +28,46 @@ describe('Color Clash transcription and round lifecycle', () => {
     game.close();
   });
 
+  test('only a started live round can request capture stop, including after replay', () => {
+    const { game, advance } = fixture();
+    expect(game.isLiveRound()).toBe(false);
+    expect(game.hasBegunLiveRound()).toBe(false);
+    game.begin();
+    expect(game.isLiveRound()).toBe(true);
+    expect(game.hasBegunLiveRound()).toBe(false);
+    advance(1600);
+    expect(game.isLiveRound()).toBe(true);
+    expect(game.hasBegunLiveRound()).toBe(true);
+    game.finish();
+    expect(game.isLiveRound()).toBe(false);
+    expect(game.hasBegunLiveRound()).toBe(true);
+
+    const replay = createColorClash({ initialEvents: game.events$.getAll() });
+    expect(replay.isLiveRound()).toBe(false);
+    expect(replay.hasBegunLiveRound()).toBe(false);
+    replay.begin();
+    replay.finish();
+    expect(replay.isLiveRound()).toBe(false);
+    expect(replay.hasBegunLiveRound()).toBe(false);
+    expect(replay.events$.getAll()).toHaveLength(game.events$.getAll().length);
+    game.close();
+    replay.close();
+  });
+
+  test('a duplicate begin cannot restart instructions or extend a live round', () => {
+    const { game, advance } = fixture();
+    game.begin();
+    advance(1000);
+    game.begin();
+    advance(600);
+    expect(game.getSnapshot()).toMatchObject({ phase: 'playing', remainingMs: 20000 });
+    advance(1000);
+    game.begin();
+    expect(game.getSnapshot()).toMatchObject({ phase: 'playing', remainingMs: 19000 });
+    expect(game.events$.getAll().map(event => event.type)).toEqual(['roundStarted']);
+    game.close();
+  });
+
   test('replays targets, deadline and score without redrawing or restoring transient transcript', () => {
     const { game, advance, say } = fixture();
     game.begin();

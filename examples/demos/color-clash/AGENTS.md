@@ -43,8 +43,11 @@ the page to stop and dispose of the standalone microphone owner.
   stop capture when the round finishes.
 - `src/color-clash/events.ts` defines typed `KatakitEvent` domain facts. The local
   `plugin.ts` projects the board, score, mistake and phase from the event log and
-  admits game commands. `createColorClash.ts` owns transient instructions, live
-  recognition positions, transcript display, and the read-only view snapshot.
+  admits game commands. `createColorClash.ts` owns a transient live-capture phase
+  (including instructions and cancellation), recognition positions, transcript
+  display, and the read-only view snapshot. That phase tracks capture eligibility,
+  not a second writable game board; the view can show replayed game content without
+  owning a live round.
   `events$.getAll()` returns the accepted typed history (including metadata);
   supply it as `initialEvents` for in-memory replay. No serialized history is
   accepted by this demo. Replay does not draw targets, start capture, or arm a
