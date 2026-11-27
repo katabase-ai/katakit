@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  copyFileSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -20,7 +28,8 @@ const manifest = (name, version, extra = {}) => ({ name: `@katakit/${name}`, ver
 const notes = () => '# Changes\n\n## 0.1.0\n\nFirst release.\n\n## 0.0.0\n\nEarlier notes.';
 
 test('CLI plans the exact Git snapshots even when HEAD and working files have moved on', t => {
-  const directory = mkdtempSync(join(tmpdir(), 'katakit-release-test-'));
+  // Match the real path Node uses for the copied module (e.g. /private/var on macOS).
+  const directory = realpathSync(mkdtempSync(join(tmpdir(), 'katakit-release-test-')));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   const git = (...args) => execFileSync('git', args, { cwd: directory, encoding: 'utf8' }).trim();
   mkdirSync(join(directory, 'scripts'));
@@ -52,17 +61,20 @@ test('CLI plans the exact Git snapshots even when HEAD and working files have mo
   git('config', 'core.hooksPath', join(directory, 'no-hooks'));
   const base = writeVersion('0.0.0');
   const release = writeVersion('0.1.0');
-  writeVersion('0.2.0');
+  const head = writeVersion('0.2.0');
   writeFileSync(join(directory, 'pkgs/core/package.json'), 'uncommitted invalid JSON');
   const output = execFileSync(
     process.execPath,
     [join(directory, 'scripts/release.mjs'), 'plan', base, release],
-    { encoding: 'utf8', env: { ...process.env, GITHUB_OUTPUT: '' } }
+    { cwd: directory, encoding: 'utf8', env: { ...process.env, GITHUB_OUTPUT: '' } }
   );
   const plan = JSON.parse(output);
   assert.equal(plan.length, 1);
+  assert.equal(plan[0].directory, 'pkgs/core');
   assert.equal(plan[0].version, '0.1.0');
   assert.equal(plan[0].notes, 'Notes for 0.1.0.');
+  assert.equal(git('rev-parse', 'HEAD'), head);
+  assert.equal(readFileSync(join(directory, 'pkgs/core/package.json'), 'utf8'), 'uncommitted invalid JSON');
 });
 
 test('recovery uses current tooling but preserves the original release package and build snapshot', t => {

@@ -42,7 +42,9 @@ export const ColorClash = ({
   const stopRequested = useRef(false);
   const listening = input.phase === 'running';
   const preparing = input.phase === 'loading' || input.phase === 'starting';
-  const active = state.phase === 'instructions' || state.phase === 'playing';
+  // A replayed round can be visible without this visit owning live capture.
+  const showingRound = state.phase === 'instructions' || state.phase === 'playing';
+  const liveRound = runtime.isLiveRound();
   useEffect(() => {
     if (requested && listening) {
       setRequested(false);
@@ -53,22 +55,28 @@ export const ColorClash = ({
     if (requested && !starting && input.phase === 'error') setRequested(false);
   }, [requested, starting, input.phase]);
   useEffect(() => {
-    if (!active) return;
+    if (!showingRound || !liveRound) return;
     if (!listening) {
       runtime.finish();
       return;
     }
     const timer = window.setInterval(runtime.advance, 50);
     return () => window.clearInterval(timer);
-  }, [active, listening, runtime]);
+  }, [showingRound, liveRound, listening, runtime]);
   useEffect(() => {
     // A replay can acquire capture before its instruction screen has rendered.
-    if (active) stopRequested.current = false;
-    if (state.phase === 'finished' && listening && !requested && !stopRequested.current) {
+    if (showingRound && liveRound) stopRequested.current = false;
+    if (
+      state.phase === 'finished' &&
+      runtime.hasBegunLiveRound() &&
+      listening &&
+      !requested &&
+      !stopRequested.current
+    ) {
       stopRequested.current = true;
       onStop();
     }
-  }, [active, state.phase, listening, requested, onStop]);
+  }, [showingRound, liveRound, state.phase, listening, requested, onStop, runtime]);
   useLayoutEffect(() => {
     if (transcript.current) transcript.current.scrollLeft = transcript.current.scrollWidth;
   }, [state.transcript, state.provisional]);
@@ -116,7 +124,7 @@ export const ColorClash = ({
         <div style={{ width: `${state.remainingMs / 200}%` }} />
       </div>
       <div className="color-clash-stage">
-        {state.phase === 'playing' ? (
+        {state.phase === 'playing' && state.target ? (
           <>
             <span className="color-clash-prompt">Say the ink color</span>
             {state.popped && (
