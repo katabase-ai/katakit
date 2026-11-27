@@ -14,7 +14,7 @@
     "@katakit/transcription": "0.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "valibot": "1.4.1"
+    "rxjs": "^7.8.2"
   },
   "devDependencies": {
     "@testing-library/react": "^16.1.0",

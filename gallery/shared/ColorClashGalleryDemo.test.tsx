@@ -127,6 +127,8 @@ test.each([false, true])(
     await screen.findByText(/You have 20 seconds/);
     expect(inputs).toHaveLength(1);
     expect(inputs[0]!.start).toHaveBeenCalledOnce();
+    clock(1600);
+    await screen.findByLabelText(/written in/);
     clock(22000);
     await screen.findByRole('heading', { name: 'Time’s up' });
     await vi.waitFor(() => expect(inputs[0]!.stop).toHaveBeenCalledOnce());

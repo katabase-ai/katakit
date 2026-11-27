@@ -13,48 +13,64 @@ const fixture = () => {
 };
 
 describe('Color Clash transcription and round lifecycle', () => {
-  test('replays targets, deadlines, scoring and final speech without drawing or running a clock', () => {
+  test('leaving during instructions creates no round or target and cannot start one later', () => {
+    let time = 0;
+    const random = vi.fn(() => 0);
+    const game = createColorClash({ now: () => time, random });
+    expect(game.events$.getAll()).toHaveLength(0);
+    game.begin();
+    expect(random).not.toHaveBeenCalled();
+    game.finish();
+    time = 30000;
+    game.advance();
+    expect(game.events$.getAll()).toHaveLength(0);
+    expect(game.getSnapshot().phase).toBe('finished');
+    game.close();
+  });
+
+  test('replays targets, deadline and score without redrawing or restoring transient transcript', () => {
     const { game, advance, say } = fixture();
     game.begin();
     advance(1600);
     game.updateProvisional('red');
     game.updateProvisional('red blue');
     say('red blue');
-    const events = JSON.parse(JSON.stringify(game.events$.getAll()));
-    const expected = game.getSnapshot();
+    game.finish();
+    const events = game.events$.getAll();
+    const expected = game.game$.get();
     const random = vi.fn(() => 0.5);
-    const replay = createColorClash({ now: () => 1600, random, initialEvents: events });
+    let replayTime = 1600;
+    const replay = createColorClash({ now: () => replayTime, random, initialEvents: events });
     expect(random).not.toHaveBeenCalled();
     expect(replay.events$.getAll()).toEqual(game.events$.getAll());
-    expect(replay.getSnapshot()).toEqual(expected);
+    expect(replay.game$.get()).toEqual(expected);
+    expect(replay.getSnapshot()).toMatchObject({ transcript: '', provisional: '' });
     expect(replay.isLiveRound()).toBe(false);
     replay.advance();
     replay.updateProvisional('green');
     expect(replay.events$.getAll()).toHaveLength(events.length);
     replay.begin();
+    expect(random).not.toHaveBeenCalled();
+    expect(replay.getSnapshot().phase).toBe('instructions');
+    replayTime += 1600;
+    replay.advance();
     expect(random).toHaveBeenCalled();
-    expect(replay.getSnapshot()).toMatchObject({ phase: 'instructions', score: 0, transcript: '' });
     game.close();
     replay.close();
-  });
-
-  test('rejects malformed replay history before creating a runtime', () => {
-    expect(() => createColorClash({ initialEvents: [{ type: 'roundStarted' }] })).toThrow(
-      /Invalid/
-    );
   });
 
   test('gives instructions before a full twenty-second round and ignores late results', () => {
     const { game, advance, say } = fixture();
     game.begin();
-    say(game.getSnapshot().target.ink);
+    say('red');
     expect(game.getSnapshot()).toMatchObject({ phase: 'instructions', score: 0 });
+    expect(game.events$.getAll()).toHaveLength(0);
     advance(1600);
     expect(game.getSnapshot()).toMatchObject({ phase: 'playing', remainingMs: 20000 });
     advance(19999);
     expect(game.getSnapshot().phase).toBe('playing');
     advance(1);
-    say(game.getSnapshot().target.ink);
+    say(game.getSnapshot().target!.ink);
     expect(game.getSnapshot()).toMatchObject({ phase: 'finished', remainingMs: 0, score: 0 });
   });
 
@@ -62,13 +78,13 @@ describe('Color Clash transcription and round lifecycle', () => {
     const { game, advance, say } = fixture();
     game.begin();
     advance(1600);
-    const target = game.getSnapshot().target;
+    const target = game.getSnapshot().target!;
     expect(target.word).not.toBe(target.ink);
     say(target.word);
     expect(game.getSnapshot()).toMatchObject({ score: 0, mistake: 1 });
     say(target.ink);
     expect(game.getSnapshot()).toMatchObject({ score: 1, popped: target });
-    expect(game.getSnapshot().target.ink).not.toBe(target.ink);
+    expect(game.getSnapshot().target!.ink).not.toBe(target.ink);
   });
 
   test('provisional revisions and the final result do not award points for the same spoken position twice', () => {

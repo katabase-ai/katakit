@@ -122,7 +122,7 @@ export const ColorClash = ({
         <div style={{ width: `${state.remainingMs / 200}%` }} />
       </div>
       <div className="color-clash-stage">
-        {state.phase === 'playing' ? (
+        {state.phase === 'playing' && state.target ? (
           <>
             <span className="color-clash-prompt">Say the ink color</span>
             {state.popped && (
