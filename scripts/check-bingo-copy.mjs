@@ -13,11 +13,15 @@ const files = directory =>
       : [entry.name]
   );
 
-// Only behavior and its tests are shared; the browser's bingo.tsx and style.css stay local.
-const sharedFiles = ['README.md', 'events.ts', 'plugin.ts', 'useBingoKatakit.ts', 'wordLists.ts'];
-const sourceFiles = new Map(sharedFiles.map(file => [file, join(canonical, file)]));
-for (const file of files(canonicalTests)) {
-  if (!['plugin.test.ts', 'wordLists.test.ts'].includes(file)) continue;
+// Browser presentation is local; every other canonical module must have an extension copy.
+const browserOnly = new Set(['bingo.tsx', 'style.css']);
+const sourceFiles = new Map(
+  files(canonical)
+    .filter(file => !browserOnly.has(file))
+    .map(file => [file, join(canonical, file)])
+);
+// UI tests are local; the shared behavior tests must be present in both examples.
+for (const file of ['plugin.test.ts', 'wordLists.test.ts']) {
   if (sourceFiles.has(file)) throw new Error(`Duplicate canonical Bingo file: ${file}`);
   sourceFiles.set(file, join(canonicalTests, file));
 }
