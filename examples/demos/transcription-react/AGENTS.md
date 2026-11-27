@@ -46,9 +46,11 @@ and each recording gets a distinct source ID.
 - `src/createTranscriptionDemo.ts` exposes transcript state and owns its subscription.
 - `src/models.ts` describes model choices; `src/createModelSwitcher.ts` serializes
   model disposal and replacement.
-- `src/controls.tsx` and `src/AudioLevelMeter.tsx` provide local visual primitives.
-- `src/base.css`, `src/style.css`, and `src/audio-level-meter.css` contain the
-  standalone theme/reset, demo layout, and meter styling respectively.
+- `src/ui/` contains local visual primitives (`controls.tsx`, `AudioLevelMeter.tsx`)
+  and their styles. Keep domain components outside this directory.
+- `src/ui/base.css` contains the standalone theme/reset and control styles; import it
+  only from the standalone entry point. `src/ui/audio-level-meter.css` styles the meter.
+- `src/style.css` contains demo-specific layout and transcript styling.
 - `tests/` covers model selection, transcript integration, and React subscription behavior.
 
 ## Modification rules

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { AudioLevelMeter } from './AudioLevelMeter';
-import { Button, Notice, SelectField } from './controls';
+import { AudioLevelMeter } from './ui/AudioLevelMeter';
+import { Button, Notice, SelectField } from './ui/controls';
 import { createMicrophoneTranscriber } from '@katakit/transcription/browser';
 import type { TranscriptionState } from '@katakit/transcription';
 import { defaultModel, models, type ModelId } from './models';
