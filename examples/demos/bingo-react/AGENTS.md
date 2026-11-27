@@ -35,8 +35,9 @@ Click a square to mark or unmark it, including to correct recognition mistakes.
 
 ## Code organization
 
-- `src/main.tsx` mounts React and loads the standalone base styles.
-- `src/App.tsx` owns the standalone microphone hook, capture controls, and DevTools.
+- `src/app.tsx` mounts React, loads the standalone base styles, and owns the
+  standalone microphone hook, capture controls, and DevTools. Import the domain
+  component directly when embedding the demo; the app entry mounts the page on load.
 - `src/BrowserBingoDemo.tsx` renders the card, word-list picker, and transcript area.
 - `src/bingo/` contains events, the plugin, word lists, and `useBingoKatakit.ts`.
 - `tests/` covers the plugin and word lists.
