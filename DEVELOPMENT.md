@@ -69,9 +69,9 @@ For CSS sharing and the exporter, use the [internal tool and styling contract](#
 
 Include its README, real LICENSE, build script, declared dependencies, platform files, and any
 required runtime assets. Document exact install/run commands, input/model requirements, and
-manual target-platform checks. The Bingo demo keeps its README focused on purpose and
-links to a standalone `AGENTS.md` for those instructions. A starter has its own `pnpm-workspace.yaml` and is run from its
-own directory; never add it to the root workspace. Follow the detailed
+manual target-platform checks. The Bingo and transcription demos keep their READMEs focused on
+purpose and link to standalone `AGENTS.md` files for those instructions. A starter has its own
+`pnpm-workspace.yaml` and is run from its own directory; never add it to the root workspace. Follow the detailed
 [starter checklist](examples/starters/README.md) and the
 [copy workflow](examples/README.md). Update the contributor test-package list in
 `scripts/example-test-packages.mjs` if an example requires another Katakit package.
