@@ -1,9 +1,9 @@
 # Copyable feature examples
 
 Each feature-demo directory owns its application/plugin code, UI, styling, manifest,
-configuration, assets, and run instructions. These are conventions for new or revised demos,
-not a mandate to reorganize every existing example. Follow the selected demo's README and
-local `AGENTS.md` for its concrete setup and manual checks.
+configuration, assets, and run instructions. These standards apply to every feature demo,
+including existing examples. Follow the selected demo's README and local `AGENTS.md` for
+its concrete setup and manual checks.
 
 ## Copyability and boundaries
 

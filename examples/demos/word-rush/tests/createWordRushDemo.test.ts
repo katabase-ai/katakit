@@ -1,7 +1,7 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { createWordRushDemo } from './createWordRushDemo';
-import { WordRushRequestError, type WordRushConnection } from './wordRushModel';
-import { challengeCategories, challenges, drawChallenge } from './challenges';
+import { createWordRushDemo } from '../src/createWordRushDemo';
+import { WordRushRequestError, type WordRushConnection } from '../src/wordRushModel';
+import { challengeCategories, challenges, drawChallenge } from '../src/challenges';
 
 const decisions = {
   model: 'typesafe/jev-1.13',

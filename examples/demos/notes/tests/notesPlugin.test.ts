@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as v from 'valibot';
-import { createNotesDemo } from './createNotesDemo';
+import { createNotesDemo } from '../src/createNotesDemo';
 import {
   createNotesRequest,
   NotesRequestError,
   NotesResultSchema,
   type NotesConnection,
-} from './notesModel';
+} from '../src/notesModel';
 
 // Hosts hand back the provider's response body; the example reads its own result out of it.
 const completion = (result: unknown, finish_reason = 'stop') => ({
