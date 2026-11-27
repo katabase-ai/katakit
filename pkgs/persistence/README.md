@@ -1,6 +1,9 @@
 # @katakit/persistence
 
-Persists new event-log entries through an application-supplied append callback.
+**Make your app’s history durable.** Preserve the events behind your app, ready to rebuild
+its state when needed. Your application chooses the storage and loads history for replay.
+
+This plugin persists new event-log entries through an application-supplied append callback.
 The callback receives full recorded events from core's built-in log.
 
 ```ts
