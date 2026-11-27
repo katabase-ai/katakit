@@ -51,9 +51,44 @@ look for in the implementation.
 8. **Require a replay test for content changes.** Run a live sequence, capture its events,
    construct a fresh runtime from them, and compare content, IDs, and derived outputs.
    Assert that reconstruction emits no replacement events and performs no model calls,
-   random draws, timer starts, or resource acquisition. Test explicit live resumption
-   separately. See [Bingo's projection tests](https://github.com/katabase-ai/katakit/blob/main/examples/demos/bingo/tests/plugin.test.ts)
-   and [Notes' behavior tests](https://github.com/katabase-ai/katakit/blob/main/examples/demos/notes/tests/notesPlugin.test.ts).
+   random draws, content-producing timer restarts, or resource acquisition. Test explicit
+   live resumption separately. Follow the recipe below; the
+   [Bingo projection tests](https://github.com/katabase-ai/katakit/blob/main/examples/demos/bingo/tests/plugin.test.ts)
+   and [Notes behavior tests](https://github.com/katabase-ai/katakit/blob/main/examples/demos/notes/tests/notesPlugin.test.ts)
+   illustrate parts of it, not a complete checklist.
+
+## Replay test recipe
+
+1. **Create a meaningful live history.** Exercise accepted input and, where supported,
+   a correction, clear, or pending operation. Capture the **entire** event log, including
+   input-plugin events such as completed transcript turns; filtering down to a feature's
+   own events can hide a replay-triggered effect. Save the live content, stable IDs,
+   cursors, and derived outputs for comparison.
+2. **Reconstruct without starting live work.** Supply that history as `existingEvents`
+   to a fresh runtime. Read projections before `start()` when the factory allows it.
+   Compare the saved domain values and the complete history, including event order and
+   payloads. Do not compare intentionally transient UI status, retry state, or countdowns
+   as though they were durable content.
+3. **Start the restored runtime and check for side effects.** Subscribe its effects with
+   `start()` (or use the factory's equivalent if it starts internally), then settle
+   synchronous work and controlled pending tasks. Assert the event log has not grown and
+   instrument the relevant boundaries: model calls, ID/random generation, capture or
+   resource acquisition, and timers that would produce new content. Merely reading a
+   projection before `start()` cannot establish this. A clock read for a transient
+   display countdown is not itself a replay failure.
+4. **Resume only through an explicit live action.** If the feature supports pending work,
+   connect or start it _after_ the inert-replay assertions. Check that eligible input is
+   handled once, already-processed input is not repeated, and the accepted result appears
+   as a new event. A model call at this point may be correct; it would not have been
+   correct during reconstruction.
+
+Add focused boundary tests where the feature needs them: invalid or duplicate input
+must not append unintended facts; late responses after clear, close, or session
+replacement must not write to the old or new history; a capture-driven feature should
+test a final segment delivered during stop/drain and specify whether it is accepted
+before sink close. Use controlled callbacks, deferred promises, and fake timers instead
+of timing sleeps. Features without a model, microphone, or pending work do not need
+tests for resources they never own.
 
 These standards do not mandate filenames, one event per action, disk persistence, or
 schemas for purely in-memory events. Choose those according to the application's behavior.
