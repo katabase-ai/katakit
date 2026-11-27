@@ -40,6 +40,27 @@ test('mounting a replayed round does not finish it or start a display timer with
   runtime.close();
 });
 
+test('mounting a finished replay does not stop capture that this runtime never started', () => {
+  const original = createColorClash({ random: () => 0 });
+  original.begin();
+  original.finish();
+  const runtime = createColorClash({ initialEvents: original.events$.getAll() });
+  const stopped = vi.fn();
+  render(
+    <ColorClash
+      runtime={runtime}
+      input={{ phase: 'running' }}
+      disabled={false}
+      onPlay={async () => false}
+      onStop={stopped}
+      onCancel={() => undefined}
+    />
+  );
+  expect(stopped).not.toHaveBeenCalled();
+  original.close();
+  runtime.close();
+});
+
 test('explains a microphone denial and retries without spending the round time', async () => {
   const runtime = createColorClash();
   const retried = vi.fn();

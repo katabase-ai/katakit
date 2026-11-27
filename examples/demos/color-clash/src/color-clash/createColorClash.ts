@@ -117,6 +117,7 @@ export const createColorClash = ({
   let closed = false;
   // A restored round has content, not a live microphone lease. Only begin arms live ticking.
   let liveRound = false;
+  let beganLiveRound = false;
   let listeners: (() => void)[] = [];
   const snapshot = (): ColorClashSnapshot => ({
     phase: content.phase,
@@ -194,6 +195,7 @@ export const createColorClash = ({
   return {
     events$,
     isLiveRound: () => liveRound,
+    hasBegunLiveRound: () => beganLiveRound,
     getSnapshot: () => state,
     subscribe: (listener: () => void) => {
       listeners.push(listener);
@@ -204,6 +206,7 @@ export const createColorClash = ({
     begin: () => {
       if (closed) return;
       liveRound = true;
+      beganLiveRound = true;
       observedWords = [];
       answeredPositions = new Set();
       provisional = '';

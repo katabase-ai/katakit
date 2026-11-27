@@ -64,11 +64,17 @@ export const ColorClash = ({
   useEffect(() => {
     // A replay can acquire capture before its instruction screen has rendered.
     if (active) stopRequested.current = false;
-    if (state.phase === 'finished' && listening && !requested && !stopRequested.current) {
+    if (
+      state.phase === 'finished' &&
+      runtime.hasBegunLiveRound() &&
+      listening &&
+      !requested &&
+      !stopRequested.current
+    ) {
       stopRequested.current = true;
       onStop();
     }
-  }, [active, state.phase, listening, requested, onStop]);
+  }, [active, state.phase, listening, requested, onStop, runtime]);
   useLayoutEffect(() => {
     if (transcript.current) transcript.current.scrollLeft = transcript.current.scrollWidth;
   }, [state.transcript, state.provisional]);
