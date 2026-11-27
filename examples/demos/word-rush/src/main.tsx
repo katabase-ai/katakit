@@ -1,17 +1,17 @@
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
-import { BrainstormRequestError, type BrainstormConnection } from './brainstormModel';
+import { WordRushRequestError, type WordRushConnection } from './wordRushModel';
 import './standalone.css';
 
-const endpoint = import.meta.env.VITE_BRAINSTORM_ENDPOINT;
-const model = import.meta.env.VITE_BRAINSTORM_MODEL;
-const credential = import.meta.env.VITE_BRAINSTORM_CREDENTIAL;
-const decisionEndpoint = import.meta.env.VITE_BRAINSTORM_DECISION_ENDPOINT;
-const decisionModel = import.meta.env.VITE_BRAINSTORM_DECISION_MODEL;
-const decisionCredential = import.meta.env.VITE_BRAINSTORM_DECISION_CREDENTIAL;
+const endpoint = import.meta.env.VITE_WORD_RUSH_ENDPOINT;
+const model = import.meta.env.VITE_WORD_RUSH_MODEL;
+const credential = import.meta.env.VITE_WORD_RUSH_CREDENTIAL;
+const decisionEndpoint = import.meta.env.VITE_WORD_RUSH_DECISION_ENDPOINT;
+const decisionModel = import.meta.env.VITE_WORD_RUSH_DECISION_MODEL;
+const decisionCredential = import.meta.env.VITE_WORD_RUSH_DECISION_CREDENTIAL;
 const connect =
   endpoint && model && decisionEndpoint && decisionModel
-    ? async ({ signal }: { signal: AbortSignal }): Promise<BrainstormConnection> => {
+    ? async ({ signal }: { signal: AbortSignal }): Promise<WordRushConnection> => {
         const request = async (
           url: string,
           token: string | undefined,
@@ -32,7 +32,7 @@ const connect =
             body,
           });
           if (!response.ok)
-            throw new BrainstormRequestError(
+            throw new WordRushRequestError(
               `Judging could not complete (${response.status}). Check the connection and try again.`
             );
           const result: unknown = await response.json();
@@ -54,7 +54,7 @@ const connect =
     : undefined;
 
 createRoot(document.getElementById('root')!).render(
-  <main className="brainstorm-standalone">
+  <main className="word-rush-standalone">
     <App connect={connect} />
   </main>
 );

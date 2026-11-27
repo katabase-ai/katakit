@@ -4,10 +4,10 @@ import { afterEach, expect, test, vi } from 'vitest';
 import type { MicrophoneOptions } from '@katakit/transcription/browser';
 import { Gallery } from './Gallery';
 import { GallerySpeechProvider } from './GallerySpeechProvider';
-import { BrainstormGalleryDemo } from './BrainstormGalleryDemo';
-import { brainstormDemoDetails } from './galleryDemoDetails';
+import { WordRushGalleryDemo } from './WordRushGalleryDemo';
+import { wordRushDemoDetails } from './galleryDemoDetails';
 import { GalleryConsentProvider } from './GalleryConsentProvider';
-import { App } from '../../examples/demos/brainstorm/src/App';
+import { App } from '../../examples/demos/word-rush/src/App';
 
 const decisions = {
   model: 'typesafe/jev-1.13',
@@ -92,14 +92,14 @@ test('the real gallery adapter has one round action, waits for both services, an
     <GalleryConsentProvider>
       <GallerySpeechProvider>
         <Gallery
-          demos={[brainstormDemoDetails]}
-          activeDemo={brainstormDemoDetails}
+          demos={[wordRushDemoDetails]}
+          activeDemo={wordRushDemoDetails}
           connectModel={connect}
           termsUrl="https://example.com/terms"
           onOpenSettings={() => {}}
           renderLink={({ children }) => <a href="#demo">{children}</a>}
         >
-          <BrainstormGalleryDemo />
+          <WordRushGalleryDemo />
         </Gallery>
       </GallerySpeechProvider>
     </GalleryConsentProvider>
@@ -192,12 +192,12 @@ test('the gallery requires a model connection and has no alternative input or ju
   const view = render(
     <GallerySpeechProvider>
       <Gallery
-        demos={[brainstormDemoDetails]}
-        activeDemo={brainstormDemoDetails}
+        demos={[wordRushDemoDetails]}
+        activeDemo={wordRushDemoDetails}
         onOpenSettings={() => {}}
         renderLink={({ children }) => <a href="#demo">{children}</a>}
       >
-        <BrainstormGalleryDemo />
+        <WordRushGalleryDemo />
       </Gallery>
     </GallerySpeechProvider>
   );
@@ -221,8 +221,8 @@ test('a chat-only host cannot reveal a challenge or spend round time without a J
   const view = render(
     <GallerySpeechProvider>
       <Gallery
-        demos={[brainstormDemoDetails]}
-        activeDemo={brainstormDemoDetails}
+        demos={[wordRushDemoDetails]}
+        activeDemo={wordRushDemoDetails}
         connectModel={async () => ({
           model: 'chat-only',
           maxBodyBytes: 16384,
@@ -231,7 +231,7 @@ test('a chat-only host cannot reveal a challenge or spend round time without a J
         })}
         renderLink={({ children }) => <a href="#demo">{children}</a>}
       >
-        <BrainstormGalleryDemo />
+        <WordRushGalleryDemo />
       </Gallery>
     </GallerySpeechProvider>
   );

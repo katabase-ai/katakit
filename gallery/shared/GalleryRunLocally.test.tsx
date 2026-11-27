@@ -6,7 +6,7 @@ import {
   colorClashDemoDetails,
   notesDemoDetails,
   listExtractionDemoDetails,
-  brainstormDemoDetails,
+  wordRushDemoDetails,
 } from './galleryDemoDetails';
 import { GalleryEventsContext } from './galleryEvents';
 import { GalleryRunLocally, runLocallyCommand, runLocallyPrompt } from './GalleryRunLocally';
@@ -40,18 +40,18 @@ test('the command copies the pinned example directory and starts it', () => {
   );
 });
 
-test('brainstorming offers the pinned standalone copy and its model setup instructions', () => {
-  render(<GalleryRunLocally demo={brainstormDemoDetails} revision="abc123" />);
+test('Word rush offers the pinned standalone copy and its model setup instructions', () => {
+  render(<GalleryRunLocally demo={wordRushDemoDetails} revision="abc123" />);
   expect(screen.getByText('Get the code')).toBeDefined();
-  expect(runLocallyCommand(brainstormDemoDetails, 'abc123')).toBe(
+  expect(runLocallyCommand(wordRushDemoDetails, 'abc123')).toBe(
     [
-      'npx degit katabase-ai/katakit/examples/demos/brainstorm#abc123 brainstorming-game',
-      'cd brainstorming-game',
+      'npx degit katabase-ai/katakit/examples/demos/word-rush#abc123 word-rush',
+      'cd word-rush',
       'pnpm install',
       'pnpm dev',
     ].join('\n')
   );
-  expect(runLocallyPrompt(brainstormDemoDetails, 'abc123')).toContain(
+  expect(runLocallyPrompt(wordRushDemoDetails, 'abc123')).toContain(
     'Ask me before you read, create, or edit'
   );
 });

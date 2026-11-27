@@ -1,25 +1,25 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { bind, Subscribe } from '@react-rxjs/core';
 import { drawChallenge, findChallenge } from './challenges';
-import type { BrainstormConnection } from './brainstormModel';
-import type { createBrainstormDemo } from './createBrainstormDemo';
+import type { WordRushConnection } from './wordRushModel';
+import type { createWordRushDemo } from './createWordRushDemo';
 import { Button } from './controls';
-import { BrainstormSettings } from './BrainstormSettings';
+import { WordRushSettings } from './WordRushSettings';
 import { useRoundSetup } from './useRoundSetup';
 import './style.css';
 
 const timeLabel = (seconds: number) =>
   `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
 
-type BrainstormDemoProps = {
-  runtime: ReturnType<typeof createBrainstormDemo>;
+type WordRushDemoProps = {
+  runtime: ReturnType<typeof createWordRushDemo>;
   listening?: boolean;
   startListening?: (signal: AbortSignal) => Promise<boolean>;
   isListening?: () => boolean;
   stopListening?: () => Promise<unknown>;
   setupMessage?: string;
   captureDisabled?: boolean;
-  connect?: (input: { signal: AbortSignal }) => Promise<BrainstormConnection>;
+  connect?: (input: { signal: AbortSignal }) => Promise<WordRushConnection>;
   controls?: ReactNode;
   connectionHelp?: ReactNode;
   showIntroduction?: boolean;
@@ -39,17 +39,17 @@ type RoundButton = {
 };
 
 // A stable factory binding shares state only among consumers of the same visit's runtime.
-const [useBrainstormState, brainstormState$] = bind(
-  (runtime: BrainstormDemoProps['runtime']) => runtime.state$
+const [useWordRushState, wordRushState$] = bind(
+  (runtime: WordRushDemoProps['runtime']) => runtime.state$
 );
 
-export const BrainstormDemo = (props: BrainstormDemoProps) => (
-  <Subscribe source$={brainstormState$(props.runtime)}>
-    <BrainstormView {...props} />
+export const WordRushDemo = (props: WordRushDemoProps) => (
+  <Subscribe source$={wordRushState$(props.runtime)}>
+    <WordRushView {...props} />
   </Subscribe>
 );
 
-const BrainstormView = ({
+const WordRushView = ({
   runtime,
   listening = false,
   startListening,
@@ -64,9 +64,9 @@ const BrainstormView = ({
   renderModelControls = controls => controls,
   renderRoundControls,
   renderRoundButton,
-  roundControlClassName = 'brainstorm-primary',
-}: BrainstormDemoProps) => {
-  const state = useBrainstormState(runtime);
+  roundControlClassName = 'word-rush-primary',
+}: WordRushDemoProps) => {
+  const state = useWordRushState(runtime);
   const [category, setCategory] = useState('');
   const setup = useRoundSetup({
     runtime,
@@ -150,7 +150,7 @@ const BrainstormView = ({
         </Button>
       )}
       {setup.step && (
-        <span className="brainstorm-setup-status" role="status">
+        <span className="word-rush-setup-status" role="status">
           {setup.step === 'judge'
             ? 'Connecting judge…'
             : setup.step === 'cancelling'
@@ -161,7 +161,7 @@ const BrainstormView = ({
     </>
   );
   const modelControls = (
-    <section className="brainstorm-connection" aria-label="Answer judging">
+    <section className="word-rush-connection" aria-label="Answer judging">
       {state.connected && !failure && <p role="status">Judge connected.</p>}
       {!connect &&
         !state.connected &&
@@ -175,22 +175,22 @@ const BrainstormView = ({
   );
 
   return (
-    <section className="brainstorm-game" aria-label="Brainstorming game">
+    <section className="word-rush" aria-label="Word rush game">
       {showIntroduction && (
-        <header className="brainstorm-header">
+        <header className="word-rush-header">
           <div>
-            <p className="brainstorm-eyebrow">One mic. Every idea counts.</p>
-            <h1 id="brainstorm-title">Brainstorm</h1>
+            <p className="word-rush-eyebrow">One mic. Every idea counts.</p>
+            <h1 id="word-rush-title">Word rush</h1>
             <p>Say your answers. Fill the board.</p>
           </div>
-          <span className="brainstorm-library-label">200 challenges · 20 categories</span>
+          <span className="word-rush-library-label">200 challenges · 20 categories</span>
         </header>
       )}
 
       {controls}
-      <div className="brainstorm-layout">
-        <div className="brainstorm-main">
-          <BrainstormSettings
+      <div className="word-rush-layout">
+        <div className="word-rush-main">
+          <WordRushSettings
             category={category}
             seconds={state.seconds}
             disabled={locked}
@@ -200,14 +200,14 @@ const BrainstormView = ({
             }}
           />
 
-          <section className="site-notice brainstorm-challenge" aria-labelledby="brainstorm-prompt">
-            <div className="brainstorm-challenge-copy">
-              <h2 id="brainstorm-prompt">{revealed ? challenge.prompt : 'Ready when you are.'}</h2>
+          <section className="site-notice word-rush-challenge" aria-labelledby="word-rush-prompt">
+            <div className="word-rush-challenge-copy">
+              <h2 id="word-rush-prompt">{revealed ? challenge.prompt : 'Ready when you are.'}</h2>
               <p>{revealed ? challenge.judgingRule : 'Start round to reveal the challenge.'}</p>
             </div>
-            <div className="brainstorm-round-bar">
+            <div className="word-rush-round-bar">
               <div
-                className="brainstorm-clock"
+                className="word-rush-clock"
                 data-urgent={
                   state.phase === 'running' && state.remaining !== null && state.remaining <= 10
                 }
@@ -219,7 +219,7 @@ const BrainstormView = ({
                   {state.remaining === null ? 'Unlimited' : timeLabel(state.remaining)}
                 </output>
               </div>
-              <div className="brainstorm-score">
+              <div className="word-rush-score">
                 <strong>{state.notes.length}</strong>
                 <span>{state.notes.length === 1 ? 'answer' : 'answers'}</span>
               </div>
@@ -227,11 +227,11 @@ const BrainstormView = ({
             {renderRoundControls ? (
               renderRoundControls(roundControls)
             ) : (
-              <div className="brainstorm-round-controls">{roundControls}</div>
+              <div className="word-rush-round-controls">{roundControls}</div>
             )}
           </section>
 
-          <div className="brainstorm-board-heading">
+          <div className="word-rush-board-heading">
             <h2>The shared board</h2>
             <p role="status" aria-live="polite">
               {state.busy
@@ -244,21 +244,21 @@ const BrainstormView = ({
                       (state.phase === 'running' ? 'Listening for your ideas…' : '')}
             </p>
           </div>
-          <div className="brainstorm-board" aria-label="Collected answers">
+          <div className="word-rush-board" aria-label="Collected answers">
             {!state.notes.length && (
-              <div className="brainstorm-empty">
+              <div className="word-rush-empty">
                 <p>Your answers will appear here.</p>
               </div>
             )}
-            <ol className="brainstorm-notes" aria-live="polite" aria-relevant="additions removals">
+            <ol className="word-rush-notes" aria-live="polite" aria-relevant="additions removals">
               {state.notes.map((note, i) => (
-                <li key={note.id} className="brainstorm-note" data-color={i % 4}>
-                  <span className="brainstorm-note-number">{String(i + 1).padStart(2, '0')}</span>
+                <li key={note.id} className="word-rush-note" data-color={i % 4}>
+                  <span className="word-rush-note-number">{String(i + 1).padStart(2, '0')}</span>
                   <Button
                     variant="ghost"
                     size="icon"
                     aria-label={`Remove ${note.text}`}
-                    className="brainstorm-note-remove"
+                    className="word-rush-note-remove"
                     onClick={() => runtime.remove(note.id)}
                   >
                     <svg
@@ -281,10 +281,10 @@ const BrainstormView = ({
 
           {renderModelControls(modelControls)}
         </div>
-        <aside className="brainstorm-transcript" aria-label="Transcript">
+        <aside className="word-rush-transcript" aria-label="Transcript">
           <h2>Transcript</h2>
           <div
-            className="brainstorm-transcript-entries"
+            className="word-rush-transcript-entries"
             role="region"
             aria-label="Round transcript"
             tabIndex={0}
@@ -292,15 +292,15 @@ const BrainstormView = ({
             aria-relevant="additions text"
           >
             {!state.provisional && !state.segments.length && (
-              <p className="brainstorm-transcript-empty">Your words will appear here.</p>
+              <p className="word-rush-transcript-empty">Your words will appear here.</p>
             )}
             {state.provisional && (
               <article
-                className="brainstorm-transcript-entry"
+                className="word-rush-transcript-entry"
                 data-interim="true"
                 aria-label="In progress"
               >
-                <span className="brainstorm-transcript-index" aria-hidden="true">
+                <span className="word-rush-transcript-index" aria-hidden="true">
                   ··
                 </span>
                 <p>{state.provisional}</p>
@@ -308,11 +308,11 @@ const BrainstormView = ({
             )}
             {state.segments.toReversed().map((segment, index) => (
               <article
-                className="brainstorm-transcript-entry"
+                className="word-rush-transcript-entry"
                 key={segment.id}
                 aria-label={`Entry ${state.segments.length - index}`}
               >
-                <span className="brainstorm-transcript-index" aria-hidden="true">
+                <span className="word-rush-transcript-index" aria-hidden="true">
                   {String(state.segments.length - index).padStart(2, '0')}
                 </span>
                 <p>{segment.text}</p>

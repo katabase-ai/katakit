@@ -1,23 +1,23 @@
 import { useCallback, useEffect, useRef, useState, type ComponentProps } from 'react';
 import { createMicrophoneTranscriber } from '@katakit/transcription/browser';
 import type { TranscriptionState } from '@katakit/transcription';
-import { BrainstormDemo } from './BrainstormDemo';
-import { createBrainstormDemo } from './createBrainstormDemo';
+import { WordRushDemo } from './WordRushDemo';
+import { createWordRushDemo } from './createWordRushDemo';
 
 type Capture = {
-  runtime: ReturnType<typeof createBrainstormDemo>;
+  runtime: ReturnType<typeof createWordRushDemo>;
   helper?: ReturnType<typeof createMicrophoneTranscriber>;
   phase: TranscriptionState['phase'];
   disposal?: Promise<void>;
 };
 
 /** Standalone capture is owned here; the gallery provides its single shared microphone. */
-export const App = ({ connect }: Pick<ComponentProps<typeof BrainstormDemo>, 'connect'>) => {
+export const App = ({ connect }: Pick<ComponentProps<typeof WordRushDemo>, 'connect'>) => {
   const [runtime, setRuntime] = useState<Capture['runtime']>();
   const [input, setInput] = useState<TranscriptionState>({ phase: 'idle' });
   const owner = useRef<Capture>(undefined);
   useEffect(() => {
-    const current: Capture = { runtime: createBrainstormDemo(), phase: 'idle' };
+    const current: Capture = { runtime: createWordRushDemo(), phase: 'idle' };
     owner.current = current;
     setRuntime(current.runtime);
     return () => {
@@ -91,7 +91,7 @@ export const App = ({ connect }: Pick<ComponentProps<typeof BrainstormDemo>, 'co
   const isListening = useCallback(() => owner.current?.phase === 'running', []);
   if (!runtime) return <p role="status">Preparing game…</p>;
   return (
-    <BrainstormDemo
+    <WordRushDemo
       runtime={runtime}
       listening={input.phase === 'running'}
       startListening={startListening}
