@@ -4,8 +4,8 @@ import {
   defaultRules,
   readExtraction,
   type ExtractionConnection,
-} from './extractionModel';
-import { sampleTurns } from './sample';
+} from '../src/extractionModel';
+import { sampleTurns } from '../src/sample';
 
 const item = {
   listId: 'actions',

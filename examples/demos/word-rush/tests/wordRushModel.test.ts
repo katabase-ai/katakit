@@ -1,11 +1,11 @@
 import { expect, test, vi } from 'vitest';
-import { findChallenge } from './challenges';
+import { findChallenge } from '../src/challenges';
 import {
   judgeWordRushCandidates,
   requestWordRushModel,
   WordRushRequestError,
   type WordRushConnection,
-} from './wordRushModel';
+} from '../src/wordRushModel';
 
 const candidates = Array.from({ length: 20 }, (_, i) => ({
   text: `garment ${i}`,
