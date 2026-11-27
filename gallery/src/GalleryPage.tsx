@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { lazy, useCallback } from 'react';
 import { ClientOnly, Link, Navigate, useNavigate } from '@tanstack/react-router';
 import { Gallery } from '../shared/Gallery';
 import { GallerySpeechControls } from '../shared/GallerySpeechControls';
@@ -8,6 +8,8 @@ import { useGalleryMode } from '../shared/GalleryModeProvider';
 import type { GalleryDeveloperPage, GalleryOperation } from '../shared/operationDetails';
 import { useLocalInference } from './localInference';
 import { usePreviewInference } from './previewInference';
+
+const DevTools = lazy(async () => ({ default: (await import('@katakit/react')).KatakitDevTools }));
 
 /** Browser demos are mounted only after hydration, never by the SSR Worker. */
 export const GalleryPage = ({
@@ -91,6 +93,7 @@ export const GalleryPage = ({
     >
       {Component && (
         <ClientOnly fallback={null}>
+          <DevTools />
           <Component />
         </ClientOnly>
       )}
