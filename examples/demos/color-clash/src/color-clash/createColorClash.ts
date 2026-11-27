@@ -1,29 +1,41 @@
+import { EventLogPlugin, makeKatakit } from '@katakit/core';
 import type { MicrophoneOptions } from '@katakit/transcription/browser';
+import { ColorClashPlugin } from './plugin';
+import { colorClashColors, type Color, type Target } from './events';
 
-export const colorClashColors = ['red', 'blue', 'green', 'yellow'] as const;
-type Color = (typeof colorClashColors)[number];
-type Target = { word: Color; ink: Color; sequence: number; left: number; top: number };
-type State = {
-  phase: 'ready' | 'instructions' | 'playing' | 'finished';
-  score: number;
-  remainingMs: number;
-  target: Target;
-  transcript: string;
-  provisional: string;
-  popped?: Target;
-  mistake: number;
-};
+export { colorClashColors } from './events';
 
-/**
- * Only recognized color words drive the game. The clock is independent of recognition,
- * and provisional/final versions of a spoken word share one scoring position.
- */
+// Capture eligibility is transient; the event log alone owns the game phase.
+type LivePhase = 'idle' | 'instructions' | 'playing' | 'ended' | 'cancelled';
+
+/** One visit owns game history and transient instruction, recognition and display state. */
 export const createColorClash = ({
-  now = () => performance.now(),
+  now = Date.now,
   random = Math.random,
-}: { now?: () => number; random?: () => number } = {}) => {
+  initialEvents = [],
+}: {
+  now?: () => number;
+  random?: () => number;
+  initialEvents?: Parameters<typeof makeKatakit>[0]['existingEvents'];
+} = {}) => {
+  const kit = makeKatakit({
+    existingEvents: initialEvents,
+    plugins: [ColorClashPlugin.configure({})],
+  }).start();
+  const { game$ } = kit.getObservables(ColorClashPlugin);
+  const game = kit.getMethods(ColorClashPlugin);
+  const { events$ } = kit.getObservables(EventLogPlugin);
+  let instructionsUntil = 0;
+  let livePhase: LivePhase = 'idle';
+  let transcript = '';
+  let provisional = '';
+  let observedWords: string[] = [];
+  let answeredPositions = new Set<number>();
+  let closed = false;
+  let listeners: (() => void)[] = [];
+  const isLiveRound = () => livePhase === 'instructions' || livePhase === 'playing';
   const choose = <T>(choices: readonly T[]) => choices[Math.floor(random() * choices.length)]!;
-  const makeTarget = (sequence: number, previous?: Color) => {
+  const makeTarget = (sequence: number, previous?: Color): Target => {
     const ink = choose(colorClashColors.filter(color => color !== previous));
     return {
       ink,
@@ -33,60 +45,75 @@ export const createColorClash = ({
       top: 38 + random() * 24,
     };
   };
-  let state: State = {
-    phase: 'ready',
-    score: 0,
-    remainingMs: 20000,
-    target: makeTarget(0),
-    transcript: '',
-    provisional: '',
-    mistake: 0,
+  const snapshot = () => {
+    const content = game$.get();
+    const showingInstructions = livePhase === 'instructions';
+    return {
+      phase: showingInstructions
+        ? ('instructions' as const)
+        : (content?.phase ?? (livePhase === 'cancelled' ? 'finished' : 'ready')),
+      score: showingInstructions ? 0 : (content?.score ?? 0),
+      remainingMs:
+        showingInstructions || !content
+          ? 20000
+          : content.phase === 'playing'
+            ? Math.max(0, content.deadline - now())
+            : 0,
+      target: showingInstructions ? null : (content?.target ?? null),
+      popped: showingInstructions ? undefined : content?.popped,
+      mistake: showingInstructions ? 0 : (content?.mistake ?? 0),
+      transcript,
+      provisional,
+    };
   };
-  let listeners: (() => void)[] = [];
-  let instructionEnd = 0;
-  let roundEnd = 0;
-  let observedWords: string[] = [];
-  let answeredPositions: number[] = [];
-  let closed = false;
-  const update = (patch: Partial<State>) => {
+  let state = snapshot();
+  const publish = () => {
     if (closed) return;
-    state = { ...state, ...patch };
+    state = snapshot();
     listeners.forEach(listener => listener());
   };
+  const subscription = game$.subscribe(publish);
   const advance = () => {
-    if (state.phase === 'instructions' && now() >= instructionEnd) update({ phase: 'playing' });
-    if (state.phase !== 'playing') return;
-    const remainingMs = Math.max(0, roundEnd - now());
-    update({ remainingMs, ...(remainingMs === 0 ? { phase: 'finished' } : {}) });
+    if (closed || !isLiveRound()) return;
+    if (livePhase === 'instructions') {
+      if (now() < instructionsUntil) return;
+      livePhase = 'playing';
+      const target = makeTarget((game$.get()?.target.sequence ?? -1) + 1);
+      game.startRound(target, now() + 20000);
+    }
+    const content = game$.get();
+    if (content?.phase !== 'playing') return;
+    if (now() >= content.deadline) {
+      livePhase = 'ended';
+      game.endRound('deadlineReached');
+    } else publish();
   };
   const hear = (text: string) => {
-    if (closed) return;
+    if (closed || !isLiveRound()) return;
     advance();
     const words = text.toLowerCase().match(/[a-z]+/g) ?? [];
     words.forEach((word, index) => {
-      if (word === observedWords[index] || answeredPositions.includes(index)) return;
-      if (state.phase !== 'playing' || !colorClashColors.some(color => color === word)) return;
-      answeredPositions.push(index);
-      if (word === state.target.ink) {
-        update({
-          score: state.score + 1,
-          mistake: 0,
-          popped: state.target,
-          target: makeTarget(state.target.sequence + 1, state.target.ink),
-        });
-      } else update({ mistake: state.mistake + 1 });
+      if (word === observedWords[index] || answeredPositions.has(index)) return;
+      if (game$.get()?.phase !== 'playing' || !colorClashColors.some(color => color === word))
+        return;
+      answeredPositions.add(index);
+      game.acceptAnswer(word as Color, previous => makeTarget(previous.sequence + 1, previous.ink));
     });
     observedWords = words;
   };
   const flush = () => {
-    update({
-      transcript: `${state.transcript} ${state.provisional}`.trim().slice(-600),
-      provisional: '',
-    });
+    if (closed) return;
+    transcript = `${transcript} ${provisional}`.trim().slice(-600);
+    provisional = '';
     observedWords = [];
-    answeredPositions = [];
+    answeredPositions = new Set();
+    publish();
   };
   return {
+    events$,
+    game$,
+    isLiveRound,
+    hasBegunLiveRound: () => livePhase === 'playing' || livePhase === 'ended',
     getSnapshot: () => state,
     subscribe: (listener: () => void) => {
       listeners.push(listener);
@@ -95,39 +122,44 @@ export const createColorClash = ({
       };
     },
     begin: () => {
-      if (closed) return;
+      if (closed || isLiveRound() || game$.get()?.phase === 'playing') return;
+      livePhase = 'instructions';
+      instructionsUntil = now() + 1600;
       observedWords = [];
-      answeredPositions = [];
-      instructionEnd = now() + 1600;
-      roundEnd = instructionEnd + 20000;
-      update({
-        phase: 'instructions',
-        score: 0,
-        remainingMs: 20000,
-        transcript: '',
-        provisional: '',
-        popped: undefined,
-        mistake: 0,
-        target: makeTarget(state.target.sequence + 1),
-      });
+      answeredPositions = new Set();
+      transcript = '';
+      provisional = '';
+      publish();
     },
     advance,
     finish: () => {
-      if (state.phase === 'instructions' || state.phase === 'playing')
-        update({ phase: 'finished' });
+      if (closed || !isLiveRound()) return;
+      if (livePhase === 'instructions') {
+        livePhase = 'cancelled';
+        publish();
+      } else {
+        livePhase = 'ended';
+        game.endRound('captureStopped');
+      }
     },
     ingestSegment: (segment: Parameters<MicrophoneOptions['onFinal']>[0]) => {
+      if (closed) return;
       hear(segment.text);
-      update({ provisional: segment.text });
+      provisional = segment.text;
       flush();
     },
     updateProvisional: (text: string) => {
+      if (closed) return;
       hear(text);
-      update({ provisional: text });
+      provisional = text;
+      publish();
     },
     flush,
     close: () => {
+      if (closed) return;
       closed = true;
+      livePhase = 'idle';
+      subscription.unsubscribe();
       listeners = [];
     },
   };

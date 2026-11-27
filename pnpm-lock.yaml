@@ -140,6 +140,9 @@ importers:
 
   examples/demos/color-clash:
     dependencies:
+      '@katakit/core':
+        specifier: workspace:*
+        version: link:../../../pkgs/core
       '@katakit/transcription':
         specifier: workspace:*
         version: link:../../../pkgs/transcription
@@ -149,6 +152,9 @@ importers:
       react-dom:
         specifier: ^19.0.0
         version: 19.3.1(react@19.3.1)
+      rxjs:
+        specifier: ^7.8.2
+        version: 7.8.2
     devDependencies:
       '@testing-library/react':
         specifier: ^16.1.0

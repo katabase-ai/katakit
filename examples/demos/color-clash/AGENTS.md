@@ -41,8 +41,17 @@ the page to stop and dispose of the standalone microphone owner.
 - `src/color-clash/ColorClash.tsx` renders the game from its runtime and host-owned
   input state. Its timer is cleared on phase change or unmount; it asks its host to
   stop capture when the round finishes.
-- `src/color-clash/createColorClash.ts` owns the session's game state, speech scoring,
-  and subscriber list. `close()` stops updates and clears subscribers; it does not
+- `src/color-clash/events.ts` defines typed `KatakitEvent` domain facts. The local
+  `plugin.ts` projects the board, score, mistake and phase from the event log and
+  admits game commands. `createColorClash.ts` owns a transient live-capture phase
+  (including instructions and cancellation), recognition positions, transcript
+  display, and the read-only view snapshot. That phase tracks capture eligibility,
+  not a second writable game board; the view can show replayed game content without
+  owning a live round.
+  `events$.getAll()` returns the accepted typed history (including metadata);
+  supply it as `initialEvents` for in-memory replay. No serialized history is
+  accepted by this demo. Replay does not draw targets, start capture, or arm a
+  clock. `close()` unsubscribes from the game projection and clears subscribers; it does not
   dispose capture. The standalone hook owns capture disposal on unmount; gallery
   lease release stops and drains capture before closing the runtime. The view
   unsubscribes from the runtime on unmount. `src/color-clash/style.css` styles only
@@ -55,10 +64,21 @@ the page to stop and dispose of the standalone microphone owner.
 Keep application code, styles, and assets inside this directory and import Katakit
 through public package entry points. Host-specific microphone and action controls
 belong in the standalone app or the gallery adapter, not in a shared package.
-The existing game runtime keeps a mutable snapshot rather than deriving durable
-game content from an event log. This is pre-existing migration work, not a pattern
-to copy into new examples. If changing that state model, record randomized targets
-and deadlines as events; replay must not redraw targets or restart capture or timers.
+The game log belongs to one runtime visit. The standalone microphone hook and gallery
+lease own capture, while the view owns and clears its 50ms display clock. Neither is
+recreated by a replayed event; no persistent storage is chosen by this example.
+
+## Event model
+
+The 1.6-second instruction screen is transient setup. Only after it completes with
+live capture does `roundStarted` record the first chosen target and a 20-second
+deadline. Leaving during instructions creates no round history. Each accepted
+color records `targetMatched` (including the next chosen target) or `targetMissed`;
+`roundEnded` records expiry or interrupted capture. `game$` is a projection of
+those facts, not a second writable board. Provisional revisions, the final text
+shown in the live transcript, word-position deduplication, and clock ticks are
+transient. A new Play after a finished round resets the board through another
+`roundStarted`, without inventing events while replaying earlier rounds.
 
 ## Hosting and verification
 
