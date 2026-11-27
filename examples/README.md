@@ -4,6 +4,8 @@
 provide a small application for a particular platform. Each example owns its setup instructions.
 Demos participate in the root workspace; starters are independent pnpm projects.
 The [gallery](../gallery/README.md) is a separate host that composes the demos.
+For reusable feature-demo code conventions, see [Copyable feature examples](demos/AGENTS.md);
+each demo's own guide covers its setup and manual checks.
 
 Standalone examples install Katakit packages from npm.
 
