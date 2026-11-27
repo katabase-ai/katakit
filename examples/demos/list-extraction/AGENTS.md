@@ -42,8 +42,10 @@ contiguous exact transcript excerpts. Rules, accepted IDs, evidence, edits, and 
 belong in the log; requests, cancellation, form disclosure, selection, and clipboard state do not.
 
 Keep terminal allowance failures through clear and sample operations. Source changes and unmount
-abort model work immediately; the input owner drains capture before runtime close. Late results
-must be discarded, including from a host that ignores AbortSignal. Do not add upload controls to
+abort model work immediately. Standalone unmount currently closes the runtime before the
+microphone hook finishes asynchronous disposal; final recognition may not be delivered. The TODO
+in `App.tsx` tracks coordinating stop/drain, flush, and close. Late results must be discarded,
+including from a host that ignores AbortSignal. Do not add upload controls to
 the dictation-only version. The built-in sample is a labeled fixture, never a fallback for real
 model processing or a replacement for existing user speech.
 
@@ -59,8 +61,8 @@ The host's `connect({ signal })` supplies model, `maxBodyBytes`, `maxOutputToken
 sourced output fails atomically without replacing accepted items. Inference begins only on
 **Extract lists**; it never silently retries or resumes. The host owns authorization, credentials,
 and provider errors. Terminal allowance failures survive clear and sample operations.
-Capture drains before closing the runtime; source changes and unmount abort requests and reject
-late responses even if transport ignores the abort signal. The gallery owns shared capture,
+The standalone drain-before-close gap above remains; source changes and unmount abort requests
+and reject late responses even if transport ignores the abort signal. The gallery owns shared capture,
 verification, and the privacy badge through its adapter, not this copy.
 
 ## Verification

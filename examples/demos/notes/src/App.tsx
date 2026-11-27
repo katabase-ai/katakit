@@ -15,6 +15,11 @@ export const App = ({ connect }: Pick<ComponentProps<typeof NotesDemo>, 'connect
     const demo = createNotesDemo();
     setRuntime(demo);
     return () => {
+      // TODO: Coordinate capture teardown with this runtime. The microphone hook disposes
+      // asynchronously on unmount and its callback subscription is removed, so final speech
+      // may not reach the runtime before this flush/close. Abort model work promptly, but
+      // keep the input sink alive through stop/drain and flush before closing it. Test with
+      // delayed final speech and unmount during microphone permission/model loading.
       demo.flush();
       demo.close();
     };

@@ -83,10 +83,11 @@ after validation. Accepted outlines include stable IDs and the processed-turn cu
 turns remaining after the recorded cursor. The history remains in memory for one visit.
 Only live lines stay in the visible transcript for twenty seconds; all finalized turns remain
 available to inference and replay. Requests include the outline, pending turns, and up to six
-preceding context turns. Oversized input pauses instead of dropping content. Unmount aborts
-admission and requests immediately; the input owner then drains capture before runtime close.
-Standalone unmount releases the recognizer; the gallery can retain its ready recognizer across
-routes. Pending microphone permission and late grants must be cancelled.
+preceding context turns. Oversized input pauses instead of dropping content. Standalone unmount
+currently flushes and closes the runtime before the microphone hook finishes asynchronous
+disposal; final recognition may not be delivered. The TODO in `App.tsx` tracks coordinating
+stop/drain, flush, and close while aborting model work promptly. The gallery can retain its ready
+recognizer across routes. Pending microphone permission and late grants must be cancelled.
 
 The gallery adapter provides shared capture, host admission, errors, model controls, and usage
 meter via `renderModelControls`; it stays in `gallery/`. A public gallery without inference
