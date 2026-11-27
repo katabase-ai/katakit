@@ -8,7 +8,7 @@ import {
 } from 'react';
 import type { TranscriptionState } from '@katakit/transcription';
 import type { createColorClash } from './createColorClash';
-import './colorClash.css';
+import './style.css';
 
 /** The host owns microphone/model setup; this view starts its clock only once capture is running. */
 export const ColorClash = ({

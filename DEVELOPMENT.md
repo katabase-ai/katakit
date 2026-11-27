@@ -69,9 +69,10 @@ For CSS sharing and the exporter, use the [internal tool and styling contract](#
 
 Include its README, real LICENSE, build script, declared dependencies, platform files, and any
 required runtime assets. Document exact install/run commands, input/model requirements, and
-manual target-platform checks. The Bingo and transcription demos keep their READMEs focused on
-purpose and link to standalone `AGENTS.md` files for those instructions. A starter has its own
-`pnpm-workspace.yaml` and is run from its own directory; never add it to the root workspace. Follow the detailed
+manual target-platform checks. The Bingo, transcription, and Color Clash demos keep their
+READMEs focused on purpose and link to standalone `AGENTS.md` files for those
+instructions. A starter has its own `pnpm-workspace.yaml` and is run from its own
+directory; never add it to the root workspace. Follow the detailed
 [starter checklist](examples/starters/README.md) and the
 [copy workflow](examples/README.md). Update the contributor test-package list in
 `scripts/example-test-packages.mjs` if an example requires another Katakit package.
@@ -183,7 +184,8 @@ The [starter guides](docs/pages/starters/README.md) help users choose a platform
 
 The [Bingo](examples/demos/bingo/README.md) and
 [Color Clash](examples/demos/color-clash/README.md) demos each own their game, UI, and
-audio host so they can be copied independently. Their READMEs explain standalone setup.
+audio host so they can be copied independently. Their local `AGENTS.md` guides
+explain standalone setup and code organization.
 
 ## Website source consumers
 
