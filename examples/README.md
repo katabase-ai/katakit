@@ -12,7 +12,7 @@ Standalone examples install Katakit packages from npm.
 To prepare a standalone copy from a checkout:
 
 ```sh
-pnpm examples:copy demos/transcription-react /tmp/my-transcriber
+pnpm examples:copy demos/transcription /tmp/my-transcriber
 # Or: pnpm examples:copy starters/react-web /tmp/my-app
 # Or: pnpm examples:copy gallery /tmp/my-gallery
 cd /tmp/my-transcriber
@@ -24,7 +24,7 @@ pnpm dev
 The command refuses existing destinations and copies regular files, excluding local credentials,
 installed dependencies, and generated output. The gallery copy includes the demo source and
 shared CSS it composes. Keep all files in the resulting directory when moving it again.
-Follow each README for run commands, extension installation, model downloads, microphone
+Follow each README for run commands, model downloads, microphone
 permissions, and hosting headers. The Bingo and transcription READMEs link to their
 standalone `AGENTS.md` files for these details.
 
@@ -38,20 +38,13 @@ The Bingo demo's short README links to its `AGENTS.md`, which owns standalone se
 organization, and manual checks. Repository-only maintenance belongs here.
 
 From an installed checkout, build the libraries with `pnpm build:pkgs`, then run
-`pnpm -F @katakit/demo-bingo-react dev`. Prepare an independent copy with
-`pnpm examples:copy demos/bingo-react <destination>` and follow its `AGENTS.md`.
+`pnpm -F @katakit/demo-bingo dev`. Prepare an independent copy with
+`pnpm examples:copy demos/bingo <destination>` and follow its `AGENTS.md`.
 
-The shared behavior files in `examples/demos/bingo-react/src/bingo/` are canonical for
-`examples/demos/bingo-extension/src/bingo/`. Browser tests live in
-`examples/demos/bingo-react/tests/`; the plugin and word-list test copies remain in `src/bingo/`.
-Keep source, tests, and the module README identical except for the relocated tests'
-import prefix (`../src/bingo/` in the browser, `./` in the extension).
-Run `pnpm bingo:check-copy` after canonical edits; it compares the behavior files and
-tests across both locations, normalizing only that test import prefix. Browser-only
-`bingo.tsx`, `style.css`, and UI tests are not copied into the extension.
-The extension remains independently copyable; its UI is maintained separately.
+Browser tests live in `examples/demos/bingo/tests/`. The demo owns its Bingo behavior
+and presentation; there is no extension copy to synchronize.
 
-Verify browser-demo changes with `pnpm demos:copy-check bingo-react` and changes to
+Verify browser-demo changes with `pnpm demos:copy-check bingo` and changes to
 gallery consumption with `pnpm gallery:copy-check`.
 
 ## Maintaining local transcription
@@ -61,8 +54,8 @@ setup, organization, and manual checks.
 
 From an installed checkout, build the libraries with `pnpm build:pkgs`, then run
 `pnpm -F @katakit/demo-transcription dev`. Prepare an independent copy with
-`pnpm examples:copy demos/transcription-react <destination>` and follow its `AGENTS.md`.
+`pnpm examples:copy demos/transcription <destination>` and follow its `AGENTS.md`.
 
-Verify demo changes with `pnpm demos:copy-check transcription-react` and changes to
+Verify demo changes with `pnpm demos:copy-check transcription` and changes to
 gallery consumption with `pnpm gallery:copy-check`. Gallery adapters and introductions
 belong in `gallery/shared/`; keep those concerns out of the copied demo.

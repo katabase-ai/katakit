@@ -290,7 +290,7 @@ root.render(
 `shareReplay` supplies the current count to new subscribers. The hook renders that value
 and updates when `increment()` records another event; calling `count$.get()` alone in a component
 would not subscribe it to changes. The
-[transcription view](https://github.com/katabase-ai/katakit/blob/main/examples/demos/transcription-react/src/transcription/TranscriptView.tsx)
+[transcription view](https://github.com/katabase-ai/katakit/blob/main/examples/demos/transcription/src/transcription/TranscriptView.tsx)
 renders conversation state from a runtime owned by its host. `currentTurn$` and `provisional$`
 initially emit `undefined` until there is an unfinished turn or provisional text.
 
@@ -302,7 +302,7 @@ This cleanup covers React's subscriptions. It does not stop a runtime, release s
 
 For a view that reads several bound streams, create a stable
 `combineLatest([firstState$, secondState$])` from RxJS and pass it to the boundary's `source$`.
-The [Bingo session](https://github.com/katabase-ai/katakit/blob/main/examples/demos/bingo-react/src/bingo/createBingoSession.ts)
+The [Bingo session](https://github.com/katabase-ai/katakit/blob/main/examples/demos/bingo/src/bingo/createBingoSession.ts)
 keeps a stable microphone sink across rounds. Its board and transcript views follow the
 current runtime; a new deal disconnects them from the previous round.
 

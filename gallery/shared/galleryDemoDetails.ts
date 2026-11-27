@@ -50,7 +50,7 @@ export type GalleryDemoMetadata = {
  */
 export const transcriptionDemoDetails = {
   id: 'transcription',
-  sourcePath: 'examples/demos/transcription-react',
+  sourcePath: 'examples/demos/transcription',
   copyDirectory: 'local-transcription',
   title: 'Transcription',
   section: 'Basics',
@@ -63,7 +63,7 @@ export const transcriptionDemoDetails = {
 } as const satisfies GalleryDemoMetadata;
 export const bingoDemoDetails = {
   id: 'bingo',
-  sourcePath: 'examples/demos/bingo-react',
+  sourcePath: 'examples/demos/bingo',
   copyDirectory: 'conversation-bingo',
   title: 'Bingo',
   section: 'Games',
@@ -74,7 +74,7 @@ export const bingoDemoDetails = {
 } as const satisfies GalleryDemoMetadata;
 export const notesDemoDetails = {
   id: 'notes',
-  sourcePath: 'examples/demos/notes-react',
+  sourcePath: 'examples/demos/notes',
   copyDirectory: 'structured-notes',
   title: 'Structured notes',
   section: 'Meetings',
@@ -89,7 +89,8 @@ export const notesDemoDetails = {
 } as const satisfies GalleryDemoMetadata;
 export const colorClashDemoDetails = {
   id: 'color-clash',
-  sourcePath: 'gallery/shared/color-clash',
+  sourcePath: 'examples/demos/color-clash',
+  copyDirectory: 'color-clash',
   title: 'Color clash',
   section: 'Games',
   description: 'Say the ink color, not the word. Speech stays on your device.',
@@ -99,7 +100,7 @@ export const colorClashDemoDetails = {
 } as const satisfies GalleryDemoMetadata;
 export const brainstormDemoDetails = {
   id: 'brainstorm',
-  sourcePath: 'examples/demos/brainstorm-react',
+  sourcePath: 'examples/demos/brainstorm',
   copyDirectory: 'brainstorming-game',
   title: 'Word rush',
   section: 'Games',
@@ -115,7 +116,7 @@ export const brainstormDemoDetails = {
 
 export const listExtractionDemoDetails = {
   id: 'list-extraction',
-  sourcePath: 'examples/demos/list-extraction-react',
+  sourcePath: 'examples/demos/list-extraction',
   copyDirectory: 'list-extraction',
   title: 'List extraction',
   section: 'Meetings',

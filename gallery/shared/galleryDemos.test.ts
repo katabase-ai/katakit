@@ -1,6 +1,6 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { createTranscriptionDemo } from '../../examples/demos/transcription-react/src/transcription/createTranscriptionDemo';
-import { createNotesDemo } from '../../examples/demos/notes-react/src/createNotesDemo';
+import { createTranscriptionDemo } from '../../examples/demos/transcription/src/transcription/createTranscriptionDemo';
+import { createNotesDemo } from '../../examples/demos/notes/src/createNotesDemo';
 import {
   transcriptionDemoDetails,
   bingoDemoDetails,

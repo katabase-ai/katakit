@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
-import { BrainstormDemo } from '../../examples/demos/brainstorm-react/src/BrainstormDemo';
-import { createBrainstormDemo } from '../../examples/demos/brainstorm-react/src/createBrainstormDemo';
-import { BrainstormRequestError } from '../../examples/demos/brainstorm-react/src/brainstormModel';
+import { BrainstormDemo } from '../../examples/demos/brainstorm/src/BrainstormDemo';
+import { createBrainstormDemo } from '../../examples/demos/brainstorm/src/createBrainstormDemo';
+import { BrainstormRequestError } from '../../examples/demos/brainstorm/src/brainstormModel';
 import { GalleryDemo } from './GalleryDemo';
 import { GalleryModelError, useGalleryModel } from './galleryModel';
 import { useGallerySpeech } from './GallerySpeechProvider';

@@ -63,11 +63,12 @@ if (example === 'gallery') {
   copy(join(root, 'internal/site-ui'), join(target, 'styles'));
   // The gallery is a composition: carry each imported example's source in this copy.
   for (const name of [
-    'bingo-react',
-    'transcription-react',
-    'notes-react',
-    'list-extraction-react',
-    'brainstorm-react',
+    'bingo',
+    'transcription',
+    'notes',
+    'list-extraction',
+    'brainstorm',
+    'color-clash',
   ]) {
     copy(join(root, 'examples/demos', name, 'src'), join(target, 'sources', name, 'src'));
   }
@@ -78,7 +79,7 @@ if (example === 'gallery') {
       else if (/\.(tsx?|css)$/.test(entry.name)) {
         const text = readFileSync(path, 'utf8')
           .replace(
-            /\.\.\/\.\.\/examples\/demos\/(bingo-react|transcription-react|notes-react|list-extraction-react|brainstorm-react)\//g,
+            /\.\.\/\.\.\/examples\/demos\/(bingo|transcription|notes|list-extraction|brainstorm|color-clash)\//g,
             '../sources/$1/'
           )
           .replaceAll('../../internal/site-ui/', '../styles/');

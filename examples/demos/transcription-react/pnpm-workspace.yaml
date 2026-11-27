@@ -1,5 +1,0 @@
-# Keep install settings with this directory when using it as a standalone project.
-allowBuilds:
-  esbuild: true
-minimumReleaseAgeExclude:
-  - '@types/node@24.13.3'

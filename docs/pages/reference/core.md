@@ -84,7 +84,7 @@ Choose how the effect handles values that arrive while a handler is busy:
 
 Handlers' errors are logged rather than propagated to the caller of `start()`. To avoid repeating external work during history reconstruction, use `skipReplay()` on an effect's event-log input. Keep the full history available to projections.
 
-For example, the [structured notes demo](https://github.com/katabase-ai/katakit/tree/main/examples/demos/notes-react) uses `latest` to process accumulated turns from its last accepted cursor. It advances that cursor only after validated model output, so replacing pending signals does not discard unprocessed turns. Clear and close abort the active request and discard late results. The demo owns its prompt, validation, and effect-stream closure; its host owns model admission and transport.
+For example, the [structured notes demo](https://github.com/katabase-ai/katakit/tree/main/examples/demos/notes) uses `latest` to process accumulated turns from its last accepted cursor. It advances that cursor only after validated model output, so replacing pending signals does not discard unprocessed turns. Clear and close abort the active request and discard late results. The demo owns its prompt, validation, and effect-stream closure; its host owns model admission and transport.
 
 ## Reactive helpers
 

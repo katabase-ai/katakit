@@ -7,7 +7,7 @@ import { GallerySpeechProvider } from './GallerySpeechProvider';
 import { BrainstormGalleryDemo } from './BrainstormGalleryDemo';
 import { brainstormDemoDetails } from './galleryDemoDetails';
 import { GalleryConsentProvider } from './GalleryConsentProvider';
-import { App } from '../../examples/demos/brainstorm-react/src/App';
+import { App } from '../../examples/demos/brainstorm/src/App';
 
 const decisions = {
   model: 'typesafe/jev-1.13',

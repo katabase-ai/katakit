@@ -165,11 +165,12 @@ export const checkStructure = (root = repository) => {
           path === join(root, 'gallery') &&
           manifest.name === '@katakit/gallery' &&
           ([
-            'bingo-react',
-            'transcription-react',
-            'notes-react',
-            'list-extraction-react',
-            'brainstorm-react',
+            'bingo',
+            'transcription',
+            'notes',
+            'list-extraction',
+            'brainstorm',
+            'color-clash',
           ].some(name => inside(join(root, 'examples/demos', name, 'src'), target)) ||
             (file.endsWith('.css') &&
               target.endsWith('.css') &&

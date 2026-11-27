@@ -201,11 +201,11 @@ For catalogue or hosting changes, check:
   require a library release.
 
 Run these commands from the repository root, choosing the affected example in place
-of `bingo-react`:
+of `bingo`:
 
 ```sh
 pnpm check
-pnpm demos:copy-check bingo-react
+pnpm demos:copy-check bingo
 pnpm gallery:copy-check
 ```
 
