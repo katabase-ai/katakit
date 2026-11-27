@@ -4,7 +4,7 @@ import { afterEach, expect, test } from 'vitest';
 import { Gallery } from './Gallery';
 import {
   bingoDemoDetails,
-  brainstormDemoDetails,
+  wordRushDemoDetails,
   colorClashDemoDetails,
   listExtractionDemoDetails,
   notesDemoDetails,
@@ -29,7 +29,7 @@ const renderNavigation = (demos: Parameters<typeof Gallery>[0]['demos']) =>
 test('groups selected demos in section order, preserving host order and the active link', () => {
   renderNavigation([
     notesDemoDetails,
-    brainstormDemoDetails,
+    wordRushDemoDetails,
     bingoDemoDetails,
     transcriptionDemoDetails,
     colorClashDemoDetails,

@@ -39,7 +39,7 @@ test.each(galleryDemos)(
       name:
         demo.id === 'color-clash'
           ? 'Play'
-          : demo.id === 'brainstorm'
+          : demo.id === 'word-rush'
             ? 'Start round'
             : 'Start listening',
     });

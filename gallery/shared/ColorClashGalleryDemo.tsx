@@ -1,5 +1,5 @@
-import { ColorClash } from '../../examples/demos/color-clash/src/ColorClash';
-import { createColorClash } from '../../examples/demos/color-clash/src/createColorClash';
+import { ColorClash } from '../../examples/demos/color-clash/src/color-clash/ColorClash';
+import { createColorClash } from '../../examples/demos/color-clash/src/color-clash/createColorClash';
 import { GalleryDemo } from './GalleryDemo';
 import { GalleryCaptureControls } from './GalleryCaptureControls';
 import { useGallerySpeech } from './GallerySpeechProvider';

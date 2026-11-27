@@ -98,10 +98,10 @@ export const colorClashDemoDetails = {
   tags: ['game'],
   load: async () => ({ default: (await import('./ColorClashGalleryDemo')).ColorClashGalleryDemo }),
 } as const satisfies GalleryDemoMetadata;
-export const brainstormDemoDetails = {
-  id: 'brainstorm',
-  sourcePath: 'examples/demos/brainstorm',
-  copyDirectory: 'brainstorming-game',
+export const wordRushDemoDetails = {
+  id: 'word-rush',
+  sourcePath: 'examples/demos/word-rush',
+  copyDirectory: 'word-rush',
   title: 'Word rush',
   section: 'Games',
   description: 'Race the clock and collect spoken answers on a shared sticky-note board.',
@@ -111,7 +111,7 @@ export const brainstormDemoDetails = {
     remoteModel: { transcribedText: 'cloud' },
   },
   tags: ['game'],
-  load: async () => ({ default: (await import('./BrainstormGalleryDemo')).BrainstormGalleryDemo }),
+  load: async () => ({ default: (await import('./WordRushGalleryDemo')).WordRushGalleryDemo }),
 } as const satisfies GalleryDemoMetadata;
 
 export const listExtractionDemoDetails = {
@@ -137,7 +137,7 @@ export const galleryDemoDetails = [
   transcriptionDemoDetails,
   bingoDemoDetails,
   colorClashDemoDetails,
-  brainstormDemoDetails,
+  wordRushDemoDetails,
   notesDemoDetails,
   listExtractionDemoDetails,
 ] as const satisfies readonly GalleryDemoMetadata[];

@@ -66,9 +66,7 @@ for the round and explicitly flushes/closes it on cleanup; callback subscription
 to their mounted components. Preserve that ownership when moving code. Do not assume
 Katakit core provides a general runtime disposal method.
 
-## Hosting and verification
-
-### Event model
+## Event model
 
 The local [event definitions](src/bingo/events.ts) and [plugin](src/bingo/plugin.ts) model one
 round. `gameStarted` records the actual dealt squares; `squareManuallyChanged` records a
@@ -85,7 +83,7 @@ live board content with a fresh runtime seeded with the recorded Bingo events.
 See [Designing event-sourced applications](https://github.com/katabase-ai/katakit/blob/main/docs/pages/reference/event-sourcing.md)
 for the general design method and resource-ownership requirements.
 
-### Hosting checks
+## Hosting and verification
 
 Microphone access needs a secure, cross-origin-isolated context. Vite supplies the
 headers on localhost. Static hosting must serve `Cross-Origin-Opener-Policy: same-origin`

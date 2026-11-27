@@ -24,8 +24,8 @@ pnpm dev
 The command refuses existing destinations and copies regular files, excluding local credentials,
 installed dependencies, and generated output. The gallery copy includes the demo source and
 shared CSS it composes. Keep all files in the resulting directory when moving it again.
-Follow each README for run commands, model downloads, microphone
-permissions, and hosting headers. The Bingo and transcription READMEs link to their
+Follow each README for run commands, model downloads, microphone permissions, and
+hosting headers. The Bingo, transcription, and Color Clash READMEs link to their
 standalone `AGENTS.md` files for these details.
 
 Run `pnpm examples:copy-check` from an installed checkout to build and pack the current libraries,
@@ -59,3 +59,15 @@ From an installed checkout, build the libraries with `pnpm build:pkgs`, then run
 Verify demo changes with `pnpm demos:copy-check transcription` and changes to
 gallery consumption with `pnpm gallery:copy-check`. Gallery adapters and introductions
 belong in `gallery/shared/`; keep those concerns out of the copied demo.
+
+## Maintaining Color clash
+
+The [Color Clash README](demos/color-clash/README.md) links to its local
+`AGENTS.md` for standalone setup, organization, and manual checks. From an
+installed checkout, build the libraries with `pnpm build:pkgs`, then run
+`pnpm -F @katakit/demo-color-clash dev`. Prepare an independent copy with
+`pnpm examples:copy demos/color-clash <destination>`.
+
+Verify demo changes with `pnpm demos:copy-check color-clash` and gallery
+consumption with `pnpm gallery:copy-check`. Keep gallery capture in its adapter;
+the copy owns its own input and shutdown.

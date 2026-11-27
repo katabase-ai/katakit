@@ -1,6 +1,6 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { createBrainstormDemo } from './createBrainstormDemo';
-import { BrainstormRequestError, type BrainstormConnection } from './brainstormModel';
+import { createWordRushDemo } from './createWordRushDemo';
+import { WordRushRequestError, type WordRushConnection } from './wordRushModel';
 import { challengeCategories, challenges, drawChallenge } from './challenges';
 
 const decisions = {
@@ -22,17 +22,17 @@ const completion = (text: string, evidence = text) => ({
   ],
 });
 const connection = (
-  requestCompletion: BrainstormConnection['requestCompletion']
-): BrainstormConnection => ({
+  requestCompletion: WordRushConnection['requestCompletion']
+): WordRushConnection => ({
   model: 'test-model',
   maxBodyBytes: 16384,
   maxOutputTokens: 1024,
   decisions,
   requestCompletion,
 });
-const games: ReturnType<typeof createBrainstormDemo>[] = [];
+const games: ReturnType<typeof createWordRushDemo>[] = [];
 const game = () => {
-  const runtime = createBrainstormDemo();
+  const runtime = createWordRushDemo();
   games.push(runtime);
   runtime.connect(
     connection(async () => ({
@@ -41,7 +41,7 @@ const game = () => {
   );
   return runtime;
 };
-const hear = (runtime: ReturnType<typeof createBrainstormDemo>, text: string) =>
+const hear = (runtime: ReturnType<typeof createWordRushDemo>, text: string) =>
   runtime.ingestSegment({ id: crypto.randomUUID(), sourceId: 'test-mic', text });
 afterEach(() => {
   games.forEach(runtime => runtime.close());
@@ -161,7 +161,7 @@ test('live judging accepts valid non-example answers and retains arrivals during
   const runtime = game();
   let complete!: (value: unknown) => void;
   const request = vi
-    .fn<BrainstormConnection['requestCompletion']>()
+    .fn<WordRushConnection['requestCompletion']>()
     .mockImplementationOnce(
       () =>
         new Promise(resolve => {
@@ -212,7 +212,7 @@ test('a finished round waits for pending judging before starting the next one', 
 test('long finalized utterances preserve answers across character boundaries', async () => {
   const runtime = game();
   const request = vi
-    .fn<BrainstormConnection['requestCompletion']>()
+    .fn<WordRushConnection['requestCompletion']>()
     .mockResolvedValue(completion('Hammerhead shark', 'hammerhead shark'));
   runtime.connect(connection(request));
   runtime.begin();
@@ -227,7 +227,7 @@ test('long finalized utterances preserve answers across character boundaries', a
 test('a malformed batch pauses without advancing its cursor and explicit retry processes every pending segment', async () => {
   const runtime = game();
   const request = vi
-    .fn<BrainstormConnection['requestCompletion']>()
+    .fn<WordRushConnection['requestCompletion']>()
     .mockResolvedValueOnce(completion('Seal', 'not in the transcript'))
     .mockResolvedValueOnce(completion('Seal', 'seal'));
   runtime.connect(connection(request));
@@ -272,7 +272,7 @@ test('removal while a request is in flight cannot be undone by its stale result'
   const runtime = game();
   let complete!: (value: unknown) => void;
   const request = vi
-    .fn<BrainstormConnection['requestCompletion']>()
+    .fn<WordRushConnection['requestCompletion']>()
     .mockResolvedValueOnce(completion('Seal', 'seal'))
     .mockImplementationOnce(
       () =>
@@ -293,7 +293,7 @@ test('removal while a request is in flight cannot be undone by its stale result'
 
 test('request sizing failure retains input and terminal host failures survive new rounds', async () => {
   const runtime = game();
-  const request = vi.fn<BrainstormConnection['requestCompletion']>();
+  const request = vi.fn<WordRushConnection['requestCompletion']>();
   runtime.connect({ ...connection(request), maxBodyBytes: 10 });
   runtime.begin();
   hear(runtime, 'seal');
@@ -306,7 +306,7 @@ test('request sizing failure retains input and terminal host failures survive ne
   expect(runtime.state$.value.failure).toBeUndefined();
   runtime.connect(
     connection(async () => {
-      throw new BrainstormRequestError('Allowance exhausted', { terminal: true, code: 'quota' });
+      throw new WordRushRequestError('Allowance exhausted', { terminal: true, code: 'quota' });
     })
   );
   runtime.begin();
@@ -333,7 +333,7 @@ test('a manually ended clock stays frozen', () => {
 });
 
 test('a judging connection is required and finalized speech cannot start a round', () => {
-  const runtime = createBrainstormDemo();
+  const runtime = createWordRushDemo();
   games.push(runtime);
   runtime.begin();
   hear(runtime, 'dolphin');
@@ -375,7 +375,7 @@ test('Jev decides category eligibility for extracted clothing candidates and rec
   const runtime = game();
   runtime.configure({ challengeId: 'clothing-and-accessories-04' });
   const candidates = ['skirt', 'pants', 'joggers', 'shoe'];
-  const extract = vi.fn<BrainstormConnection['requestCompletion']>(async () => ({
+  const extract = vi.fn<WordRushConnection['requestCompletion']>(async () => ({
     choices: [
       {
         finish_reason: 'stop',
@@ -385,7 +385,7 @@ test('Jev decides category eligibility for extracted clothing candidates and rec
       },
     ],
   }));
-  const decide = vi.fn<BrainstormConnection['decisions']['requestDecision']>(async () => ({
+  const decide = vi.fn<WordRushConnection['decisions']['requestDecision']>(async () => ({
     answers: {
       candidate_0: { type: 'noul', noul: 0.99 },
       candidate_1: { type: 'noul', noul: 0.97 },

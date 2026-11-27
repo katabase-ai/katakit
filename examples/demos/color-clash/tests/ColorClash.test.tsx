@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { afterEach, expect, test, vi } from 'vitest';
 import type { TranscriptionState } from '@katakit/transcription';
 import { TranscriptionError } from '@katakit/transcription';
-import { ColorClash } from './ColorClash';
-import { createColorClash } from './createColorClash';
+import { ColorClash } from '../src/color-clash/ColorClash';
+import { createColorClash } from '../src/color-clash/createColorClash';
 
 afterEach(() => {
   cleanup();

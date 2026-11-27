@@ -360,10 +360,10 @@ test('developer operation grid uses catalogue requirements, remains navigable an
       requiresGalleryCapability(demo.requiredCapabilities, 'remoteModel')
     ).length
   );
-  const brainstorm = within(table).getByRole('row', { name: /Word rush/ });
-  expect(within(brainstorm).getByRole('link', { name: 'Word rush' })).toBeDefined();
+  const wordRush = within(table).getByRole('row', { name: /Word rush/ });
+  expect(within(wordRush).getByRole('link', { name: 'Word rush' })).toBeDefined();
   expect(
-    within(brainstorm).getByRole('img', { name: 'Text generation: Required · needs a connection' })
+    within(wordRush).getByRole('img', { name: 'Text generation: Required · needs a connection' })
   ).toBeDefined();
   expect(screen.queryByText('Diarization')).toBeNull();
   expect(screen.queryByRole('button', { name: /Sign up/ })).toBeNull();
