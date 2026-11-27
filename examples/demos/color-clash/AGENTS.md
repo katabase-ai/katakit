@@ -36,8 +36,8 @@ the page to stop and dispose of the standalone microphone owner.
 - `src/app.tsx` mounts React and imports `src/base.css`, which contains standalone
   theme defaults and global resets. Do not import it from gallery-owned code.
 - `src/color-clash/ColorClashApp.tsx` owns the standalone microphone hook and its
-  callbacks. Cancellation remounts a keyed session: the hook stops and disposes
-  the previous transcriber asynchronously after pending results drain.
+  game sink. Cancellation remounts a keyed session: the hook keeps the outgoing game
+  attached until stop and pending results drain, then disposes capture and closes it.
 - `src/color-clash/ColorClash.tsx` renders the game from its runtime and host-owned
   input state. Its timer is cleared on phase change or unmount; it asks its host to
   stop capture when the round finishes.
