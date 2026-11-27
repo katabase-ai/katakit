@@ -1,0 +1,149 @@
+/* Local layout for the browser bingo example. */
+.browser-bingo {
+  max-width: 960px;
+  margin: 0 auto;
+  container-type: inline-size;
+}
+
+.bingo-intro {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+.bingo-intro h1 { font-size: var(--text-3xl); }
+.bingo-intro p { margin-top: var(--space-sm); color: var(--color-muted); }
+
+.bingo-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 270px);
+  /* The transcript column is as tall as the card, so its lines can run to the card's end. */
+  align-items: stretch;
+  gap: var(--space-xl);
+}
+
+.bingo-game { min-width: 0; }
+.bingo-score {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-xs) var(--space-md);
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-sm);
+  border-bottom: 1px solid var(--color-rule);
+}
+.bingo-score strong { font-size: var(--text-lg); font-weight: 600; line-height: 1.4; }
+.bingo-score span { color: var(--color-muted); font-size: var(--text-sm); }
+
+/* The whole card stays on screen: square while there is room, shorter rows when the window is
+   short. A host with its own chrome sets the variable. */
+.bingo-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: repeat(5, minmax(0, 1fr)); gap: var(--space-xs); width: 100%; aspect-ratio: 1; max-height: var(--bingo-grid-max-height, calc(100dvh - 16rem)); min-height: 18rem; }
+.bingo-square {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: var(--space-2xs);
+  border: 1px solid var(--color-rule);
+  border-radius: var(--radius-input);
+  background: var(--color-paper-2);
+  color: var(--color-ink);
+  font: 500 clamp(0.72rem, 1.1vw, 0.9rem)/1.25 var(--font-body);
+  overflow-wrap: anywhere;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color var(--dur-micro) var(--ease-out), border-color var(--dur-micro) var(--ease-out);
+}
+.bingo-square:hover { background: var(--color-paper-3); border-color: var(--color-rule-2); }
+.bingo-square:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.bingo-square[data-marked='true'] { background: var(--color-accent-wash); border-color: var(--color-accent); color: var(--color-accent-deep); font-weight: 600; }
+.bingo-square[data-marked='true']:hover { background: var(--color-accent-wash); }
+.bingo-square[data-long='true'] { font-size: clamp(0.58rem, 1vw, 0.74rem); line-height: 1.1; }
+
+.bingo-controls { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.bingo-controls > :is(.transcript-preview, .transcript-turns) { flex: 1; }
+/* A native field keeps word-list selection familiar and keyboard accessible. */
+.bingo-word-list-picker { display: flex; align-items: center; gap: var(--space-xs); margin-left: auto; max-width: 100%; }
+.bingo-word-list-picker .site-field { position: relative; min-width: 0; }
+.bingo-word-list-picker .site-field > label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.bingo-word-list-picker .site-field::after { content: ''; position: absolute; right: 0.875rem; top: 50%; width: 0.4rem; height: 0.4rem; margin-top: -0.3rem; border-right: 1.5px solid var(--color-muted); border-bottom: 1.5px solid var(--color-muted); transform: rotate(45deg); pointer-events: none; }
+.browser-bingo .bingo-word-list-picker .site-select { width: 100%; min-height: 36px; padding: 0.5rem 2.25rem 0.5rem 0.75rem; border: 1px solid var(--color-rule); border-radius: var(--radius-input, 8px); background: var(--color-paper-2); box-shadow: none; color: var(--color-ink); font: 500 var(--text-sm, 0.875rem)/1.4 var(--font-body, system-ui, sans-serif); appearance: none; cursor: pointer; }
+.browser-bingo .bingo-word-list-picker .site-select:hover { border-color: var(--color-rule-2, var(--color-muted)); background: var(--color-paper-3); }
+.browser-bingo .bingo-word-list-picker .site-select:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+.browser-bingo .bingo-word-list-picker .site-button.site-button--icon { width: 28px; min-height: 28px; color: var(--color-muted); }
+.browser-bingo .bingo-word-list-picker .site-button.site-button--icon:hover { color: var(--color-ink); }
+.browser-bingo .bingo-word-list-picker .site-button.site-button--icon svg { width: 15px; height: 15px; }
+@media (pointer: coarse) {
+  .browser-bingo .bingo-word-list-picker .site-select { min-height: 44px; }
+}
+.bingo-controls h2 { font-size: var(--text-lg); }
+.bingo-controls > p { margin: var(--space-sm) 0 var(--space-lg); color: var(--color-muted); font-size: var(--text-sm); }
+.bingo-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-xs); }
+.bingo-audio-level { margin-top: var(--space-md); }
+.bingo-error { color: var(--color-error) !important; }
+.bingo-controls p[role='status'], .bingo-controls p[role='alert'] { margin-top: var(--space-md); font-size: var(--text-sm); }
+
+/* The transcript column. The structured-notes and bingo examples each carry these rules. */
+.transcript-preview {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  color: var(--color-muted, color-mix(in srgb, currentColor 70%, transparent));
+}
+/* The heading sits above its rule, the same shape as a section heading beside it. */
+.transcript-preview h2 {
+  margin: 0 0 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-rule, color-mix(in srgb, currentColor 18%, transparent));
+  color: var(--color-ink, inherit);
+  font-size: var(--text-lg, 1.25rem);
+  font-weight: 600;
+  line-height: 1.4;
+  letter-spacing: normal;
+}
+/* Lines fill the column to its end and are cut off there; their content never sizes the column. */
+.transcript-preview-lines {
+  display: grid;
+  align-content: start;
+  flex: 1 1 0;
+  min-height: 6rem;
+  overflow: hidden;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.transcript-preview-lines p {
+  margin: 0 0 0.375rem;
+}
+/* Older lines are quieter by position, not by animation: animated lines were painted at stale
+   positions when a new line pushed them down. */
+.transcript-preview-lines p:nth-child(2) {
+  opacity: 0.75;
+}
+.transcript-preview-lines p:nth-child(3) {
+  opacity: 0.55;
+}
+.transcript-preview-lines p:nth-child(n + 4) {
+  opacity: 0.4;
+}
+.transcript-preview-lines p[data-provisional='true'] {
+  font-style: italic;
+}
+
+@container (max-width: 720px) {
+  .bingo-layout { grid-template-columns: minmax(0, 1fr); gap: var(--space-xl); }
+  .bingo-grid { max-height: none; }
+  .bingo-square { font-size: clamp(0.7rem, 2.6vw, 0.9rem); }
+}
+@media (max-width: 540px) {
+  .bingo-intro { margin-bottom: var(--space-lg); }
+  .bingo-intro h1 { font-size: var(--text-xl); }
+  .bingo-grid { gap: var(--space-2xs); }
+  .bingo-square { border-radius: 6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bingo-square { transition: none; }
+}

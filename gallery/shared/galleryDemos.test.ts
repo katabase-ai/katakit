@@ -1,13 +1,13 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { createTranscriptionDemo } from '../../examples/demos/transcription-react/src/createTranscriptionDemo';
-import { createNotesDemo } from '../../examples/demos/notes-react/src/createNotesDemo';
+import { createTranscriptionDemo } from '../../examples/demos/transcription/src/transcription/createTranscriptionDemo';
+import { createNotesDemo } from '../../examples/demos/notes/src/createNotesDemo';
 import {
   transcriptionDemoDetails,
   bingoDemoDetails,
   notesDemoDetails,
   colorClashDemoDetails,
   listExtractionDemoDetails,
-  brainstormDemoDetails,
+  wordRushDemoDetails,
 } from './galleryDemoDetails';
 import {
   transcriptionGalleryDemo,
@@ -15,7 +15,7 @@ import {
   notesGalleryDemo,
   colorClashGalleryDemo,
   listExtractionGalleryDemo,
-  brainstormGalleryDemo,
+  wordRushGalleryDemo,
 } from './galleryDemos';
 
 afterEach(() => vi.useRealTimers());
@@ -27,7 +27,7 @@ test('each named loader carries its matching metadata independent of catalogue p
     [notesGalleryDemo, notesDemoDetails],
     [colorClashGalleryDemo, colorClashDemoDetails],
     [listExtractionGalleryDemo, listExtractionDemoDetails],
-    [brainstormGalleryDemo, brainstormDemoDetails],
+    [wordRushGalleryDemo, wordRushDemoDetails],
   ] as const) {
     expect(entry).toMatchObject(details);
   }

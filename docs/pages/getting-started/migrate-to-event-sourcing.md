@@ -77,10 +77,13 @@ inventory can help; it need not discard known integration constraints or user re
 
 ## 3. Connect the model to Katakit
 
-Use core's built-in `EventLogPlugin`. Following the
-[projection tutorial](../concepts/event-history.md), validate and select your domain events,
-then accumulate them with `scan(projectMessages, [])` or `evolve` with an explicit initial
-emission. Expose the result as an observable; it has no independent setter.
+Use core's built-in `EventLogPlugin`. Declare the domain events as TypeScript
+`KatakitEvent<Payload>` types, which include core's sequence and timestamp metadata.
+Following the [projection tutorial](../concepts/event-history.md), select those events
+from the log, then accumulate them with `scan(projectMessages, [])` or `evolve` with an
+explicit initial emission. Expose the result as an observable; it has no independent setter.
+Validate external commands and serialized history at their input boundaries; typed in-memory
+replay does not need a second set of runtime event schemas.
 
 Following [Add a plugin and an effect](../concepts/plugins.md), make `addMessage(text)`:
 

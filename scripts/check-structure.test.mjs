@@ -39,7 +39,7 @@ const fixture = t => {
   write('internal/site-ui/styles.css', "@import './components.css';");
   write('internal/site-ui/components.css', '.site-button { display: block; }');
   for (const [path, name] of [
-    ['examples/demos/bingo-react', '@katakit/demo-bingo-react'],
+    ['examples/demos/bingo', '@katakit/demo-bingo'],
     ['gallery', '@katakit/gallery'],
     ['examples/starters/react-web', '@katakit/react-starter'],
   ]) {
@@ -56,7 +56,7 @@ const fixture = t => {
     write(`${path}/LICENSE`, 'fixture license');
     write(`${path}/src/main.ts`, 'export const value = 1;');
   }
-  write('gallery/shared/view.ts', "import '../../examples/demos/bingo-react/src/main';");
+  write('gallery/shared/view.ts', "import '../../examples/demos/bingo/src/main';");
   write('gallery/shared/style.css', "@import '../../internal/site-ui/components.css';");
   return { root, write, manifest };
 };
@@ -117,7 +117,7 @@ test('feature demos cannot import a sibling example', t =>
   rejects(
     t,
     ({ write }) =>
-      write('examples/demos/bingo-react/src/main.ts', "import '../../../../gallery/shared/view';"),
+      write('examples/demos/bingo/src/main.ts', "import '../../../../gallery/shared/view';"),
     /escapes its demo directory/
   ));
 test('literal template-string imports cannot escape an example', t =>
@@ -125,7 +125,7 @@ test('literal template-string imports cannot escape an example', t =>
     t,
     ({ write }) =>
       write(
-        'examples/demos/bingo-react/src/main.ts',
+        'examples/demos/bingo/src/main.ts',
         'void import(`../../../../gallery/shared/view`);'
       ),
     /escapes its demo directory/
@@ -134,7 +134,7 @@ test('demo manifests reject workspace protocols', t =>
   rejects(
     t,
     ({ manifest }) =>
-      manifest('examples/demos/bingo-react', value => {
+      manifest('examples/demos/bingo', value => {
         value.dependencies['@katakit/core'] = 'workspace:*';
       }),
     /must use an installable registry version/
@@ -196,7 +196,7 @@ test('old root example directories are rejected', t =>
 test('symlinks in example sources are rejected', { skip: process.platform === 'win32' }, t =>
   rejects(
     t,
-    ({ root }) => symlinkSync('main.ts', join(root, 'examples/demos/bingo-react/src/linked.ts')),
+    ({ root }) => symlinkSync('main.ts', join(root, 'examples/demos/bingo/src/linked.ts')),
     /must be regular files, not symlinks/
   )
 );

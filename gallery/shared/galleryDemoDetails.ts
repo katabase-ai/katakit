@@ -27,10 +27,15 @@ export const requiresGalleryCapability = (
   capability: keyof GalleryRequiredCapabilities
 ) => requirements[capability] !== undefined;
 
+/** Navigation sections in display order; hosts still select which demos to publish. */
+export const galleryDemoSections = ['Basics', 'Games', 'Meetings'] as const;
+export type GalleryDemoSection = (typeof galleryDemoSections)[number];
+
 export type GalleryDemoMetadata = {
   readonly id: string;
   readonly sourcePath: string;
   readonly title: string;
+  readonly section: GalleryDemoSection;
   readonly description: string;
   readonly requiredCapabilities: GalleryRequiredCapabilities;
   readonly tags: readonly ('game' | 'transcription' | 'productivity')[];
@@ -45,9 +50,10 @@ export type GalleryDemoMetadata = {
  */
 export const transcriptionDemoDetails = {
   id: 'transcription',
-  sourcePath: 'examples/demos/transcription-react',
+  sourcePath: 'examples/demos/transcription',
   copyDirectory: 'local-transcription',
-  title: 'Local transcription',
+  title: 'Transcription',
+  section: 'Basics',
   description: 'Your browser turns microphone audio into text on this device.',
   requiredCapabilities: { microphone: true, localTranscription: { audio: 'device' } },
   tags: ['transcription'],
@@ -57,9 +63,10 @@ export const transcriptionDemoDetails = {
 } as const satisfies GalleryDemoMetadata;
 export const bingoDemoDetails = {
   id: 'bingo',
-  sourcePath: 'examples/demos/bingo-react',
+  sourcePath: 'examples/demos/bingo',
   copyDirectory: 'conversation-bingo',
-  title: 'Conversation bingo',
+  title: 'Bingo',
+  section: 'Games',
   description: 'Say it in the conversation. See it on the card. Five in a row wins!',
   requiredCapabilities: { microphone: true, localTranscription: { audio: 'device' } },
   tags: ['game'],
@@ -67,9 +74,10 @@ export const bingoDemoDetails = {
 } as const satisfies GalleryDemoMetadata;
 export const notesDemoDetails = {
   id: 'notes',
-  sourcePath: 'examples/demos/notes-react',
+  sourcePath: 'examples/demos/notes',
   copyDirectory: 'structured-notes',
   title: 'Structured notes',
+  section: 'Meetings',
   description: 'Talk through a plan. Notes take shape as you finish each thought.',
   requiredCapabilities: {
     microphone: true,
@@ -81,18 +89,21 @@ export const notesDemoDetails = {
 } as const satisfies GalleryDemoMetadata;
 export const colorClashDemoDetails = {
   id: 'color-clash',
-  sourcePath: 'gallery/shared/color-clash',
-  title: 'Color Clash',
+  sourcePath: 'examples/demos/color-clash',
+  copyDirectory: 'color-clash',
+  title: 'Color clash',
+  section: 'Games',
   description: 'Say the ink color, not the word. Speech stays on your device.',
   requiredCapabilities: { microphone: true, localTranscription: { audio: 'device' } },
   tags: ['game'],
   load: async () => ({ default: (await import('./ColorClashGalleryDemo')).ColorClashGalleryDemo }),
 } as const satisfies GalleryDemoMetadata;
-export const brainstormDemoDetails = {
-  id: 'brainstorm',
-  sourcePath: 'examples/demos/brainstorm-react',
-  copyDirectory: 'brainstorming-game',
-  title: 'Brainstorming game',
+export const wordRushDemoDetails = {
+  id: 'word-rush',
+  sourcePath: 'examples/demos/word-rush',
+  copyDirectory: 'word-rush',
+  title: 'Word rush',
+  section: 'Games',
   description: 'Race the clock and collect spoken answers on a shared sticky-note board.',
   requiredCapabilities: {
     microphone: true,
@@ -100,14 +111,15 @@ export const brainstormDemoDetails = {
     remoteModel: { transcribedText: 'cloud' },
   },
   tags: ['game'],
-  load: async () => ({ default: (await import('./BrainstormGalleryDemo')).BrainstormGalleryDemo }),
+  load: async () => ({ default: (await import('./WordRushGalleryDemo')).WordRushGalleryDemo }),
 } as const satisfies GalleryDemoMetadata;
 
 export const listExtractionDemoDetails = {
   id: 'list-extraction',
-  sourcePath: 'examples/demos/list-extraction-react',
+  sourcePath: 'examples/demos/list-extraction',
   copyDirectory: 'list-extraction',
   title: 'List extraction',
+  section: 'Meetings',
   description: 'Tell it what to keep. Speak freely and collect selective lists.',
   requiredCapabilities: {
     microphone: true,
@@ -124,8 +136,8 @@ export const listExtractionDemoDetails = {
 export const galleryDemoDetails = [
   transcriptionDemoDetails,
   bingoDemoDetails,
+  colorClashDemoDetails,
+  wordRushDemoDetails,
   notesDemoDetails,
   listExtractionDemoDetails,
-  colorClashDemoDetails,
-  brainstormDemoDetails,
 ] as const satisfies readonly GalleryDemoMetadata[];

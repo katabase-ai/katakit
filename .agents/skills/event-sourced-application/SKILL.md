@@ -32,6 +32,12 @@ starts from an application that was not event-sourced.
 2. Complete the [design brief](references/design-brief.md) before implementation. Select events
    and projections from the inventory, then compare the design with implementation constraints.
    Adapt frontend interfaces when needed to express the better model while preserving behavior.
+   If a reused plugin already owns the required events, use its log and projections instead of
+   introducing a second history merely to migrate a UI wrapper.
+   Model events as TypeScript `KatakitEvent` types, reusing a plugin's exported types where
+   applicable. Runtime schemas for external input or storage decoding are separate boundary
+   concerns, not the event model; do not add a serialization format to an in-memory demo merely
+   to demonstrate replay.
 3. If the proposed events simply mirror setters or a catch-all state object, do a fresh design
    pass using the behavior inventory and constraints. This does not require a new session or
    delegation. Do not discard product requirements to obtain a cleaner-looking model.
@@ -93,12 +99,12 @@ starts from an application that was not event-sourced.
 
 ## Worked references
 
-- [Bingo events](../../../examples/demos/bingo-react/src/bingo/events.ts),
-  [projections](../../../examples/demos/bingo-react/src/bingo/plugin.ts), and
-  [reconstruction checks](../../../examples/demos/bingo-react/src/bingo/plugin.test.ts):
+- [Bingo events](../../../examples/demos/bingo/src/bingo/events.ts),
+  [projections](../../../examples/demos/bingo/src/bingo/plugin.ts), and
+  [reconstruction checks](../../../examples/demos/bingo/tests/plugin.test.ts):
   recorded layout, distinct speech/manual facts, and derived winning lines.
-- [Structured notes](../../../examples/demos/notes-react/src/notesPlugin.ts) and
-  [behavior checks](../../../examples/demos/notes-react/src/notesPlugin.test.ts): accepted
+- [Structured notes](../../../examples/demos/notes/src/notesPlugin.ts) and
+  [behavior checks](../../../examples/demos/notes/src/notesPlugin.test.ts): accepted
   model results, recorded cursor, clear within a session, cancellation, and live resumption.
 
 These references establish particular patterns, not blanket approval to copy every hook or

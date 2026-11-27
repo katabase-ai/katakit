@@ -1,7 +1,7 @@
 @import '../../internal/site-ui/styles.css';
 @import '../shared/theme.css';
 @import '../shared/gallery.css';
-@import '../../examples/demos/transcription-react/src/style.css';
+@import '../../examples/demos/transcription/src/transcription/style.css';
 
 .gallery-host {
   width: min(var(--container), calc(100% - var(--gutter) * 2));

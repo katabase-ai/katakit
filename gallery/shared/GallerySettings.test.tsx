@@ -8,15 +8,16 @@ import { GallerySpeechProvider } from './GallerySpeechProvider';
 import { GallerySpeechControls } from './GallerySpeechControls';
 import { GalleryModeProvider, GalleryPreviewToggle, useGalleryMode } from './GalleryModeProvider';
 import type { GalleryDeveloperPage } from './operationDetails';
-import { galleryDemoDetails, requiresGalleryCapability } from './galleryDemoDetails';
+import {
+  galleryDemoDetails,
+  notesDemoDetails,
+  requiresGalleryCapability,
+} from './galleryDemoDetails';
 import { GalleryModelError, useGalleryModel, type GalleryModelConnect } from './galleryModel';
 import { defaultInference, inferenceStorageKey } from './galleryInference';
-import { NotesDemo } from '../../examples/demos/notes-react/src/NotesDemo';
-import { createNotesDemo } from '../../examples/demos/notes-react/src/createNotesDemo';
-import {
-  NotesRequestError,
-  type NotesConnection,
-} from '../../examples/demos/notes-react/src/notesModel';
+import { NotesDemo } from '../../examples/demos/notes/src/NotesDemo';
+import { createNotesDemo } from '../../examples/demos/notes/src/createNotesDemo';
+import { NotesRequestError, type NotesConnection } from '../../examples/demos/notes/src/notesModel';
 
 const completion = (text?: string) => ({
   choices: [
@@ -94,7 +95,7 @@ const Content = ({
       <GalleryPreviewToggle />
       <Gallery
         demos={galleryDemoDetails}
-        activeDemo={galleryDemoDetails[2]}
+        activeDemo={notesDemoDetails}
         developerPage={page === 'settings' ? undefined : page}
         settingsPage={page === 'settings'}
         account={{ waitlistUrl: 'https://example.com/waitlist' }}
@@ -349,8 +350,8 @@ test('developer operation grid uses catalogue requirements, remains navigable an
       requiresGalleryCapability(demo.requiredCapabilities, 'localTranscription')
     ).length
   );
-  const game = within(table).getByRole('row', { name: /Color Clash/ });
-  expect(within(game).getByRole('link', { name: 'Color Clash' })).toBeDefined();
+  const game = within(table).getByRole('row', { name: /Color clash/ });
+  expect(within(game).getByRole('link', { name: 'Color clash' })).toBeDefined();
   expect(within(game).getByRole('img', { name: 'Text generation: Not used' })).toBeDefined();
   expect(
     within(table).getAllByRole('img', { name: 'Text generation: Required · needs a connection' })
@@ -359,10 +360,10 @@ test('developer operation grid uses catalogue requirements, remains navigable an
       requiresGalleryCapability(demo.requiredCapabilities, 'remoteModel')
     ).length
   );
-  const brainstorm = within(table).getByRole('row', { name: /Brainstorming game/ });
-  expect(within(brainstorm).getByRole('link', { name: 'Brainstorming game' })).toBeDefined();
+  const wordRush = within(table).getByRole('row', { name: /Word rush/ });
+  expect(within(wordRush).getByRole('link', { name: 'Word rush' })).toBeDefined();
   expect(
-    within(brainstorm).getByRole('img', { name: 'Text generation: Required · needs a connection' })
+    within(wordRush).getByRole('img', { name: 'Text generation: Required · needs a connection' })
   ).toBeDefined();
   expect(screen.queryByText('Diarization')).toBeNull();
   expect(screen.queryByRole('button', { name: /Sign up/ })).toBeNull();

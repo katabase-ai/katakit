@@ -1,10 +1,10 @@
-import { TranscriptionDemo } from '../../examples/demos/transcription-react/src/TranscriptionDemo';
-import { createTranscriptionDemo } from '../../examples/demos/transcription-react/src/createTranscriptionDemo';
+import { TranscriptView } from '../../examples/demos/transcription/src/transcription/TranscriptView';
+import { createTranscriptionDemo } from '../../examples/demos/transcription/src/transcription/createTranscriptionDemo';
 import { createGalleryDemo, type GalleryDemoViewProps } from './createGalleryDemo';
 import { TranscriptionIntroduction } from './TranscriptionIntroduction';
 
 const View = (props: GalleryDemoViewProps<ReturnType<typeof createTranscriptionDemo>>) => (
-  <TranscriptionDemo {...props} introduction={<TranscriptionIntroduction />} />
+  <TranscriptView {...props} introduction={<TranscriptionIntroduction />} />
 );
 
 export const TranscriptionGalleryDemo = createGalleryDemo({

@@ -21,8 +21,8 @@ vi.mock('./ColorClashGalleryDemo', () => {
 vi.mock('./ListExtractionGalleryDemo', () => {
   throw new Error('eager list extraction import');
 });
-vi.mock('./BrainstormGalleryDemo', () => {
-  throw new Error('eager brainstorm import');
+vi.mock('./WordRushGalleryDemo', () => {
+  throw new Error('eager wordRush import');
 });
 
 test('catalogue and registration are usable without evaluating any demo or invoking a loader', () => {
@@ -37,12 +37,12 @@ test('requirements preserve the existing privacy claims and game classification'
   const cloudIds = galleryDemoDetails
     .filter(demo => galleryDataHandling(demo.requiredCapabilities).transcribedText === 'cloud')
     .map(demo => demo.id);
-  expect(cloudIds).toEqual(['notes', 'list-extraction', 'brainstorm']);
+  expect(cloudIds).toEqual(['word-rush', 'notes', 'list-extraction']);
   expect(
     galleryDemoDetails
       .filter(demo => (demo.tags as readonly string[]).includes('game'))
       .map(demo => demo.id)
-  ).toEqual(['bingo', 'color-clash', 'brainstorm']);
+  ).toEqual(['bingo', 'color-clash', 'word-rush']);
 });
 
 test('a host selecting Bingo retains its lazy chunk but no unselected demo modules', async () => {
@@ -82,7 +82,7 @@ test('a host selecting Bingo retains its lazy chunk but no unselected demo modul
     'ColorClashGalleryDemo',
     'TranscriptionGalleryDemo',
     'ListExtractionGalleryDemo',
-    'BrainstormGalleryDemo',
+    'WordRushGalleryDemo',
   ]) {
     expect(modules.filter(id => id.endsWith(`/${name}.tsx`))).toEqual([]);
   }

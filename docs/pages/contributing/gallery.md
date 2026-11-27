@@ -27,8 +27,16 @@ standalone copy materializes imported demo sources and shared CSS as regular fil
 
 `gallery/shared/galleryDemoDetails.ts` is the authoritative catalogue. Each entry
 declares a stable ID, title, description, source location, requirements, descriptive
-tags, and a lazy loader. Independently runnable source directories also declare a
+tags, a navigation section, and a lazy loader. Independently runnable source directories also declare a
 copy destination name for the gallery's local-running instructions.
+
+Navigation groups selected demos into Basics, Games, and Meetings, in that order,
+using each entry's `section`. Empty sections are omitted; the host's demo order is
+preserved within each section. Welcome stays above the sections. Hosts can supply
+`renderSectionLink` for linked section labels and `activeSection` to show an overview
+of their selected demos. The local host uses `/sections/basics`, `/sections/games`,
+and `/sections/meetings`. A separate disclosure button hides or shows each section's
+demo links; that UI state lasts for the mounted gallery view.
 
 The loader names its gallery-facing module directly. Reading metadata does not call
 the loader. There is no component-name string registry or second manually maintained
@@ -164,7 +172,9 @@ and [transcription ownership](../reference/transcription.md) for the underlying 
    for publication. Catalogue eligibility does not automatically publish a new demo.
 
 The repository's gallery README owns exact local setup and host configuration commands.
-Example READMEs own their independent install/run instructions. Shared registration
+Example READMEs provide independent install/run instructions or link to a local setup
+guide. Bingo and transcription use standalone `AGENTS.md` files for setup and maintenance.
+Shared registration
 does not require identical standalone and embedded layouts; the embedded layout
 contract is tracked separately in [issue #56](https://github.com/katabase-ai/katakit/issues/56).
 
@@ -191,11 +201,11 @@ For catalogue or hosting changes, check:
   require a library release.
 
 Run these commands from the repository root, choosing the affected example in place
-of `bingo-react`:
+of `bingo`:
 
 ```sh
 pnpm check
-pnpm demos:copy-check bingo-react
+pnpm demos:copy-check bingo
 pnpm gallery:copy-check
 ```
 

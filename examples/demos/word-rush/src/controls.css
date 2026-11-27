@@ -1,0 +1,88 @@
+/* Locally owned standard controls keep this example copyable. Low specificity lets the
+   gallery's shared site-button/site-select theme supply its normal appearance. */
+.word-rush :where(.site-button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  padding: 0 0.85rem;
+  border: 1px solid var(--color-rule, #e0e1e6);
+  border-radius: var(--radius-input, 6px);
+  background: var(--color-paper-3, light-dark(#f0f0f3, #212225));
+  color: var(--color-ink, inherit);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+}
+.word-rush :where(.site-button):hover:not(:disabled) {
+  background: var(--color-paper-2, light-dark(#e8e8ec, #272a2d));
+}
+.word-rush :where(.site-button):disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.word-rush :where(.site-button--blue) {
+  color: var(--color-accent-ink, #fff);
+  border-color: var(--color-accent, #0d74ce);
+  background: var(--color-accent, #0d74ce);
+}
+.word-rush :where(.site-button--blue):hover:not(:disabled) {
+  background: var(--color-accent-deep, #085eac);
+}
+.word-rush :where(.site-button--ghost) {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+.word-rush :where(.site-button--border) {
+  background: transparent;
+}
+.word-rush :where(.site-button--icon) {
+  width: 44px;
+  padding: 0;
+}
+.word-rush :where(.site-field) {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+}
+.word-rush :where(.site-field label) {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+.word-rush :where(.site-select, .site-input) {
+  min-height: 44px;
+  max-width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-rule-2, #cdced6);
+  border-radius: var(--radius-input, 6px);
+  background: var(--color-paper-2, light-dark(#f9f9fb, #18191b));
+  color: var(--color-ink, inherit);
+  font: inherit;
+}
+.word-rush :where(.site-select, .site-input):disabled {
+  opacity: 0.5;
+}
+.word-rush :where(.site-field-hint) {
+  color: var(--color-muted, #60646c);
+  font-size: 0.875rem;
+}
+.word-rush :where(.site-field-error) {
+  color: var(--color-error, #d13415);
+  font-size: 0.875rem;
+}
+.word-rush :where(.site-notice) {
+  border: 1px solid var(--color-rule, #e0e1e6);
+  border-radius: var(--radius-input, 6px);
+  background: var(--color-paper-2, light-dark(#f9f9fb, #18191b));
+}
+.word-rush :where(button, input, select, summary):focus-visible {
+  outline: 2px solid var(--color-focus, #0d74ce);
+  outline-offset: 4px;
+}
+.word-rush :where(input[type='checkbox']) {
+  accent-color: var(--color-accent, #0d74ce);
+}

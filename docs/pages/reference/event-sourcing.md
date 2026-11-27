@@ -34,7 +34,7 @@ A command asks the application to do something; an event records what it accepte
 happened. A method can validate a command and emit no event when it would change nothing.
 Projections consume the accepted facts without rerunning command admission.
 
-The [Bingo event definitions](https://github.com/katabase-ai/katakit/blob/main/examples/demos/bingo-react/src/bingo/events.ts)
+The [Bingo event definitions](https://github.com/katabase-ai/katakit/blob/main/examples/demos/bingo/src/bingo/events.ts)
 illustrate three choices:
 
 | Event                                      | Meaning                               | Why record it?                                                 |
@@ -43,10 +43,17 @@ illustrate three choices:
 | `squareManuallyChanged({ index, marked })` | A player set a square's marked state. | Manual input can mark or unmark.                               |
 | `squareSpoken({ index })`                  | Speech matched a square.              | Speech marks it and preserves a different origin from a click. |
 
-The [Bingo plugin](https://github.com/katabase-ai/katakit/blob/main/examples/demos/bingo-react/src/bingo/plugin.ts)
+The [Bingo plugin](https://github.com/katabase-ai/katakit/blob/main/examples/demos/bingo/src/bingo/plugin.ts)
 derives `squares$`, `marked$`, and `winningLanes$`. A winning line needs no separate event
 when it is entirely calculable from the marks. Record an award or notification separately
 if the product must remember that an external action actually happened.
+
+Declare events as TypeScript `KatakitEvent<Payload>` types, as Bingo does. That type includes
+core's sequence and timestamp metadata. When reusing a plugin, reuse its exported event types
+and projections too: transcript ingestion already defines `UtteranceAddedEvent`,
+`ConversationTurnAddedEvent`, and `ProvisionalUtteranceAddedEvent` this way. Runtime schemas
+are not the event model. Validate external commands or model responses at their input boundary;
+add storage decoding only when the application actually accepts a serialized history.
 
 Separate event types are a judgment call. A single event with an explicit origin field can
 also preserve provenance. Choose the representation that expresses the allowed behavior
@@ -86,9 +93,10 @@ Record the results of nondeterministic work before deriving content from them:
 - Store relevant times as data, rather than reading the current clock in a projection.
 
 Do not mutate recorded payloads or earlier projection values. Validate external inputs
-before emission and loaded history before `existingEvents`; restore serialized metadata
-such as timestamps according to the application's storage format. Event order and stable
-source/entity IDs matter when input can be duplicated or delivered late. Define admission
+before emission. If history comes from storage or another external source, decode and validate
+it before `existingEvents`, restoring timestamps according to that storage format. In-memory
+replay can pass the existing typed events directly, without revalidating accepted facts.
+Event order and stable source/entity IDs matter when input can be duplicated or delivered late. Define admission
 and deduplication at the appropriate input boundary; core does not infer those policies.
 
 Construct a fresh runtime with `existingEvents` and read projections before `start()` to
@@ -98,7 +106,7 @@ Keep that history available to projections. An effect driven by projected state 
 explicit live-work policy too: filtering one stream is not a general replay mode.
 
 Reconstruction and resuming unfinished work are separate operations. The
-[structured notes runtime](https://github.com/katabase-ai/katakit/blob/main/examples/demos/notes-react/src/createNotesDemo.ts)
+[structured notes runtime](https://github.com/katabase-ai/katakit/blob/main/examples/demos/notes/src/createNotesDemo.ts)
 restores content without a model connection. An explicit connection can then process turns
 after the recorded cursor. That is new live work, not replaying previously accepted output.
 
@@ -135,7 +143,8 @@ and release resources. For session replacement, ensure old producers and late re
 write to the replacement session.
 
 Core has [no general stop/dispose API](core.md#ownership-and-shutdown). Ingestion's `close()`
-flushes its local stream; it does not stop every plugin, microphone, or request. Removing a
+cancels its timer; the input owner must call `flush()` separately to finalize pending input.
+It does not stop every plugin, microphone, or request. Removing a
 UI subscription does not release the runtime's eager subscriptions either. State exactly
 which owner stops each resource rather than promising automatic cleanup.
 
@@ -152,8 +161,8 @@ invalid output, late results after clear/close, and final input during shutdown.
 checks establish behavior under controlled inputs. Test real microphone/model interaction
 and gallery navigation separately when those paths change.
 
-Use the [Bingo projection tests](https://github.com/katabase-ai/katakit/blob/main/examples/demos/bingo-react/src/bingo/plugin.test.ts)
+Use the [Bingo projection tests](https://github.com/katabase-ai/katakit/blob/main/examples/demos/bingo/tests/plugin.test.ts)
 for board reconstruction and the
-[structured notes tests](https://github.com/katabase-ai/katakit/blob/main/examples/demos/notes-react/src/notesPlugin.test.ts)
+[structured notes tests](https://github.com/katabase-ai/katakit/blob/main/examples/demos/notes/src/notesPlugin.test.ts)
 for accepted model output, replay, cancellation, and pending work. They demonstrate specific
 contracts; a passing test is not evidence for every lifecycle path in a demo.

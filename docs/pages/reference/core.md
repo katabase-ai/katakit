@@ -84,7 +84,7 @@ Choose how the effect handles values that arrive while a handler is busy:
 
 Handlers' errors are logged rather than propagated to the caller of `start()`. To avoid repeating external work during history reconstruction, use `skipReplay()` on an effect's event-log input. Keep the full history available to projections.
 
-For example, the [structured notes demo](https://github.com/katabase-ai/katakit/tree/main/examples/demos/notes-react) uses `latest` to process accumulated turns from its last accepted cursor. It advances that cursor only after validated model output, so replacing pending signals does not discard unprocessed turns. Clear and close abort the active request and discard late results. The demo owns its prompt, validation, and effect-stream closure; its host owns model admission and transport.
+For example, the [structured notes demo](https://github.com/katabase-ai/katakit/tree/main/examples/demos/notes) uses `latest` to process accumulated turns from its last accepted cursor. It advances that cursor only after validated model output, so replacing pending signals does not discard unprocessed turns. Clear and close abort the active request and discard late results. The demo owns its prompt, validation, and effect-stream closure; its host owns model admission and transport.
 
 ## Reactive helpers
 
@@ -105,6 +105,6 @@ An **observable** is a stream of values. A **projection** accumulates events int
 
 Each runtime caches its own observable and method collections. Configuration values come from `configure`, which runs before registration. If a configuration contains a subject or another mutable resource, reusing that configured value shares the resource. Configure resource-owning plugins separately for independent application instances.
 
-Core has no general stop or dispose method. Applications must stop input producers and release the resources their plugins or adapters own. The persistence plugin's `kill()` stops its timer and requests a final flush; transcript ingestion's `close()` flushes and completes its local stream. Neither stops other plugins.
+Core has no general stop or dispose method. Applications must stop input producers and release the resources their plugins or adapters own. The persistence plugin's `kill()` stops its timer and requests a final flush; transcript ingestion's `close()` only cancels its timer. The input owner must call ingestion's `flush()` separately after draining input to finalize a pending turn. Neither cleanup method stops other plugins.
 
 Unsubscribing a view releases that subscription. It does not release subscriptions made by `property`, `optionalProperty`, `eager`, or runtime effects. A long-lived application must explicitly bound the source streams and external work it owns.

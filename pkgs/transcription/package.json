@@ -1,6 +1,6 @@
 {
   "name": "@katakit/transcription",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Transcription utilities for Moonshine and Whisper, with an optional React hook.",
   "license": "Apache-2.0",
   "files": [

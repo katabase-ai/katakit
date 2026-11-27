@@ -2,12 +2,9 @@
 import { StrictMode } from 'react';
 import { act, cleanup, render, screen } from '@testing-library/react';
 import { afterEach, expect, test, vi } from 'vitest';
-import { NotesDemo } from '../../examples/demos/notes-react/src/NotesDemo';
-import { createNotesDemo } from '../../examples/demos/notes-react/src/createNotesDemo';
-import {
-  NotesRequestError,
-  type NotesConnection,
-} from '../../examples/demos/notes-react/src/notesModel';
+import { NotesDemo } from '../../examples/demos/notes/src/NotesDemo';
+import { createNotesDemo } from '../../examples/demos/notes/src/createNotesDemo';
+import { NotesRequestError, type NotesConnection } from '../../examples/demos/notes/src/notesModel';
 
 const completion = (text: string) => ({
   choices: [

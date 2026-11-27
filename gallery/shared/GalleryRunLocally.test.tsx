@@ -6,7 +6,7 @@ import {
   colorClashDemoDetails,
   notesDemoDetails,
   listExtractionDemoDetails,
-  brainstormDemoDetails,
+  wordRushDemoDetails,
 } from './galleryDemoDetails';
 import { GalleryEventsContext } from './galleryEvents';
 import { GalleryRunLocally, runLocallyCommand, runLocallyPrompt } from './GalleryRunLocally';
@@ -17,38 +17,41 @@ test('the command copies the pinned example directory and starts it', () => {
   render(<GalleryRunLocally demo={notesDemoDetails} revision="abc123" />);
   expect(
     screen.getByRole('link', { name: 'View the source code for this example' }).getAttribute('href')
-  ).toBe('https://github.com/katabase-ai/katakit/tree/abc123/examples/demos/notes-react');
+  ).toBe('https://github.com/katabase-ai/katakit/tree/abc123/examples/demos/notes');
   expect(runLocallyCommand(notesDemoDetails, 'abc123')).toBe(
     [
-      'npx degit katabase-ai/katakit/examples/demos/notes-react#abc123 structured-notes',
+      'npx degit katabase-ai/katakit/examples/demos/notes#abc123 structured-notes',
       'cd structured-notes',
       'pnpm install',
       'pnpm dev',
     ].join('\n')
   );
   expect(runLocallyCommand(listExtractionDemoDetails, 'abc123')).toContain(
-    'npx degit katabase-ai/katakit/examples/demos/list-extraction-react#abc123 list-extraction'
+    'npx degit katabase-ai/katakit/examples/demos/list-extraction#abc123 list-extraction'
   );
   expect(runLocallyPrompt(listExtractionDemoDetails)).toContain(
     'Ask me before you read, create, or edit'
   );
   expect(runLocallyCommand(bingoDemoDetails)).toMatch(
-    /^npx degit katabase-ai\/katakit\/examples\/demos\/bingo-react conversation-bingo\n/
+    /^npx degit katabase-ai\/katakit\/examples\/demos\/bingo conversation-bingo\n/
+  );
+  expect(runLocallyCommand(colorClashDemoDetails, 'abc123')).toContain(
+    'npx degit katabase-ai/katakit/examples/demos/color-clash#abc123 color-clash'
   );
 });
 
-test('brainstorming offers the pinned standalone copy and its model setup instructions', () => {
-  render(<GalleryRunLocally demo={brainstormDemoDetails} revision="abc123" />);
+test('Word rush offers the pinned standalone copy and its model setup instructions', () => {
+  render(<GalleryRunLocally demo={wordRushDemoDetails} revision="abc123" />);
   expect(screen.getByText('Get the code')).toBeDefined();
-  expect(runLocallyCommand(brainstormDemoDetails, 'abc123')).toBe(
+  expect(runLocallyCommand(wordRushDemoDetails, 'abc123')).toBe(
     [
-      'npx degit katabase-ai/katakit/examples/demos/brainstorm-react#abc123 brainstorming-game',
-      'cd brainstorming-game',
+      'npx degit katabase-ai/katakit/examples/demos/word-rush#abc123 word-rush',
+      'cd word-rush',
       'pnpm install',
       'pnpm dev',
     ].join('\n')
   );
-  expect(runLocallyPrompt(brainstormDemoDetails, 'abc123')).toContain(
+  expect(runLocallyPrompt(wordRushDemoDetails, 'abc123')).toContain(
     'Ask me before you read, create, or edit'
   );
 });
@@ -65,9 +68,10 @@ test('only a demo that calls a model mentions an API key', () => {
   expect(screen.queryByText(/API key/)).toBeNull();
 });
 
-test('a demo without its own example directory has no control', () => {
-  const { container } = render(<GalleryRunLocally demo={colorClashDemoDetails} />);
-  expect(container.innerHTML).toBe('');
+test('Color Clash offers a standalone copy without an API key', () => {
+  render(<GalleryRunLocally demo={colorClashDemoDetails} />);
+  expect(screen.getByText('Get the code')).toBeDefined();
+  expect(runLocallyPrompt(colorClashDemoDetails)).not.toMatch(/API key/);
 });
 
 test('copying writes the text and reports which text was copied', async () => {
