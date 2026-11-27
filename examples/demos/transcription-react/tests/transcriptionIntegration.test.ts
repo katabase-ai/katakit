@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { createTranscriber, type EngineEvents } from '@katakit/transcription';
-import { createTranscriptionDemo } from './createTranscriptionDemo';
+import { createTranscriptionDemo } from '../src/createTranscriptionDemo';
 
 it('connects standalone speech callbacks to local transcript events and turns', async () => {
   const methods = createTranscriptionDemo();

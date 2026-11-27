@@ -49,8 +49,7 @@ and each recording gets a distinct source ID.
 - `src/controls.tsx` and `src/AudioLevelMeter.tsx` provide local visual primitives.
 - `src/base.css`, `src/style.css`, and `src/audio-level-meter.css` contain the
   standalone theme/reset, demo layout, and meter styling respectively.
-- `src/*.test.ts` and `src/*.test.tsx` cover model selection, transcript integration,
-  and React subscription behavior.
+- `tests/` covers model selection, transcript integration, and React subscription behavior.
 
 ## Modification rules
 

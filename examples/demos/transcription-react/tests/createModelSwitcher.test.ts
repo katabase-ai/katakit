@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createModelSwitcher } from './createModelSwitcher';
+import { createModelSwitcher } from '../src/createModelSwitcher';
 
 describe('model switching', () => {
   it('waits for disposal before creating the replacement and retains the selected model', async () => {
