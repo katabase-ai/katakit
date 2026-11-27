@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { BrainstormRequestError, type BrainstormConnection } from './brainstormModel';
-import type { createBrainstormDemo } from './createBrainstormDemo';
+import { WordRushRequestError, type WordRushConnection } from './wordRushModel';
+import type { createWordRushDemo } from './createWordRushDemo';
 
 /** Stop waiting immediately on cancellation, even if a host ignores its signal. */
 const untilAborted = async <T>(work: Promise<T>, signal: AbortSignal): Promise<T> => {
@@ -26,15 +26,15 @@ export const useRoundSetup = ({
   isListening,
   stopListening,
 }: {
-  runtime: ReturnType<typeof createBrainstormDemo>;
-  connect?: (input: { signal: AbortSignal }) => Promise<BrainstormConnection>;
+  runtime: ReturnType<typeof createWordRushDemo>;
+  connect?: (input: { signal: AbortSignal }) => Promise<WordRushConnection>;
   listening: boolean;
   startListening?: (signal: AbortSignal) => Promise<boolean>;
   isListening?: () => boolean;
   stopListening?: () => Promise<unknown>;
 }) => {
   const [step, setStep] = useState<'microphone' | 'judge' | 'cancelling'>();
-  const [error, setError] = useState<BrainstormRequestError>();
+  const [error, setError] = useState<WordRushRequestError>();
   const lifetime = useRef<AbortController>(undefined);
   const admission = useRef<AbortController>(undefined);
   const pending = useRef<AbortController>(undefined);
@@ -74,12 +74,12 @@ export const useRoundSetup = ({
         const ready = startListening
           ? await untilAborted(startListening(controller.signal), controller.signal)
           : listening;
-        if (!ready) throw new BrainstormRequestError('The microphone could not start. Try again.');
+        if (!ready) throw new WordRushRequestError('The microphone could not start. Try again.');
         controller.signal.throwIfAborted();
         preparingMicrophone = false;
         const state = runtime.state$.value;
         if (!state.connected || state.failure?.policy.restart) {
-          if (!connect) throw new BrainstormRequestError('Answer judging is unavailable.');
+          if (!connect) throw new WordRushRequestError('Answer judging is unavailable.');
           setStep('judge');
           admission.current?.abort();
           admission.current = new AbortController();
@@ -91,19 +91,19 @@ export const useRoundSetup = ({
         controller.signal.throwIfAborted();
         if (visit.signal.aborted) return;
         if (!(isListening?.() ?? listening))
-          throw new BrainstormRequestError('The microphone stopped during setup. Try again.');
+          throw new WordRushRequestError('The microphone stopped during setup. Try again.');
         runtime.begin();
         began = runtime.state$.value.phase === 'running';
         if (!began)
           throw (
-            runtime.state$.value.failure ?? new BrainstormRequestError('The round could not start.')
+            runtime.state$.value.failure ?? new WordRushRequestError('The round could not start.')
           );
       } catch (error_) {
         if (!controller.signal.aborted && !visit.signal.aborted)
           setError(
-            error_ instanceof BrainstormRequestError
+            error_ instanceof WordRushRequestError
               ? error_
-              : new BrainstormRequestError(
+              : new WordRushRequestError(
                   preparingMicrophone
                     ? 'The microphone could not start. Check its permissions and try again.'
                     : 'The judge could not connect. Start the round to try again.'

@@ -86,7 +86,7 @@ phrases into changes on a game board.
 ## Try Katakit
 
 - **Explore a demo:** open the [gallery](https://katabase.com/gallery) to try local transcription,
-  conversation bingo, structured notes, and the [brainstorming game](examples/demos/brainstorm/README.md).
+  conversation bingo, structured notes, and [Word rush](examples/demos/word-rush/README.md).
   Transcription runs locally; structured notes and open-ended answer judging use a model connection.
   Each example links to its source and setup.
 - **Start an application:** copy the [React web starter](examples/starters/react-web/README.md),

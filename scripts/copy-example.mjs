@@ -67,7 +67,7 @@ if (example === 'gallery') {
     'transcription',
     'notes',
     'list-extraction',
-    'brainstorm',
+    'word-rush',
     'color-clash',
   ]) {
     copy(join(root, 'examples/demos', name, 'src'), join(target, 'sources', name, 'src'));
@@ -79,7 +79,7 @@ if (example === 'gallery') {
       else if (/\.(tsx?|css)$/.test(entry.name)) {
         const text = readFileSync(path, 'utf8')
           .replace(
-            /\.\.\/\.\.\/examples\/demos\/(bingo|transcription|notes|list-extraction|brainstorm|color-clash)\//g,
+            /\.\.\/\.\.\/examples\/demos\/(bingo|transcription|notes|list-extraction|word-rush|color-clash)\//g,
             '../sources/$1/'
           )
           .replaceAll('../../internal/site-ui/', '../styles/');

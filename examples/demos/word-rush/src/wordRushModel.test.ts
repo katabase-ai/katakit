@@ -1,17 +1,17 @@
 import { expect, test, vi } from 'vitest';
 import { findChallenge } from './challenges';
 import {
-  judgeBrainstormCandidates,
-  requestBrainstormModel,
-  BrainstormRequestError,
-  type BrainstormConnection,
-} from './brainstormModel';
+  judgeWordRushCandidates,
+  requestWordRushModel,
+  WordRushRequestError,
+  type WordRushConnection,
+} from './wordRushModel';
 
 const candidates = Array.from({ length: 20 }, (_, i) => ({
   text: `garment ${i}`,
   evidence: `garment ${i}`,
 }));
-const judge = (input: Partial<Pick<BrainstormConnection, 'maxBodyBytes'>> = {}) => ({
+const judge = (input: Partial<Pick<WordRushConnection, 'maxBodyBytes'>> = {}) => ({
   challenge: findChallenge('clothing-and-accessories-04'),
   candidates,
   text: candidates.map(candidate => candidate.text).join(', '),
@@ -36,7 +36,7 @@ const judge = (input: Partial<Pick<BrainstormConnection, 'maxBodyBytes'>> = {}) 
 
 test('decision batches respect question and byte limits while preserving every candidate', async () => {
   const input = judge({ maxBodyBytes: 5000 });
-  const result = await judgeBrainstormCandidates(input);
+  const result = await judgeWordRushCandidates(input);
   expect(result.map(candidate => candidate.text)).toEqual(
     candidates.map(candidate => candidate.text)
   );
@@ -49,7 +49,7 @@ test('decision batches respect question and byte limits while preserving every c
 
 test('a single oversized decision pauses before making a request rather than dropping a candidate', async () => {
   const input = judge({ maxBodyBytes: 50 });
-  await expect(judgeBrainstormCandidates(input)).rejects.toMatchObject({
+  await expect(judgeWordRushCandidates(input)).rejects.toMatchObject({
     policy: { code: 'context_limit', terminal: true },
   });
   expect(input.connection.decisions.requestDecision).not.toHaveBeenCalled();
@@ -57,11 +57,11 @@ test('a single oversized decision pauses before making a request rather than dro
 
 test('empty extraction needs no decision request, and cancellation prevents decision calls', async () => {
   const input = judge();
-  expect(await judgeBrainstormCandidates({ ...input, candidates: [] })).toEqual([]);
+  expect(await judgeWordRushCandidates({ ...input, candidates: [] })).toEqual([]);
   const controller = new AbortController();
   controller.abort();
   await expect(
-    judgeBrainstormCandidates({ ...input, signal: controller.signal })
+    judgeWordRushCandidates({ ...input, signal: controller.signal })
   ).rejects.toMatchObject({ name: 'AbortError' });
   expect(input.connection.decisions.requestDecision).not.toHaveBeenCalled();
 });
@@ -70,23 +70,23 @@ test('only transient host failures retry the same request and cancellation clear
   vi.useFakeTimers();
   try {
     const request = vi
-      .fn<BrainstormConnection['requestCompletion']>()
+      .fn<WordRushConnection['requestCompletion']>()
       .mockRejectedValueOnce(
-        new BrainstormRequestError('Busy', { retryLimit: 1, retryAfterMs: 5000 })
+        new WordRushRequestError('Busy', { retryLimit: 1, retryAfterMs: 5000 })
       )
       .mockResolvedValueOnce({ answers: {} });
     const controller = new AbortController();
     const input = { body: 'same candidate batch', signal: controller.signal };
-    const pending = requestBrainstormModel(request, input);
+    const pending = requestWordRushModel(request, input);
     await vi.advanceTimersByTimeAsync(4999);
     expect(request).toHaveBeenCalledOnce();
     await vi.advanceTimersByTimeAsync(1);
     expect(await pending).toEqual({ answers: {} });
     expect(request.mock.calls).toEqual([[input], [input]]);
     request.mockRejectedValue(
-      new BrainstormRequestError('Busy', { retryLimit: 1, retryAfterMs: 5000 })
+      new WordRushRequestError('Busy', { retryLimit: 1, retryAfterMs: 5000 })
     );
-    const pendingCancellation = requestBrainstormModel(request, input);
+    const pendingCancellation = requestWordRushModel(request, input);
     const canceled = (async () => {
       try {
         return await pendingCancellation;

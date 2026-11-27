@@ -169,7 +169,7 @@ export const checkStructure = (root = repository) => {
             'transcription',
             'notes',
             'list-extraction',
-            'brainstorm',
+            'word-rush',
             'color-clash',
           ].some(name => inside(join(root, 'examples/demos', name, 'src'), target)) ||
             (file.endsWith('.css') &&

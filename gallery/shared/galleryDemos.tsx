@@ -6,7 +6,7 @@ import {
   notesDemoDetails,
   colorClashDemoDetails,
   listExtractionDemoDetails,
-  brainstormDemoDetails,
+  wordRushDemoDetails,
   type GalleryDemoMetadata,
 } from './galleryDemoDetails';
 
@@ -24,7 +24,7 @@ export const notesGalleryDemo = /* @__PURE__ */ registerGalleryDemo(notesDemoDet
 export const colorClashGalleryDemo = /* @__PURE__ */ registerGalleryDemo(colorClashDemoDetails);
 export const listExtractionGalleryDemo =
   /* @__PURE__ */ registerGalleryDemo(listExtractionDemoDetails);
-export const brainstormGalleryDemo = /* @__PURE__ */ registerGalleryDemo(brainstormDemoDetails);
+export const wordRushGalleryDemo = /* @__PURE__ */ registerGalleryDemo(wordRushDemoDetails);
 
 /** All eligible demos follow catalogue order; hosts can instead import named selections. */
 export const galleryDemos = /* @__PURE__ */ galleryDemoDetails.map(registerGalleryDemo);

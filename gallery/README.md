@@ -33,7 +33,7 @@ pnpm -F @katakit/gallery dev
 
 Open <http://127.0.0.1:4347>. Welcome is `/`; React demos are at `/demos/transcription`,
 `/demos/bingo`, `/demos/notes`, `/demos/list-extraction`, `/demos/color-clash`, and
-`/demos/brainstorm`. Color Clash uses local transcription
+`/demos/word-rush`. Color Clash uses local transcription
 and its Play button starts capture and a timed round; it needs no inference connection. Notes
 transcription runs locally; generating notes requires
 a host-supplied model connection. Developer mode can instead use your own OpenRouter key. Extension setup pages are outside this catalogue. Direct links and unknown-demo
@@ -59,7 +59,7 @@ The header's **Run locally** panel copies its standalone example. See [the copya
 Its sources are included in the gallery copy workflow. Hosts with explicit demo selections must
 add the named entry when adopting this revision.
 
-The [brainstorming game](../examples/demos/brainstorm/README.md) uses the shared microphone with a sticky
+The [Word rush game](../examples/demos/word-rush/README.md) uses the shared microphone with a sticky
 note board, 200 challenges, and 30s, 1min (default), 2min, or unlimited rounds.
 Challenges stay hidden and the clock stays stopped while **Start round** prepares the shared
 microphone and judge. **Cancel setup** cancels preparation; **End round** stops and drains capture.
@@ -68,17 +68,17 @@ come from gallery metadata. Rounds require microphone input and an inference con
 Developer builds use Configure models
 for inference settings; managed hosts use the existing `connectModel` contract. The text model
 extracts answer candidates; Jev judges each candidate with a yes/no probability (initial cutoff
-0.5). Brainstorming requires the connection's optional `decisions` transport alongside chat.
+0.5). Word rush requires the connection's optional `decisions` transport alongside chat.
 The reference preview host discovers that capability from the deployed proxy's config and uses
 `/api/alpha/decisions` with the same verified session, allowance, and cancellation as chat.
 OpenRouter BYOK supplies pinned `typesafe/jev-1.13`; custom chat endpoints do not implicitly
 enable decisions or send their keys to OpenRouter. Chat-only hosts continue supporting other
-text-generation demos; brainstorming reports the missing Jev connection before revealing a challenge.
+text-generation demos; Word rush reports the missing Jev connection before revealing a challenge.
 Changing the
 inference source or preview mode aborts judging and ends the current round while retaining its
 board. The next explicit Start prepares the new connection. **Run locally** offers a pinned copy
 of the standalone example. The named
-`brainstormGalleryDemo` export is available to embedding hosts; standalone gallery copies carry
+`wordRushGalleryDemo` export is available to embedding hosts; standalone gallery copies carry
 the game's source and challenge library.
 
 ## Local inference from an environment variable
@@ -291,7 +291,7 @@ Listening belongs to each demo. Its button sits at the left, below the descripti
 body heading: a primary Start, then a secondary Pause, beside a microphone glyph that fills with
 the level being heard. Mouse controls are 36px high; touch controls remain 44px. Setup progress
 follows the button.
-Welcome, listening demos, Color Clash, and Brainstorm all render their primary buttons through
+Welcome, listening demos, Color Clash, and Word rush all render their primary buttons through
 `GalleryCaptureControls`. Its default and Welcome presentations use the shared speech owner.
 The controlled `action` variant renders the same button in place using the caller's label,
 disabled state, and click handler; it does not require a speech provider. Both games use this

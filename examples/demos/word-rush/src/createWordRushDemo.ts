@@ -4,15 +4,15 @@ import { BehaviorSubject } from 'rxjs';
 import * as v from 'valibot';
 import { answerKey, findChallenge } from './challenges';
 import {
-  BrainstormRequestError,
-  createBrainstormRequest,
-  judgeBrainstormCandidates,
-  parseBrainstormCompletion,
+  WordRushRequestError,
+  createWordRushRequest,
+  judgeWordRushCandidates,
+  parseWordRushCompletion,
   qualificationThreshold,
-  requestBrainstormModel,
-  type BrainstormConnection,
-  type BrainstormJudgment,
-} from './brainstormModel';
+  requestWordRushModel,
+  type WordRushConnection,
+  type WordRushJudgment,
+} from './wordRushModel';
 
 const NoteSchema = v.object({ id: v.string(), text: v.string(), evidence: v.string() });
 const JudgmentSchema = v.object({
@@ -39,7 +39,7 @@ const EventSchema = v.variant('type', [
   v.object({ type: v.literal('finished') }),
 ]);
 type GameEvent = v.InferOutput<typeof EventSchema>;
-export type BrainstormNote = v.InferOutput<typeof NoteSchema>;
+export type WordRushNote = v.InferOutput<typeof NoteSchema>;
 type Content = {
   roundId: string;
   challengeId: string;
@@ -47,8 +47,8 @@ type Content = {
   deadline: number | null;
   endedAt: number | null;
   phase: 'idle' | 'running' | 'finishing' | 'finished';
-  notes: BrainstormNote[];
-  judgments: BrainstormJudgment[];
+  notes: WordRushNote[];
+  judgments: WordRushJudgment[];
   removed: string[];
   segments: { id: string; text: string }[];
   cursor: number;
@@ -107,23 +107,23 @@ const reduce = (state: Content, event: GameEvent): Content => {
   }
 };
 
-export type BrainstormSnapshot = Content & {
+export type WordRushSnapshot = Content & {
   remaining: number | null;
   provisional: string;
   busy: boolean;
   connected: boolean;
   feedback: string;
-  failure?: BrainstormRequestError;
+  failure?: WordRushRequestError;
 };
 
 /** One visit owns its event log, single-flight judging queue, and round clock. */
-export const createBrainstormDemo = () => {
+export const createWordRushDemo = () => {
   const kit = makeKatakit({ plugins: [] }).start();
   const log = kit.getMethods(EventLogPlugin);
   const emitEvent = (event: GameEvent) => log.emitEvent(v.parse(EventSchema, event));
   const { events$ } = kit.getObservables(EventLogPlugin);
   let content = initial();
-  let connection: BrainstormConnection | undefined;
+  let connection: WordRushConnection | undefined;
   let controller: AbortController | undefined;
   let timer: ReturnType<typeof setInterval> | undefined;
   let closed = false;
@@ -135,8 +135,8 @@ export const createBrainstormDemo = () => {
     busy: false,
     connected: false,
     feedback: '',
-  } as Omit<BrainstormSnapshot, keyof Content | 'remaining'>;
-  const snapshot = (): BrainstormSnapshot => ({
+  } as Omit<WordRushSnapshot, keyof Content | 'remaining'>;
+  const snapshot = (): WordRushSnapshot => ({
     ...content,
     ...transient,
     remaining:
@@ -180,12 +180,12 @@ export const createBrainstormDemo = () => {
     transient.provisional = '';
     emitEvent({ type: 'finished' });
   };
-  const accept = (judgments: BrainstormJudgment[], cursor: number) => {
+  const accept = (judgments: WordRushJudgment[], cursor: number) => {
     const answers = judgments.filter(answer => answer.probability >= qualificationThreshold);
     const keys = new Set(
       [...content.notes.map(note => note.text), ...content.removed].map(answerKey)
     );
-    const notes: BrainstormNote[] = [];
+    const notes: WordRushNote[] = [];
     for (const answer of answers) {
       const key = answerKey(answer.text);
       if (!key || keys.has(key)) continue;
@@ -227,20 +227,20 @@ export const createBrainstormDemo = () => {
           text += `${text ? '\n' : ''}${content.segments[end++]!.text}`;
         }
         const challenge = findChallenge(content.challengeId);
-        const body = createBrainstormRequest({
+        const body = createWordRushRequest({
           existing: content.notes.map(note => note.text),
           removed: content.removed,
           text,
           connection: activeConnection!,
         });
-        const completion = await requestBrainstormModel(activeConnection.requestCompletion, {
+        const completion = await requestWordRushModel(activeConnection.requestCompletion, {
           body,
           signal: abort.signal,
         });
         if (closed || generation !== currentGeneration || abort.signal.aborted) return;
-        const candidates = parseBrainstormCompletion(completion, text);
+        const candidates = parseWordRushCompletion(completion, text);
         if (closed || generation !== currentGeneration || abort.signal.aborted) return;
-        const judgments = await judgeBrainstormCandidates({
+        const judgments = await judgeWordRushCandidates({
           candidates,
           challenge,
           text,
@@ -254,9 +254,9 @@ export const createBrainstormDemo = () => {
     } catch (error) {
       if (closed || generation !== currentGeneration || abort.signal.aborted) return;
       transient.failure =
-        error instanceof BrainstormRequestError
+        error instanceof WordRushRequestError
           ? error
-          : new BrainstormRequestError('Judging is delayed. Try again.');
+          : new WordRushRequestError('Judging is delayed. Try again.');
       activeConnection?.reportFailure?.(transient.failure);
     } finally {
       if (controller === abort) {
@@ -287,7 +287,7 @@ export const createBrainstormDemo = () => {
       transient.feedback = '';
       emitEvent({ type: 'configured', challengeId, seconds });
     },
-    connect: (next: BrainstormConnection) => {
+    connect: (next: WordRushConnection) => {
       if (closed) return;
       connection = next;
       transient.connected = true;

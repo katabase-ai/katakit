@@ -1,4 +1,4 @@
-# Brainstorming game
+# Word rush
 
 Collect spoken answers on a shared sticky-note board using one microphone. Choose from 200
 pre-baked challenges in 20 categories. **Game settings** opens a modal for the category and
@@ -27,12 +27,12 @@ From the repository root:
 ```sh
 pnpm install --frozen-lockfile
 pnpm build:pkgs
-pnpm -F @katakit/demo-brainstorm build
-pnpm -F @katakit/demo-brainstorm dev
+pnpm -F @katakit/demo-word-rush build
+pnpm -F @katakit/demo-word-rush dev
 ```
 
-The gallery also includes this example at `/demos/brainstorm`. Run `pnpm -F @katakit/gallery dev`
-and open <http://127.0.0.1:4347/demos/brainstorm>.
+The gallery also includes this example at `/demos/word-rush`. Run `pnpm -F @katakit/gallery dev`
+and open <http://127.0.0.1:4347/demos/word-rush>.
 
 Audio transcription runs locally with the existing transcription utility. Only an explicit
 **Start round** admits a model connection. First use downloads the speech model and asks for
@@ -66,16 +66,16 @@ advancing the transcript cursor. Valid empty extraction still advances without a
 For standalone judging, set these values in an ignored `.env.local` in this directory:
 
 ```text
-VITE_BRAINSTORM_ENDPOINT=http://localhost:1234/v1/chat/completions
-VITE_BRAINSTORM_MODEL=your-model-id
-VITE_BRAINSTORM_DECISION_ENDPOINT=http://localhost:1234/api/alpha/decisions
-VITE_BRAINSTORM_DECISION_MODEL=typesafe/jev-1.13
+VITE_WORD_RUSH_ENDPOINT=http://localhost:1234/v1/chat/completions
+VITE_WORD_RUSH_MODEL=your-model-id
+VITE_WORD_RUSH_DECISION_ENDPOINT=http://localhost:1234/api/alpha/decisions
+VITE_WORD_RUSH_DECISION_MODEL=typesafe/jev-1.13
 ```
 
 Both endpoints must allow browser requests. The text endpoint must support chat completions
 with strict JSON-schema responses and `max_completion_tokens`; the decision endpoint must support
-text `state`, named `noul` questions, and typed `answers`. Optional `VITE_BRAINSTORM_CREDENTIAL`
-and `VITE_BRAINSTORM_DECISION_CREDENTIAL` supply separate bearer credentials for their respective
+text `state`, named `noul` questions, and typed `answers`. Optional `VITE_WORD_RUSH_CREDENTIAL`
+and `VITE_WORD_RUSH_DECISION_CREDENTIAL` supply separate bearer credentials for their respective
 endpoints. Credentials are never copied between endpoints. These Vite values are visible in the
 browser: use this configuration locally. Public hosts provide their own proxy and keep provider
 credentials on the server. Both endpoints/models are required before Start is available.
@@ -86,19 +86,19 @@ The gallery uses its existing Configure models screen in developer mode or a hos
 to OpenRouter use that pinned Jev model with the configured OpenRouter key; the text model setting
 selects the candidate extractor. Custom chat endpoints need an embedding host that also supplies
 the decision transport. Public preview never uses saved developer keys. The lazy
-`brainstormGalleryDemo` export needs no private service imports.
+`wordRushGalleryDemo` export needs no private service imports.
 
 Standalone embedders pass `connect` to `App`. It receives a visit-lifetime `AbortSignal` and returns
-a `BrainstormConnection`: model ID, request-byte limit, output-token allowance, and
+a `WordRushConnection`: model ID, request-byte limit, output-token allowance, and
 `requestCompletion({ body, signal })`, and required `decisions: { model, maxQuestions,
 requestDecision({ body, signal }) }`. Respect both signals in each transport. Admission happens during **Start round**.
 Admission failures require another Start; transient judging failures use **Retry judging**.
-`BrainstormRequestError` preserves host terminal/restart policies; terminal allowance failures
+`WordRushRequestError` preserves host terminal/restart policies; terminal allowance failures
 survive round resets.
 
 ## State and input lifecycle
 
-`createBrainstormDemo` derives board content from a Katakit event log. Events record challenge
+`createWordRushDemo` derives board content from a Katakit event log. Events record challenge
 selection, round start/deadline, finalized text, accepted notes/cursors, removals, and completion.
 Clocks, admission, provisional text, requests, and failures remain transient. History lasts for
 one visit. Notes receive stable IDs when accepted.
@@ -121,8 +121,8 @@ per-challenge rules, and 1,000 illustrative examples. `src/challenges.ts` suppli
 filtering and random selection without immediately repeating the current challenge.
 
 ```sh
-pnpm -F @katakit/demo-brainstorm tsc
-pnpm -F @katakit/demo-brainstorm test:ci
+pnpm -F @katakit/demo-word-rush tsc
+pnpm -F @katakit/demo-word-rush test:ci
 pnpm -F @katakit/gallery test:ci
 ```
 
@@ -133,9 +133,9 @@ it verifies wiring for skirt, pants, and joggers, not real-model accuracy. Real 
 need browser/model playtesting. Production hosts must serve the transcription utility's worker
 assets and cross-origin isolation headers; the Vite plugin handles local dev and preview.
 
-To prepare a standalone copy, run `pnpm examples:copy demos/brainstorm /tmp/my-brainstorm`,
+To prepare a standalone copy, run `pnpm examples:copy demos/word-rush /tmp/my-word-rush`,
 then install and build inside that new directory. The manifest uses registry library versions.
-`pnpm demos:copy-check brainstorm` verifies a copy against freshly packed local libraries.
+`pnpm demos:copy-check word-rush` verifies a copy against freshly packed local libraries.
 No sibling demo imports are used.
 
 Changing gallery inference settings or preview mode aborts setup and pending judging, ends an

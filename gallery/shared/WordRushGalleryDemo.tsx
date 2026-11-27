@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
-import { BrainstormDemo } from '../../examples/demos/brainstorm/src/BrainstormDemo';
-import { createBrainstormDemo } from '../../examples/demos/brainstorm/src/createBrainstormDemo';
-import { BrainstormRequestError } from '../../examples/demos/brainstorm/src/brainstormModel';
+import { WordRushDemo } from '../../examples/demos/word-rush/src/WordRushDemo';
+import { createWordRushDemo } from '../../examples/demos/word-rush/src/createWordRushDemo';
+import { WordRushRequestError } from '../../examples/demos/word-rush/src/wordRushModel';
 import { GalleryDemo } from './GalleryDemo';
 import { GalleryModelError, useGalleryModel } from './galleryModel';
 import { useGallerySpeech } from './GallerySpeechProvider';
@@ -11,10 +11,10 @@ import { GalleryCaptureControls } from './GalleryCaptureControls';
 
 const toGameError = (error: unknown) =>
   error instanceof GalleryModelError
-    ? new BrainstormRequestError(error.message, error.policy)
+    ? new WordRushRequestError(error.message, error.policy)
     : error;
 
-export const BrainstormGalleryDemo = () => {
+export const WordRushGalleryDemo = () => {
   const session = useGallerySpeech();
   const model = useGalleryModel();
   const hasHeader = useGalleryDemoHeader();
@@ -25,7 +25,7 @@ export const BrainstormGalleryDemo = () => {
         const connection = await connectGallery!(input);
         const decisions = connection.decisions;
         if (!decisions)
-          throw new BrainstormRequestError(
+          throw new WordRushRequestError(
             'This connection does not provide a Jev judge. Use managed inference or an OpenRouter connection.'
           );
         return {
@@ -84,9 +84,9 @@ export const BrainstormGalleryDemo = () => {
   const microphoneError = session?.snapshot.error ?? input?.error?.message;
   return (
     <GalleryDemo
-      create={createBrainstormDemo}
+      create={createWordRushDemo}
       render={runtime => (
-        <BrainstormDemo
+        <WordRushDemo
           showIntroduction={!hasHeader}
           runtime={runtime}
           listening={session?.snapshot.input.phase === 'running'}

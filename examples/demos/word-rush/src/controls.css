@@ -1,6 +1,6 @@
 /* Locally owned standard controls keep this example copyable. Low specificity lets the
    gallery's shared site-button/site-select theme supply its normal appearance. */
-.brainstorm-game :where(.site-button) {
+.word-rush :where(.site-button) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -17,43 +17,43 @@
   line-height: 1;
   cursor: pointer;
 }
-.brainstorm-game :where(.site-button):hover:not(:disabled) {
+.word-rush :where(.site-button):hover:not(:disabled) {
   background: var(--color-paper-2, light-dark(#e8e8ec, #272a2d));
 }
-.brainstorm-game :where(.site-button):disabled {
+.word-rush :where(.site-button):disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-.brainstorm-game :where(.site-button--blue) {
+.word-rush :where(.site-button--blue) {
   color: var(--color-accent-ink, #fff);
   border-color: var(--color-accent, #0d74ce);
   background: var(--color-accent, #0d74ce);
 }
-.brainstorm-game :where(.site-button--blue):hover:not(:disabled) {
+.word-rush :where(.site-button--blue):hover:not(:disabled) {
   background: var(--color-accent-deep, #085eac);
 }
-.brainstorm-game :where(.site-button--ghost) {
+.word-rush :where(.site-button--ghost) {
   border-color: transparent;
   background: transparent;
   box-shadow: none;
 }
-.brainstorm-game :where(.site-button--border) {
+.word-rush :where(.site-button--border) {
   background: transparent;
 }
-.brainstorm-game :where(.site-button--icon) {
+.word-rush :where(.site-button--icon) {
   width: 44px;
   padding: 0;
 }
-.brainstorm-game :where(.site-field) {
+.word-rush :where(.site-field) {
   display: grid;
   justify-items: start;
   gap: 8px;
 }
-.brainstorm-game :where(.site-field label) {
+.word-rush :where(.site-field label) {
   font-size: 0.875rem;
   font-weight: 600;
 }
-.brainstorm-game :where(.site-select, .site-input) {
+.word-rush :where(.site-select, .site-input) {
   min-height: 44px;
   max-width: 100%;
   padding: 0.5rem 0.75rem;
@@ -63,26 +63,26 @@
   color: var(--color-ink, inherit);
   font: inherit;
 }
-.brainstorm-game :where(.site-select, .site-input):disabled {
+.word-rush :where(.site-select, .site-input):disabled {
   opacity: 0.5;
 }
-.brainstorm-game :where(.site-field-hint) {
+.word-rush :where(.site-field-hint) {
   color: var(--color-muted, #60646c);
   font-size: 0.875rem;
 }
-.brainstorm-game :where(.site-field-error) {
+.word-rush :where(.site-field-error) {
   color: var(--color-error, #d13415);
   font-size: 0.875rem;
 }
-.brainstorm-game :where(.site-notice) {
+.word-rush :where(.site-notice) {
   border: 1px solid var(--color-rule, #e0e1e6);
   border-radius: var(--radius-input, 6px);
   background: var(--color-paper-2, light-dark(#f9f9fb, #18191b));
 }
-.brainstorm-game :where(button, input, select, summary):focus-visible {
+.word-rush :where(button, input, select, summary):focus-visible {
   outline: 2px solid var(--color-focus, #0d74ce);
   outline-offset: 4px;
 }
-.brainstorm-game :where(input[type='checkbox']) {
+.word-rush :where(input[type='checkbox']) {
   accent-color: var(--color-accent, #0d74ce);
 }

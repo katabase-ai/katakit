@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { challengeCategories } from './challenges';
 import { Button, SelectField } from './controls';
 
-type BrainstormSettingsProps = {
+type WordRushSettingsProps = {
   category: string;
   seconds: number | null;
   disabled: boolean;
@@ -12,12 +12,12 @@ type BrainstormSettingsProps = {
 const durationLabel = (seconds: number | null) =>
   seconds === null ? 'Unlimited' : seconds % 60 === 0 ? `${seconds / 60}min` : `${seconds}s`;
 
-export const BrainstormSettings = ({
+export const WordRushSettings = ({
   category,
   seconds,
   disabled,
   onApply,
-}: BrainstormSettingsProps) => {
+}: WordRushSettingsProps) => {
   const dialog = useRef<HTMLDialogElement>(null);
   const [draftCategory, setDraftCategory] = useState(category);
   const [draftSeconds, setDraftSeconds] = useState(seconds);
@@ -28,12 +28,12 @@ export const BrainstormSettings = ({
 
   return (
     <>
-      <div className="brainstorm-settings-bar">
+      <div className="word-rush-settings-bar">
         <Button
           variant="border"
           disabled={disabled}
           aria-haspopup="dialog"
-          aria-controls="brainstorm-settings-dialog"
+          aria-controls="word-rush-settings-dialog"
           onClick={() => {
             setDraftCategory(category);
             setDraftSeconds(seconds);
@@ -63,10 +63,10 @@ export const BrainstormSettings = ({
       </div>
       <dialog
         ref={dialog}
-        id="brainstorm-settings-dialog"
-        className="brainstorm-settings-dialog"
-        aria-labelledby="brainstorm-settings-title"
-        aria-describedby="brainstorm-settings-description"
+        id="word-rush-settings-dialog"
+        className="word-rush-settings-dialog"
+        aria-labelledby="word-rush-settings-title"
+        aria-describedby="word-rush-settings-description"
       >
         <form
           onSubmit={event => {
@@ -77,11 +77,11 @@ export const BrainstormSettings = ({
             dialog.current?.close();
           }}
         >
-          <h2 id="brainstorm-settings-title">Game settings</h2>
-          <p id="brainstorm-settings-description">Changing settings prepares a fresh round.</p>
-          <div className="brainstorm-settings-fields">
+          <h2 id="word-rush-settings-title">Game settings</h2>
+          <p id="word-rush-settings-description">Changing settings prepares a fresh round.</p>
+          <div className="word-rush-settings-fields">
             <SelectField
-              id="brainstorm-category"
+              id="word-rush-category"
               label="Category"
               value={draftCategory}
               onChange={event => setDraftCategory(event.target.value)}
@@ -94,7 +94,7 @@ export const BrainstormSettings = ({
               ))}
             </SelectField>
             <SelectField
-              id="brainstorm-duration"
+              id="word-rush-duration"
               label="Round length"
               value={draftSeconds ?? 'unlimited'}
               onChange={event =>
@@ -109,7 +109,7 @@ export const BrainstormSettings = ({
               <option value="unlimited">Unlimited</option>
             </SelectField>
           </div>
-          <div className="brainstorm-settings-actions">
+          <div className="word-rush-settings-actions">
             <Button variant="border" onClick={() => dialog.current?.close()}>
               Cancel
             </Button>
