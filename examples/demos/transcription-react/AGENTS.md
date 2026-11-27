@@ -38,20 +38,21 @@ and each recording gets a distinct source ID.
 
 ## Code organization
 
-- `src/app.tsx` mounts React, loads the standalone styles, and owns the standalone
-  runtime, microphone, model selection, and controls. Import the view and runtime
-  modules directly when embedding the demo; the app entry mounts the page on load.
-- `src/TranscriptionDemo.tsx` displays completed, pending, and provisional transcript text.
-- `src/transcriptInput.ts` adapts recognition callbacks to transcript ingestion,
+- `src/app.tsx` mounts React, loads the standalone styles, and renders the standalone
+  transcription component. The app entry mounts the page on load.
+- `src/transcription/transcription.tsx` owns the standalone runtime, microphone,
+  model selection, and controls. Gallery hosts use the view and runtime modules directly.
+- `src/transcription/TranscriptView.tsx` displays completed, pending, and provisional transcript text.
+- `src/transcription/transcriptInput.ts` adapts recognition callbacks to transcript ingestion,
   including source IDs, duplicate filtering, and turn boundaries.
-- `src/createTranscriptionDemo.ts` exposes transcript state and owns its subscription.
-- `src/models.ts` describes model choices; `src/createModelSwitcher.ts` serializes
+- `src/transcription/createTranscriptionDemo.ts` exposes transcript state and owns its subscription.
+- `src/transcription/models.ts` describes model choices; `src/transcription/createModelSwitcher.ts` serializes
   model disposal and replacement.
 - `src/ui/` contains local visual primitives (`controls.tsx`, `AudioLevelMeter.tsx`)
   and their styles. Keep domain components outside this directory.
 - `src/ui/base.css` contains the standalone theme/reset and control styles; import it
   only from the standalone entry point. `src/ui/audio-level-meter.css` styles the meter.
-- `src/style.css` contains demo-specific layout and transcript styling.
+- `src/transcription/style.css` contains demo-specific layout and transcript styling.
 - `tests/` covers model selection, transcript integration, and React subscription behavior.
 
 ## Modification rules
@@ -64,7 +65,7 @@ Transcript content derives from transcript ingestion's logged events. Keep provi
 speech separate from finalized input, preserve source/segment IDs, and flush final
 results on Stop. Changing models must not discard existing transcript turns.
 
-`app.tsx` owns the microphone/model switcher and transcript runtime. Its cleanup stops
+`transcription/transcription.tsx` owns the microphone/model switcher and transcript runtime. Its cleanup stops
 active capture, disposes the model owner, and then closes the transcript runtime.
 `createTranscriptionDemo` releases its subscription and closes transcript ingestion;
 the view releases its own subscription on unmount. Preserve this ordering and do not

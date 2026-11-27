@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { defaultModel, models } from '../src/models';
+import { defaultModel, models } from '../src/transcription/models';
 
 describe('transcription model choices', () => {
   it('defaults to Small and offers only published English streaming Moonshine variants', () => {
