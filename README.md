@@ -31,7 +31,7 @@ and add persistence through your own storage.
 [Starters](https://katabase.com/docs/starters) · [Documentation](https://katabase.com/docs/reference)
 
 We're sharing an early collection of patterns and examples from our work on **voice-to-visual
-interfaces**. The initial `0.1.0` packages are available on npm; the copyable demos and starters
+interfaces**. The packages are available on npm; the copyable demos and starters
 install those packages directly.
 
 ## Why Katakit?
@@ -99,12 +99,13 @@ platform setup, permissions, and current verification.
 
 ## Packages and plugins
 
-| Package                                                                                           | Kind    | What it provides                                                                                               |
-| ------------------------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------- |
-| [@katakit/core](https://katabase.com/docs/reference/core)                                         | Runtime | Typed plugin composition, effects, and reactive primitives.                                                    |
-| [@katakit/transcript-ingestion](https://katabase.com/docs/reference/plugins/transcript-ingestion) | Plugin  | Finalized text segments grouped into observable conversation turns.                                            |
-| [@katakit/persistence](https://katabase.com/docs/reference/plugins/persistence)                   | Plugin  | Batched event writes through your storage callback.                                                            |
-| [@katakit/transcription](https://katabase.com/docs/reference/transcription)                       | Utility | Moonshine/Whisper recognition, browser microphone and PCM helpers, runtime assets, and an optional React hook. |
+| Package                                                                                           | Role            | What it's for                                                                           |
+| ------------------------------------------------------------------------------------------------- | --------------- | --------------------------------------------------------------------------------------- |
+| [@katakit/core](https://katabase.com/docs/reference/core)                                         | Runtime         | Compose event-sourced plugins for responsive applications.                              |
+| [@katakit/transcript-ingestion](https://katabase.com/docs/reference/plugins/transcript-ingestion) | Core plugin     | Turn incoming text into a conversation that can power live experiences.                 |
+| [@katakit/persistence](https://katabase.com/docs/reference/plugins/persistence)                   | Core plugin     | Preserve events so your application can rebuild its state.                              |
+| [@katakit/transcription](https://katabase.com/docs/reference/transcription)                       | Utility         | Connect local streaming models to application inputs, starting with speech recognition. |
+| [@katakit/react](https://katabase.com/docs/reference/react)                                       | React dev tools | Start a runtime from React and inspect observable activity with DevTools.               |
 
 The transcription utility works independently of the plugin runtime. Add persistent storage
 through your own adapter when you need events to survive a reload.
@@ -114,7 +115,7 @@ React applications render runtime observables with [React-RxJS](https://katabase
 
 - [Quickstart](https://katabase.com/docs) — build from a starter with your coding agent.
 - [Tutorial](https://katabase.com/docs/concepts) — build an event-driven message list, add a plugin, and save its history.
-- [@katakit/react](https://katabase.com/docs/reference/react) — developer workbench availability, React-RxJS bindings, and microphone ownership.
+- [@katakit/react](https://katabase.com/docs/reference/react) — runtime hooks, observable DevTools, and React-RxJS guidance.
 - [Transcription](https://katabase.com/docs/reference/transcription) — configure recognition and its resources.
 - [Reference](https://katabase.com/docs/reference) — explore the reusable building blocks and API guidance.
 

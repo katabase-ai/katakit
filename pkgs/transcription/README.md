@@ -1,5 +1,10 @@
 # Transcription utilities
 
+**A universal adapter for local streaming models.** Connect speech, sound, and other inputs to
+your app through one consistent interface. This is the direction for the adapter; the released
+package currently supports Moonshine and Whisper speech recognition, not general sound analysis
+or other input adapters.
+
 `@katakit/transcription` supplies framework-independent speech recognition, browser microphone
 capture, and the WASM/worker assets needed to run Moonshine and Whisper. It has no React,
 RxJS, or plugin-system dependency. Applications own their UI and consume plain callbacks.
@@ -83,30 +88,33 @@ is requested only on `start()`. Construction has no side effects.
 
 ## React
 
-`@katakit/transcription/react` exports `useMicrophoneTranscriber`. React is an optional peer
+`@katakit/transcription/react` exports `useMicrophoneTranscriber`,
+`useMicrophoneTranscriberCallbacks`, and `useMicrophoneLevel`. React is an optional peer
 dependency; the other entry points do not import it.
 
 ```tsx
-import { useMicrophoneTranscriber } from '@katakit/transcription/react';
+import { useMicrophoneTranscriber, useMicrophoneLevel } from '@katakit/transcription/react';
 
 const Recorder = () => {
-  const microphone = useMicrophoneTranscriber({ createSink: createTranscript });
-  if (!microphone.sink) return null;
+  const microphone = useMicrophoneTranscriber();
+  const level = useMicrophoneLevel(microphone);
   return (
-    <button disabled={microphone.busy} onClick={() => void microphone.toggle()}>
-      {microphone.listening ? 'Stop listening' : 'Start listening'}
-    </button>
+    <>
+      <button disabled={microphone.busy} onClick={() => void microphone.toggle()}>
+        {microphone.listening ? 'Stop listening' : 'Start listening'}
+      </button>
+      <output>Audio level: {level}</output>
+    </>
   );
 };
 ```
 
-`createSink` returns the object one session writes to: `ingestSegment` for final segments,
-optional `updateProvisional` and `flush`, and `close`. The hook creates the sink and the
-microphone transcriber together and returns `sink`, `state`, `level`, `listening`, `busy`, and
-`toggle`. On unmount it stops capture, waits for pending results, releases the model, and then
-closes the sink. Pass a stable `createSink`, such as a module-level function. A new function or
-a new `model` ends the session and starts another with a fresh sink, so an application that
-switches models while keeping its transcript should own `createMicrophoneTranscriber` directly.
+The hook owns the microphone transcriber and returns `state`, `listening`, `busy`, `toggle`,
+and `emitter`. Pass the returned value to `useMicrophoneTranscriberCallbacks` to handle
+final utterances, provisional text, flush, and close events in the application. Use
+`useMicrophoneLevel` for a live activity meter. On unmount, the hook stops capture and
+releases the model; the application owns its transcript and any connected runtime.
+Changing `model` replaces the transcriber without discarding that application state.
 
 ## Models and results
 
@@ -217,18 +225,19 @@ Electron and Obsidian have not been exercised.
 
 ## Connect to the transcript ingestion plugin
 
-The plugin remains optional and has no dependency on this utility. Its methods accept the
-utility's structural segment shape:
+The plugin remains optional and has no dependency on this utility. The application adapts
+recognition callbacks to the plugin's utterance methods:
 
 ```ts
 const input = createMicrophoneTranscriber({
   model: 'moonshine-small',
-  onProvisional: methods.updateProvisional,
-  onFinal: methods.ingestSegment,
+  onProvisional: text => methods.updateProvisionalUtterance({ text, speaker: 'microphone' }),
+  onFinal: segment => methods.ingestUtterance({ ...segment, speaker: 'microphone' }),
   onStop: methods.flush,
 });
 ```
 
-See the [transcript ingestion plugin](../transcript-ingestion/README.md) for constructing `methods` and
+Here `methods` comes from the application's transcript-ingestion runtime. See the
+[transcript ingestion plugin](../transcript-ingestion/README.md) for constructing it and
 reading conversation turns. A different application can send callbacks to its own state,
 UI, or storage.
