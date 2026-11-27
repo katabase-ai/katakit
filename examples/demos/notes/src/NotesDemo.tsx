@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import Markdown from 'react-markdown';
-import { TranscriptTurns } from './TranscriptTurns';
+import { TranscriptTurns } from './ui/TranscriptTurns';
 import { useNotesConnection } from './useNotesConnection';
 import './style.css';
 

@@ -104,7 +104,7 @@ starts from an application that was not event-sourced.
   [reconstruction checks](../../../examples/demos/bingo/tests/plugin.test.ts):
   recorded layout, distinct speech/manual facts, and derived winning lines.
 - [Structured notes](../../../examples/demos/notes/src/notesPlugin.ts) and
-  [behavior checks](../../../examples/demos/notes/src/notesPlugin.test.ts): accepted
+  [behavior checks](../../../examples/demos/notes/tests/notesPlugin.test.ts): accepted
   model results, recorded cursor, clear within a session, cancellation, and live resumption.
 
 These references establish particular patterns, not blanket approval to copy every hook or

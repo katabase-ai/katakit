@@ -91,5 +91,5 @@ if (example === 'gallery') {
   rewrite(join(target, 'shared'));
 }
 console.log(
-  `Copied ${example} to ${target}. Run pnpm install, pnpm build, and the README's run command there.`
+  `Copied ${example} to ${target}. Run pnpm install and pnpm build there; follow the README and its linked guide for run instructions.`
 );

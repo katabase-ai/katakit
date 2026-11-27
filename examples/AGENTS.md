@@ -2,6 +2,8 @@
 
 Follow the [example contract](../DEVELOPMENT.md#add-or-change-an-example),
 [copy workflow](README.md), and the selected example's README/scoped instructions.
+Every feature demo follows the [copyable demo standards](demos/AGENTS.md), including
+existing demos; application starters follow their [own guide](starters/README.md).
 
 - Demos use the root workspace; starters are independent projects with their own install settings.
   Run starter commands inside that starter, not with a root workspace filter.
