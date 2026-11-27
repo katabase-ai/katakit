@@ -48,6 +48,13 @@ derives `squares$`, `marked$`, and `winningLanes$`. A winning line needs no sepa
 when it is entirely calculable from the marks. Record an award or notification separately
 if the product must remember that an external action actually happened.
 
+Declare events as TypeScript `KatakitEvent<Payload>` types, as Bingo does. That type includes
+core's sequence and timestamp metadata. When reusing a plugin, reuse its exported event types
+and projections too: transcript ingestion already defines `UtteranceAddedEvent`,
+`ConversationTurnAddedEvent`, and `ProvisionalUtteranceAddedEvent` this way. Runtime schemas
+are not the event model. Validate external commands or model responses at their input boundary;
+add storage decoding only when the application actually accepts a serialized history.
+
 Separate event types are a judgment call. A single event with an explicit origin field can
 also preserve provenance. Choose the representation that expresses the allowed behavior
 clearly; avoid optional fields that permit contradictory combinations. Capture provenance
@@ -86,9 +93,10 @@ Record the results of nondeterministic work before deriving content from them:
 - Store relevant times as data, rather than reading the current clock in a projection.
 
 Do not mutate recorded payloads or earlier projection values. Validate external inputs
-before emission and loaded history before `existingEvents`; restore serialized metadata
-such as timestamps according to the application's storage format. Event order and stable
-source/entity IDs matter when input can be duplicated or delivered late. Define admission
+before emission. If history comes from storage or another external source, decode and validate
+it before `existingEvents`, restoring timestamps according to that storage format. In-memory
+replay can pass the existing typed events directly, without revalidating accepted facts.
+Event order and stable source/entity IDs matter when input can be duplicated or delivered late. Define admission
 and deduplication at the appropriate input boundary; core does not infer those policies.
 
 Construct a fresh runtime with `existingEvents` and read projections before `start()` to

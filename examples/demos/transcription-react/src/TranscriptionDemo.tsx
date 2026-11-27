@@ -14,7 +14,7 @@ type Props = {
   controls?: ReactNode;
   introduction?: ReactNode;
   afterFirstSpeech?: ReactNode;
-  /** Embedded hosts can supply their own page header. Standalone introductions remain the default. */
+  /** Show the title and intro text above the controls (default: true). Set false when the parent renders that heading. */
   showIntroduction?: boolean;
 };
 

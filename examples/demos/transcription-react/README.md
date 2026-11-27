@@ -81,6 +81,13 @@ than copying turns into a second application history:
 | `conversationTurnAdded`     | A completed turn, including its assigned ID and accepted text           | Completed turns; clears the pending turn and draft |
 | `provisionalUtteranceAdded` | The latest recognition draft (including an empty draft on flush)        | Provisional text, cleared by finalized input       |
 
+These events are TypeScript `KatakitEvent` declarations exported by
+`@katakit/transcript-ingestion` as `UtteranceAddedEvent`, `ConversationTurnAddedEvent`, and
+`ProvisionalUtteranceAddedEvent` (together, `TranscriptIngestionEvent`). Ingestion methods
+record those events in `EventLogPlugin`; ingestion observables project the transcript from
+that log. The demo adapts recognition callbacks and combines those projections for React.
+It does not define a second event model or runtime event schemas.
+
 `src/transcriptInput.ts` owns live admission and turn timing. It trims final text, ignores
 blank input, and deduplicates the pair of recording `sourceId` and recognizer-local segment
 `id`. The encoded pair is the utterance ID; `speaker` preserves the source ID, not a detected
@@ -105,7 +112,7 @@ objects remain in memory while a caller retains the runtime or history.
 
 ### Restore recorded history
 
-The demo keeps history in memory; it has no automatic persistence or saved-data migration.
+The demo keeps typed history in memory; it has no persistence or JSON import format.
 The old UI did not save transcripts, so there is no legacy snapshot to convert. Callers can
 capture the current log and explicitly restore a new instance:
 
@@ -115,7 +122,7 @@ import { createTranscriptionDemo } from './src/createTranscriptionDemo';
 const live = createTranscriptionDemo();
 live.ingestSegment({ sourceId: 'recording-1', id: 'segment-1', text: 'Hello.' });
 live.flush();
-const saved = JSON.parse(JSON.stringify(live.events$.getAll()));
+const saved = live.events$.getAll(); // TranscriptIngestionEvent[], including Date metadata
 live.close();
 
 const restored = createTranscriptionDemo({ initialEvents: saved });
@@ -123,10 +130,12 @@ console.log(restored.state$.get().completedTurns[0]?.text); // Hello.
 restored.close();
 ```
 
-`src/transcriptEvents.ts` validates complete history, including event payloads, ordered audio
-times, unique IDs, contiguous sequence numbers, and timestamps. It copies records and restores
-JSON timestamps to `Date` objects; it does not synthesize missing metadata. Keep full histories,
-not filtered event subsets. Source deduplication is reconstructed from recorded utterances.
+`initialEvents` accepts a complete `readonly TranscriptIngestionEvent[]` from an existing
+runtime. Records and their metadata are copied before seeding the new log; replay does not
+revalidate accepted events. Keep full histories, not filtered subsets, and do not mutate
+recorded facts. Source deduplication is reconstructed from recorded utterances. If an application
+adds storage or accepts external JSON, decoding and validation belong at that separate input
+boundary, before passing typed events to the runtime.
 
 Replay restores completed turns, pending text, and the last draft without generating turn IDs,
 restarting the silence timer, or acquiring a recognizer. Pending text stays pending until new
@@ -141,8 +150,8 @@ for moving an existing mutable-state application to these patterns.
 ### Verification
 
 Run `pnpm -F @katakit/demo-transcription test:ci` and
-`pnpm -F @katakit/demo-transcription tsc` from the repository root. The tests exercise serialized
-replay, stable IDs, no replay timers, invalid history/input, duplicate delivery across restoration,
+`pnpm -F @katakit/demo-transcription tsc` from the repository root. The tests exercise typed-history
+replay, stable IDs, no replay timers, invalid live input, duplicate delivery across restoration,
 source/gap boundaries, late callbacks after close, final stop delivery, and React remount/runtime
 replacement. These use controlled text and engine callbacks, not microphone audio or real models.
 

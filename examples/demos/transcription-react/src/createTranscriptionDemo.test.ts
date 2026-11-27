@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { createTranscriptionDemo } from './createTranscriptionDemo';
+import type { UtteranceAddedEvent } from '@katakit/transcript-ingestion';
 
 const segment = {
   sourceId: 'recording-one',
@@ -27,13 +28,12 @@ test('restores completed, pending and provisional content without IDs, timers or
   live.updateProvisional('thinking');
   const expected = live.state$.get();
   const saved = live.events$.getAll();
-  const serialized = JSON.parse(JSON.stringify(saved));
   live.close();
   expect(vi.getTimerCount()).toBe(0);
 
   const uuid = vi.spyOn(crypto, 'randomUUID');
   const timer = vi.spyOn(globalThis, 'setTimeout');
-  const replay = createTranscriptionDemo({ initialEvents: serialized });
+  const replay = createTranscriptionDemo({ initialEvents: saved });
   expect(replay.state$.get()).toEqual(expected);
   expect(replay.events$.getAll()).toEqual(saved);
   vi.advanceTimersByTime(10_000);
@@ -106,7 +106,7 @@ test.each([
       'Earlier audio',
     ]);
     const replay = createTranscriptionDemo({
-      initialEvents: JSON.parse(JSON.stringify(demo.events$.getAll())),
+      initialEvents: demo.events$.getAll(),
     });
     expect(replay.state$.get()).toEqual(demo.state$.get());
     replay.close();
@@ -158,8 +158,8 @@ test('drain and flush finalize the last input and clear drafts before closing', 
   replay.close();
 });
 
-test('history validation copies records instead of retaining caller-owned payloads', () => {
-  const record = {
+test('copies typed seed history instead of retaining caller-owned payloads', () => {
+  const record: UtteranceAddedEvent = {
     type: 'utteranceAdded',
     id: JSON.stringify([segment.sourceId, segment.id]),
     speaker: segment.sourceId,
@@ -179,51 +179,20 @@ test('history validation copies records instead of retaining caller-owned payloa
   demo.close();
 });
 
-test.each([
-  { type: 'unknown', meta: { seq: 0, timestamp: new Date(0) } },
-  { type: 'provisionalUtteranceAdded', text: 'draft', speaker: 'input' },
-  {
-    type: 'provisionalUtteranceAdded',
-    text: 'draft',
-    speaker: 'input',
-    meta: { seq: 1, timestamp: new Date(0) },
-  },
-  {
-    type: 'provisionalUtteranceAdded',
-    text: 'draft',
-    speaker: 'input',
-    meta: { seq: 0, timestamp: 'invalid' },
-  },
-  {
-    type: 'utteranceAdded',
-    text: 'bad timing',
-    speaker: 'input',
-    id: 'one',
-    startMs: 10,
-    endMs: 0,
-    meta: { seq: 0, timestamp: new Date(0) },
-  },
-])('rejects invalid history before acquiring live resources: %j', record => {
-  expect(() => createTranscriptionDemo({ initialEvents: [record] })).toThrow(
-    /Invalid|sequence numbers|timestamps/
-  );
-  expect(vi.getTimerCount()).toBe(0);
-});
-
-test('rejects duplicate history IDs and invalid live input without partial writes', () => {
+test('rejects invalid live input without partial writes', () => {
   const demo = createTranscriptionDemo();
   demo.ingestSegment({ ...segment, text: '  ' });
   expect(demo.events$.getAll()).toEqual([]);
-  expect(() => demo.ingestSegment({ ...segment, startMs: NaN })).toThrow(/Invalid/);
-  expect(() => demo.ingestSegment({ ...segment, endMs: 0 })).toThrow('timestamps must be ordered');
+  expect(() => demo.ingestSegment({ ...segment, sourceId: '' })).toThrow(
+    'requires source and segment IDs'
+  );
+  expect(() => demo.ingestSegment({ ...segment, startMs: NaN })).toThrow(
+    'timestamps must be finite'
+  );
+  expect(() => demo.ingestSegment({ ...segment, endMs: 0 })).toThrow('timestamps must be finite');
   expect(demo.events$.getAll()).toEqual([]);
   expect(vi.getTimerCount()).toBe(0);
   demo.ingestSegment(segment);
-  const event = demo.events$.getAll()[0]!;
-  expect(() =>
-    createTranscriptionDemo({
-      initialEvents: [event, { ...event, meta: { ...event.meta, seq: 1 } }],
-    })
-  ).toThrow('duplicate ID');
+  expect(demo.state$.get().currentTurn?.text).toBe('Hello');
   demo.close();
 });

@@ -1,12 +1,13 @@
 import { createTranscriptInput } from './transcriptInput';
 import { property } from '@katakit/core';
+import type { TranscriptIngestionEvent } from '@katakit/transcript-ingestion';
 import { bind } from '@react-rxjs/core';
 import { combineLatest, map, shareReplay, Subject, takeUntil } from 'rxjs';
 
 /** One visit owns a log and live input; restoring it never starts recognition or a turn timer. */
 export const createTranscriptionDemo = ({
   initialEvents = [],
-}: { initialEvents?: readonly unknown[] } = {}) => {
+}: { initialEvents?: readonly TranscriptIngestionEvent[] } = {}) => {
   const input = createTranscriptInput(initialEvents);
   const { collectedConversationTurns$, pendingConversationTurn$, provisionalUtterance$ } =
     input.views;

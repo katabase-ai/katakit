@@ -34,6 +34,10 @@ starts from an application that was not event-sourced.
    Adapt frontend interfaces when needed to express the better model while preserving behavior.
    If a reused plugin already owns the required events, use its log and projections instead of
    introducing a second history merely to migrate a UI wrapper.
+   Model events as TypeScript `KatakitEvent` types, reusing a plugin's exported types where
+   applicable. Runtime schemas for external input or storage decoding are separate boundary
+   concerns, not the event model; do not add a serialization format to an in-memory demo merely
+   to demonstrate replay.
 3. If the proposed events simply mirror setters or a catch-all state object, do a fresh design
    pass using the behavior inventory and constraints. This does not require a new session or
    delegation. Do not discard product requirements to obtain a cleaner-looking model.

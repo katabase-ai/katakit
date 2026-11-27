@@ -1,20 +1,28 @@
-import { EventLogPlugin, makeKatakit } from '@katakit/core';
-import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
+import { EventLogPlugin, makeKatakit, type WithEager } from '@katakit/core';
+import {
+  makeTranscriptIngestionPlugin,
+  type TranscriptIngestionEvent,
+} from '@katakit/transcript-ingestion';
 import type { TranscriptionSegment } from '@katakit/transcription';
-import * as v from 'valibot';
-import { readTranscriptHistory, SegmentSchema } from './transcriptEvents';
+import type { Observable } from 'rxjs';
 
 /** Own one visit's ingestion log and live timer, independently of capture and model selection. */
-export const createTranscriptInput = (initialEvents: readonly unknown[] = []) => {
+export const createTranscriptInput = (initialEvents: readonly TranscriptIngestionEvent[] = []) => {
   const turnSilenceMs = 1400;
   const transcript = makeTranscriptIngestionPlugin({ turnSilenceMs });
   const kit = makeKatakit({
-    existingEvents: readTranscriptHistory(initialEvents),
+    existingEvents: initialEvents.map(event => ({
+      ...event,
+      meta: { ...event.meta, timestamp: new Date(event.meta.timestamp) },
+    })),
     plugins: [transcript.configure({})],
   }).start();
   const input = kit.getMethods(transcript);
   const views = kit.getObservables(transcript);
-  const { events$ } = kit.getObservables(EventLogPlugin);
+  // This runtime registers only ingestion, whose events are declared as KatakitEvent types.
+  const events$ = kit.getObservables(EventLogPlugin).events$ as WithEager<
+    Observable<TranscriptIngestionEvent>
+  >;
   // Admission caches are reconstructed from the log, never a second transcript authority.
   const utterances = views.collectedUtterances$.get();
   const seen = new Set(utterances.map(utterance => utterance.id));
@@ -28,15 +36,17 @@ export const createTranscriptInput = (initialEvents: readonly unknown[] = []) =>
   return {
     views,
     events$,
-    ingestSegment: (raw: TranscriptionSegment) => {
+    ingestSegment: (segment: TranscriptionSegment) => {
       if (closed) return;
-      const segment = v.parse(SegmentSchema, raw);
+      if (!segment.sourceId || !segment.id)
+        throw new Error('Transcript input requires source and segment IDs.');
       const text = segment.text.trim();
       const id = JSON.stringify([segment.sourceId, segment.id]);
       if (!text || seen.has(id)) return;
       const startMs = segment.startMs ?? 0;
       const endMs = segment.endMs ?? startMs;
-      if (endMs < startMs) throw new Error('Transcript audio timestamps must be ordered.');
+      if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || startMs < 0 || endMs < startMs)
+        throw new Error('Transcript audio timestamps must be finite, nonnegative, and ordered.');
       const previous = views.collectedUtterances$.get().at(-1);
       const pending = views.pendingConversationTurn$.get();
       // A reset clock or missing timestamps must not produce an end before the turn's start.
