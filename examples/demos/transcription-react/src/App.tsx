@@ -6,7 +6,7 @@ import type { TranscriptionState } from '@katakit/transcription';
 import { defaultModel, models, type ModelId } from './models';
 import { createModelSwitcher } from './createModelSwitcher';
 import { createTranscriptionDemo } from './createTranscriptionDemo';
-import { TranscriptionDemo as TranscriptView } from './TranscriptionDemo';
+import { TranscriptView } from './TranscriptView';
 
 /** Standalone ownership stays in this example, with no gallery dependency. */
 export const TranscriptionDemo = () => {

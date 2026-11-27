@@ -19,13 +19,13 @@ type Props = {
 };
 
 /** Instance-owned presentation; the caller supplies capture controls and releases the runtime. */
-export const TranscriptionDemo = (props: Props) => (
+export const TranscriptView = (props: Props) => (
   <Subscribe source$={props.runtime.transcript$}>
-    <TranscriptView {...props} />
+    <TranscriptContent {...props} />
   </Subscribe>
 );
 
-const TranscriptView = ({
+const TranscriptContent = ({
   runtime,
   controls,
   introduction,

@@ -7,7 +7,7 @@ import { makeKatakit, property } from '@katakit/core';
 import { makeTranscriptIngestionPlugin } from '@katakit/transcript-ingestion';
 import { afterEach, expect, test } from 'vitest';
 import { createTranscriptionDemo } from './createTranscriptionDemo';
-import { TranscriptionDemo } from './TranscriptionDemo';
+import { TranscriptView } from './TranscriptView';
 
 afterEach(cleanup);
 
@@ -17,7 +17,7 @@ test('the demo view follows its runtime through updates, remount and replacement
   first.flush();
   const view = render(
     <StrictMode>
-      <TranscriptionDemo runtime={first} />
+      <TranscriptView runtime={first} />
     </StrictMode>
   );
   expect(view.getByText('First visit')).toBeTruthy();
@@ -26,11 +26,11 @@ test('the demo view follows its runtime through updates, remount and replacement
   view.unmount();
 
   const replay = createTranscriptionDemo({ initialEvents: first.events$.getAll() });
-  const remount = render(<TranscriptionDemo runtime={replay} />);
+  const remount = render(<TranscriptView runtime={replay} />);
   expect(remount.getByText('First visit')).toBeTruthy();
   expect(remount.getByText('Draft')).toBeTruthy();
   const next = createTranscriptionDemo();
-  remount.rerender(<TranscriptionDemo runtime={next} />);
+  remount.rerender(<TranscriptView runtime={next} />);
   expect(remount.queryByText('First visit')).toBeNull();
   act(() => replay.updateProvisional('Old visit'));
   expect(remount.queryByText('Old visit')).toBeNull();
