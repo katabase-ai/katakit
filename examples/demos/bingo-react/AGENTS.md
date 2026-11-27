@@ -41,9 +41,11 @@ Click a square to mark or unmark it, including to correct recognition mistakes.
 - `src/bingo/` contains events, the plugin, word lists, and `useBingoKatakit.ts`.
 - `tests/` covers the plugin and word lists.
 - `src/TranscriptTurns.tsx` renders completed, pending, and provisional transcript text.
-- `src/controls.tsx` and `src/AudioLevelMeter.tsx` provide local visual primitives.
-- `src/base.css`, `src/style.css`, and `src/audio-level-meter.css` contain the
-  standalone theme/reset, demo layout, and meter styling respectively.
+- `src/ui/` contains local visual primitives (`controls.tsx`, `AudioLevelMeter.tsx`)
+  and their styles. Keep domain components outside this directory.
+- `src/ui/base.css` contains the standalone theme/reset and control styles; import it
+  only from the standalone entry point. `src/ui/audio-level-meter.css` styles the meter.
+- `src/style.css` contains demo-specific layout and transcript styling.
 
 ## Modification rules
 

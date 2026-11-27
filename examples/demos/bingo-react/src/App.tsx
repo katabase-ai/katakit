@@ -4,8 +4,8 @@ import {
   useMicrophoneLevel,
   useMicrophoneTranscriber,
 } from '@katakit/transcription/react';
-import { Button } from './controls';
-import { AudioLevelMeter } from './AudioLevelMeter';
+import { Button } from './ui/controls';
+import { AudioLevelMeter } from './ui/AudioLevelMeter';
 import { BrowserBingoDemo as BingoView } from './BrowserBingoDemo';
 
 /** The copied example owns its input and runtime without importing any gallery code. */

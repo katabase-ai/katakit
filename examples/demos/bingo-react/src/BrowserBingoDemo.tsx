@@ -1,5 +1,5 @@
 import { use, useState, type ReactNode } from 'react';
-import { SelectField } from './controls';
+import { SelectField } from './ui/controls';
 import { useBingoKatakit } from './bingo/useBingoKatakit';
 import { TranscriptTurns } from './TranscriptTurns';
 import './style.css';
