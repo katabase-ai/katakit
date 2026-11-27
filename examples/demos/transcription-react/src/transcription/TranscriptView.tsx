@@ -9,7 +9,7 @@ const formatTime = (ms?: number) => {
 };
 
 /** Instance-owned presentation; the caller supplies capture controls and releases the runtime. */
-export const TranscriptionDemo = ({
+export const TranscriptView = ({
   runtime,
   controls,
   introduction,

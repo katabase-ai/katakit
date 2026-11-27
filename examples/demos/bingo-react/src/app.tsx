@@ -1,15 +1,17 @@
+import { createRoot } from 'react-dom/client';
+import './base.css';
 import { KatakitDevTools } from '@katakit/react';
 import {
   MicrophoneTranscriberContext,
   useMicrophoneLevel,
   useMicrophoneTranscriber,
 } from '@katakit/transcription/react';
-import { Button } from './controls';
-import { AudioLevelMeter } from './AudioLevelMeter';
-import { BrowserBingoDemo as BingoView } from './BrowserBingoDemo';
+import { Button } from './ui/controls';
+import { AudioLevelMeter } from './ui/AudioLevelMeter';
+import { Bingo as BingoView } from './bingo/bingo';
 
 /** The copied example owns its input and runtime without importing any gallery code. */
-export const BrowserBingoDemo = () => {
+const BrowserBingoDemo = () => {
   const microphone = useMicrophoneTranscriber();
 
   const microphoneLevel = useMicrophoneLevel(microphone);
@@ -33,9 +35,11 @@ export const BrowserBingoDemo = () => {
   );
 };
 
-export const App = () => (
+const App = () => (
   <main>
     <KatakitDevTools />
     <BrowserBingoDemo />
   </main>
 );
+
+createRoot(document.getElementById('root')!).render(<App />);

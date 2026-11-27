@@ -1,16 +1,16 @@
 import { use, useState, type ReactNode } from 'react';
-import { SelectField } from './controls';
-import { useBingoKatakit } from './bingo/useBingoKatakit';
-import { TranscriptTurns } from './TranscriptTurns';
+import { SelectField } from '../ui/controls';
+import { useBingoKatakit } from './useBingoKatakit';
+import { TranscriptTurns } from '../ui/TranscriptTurns';
 import './style.css';
 import {
   MicrophoneTranscriberContext,
   useMicrophoneTranscriberCallbacks,
 } from '@katakit/transcription/react';
-import { BingoPlugin } from './bingo/plugin';
-import { BingoWordListId, wordLists, drawBingoWordList } from './bingo/wordLists';
+import { BingoPlugin } from './plugin';
+import { BingoWordListId, wordLists, drawBingoWordList } from './wordLists';
 
-export const BrowserBingoDemo = ({
+export const Bingo = ({
   controls,
   showIntroduction = true,
 }: {
@@ -107,6 +107,9 @@ const BingoBody = ({
   const squares = bingoKatakit.useSquares();
   const marked = bingoKatakit.useMarked();
   const winningLines = bingoKatakit.useWinningLanes();
+  const completed = bingoKatakit.useCollectedConversationTurns();
+  const current = bingoKatakit.usePendingConversationTurn();
+  const provisional = bingoKatakit.useProvisionalUtterance();
 
   const microphone = use(MicrophoneTranscriberContext);
   if (!microphone) {
@@ -175,7 +178,11 @@ const BingoBody = ({
         </section>
         <aside className="bingo-controls" aria-label="Bingo controls">
           {controls}
-          <TranscriptTurns bingoKatakit={bingoKatakit} />
+          <TranscriptTurns
+            completed={completed}
+            current={current ?? undefined}
+            provisional={provisional?.text}
+          />
         </aside>
       </div>
     </section>

@@ -69,8 +69,9 @@ For CSS sharing and the exporter, use the [internal tool and styling contract](#
 
 Include its README, real LICENSE, build script, declared dependencies, platform files, and any
 required runtime assets. Document exact install/run commands, input/model requirements, and
-manual target-platform checks. A starter has its own `pnpm-workspace.yaml` and is run from its
-own directory; never add it to the root workspace. Follow the detailed
+manual target-platform checks. The Bingo and transcription demos keep their READMEs focused on
+purpose and link to standalone `AGENTS.md` files for those instructions. A starter has its own
+`pnpm-workspace.yaml` and is run from its own directory; never add it to the root workspace. Follow the detailed
 [starter checklist](examples/starters/README.md) and the
 [copy workflow](examples/README.md). Update the contributor test-package list in
 `scripts/example-test-packages.mjs` if an example requires another Katakit package.
@@ -183,8 +184,9 @@ The [starter guides](docs/pages/starters/README.md) help users choose a platform
 The [browser bingo](examples/demos/bingo-react/README.md) and
 [extension bingo](examples/demos/bingo-extension/README.md) examples each own their UI, styling, board
 state, and audio host so they can be copied independently. Their READMEs explain standalone
-setup. Bingo behavior is maintained in `examples/demos/bingo-react/src/bingo/` and copied into the
-extension; `pnpm bingo:check-copy` checks that those copies agree.
+setup (the browser demo links to its `AGENTS.md`). Shared Bingo behavior in
+`examples/demos/bingo-react/src/bingo/` is copied into the extension; browser UI stays local.
+`pnpm bingo:check-copy` checks that the shared copies agree.
 
 ## Website source consumers
 

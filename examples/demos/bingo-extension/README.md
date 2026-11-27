@@ -71,10 +71,13 @@ after editing source files.
 
 ## Maintaining the repository copy
 
-`examples/demos/bingo-react/src/bingo/` is the canonical implementation. The extension
-contains an identical local copy so either example remains independently usable.
+The shared behavior files in `examples/demos/bingo-react/src/bingo/` are canonical.
+The extension contains an identical local copy so either example remains independently usable.
 When changing Bingo behavior, update the canonical directory and copy it to
-`examples/demos/bingo-extension/src/bingo/`, including its tests and README. Run
+`examples/demos/bingo-extension/src/bingo/`, including its README but excluding
+browser-only `bingo.tsx` and `style.css`. Browser tests live
+in `examples/demos/bingo-react/tests/`; copy those into the extension's `src/bingo/`
+and change their `../src/bingo/` import prefix to `./`. Run
 `pnpm bingo:check-copy` from the repository root; the lint check rejects missing,
 extra, or changed files in the extension copy. Standalone users can modify their
 local copy without the repository check.

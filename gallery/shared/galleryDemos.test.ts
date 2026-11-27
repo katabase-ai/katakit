@@ -1,5 +1,5 @@
 import { afterEach, expect, test, vi } from 'vitest';
-import { createTranscriptionDemo } from '../../examples/demos/transcription-react/src/createTranscriptionDemo';
+import { createTranscriptionDemo } from '../../examples/demos/transcription-react/src/transcription/createTranscriptionDemo';
 import { createNotesDemo } from '../../examples/demos/notes-react/src/createNotesDemo';
 import {
   transcriptionDemoDetails,

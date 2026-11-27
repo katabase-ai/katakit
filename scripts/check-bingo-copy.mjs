@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const canonical = join(root, 'examples/demos/bingo-react/src/bingo');
+const canonicalTests = join(root, 'examples/demos/bingo-react/tests');
 const standalone = join(root, 'examples/demos/bingo-extension/src/bingo');
 const files = directory =>
   readdirSync(directory, { withFileTypes: true }).flatMap(entry =>
@@ -12,25 +13,40 @@ const files = directory =>
       : [entry.name]
   );
 
-const sourceFiles = new Set(files(canonical));
+// Browser presentation is local; every other canonical module must have an extension copy.
+const browserOnly = new Set(['bingo.tsx', 'style.css']);
+const sourceFiles = new Map(
+  files(canonical)
+    .filter(file => !browserOnly.has(file))
+    .map(file => [file, join(canonical, file)])
+);
+// UI tests are local; the shared behavior tests must be present in both examples.
+for (const file of ['plugin.test.ts', 'wordLists.test.ts']) {
+  if (sourceFiles.has(file)) throw new Error(`Duplicate canonical Bingo file: ${file}`);
+  sourceFiles.set(file, join(canonicalTests, file));
+}
 const copiedFiles = new Set(files(standalone));
-const contents = (directory, file) => {
-  const bytes = readFileSync(join(directory, file));
+const contents = (path, relocatedTest = false) => {
+  const bytes = readFileSync(path);
   // Git can check the two text copies out with different working-tree line endings.
-  return /\.(ts|md)$/.test(file)
-    ? Buffer.from(bytes.toString('utf8').replaceAll('\r\n', '\n'))
-    : bytes;
+  if (!/\.(ts|md)$/.test(path)) return bytes;
+  let text = bytes.toString('utf8').replaceAll('\r\n', '\n');
+  // Only normalize the import prefix changed by relocating the browser tests.
+  if (relocatedTest) text = text.replace(/(\bfrom\s+['"])\.\.\/src\/bingo\//g, '$1./');
+  return Buffer.from(text);
 };
-const differences = [...new Set([...sourceFiles, ...copiedFiles])].filter(
+const differences = [...new Set([...sourceFiles.keys(), ...copiedFiles])].filter(
   file =>
     !sourceFiles.has(file) ||
     !copiedFiles.has(file) ||
-    !contents(canonical, file).equals(contents(standalone, file))
+    !contents(sourceFiles.get(file), sourceFiles.get(file) === join(canonicalTests, file)).equals(
+      contents(join(standalone, file))
+    )
 );
 
 if (differences.length) {
   throw new Error(
-    `Bingo copy differs: ${differences.join(', ')}. Copy examples/demos/bingo-react/src/bingo/ to examples/demos/bingo-extension/src/bingo/ and run pnpm bingo:check-copy.`
+    `Bingo copy differs: ${differences.join(', ')}. Sync the shared behavior files in browser src/bingo/ and the plugin/word-list tests into examples/demos/bingo-extension/src/bingo/ (adjust test imports to ./), then run pnpm bingo:check-copy.`
   );
 }
 

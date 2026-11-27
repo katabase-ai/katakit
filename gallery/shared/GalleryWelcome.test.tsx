@@ -7,7 +7,7 @@ import {
   createMicrophoneTranscriber,
   type MicrophoneOptions,
 } from '@katakit/transcription/browser';
-import { createTranscriptionDemo } from '../../examples/demos/transcription-react/src/createTranscriptionDemo';
+import { createTranscriptionDemo } from '../../examples/demos/transcription-react/src/transcription/createTranscriptionDemo';
 import { GallerySpeechProvider, useGallerySpeech } from './GallerySpeechProvider';
 import { GalleryCaptureControls } from './GalleryCaptureControls';
 import { GalleryConsentProvider } from './GalleryConsentProvider';
