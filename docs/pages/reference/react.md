@@ -35,7 +35,8 @@ The panel keeps the last 500 deliveries, even while collapsed. Object previews
 read current fields rather than taking a deep snapshot. In the value preview, open an object
 or array to explore its children. Large collections show 32 fields per page;
 accessor properties are labeled rather than invoked. Mounted panels share a
-recording. After the last panel unmounts, the recording is discarded without
+recording. When replacing a demo and its runtime, key the panel or its parent
+by demo ID so the new visit starts with a fresh timeline. After the last panel unmounts, the recording is discarded without
 stopping the runtime. A later mount records newly created observable collections;
 it does not reconnect to collections cached by an earlier recording.
 

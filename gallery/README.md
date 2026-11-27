@@ -39,6 +39,10 @@ transcription runs locally; generating notes requires
 a host-supplied model connection. Developer mode can instead use your own OpenRouter key. Extension setup pages are outside this catalogue. Direct links and unknown-demo
 responses are handled by Start. Browser-only demo modules mount after hydration, not during SSR.
 
+Open **Katakit devtools** in the lower-right corner of any demo to inspect its
+observable deliveries. Each demo visit starts a fresh timeline. It is available
+in production and stays active when switching between Developer mode and Public preview.
+
 `shared/ColorClashGalleryDemo.tsx` adapts the existing game to the shared speech owner and runtime
 lease. The game directory is unchanged. Navigation stops/drains capture and releases the game,
 while the loaded speech model remains ready for the next demo. Named `colorClashGalleryDemo`

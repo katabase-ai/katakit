@@ -9,6 +9,20 @@ import { localInferenceProxy } from './localInferenceProxy';
 
 export default defineConfig(({ mode }) => ({
   plugins: [
+    {
+      name: 'gallery-dev-client-entry',
+      configureServer(server) {
+        // Start emits the bare virtual ID in dev HTML. Serve Vite's resolved
+        // virtual module URL so the request doesn't fall through to an SSR 404.
+        server.middlewares.use((request, _response, next) => {
+          request.url = request.url?.replace(
+            /^\/@id\/virtual:tanstack-start-client-entry(?=\?|$)/,
+            '/@id/__x00__virtual:tanstack-start-client-entry'
+          );
+          next();
+        });
+      },
+    },
     localInferenceProxy(() => loadEnv(mode, import.meta.dirname, '')),
     cloudflare({ viteEnvironment: { name: 'ssr' } }),
     tanstackStart(),
