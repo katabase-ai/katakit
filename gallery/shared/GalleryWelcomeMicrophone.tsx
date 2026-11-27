@@ -1,16 +1,16 @@
-import { useEffect, useState } from 'react';
+import { Subscribe } from '@react-rxjs/core';
 import { createTranscriptionDemo } from '../../examples/demos/transcription/src/transcription/createTranscriptionDemo';
 import { GalleryDemo } from './GalleryDemo';
 import { GalleryCaptureControls } from './GalleryCaptureControls';
 import { GalleryMicrophoneIndicator } from './GalleryMicrophoneIndicator';
 import { useGallerySpeech } from './GallerySpeechProvider';
 
-const TestTranscript = ({ runtime }: { runtime: ReturnType<typeof createTranscriptionDemo> }) => {
-  const [snapshot, setSnapshot] = useState(() => runtime.state$.getValue());
-  useEffect(() => {
-    const subscription = runtime.state$.subscribe(setSnapshot);
-    return () => subscription.unsubscribe();
-  }, [runtime]);
+const TestTranscriptText = ({
+  runtime,
+}: {
+  runtime: ReturnType<typeof createTranscriptionDemo>;
+}) => {
+  const snapshot = runtime.useTranscript();
   const text = [
     ...snapshot.completedTurns.map(turn => turn.text),
     snapshot.currentTurn?.text,
@@ -20,6 +20,12 @@ const TestTranscript = ({ runtime }: { runtime: ReturnType<typeof createTranscri
     .join(' ');
   return <>{text || 'Your words will appear here.'}</>;
 };
+
+const TestTranscript = ({ runtime }: { runtime: ReturnType<typeof createTranscriptionDemo> }) => (
+  <Subscribe source$={runtime.transcript$}>
+    <TestTranscriptText runtime={runtime} />
+  </Subscribe>
+);
 
 const MicrophoneRecovery = () => {
   const session = useGallerySpeech();

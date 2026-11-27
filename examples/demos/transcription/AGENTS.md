@@ -45,7 +45,8 @@ and each recording gets a distinct source ID.
 - `src/transcription/TranscriptView.tsx` displays completed, pending, and provisional transcript text.
 - `src/transcription/transcriptInput.ts` adapts recognition callbacks to transcript ingestion,
   including source IDs, duplicate filtering, and turn boundaries.
-- `src/transcription/createTranscriptionDemo.ts` exposes transcript state and owns its subscription.
+- `src/transcription/createTranscriptionDemo.ts` combines ingestion projections into read-only
+  `state$`, exposes typed history, and creates stable React-RxJS bindings for the visit.
 - `src/transcription/models.ts` describes model choices; `src/transcription/createModelSwitcher.ts` serializes
   model disposal and replacement.
 - `src/ui/` contains local visual primitives (`controls.tsx`, `AudioLevelMeter.tsx`)
@@ -54,7 +55,8 @@ and each recording gets a distinct source ID.
   `src/app.tsx`. `src/ui/controls.tsx` imports its own `controls.css`, and
   `src/ui/AudioLevelMeter.tsx` imports `audio-level-meter.css`.
 - `src/transcription/style.css` contains demo-specific layout and transcript styling.
-- `tests/` covers model selection, transcript integration, and React subscription behavior.
+- `tests/` covers typed replay, input admission, shutdown, model selection, transcript integration,
+  and React remount/runtime replacement.
 
 ## Modification rules
 
@@ -66,11 +68,69 @@ Transcript content derives from transcript ingestion's logged events. Keep provi
 speech separate from finalized input, preserve source/segment IDs, and flush final
 results on Stop. Changing models must not discard existing transcript turns.
 
-`transcription/transcription.tsx` owns the microphone/model switcher and transcript runtime. Its cleanup stops
-active capture, disposes the model owner, and then closes the transcript runtime.
-`createTranscriptionDemo` releases its subscription and closes transcript ingestion;
-the view releases its own subscription on unmount. Preserve this ordering and do not
-assume Katakit core provides a general runtime disposal method.
+`src/transcription/transcription.tsx` owns the microphone/model switcher and transcript runtime.
+The gallery owns shared capture and a visit lease instead. These hosts stop and drain input,
+flush the final turn, then close the session. `createTranscriptionDemo.close()` cancels the
+ingestion timer, completes its combined view, and ignores late input; it does not flush a
+pending turn or stop the host's microphone. The view's `Subscribe` boundary releases only its
+UI subscription on unmount. Core has no general runtime disposal method; internal log and
+projection objects remain in memory while a caller retains the runtime or history.
+
+## Event model and replay
+
+One session spans recording pauses and model changes. Leaving the page closes the session;
+a new visit starts empty. Ingestion's existing event log owns the transcript:
+
+| Event                       | Accepted fact                                               | Projection                                     |
+| --------------------------- | ----------------------------------------------------------- | ---------------------------------------------- |
+| `utteranceAdded`            | Final text, source-scoped ID, and audio times               | Pending turn and accepted utterances           |
+| `conversationTurnAdded`     | Completed turn with its assigned ID, text, and times        | Completed turns; clears pending text and draft |
+| `provisionalUtteranceAdded` | Latest recognition draft, including an empty draft on flush | Provisional text, cleared by finalized input   |
+
+These are TypeScript `KatakitEvent` declarations exported by `@katakit/transcript-ingestion`
+as `UtteranceAddedEvent`, `ConversationTurnAddedEvent`, and `ProvisionalUtteranceAddedEvent`
+(the `TranscriptIngestionEvent` union). Reuse those types and projections. The demo has no
+second event model, writable transcript mirror, or runtime event schemas.
+
+`transcriptInput.ts` trims final text, ignores blank input, and deduplicates the pair of
+recording `sourceId` and recognizer-local segment `id`. The encoded pair is the utterance ID;
+`speaker` retains the source ID, not a detected person. A new source or audio gap greater than
+1,400 ms flushes the previous turn. Otherwise delivery-time silence or an explicit `flush()`
+completes it. Missing start time defaults to zero; missing end time defaults to the start.
+If the next segment ends before the pending turn's start, the adapter flushes first to preserve
+valid turn ranges after missing timestamps or a clock reset. IDs and finite, nonnegative,
+ordered audio times are checked before admission.
+
+History is typed and in memory, with no persistence or JSON import format. The previous UI
+did not save transcripts, so there is no legacy snapshot to migrate. To restore a session:
+
+```ts
+import { createTranscriptionDemo } from './src/transcription/createTranscriptionDemo';
+
+const live = createTranscriptionDemo();
+live.ingestSegment({ sourceId: 'recording-1', id: 'segment-1', text: 'Hello.' });
+live.flush();
+const saved = live.events$.getAll(); // TranscriptIngestionEvent[], including Date metadata
+live.close();
+
+const restored = createTranscriptionDemo({ initialEvents: saved });
+console.log(restored.state$.get().completedTurns[0]?.text); // Hello.
+restored.close();
+```
+
+Pass a complete `readonly TranscriptIngestionEvent[]`, not a filtered subset. Seed records
+and metadata are copied; replay does not revalidate accepted facts. Do not mutate recorded
+facts. If adding external storage or JSON input, decode and validate that format at its input
+boundary before passing typed events to the runtime.
+
+Replay reconstructs source deduplication, completed turns, pending text, and the last draft
+without generating turn IDs, restarting timers, or acquiring a recognizer. Pending text stays
+pending until live input or `flush()` advances it. Closing a restored instance adds no events.
+A restored draft describes recognition at capture time, not whether a microphone is now running.
+
+See [Designing event-sourced applications](https://github.com/katabase-ai/katakit/blob/main/docs/pages/reference/event-sourcing.md)
+and [Migrate an existing application](https://github.com/katabase-ai/katakit/blob/main/docs/pages/getting-started/migrate-to-event-sourcing.md)
+for the shared design method and a walkthrough starting from mutable state.
 
 ## Hosting and verification
 
@@ -93,3 +153,8 @@ changes, also check in a browser:
 
 Builds and synthetic tests do not establish real microphone or recognition behavior.
 Report manual checks separately.
+
+From a Katakit checkout, run `pnpm demos:copy-check transcription` and `pnpm gallery:copy-check`
+to check clean installs, builds, types, tests, assets, and HTTP isolation against freshly packed
+libraries. Add `--registry` to test published versions instead. Replay tests use controlled
+text and engine callbacks, not microphone audio or real models.

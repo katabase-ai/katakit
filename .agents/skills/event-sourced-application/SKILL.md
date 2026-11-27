@@ -99,6 +99,10 @@ starts from an application that was not event-sourced.
 
 ## Worked references
 
+- [Transcription runtime](../../../examples/demos/transcription/src/transcription/createTranscriptionDemo.ts),
+  [input adapter](../../../examples/demos/transcription/src/transcription/transcriptInput.ts), and
+  [replay checks](../../../examples/demos/transcription/tests/createTranscriptionDemo.test.ts):
+  reuse existing ingestion events, replace a writable view mirror, and restore source deduplication.
 - [Bingo events](../../../examples/demos/bingo/src/bingo/events.ts),
   [projections](../../../examples/demos/bingo/src/bingo/plugin.ts), and
   [reconstruction checks](../../../examples/demos/bingo/tests/plugin.test.ts):

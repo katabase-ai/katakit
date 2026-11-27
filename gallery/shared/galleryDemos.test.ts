@@ -42,7 +42,7 @@ test('transcription and notes visits keep separate transcripts and release their
   transcript.state$.subscribe({ complete: completed });
   notes.state$.subscribe({ complete: notesCompleted });
   transcript.ingestSegment({ id: 'first', sourceId: 'one', text: 'a private transcript' });
-  expect(transcript.state$.getValue().currentTurn?.text).toBe('a private transcript');
+  expect(transcript.state$.get().currentTurn?.text).toBe('a private transcript');
   expect(notes.state$.get().turns).toEqual([]);
   notes.ingestSegment({ id: 'third', sourceId: 'three', text: 'private notes input' });
   expect(vi.getTimerCount()).toBe(2);
