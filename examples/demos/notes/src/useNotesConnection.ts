@@ -100,6 +100,7 @@ export const useNotesConnection = ({
   useEffect(() => {
     const subscription = runtime.state$.subscribe(({ notes }) => {
       if (
+        listening &&
         notes.status === 'paused' &&
         notes.failure?.policy.restart &&
         !notes.failure.policy.terminal &&
@@ -111,7 +112,7 @@ export const useNotesConnection = ({
       }
     });
     return () => subscription.unsubscribe();
-  }, [runtime, connectModel]);
+  }, [runtime, connectModel, listening]);
 
   return {
     connecting: admission.type === 'connecting',

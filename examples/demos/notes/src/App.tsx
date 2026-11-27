@@ -1,30 +1,27 @@
-import { useEffect, useState, type ComponentProps } from 'react';
-import {
-  useMicrophoneTranscriber,
-  useMicrophoneTranscriberCallbacks,
-} from '@katakit/transcription/react';
+import { useCallback, useEffect, useRef, useState, type ComponentProps } from 'react';
+import { useMicrophoneTranscriber } from '@katakit/transcription/react';
 import { createNotesDemo } from './createNotesDemo';
 import { NotesDemo } from './NotesDemo';
 
 /** Standalone capture stays here; the gallery supplies its own shared input owner. */
 export const App = ({ connect }: Pick<ComponentProps<typeof NotesDemo>, 'connect'>) => {
-  const microphone = useMicrophoneTranscriber();
   const [runtime, setRuntime] = useState<ReturnType<typeof createNotesDemo>>();
+  const owner = useRef<ReturnType<typeof createNotesDemo>>(undefined);
 
   useEffect(() => {
     const demo = createNotesDemo();
+    owner.current = demo;
     setRuntime(demo);
     return () => {
-      demo.flush();
-      demo.close();
+      owner.current = undefined;
+      // The microphone holds its sink through stop/drain and closes it afterward.
     };
   }, []);
-
-  useMicrophoneTranscriberCallbacks(microphone, {
-    onUtterance: runtime?.ingestSegment,
-    onProvisionalUtterance: runtime?.updateProvisional,
-    onFlush: runtime?.flush,
-  });
+  const createSink = useCallback(() => {
+    if (!owner.current) throw new Error('Notes runtime is not ready.');
+    return owner.current;
+  }, []);
+  const microphone = useMicrophoneTranscriber({ createSink });
 
   if (!runtime) return <p role="status">Preparing demo…</p>;
   return (

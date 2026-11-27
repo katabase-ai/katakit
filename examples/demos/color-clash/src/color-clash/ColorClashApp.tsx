@@ -1,21 +1,13 @@
-import { useMemo, useState } from 'react';
-import {
-  useMicrophoneTranscriber,
-  useMicrophoneTranscriberCallbacks,
-} from '@katakit/transcription/react';
+import { useCallback, useMemo, useState } from 'react';
+import { useMicrophoneTranscriber } from '@katakit/transcription/react';
 import { ColorClash } from './ColorClash';
 import { createColorClash } from './createColorClash';
 
 /** A fresh owner after cancellation disposes the previous model request and capture. */
 const Game = ({ onCancel }: { onCancel: () => void }) => {
   const game = useMemo(() => createColorClash(), []);
-  const microphone = useMicrophoneTranscriber();
-  useMicrophoneTranscriberCallbacks(microphone, {
-    onUtterance: game.ingestSegment,
-    onProvisionalUtterance: game.updateProvisional,
-    onFlush: game.flush,
-    onClose: game.close,
-  });
+  const createSink = useCallback(() => game, [game]);
+  const microphone = useMicrophoneTranscriber({ createSink });
   return (
     <ColorClash
       runtime={game}

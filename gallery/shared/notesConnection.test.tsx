@@ -1,10 +1,12 @@
 // @vitest-environment happy-dom
 import { StrictMode } from 'react';
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, render, renderHook, screen } from '@testing-library/react';
 import { afterEach, expect, test, vi } from 'vitest';
+import { BehaviorSubject } from 'rxjs';
 import { NotesDemo } from '../../examples/demos/notes/src/NotesDemo';
 import { createNotesDemo } from '../../examples/demos/notes/src/createNotesDemo';
 import { NotesRequestError, type NotesConnection } from '../../examples/demos/notes/src/notesModel';
+import { useNotesConnection } from '../../examples/demos/notes/src/useNotesConnection';
 
 const completion = (text: string) => ({
   choices: [
@@ -25,6 +27,30 @@ const turn = (runtime: ReturnType<typeof createNotesDemo>, text: string) => {
   runtime.flush();
 };
 afterEach(cleanup);
+
+test('a restart-policy failure cannot reconnect after listening stops', async () => {
+  const state$ = new BehaviorSubject<{ notes: { status: string; failure?: NotesRequestError } }>({
+    notes: { status: 'idle' },
+  });
+  const runtime = {
+    state$,
+    notes: { pause: vi.fn(), connect: vi.fn(), retry: vi.fn() },
+  } as unknown as ReturnType<typeof createNotesDemo>;
+  const connect = vi.fn(async (): Promise<NotesConnection> => connection(async () => ({})));
+  const view = renderHook(({ listening }) => useNotesConnection({ runtime, connect, listening }), {
+    initialProps: { listening: true },
+  });
+  await vi.waitFor(() => expect(runtime.notes.connect).toHaveBeenCalledOnce());
+  view.rerender({ listening: false });
+  act(() => {
+    state$.next({
+      notes: { status: 'paused', failure: new NotesRequestError('expired', { restart: true }) },
+    });
+  });
+  expect(connect).toHaveBeenCalledTimes(1);
+  view.unmount();
+  state$.complete();
+});
 
 test('notes connect only while listening; a source change aborts, preserves content and reconnects', async () => {
   const runtime = createNotesDemo();
