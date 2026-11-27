@@ -29,11 +29,10 @@ host contract, prompt, schema, and wire sizing.
 `src/ui/TranscriptTurns.tsx` renders numbered turns from transcript streams; its own
 `transcript-turns.css` styles the widget. The feature's `style.css` owns the surrounding
 notes/transcript layout.
-`TranscriptPreview.tsx` and `createTranscriptPreview.ts` are kept identical to the bingo example's
-copies. `TranscriptPreview.tsx` renders live transcript lines, newest first, lighter with age by position
-(no per-line animation: animated lines in the sticky panel were painted at stale positions).
-`createTranscriptPreview.ts` owns their twenty-second display lifetime. Keep display timing outside
-the event log; finalization keeps the draft line's identity.
+The older `TranscriptPreview.tsx` and its tested `createTranscriptPreview.ts` utility remain
+local but are not used by `NotesDemo.tsx`. Their twenty-second display timer is not the
+lifetime of the numbered transcript currently shown. Keep display timing outside the event
+log if the preview is used again.
 `main.tsx` is the local standalone transport and imports the feature CSS. Tests live in
 `tests/`. The feature CSS stays scoped so embedding does not import standalone defaults.
 
@@ -43,9 +42,9 @@ The example stays independently copyable with
 its own manifest and no sibling demo or private website imports. Gallery adapters live in the gallery.
 
 Record IDs and cursors with accepted outlines. Replay restores content without generating IDs or
-calling a model. Keep connection, retry, and cancellation state outside the log. Bound only the
-visible transcript by age; inference retains all finalized turns. Hosts place model controls and errors
-through `renderModelControls`; the Markdown output contains only notes.
+calling a model. Keep connection, retry, and cancellation state outside the log. The numbered
+transcript shows completed turns for the visit; inference retains all finalized turns. Hosts place
+model controls and errors through `renderModelControls`; the Markdown output contains only notes.
 
 Retain all pending finalized turns across single-flight requests. Advance the cursor only after
 validated output. Rewords replace existing note text; they never rewrite the transcript.
@@ -81,10 +80,10 @@ A validated result may legitimately add no visible notes.
 after validation. Accepted outlines include stable IDs and the processed-turn cursor;
 `notesCleared` records the cursor without rerunning inference. A connected session can process
 turns remaining after the recorded cursor. The history remains in memory for one visit.
-Only live lines stay in the visible transcript for twenty seconds; all finalized turns remain
-available to inference and replay. Requests include the outline, pending turns, and up to six
-preceding context turns. Oversized input pauses instead of dropping content. Unmount aborts
-admission and requests immediately; the input owner then drains capture before runtime close.
+Completed turns remain in the numbered transcript for the visit and are available to inference
+and replay. Requests include the outline, pending turns, and up to six preceding context turns.
+Oversized input pauses instead of dropping content. Unmount aborts admission and requests
+immediately; the input owner then drains capture before runtime close.
 Standalone unmount releases the recognizer; the gallery can retain its ready recognizer across
 routes. Pending microphone permission and late grants must be cancelled.
 
