@@ -61,11 +61,12 @@ export const Transcription = () => {
   }, []);
 
   const selectModel = async (id: ModelId) => {
-    if (id === modelId || switchingRef.current || !owner.current) return;
+    const current = owner.current;
+    if (id === modelId || switchingRef.current || !current) return;
     switchingRef.current = true;
     setSwitching(true);
     try {
-      if (await owner.current.select(id)) {
+      if ((await current.select(id)) && owner.current === current) {
         setAudioLevel(0);
         runtime?.flush();
         setModelId(id);
@@ -73,7 +74,7 @@ export const Transcription = () => {
       }
     } finally {
       switchingRef.current = false;
-      setSwitching(false);
+      if (owner.current === current) setSwitching(false);
     }
   };
 
