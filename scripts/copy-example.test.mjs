@@ -47,7 +47,7 @@ test('rejects a destination routed into the checkout through a symlinked parent'
   }
 });
 
-for (const example of ['starters/react-web', 'demos/transcription-react', 'gallery']) {
+for (const example of ['starters/react-web', 'demos/transcription', 'gallery']) {
   test(`copies ${example} with registry dependencies and no bundled packages`, () => {
     const temp = mkdtempSync(join(tmpdir(), 'katakit-copy-destination-'));
     try {
@@ -68,19 +68,20 @@ for (const example of ['starters/react-web', 'demos/transcription-react', 'galle
         /overrides:|file:/
       );
       if (example === 'gallery') {
-        assert.ok(existsSync(join(target, 'sources/notes-react/src/NotesDemo.tsx')));
+        assert.ok(existsSync(join(target, 'sources/notes/src/NotesDemo.tsx')));
         assert.ok(
-          existsSync(join(target, 'sources/list-extraction-react/src/ListExtractionDemo.tsx'))
+          existsSync(join(target, 'sources/list-extraction/src/ListExtractionDemo.tsx'))
         );
         assert.match(
           readFileSync(join(target, 'shared/ListExtractionGalleryDemo.tsx'), 'utf8'),
-          /\.\.\/sources\/list-extraction-react\//
+          /\.\.\/sources\/list-extraction\//
         );
-        assert.ok(existsSync(join(target, 'sources/brainstorm-react/src/BrainstormDemo.tsx')));
-        assert.ok(existsSync(join(target, 'sources/brainstorm-react/src/challenges.json')));
+        assert.ok(existsSync(join(target, 'sources/brainstorm/src/BrainstormDemo.tsx')));
+        assert.ok(existsSync(join(target, 'sources/brainstorm/src/challenges.json')));
+        assert.ok(existsSync(join(target, 'sources/color-clash/src/ColorClash.tsx')));
         assert.match(
           readFileSync(join(target, 'shared/BrainstormGalleryDemo.tsx'), 'utf8'),
-          /\.\.\/sources\/brainstorm-react\//
+          /\.\.\/sources\/brainstorm\//
         );
         assert.ok(existsSync(join(target, 'styles/components.css')));
         assert.match(readFileSync(join(target, 'shared/gallery.css'), 'utf8'), /\.\.\/styles\//);

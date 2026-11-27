@@ -1,0 +1,21 @@
+:root {
+  color-scheme: light dark;
+  --color-paper: light-dark(#fcfcfd, #111113);
+  --color-paper-2: light-dark(#f9f9fb, #18191b);
+  --color-ink: light-dark(#1c2024, #edeef0);
+  --color-ink-2: light-dark(#60646c, #b0b4ba);
+  --color-muted: var(--color-ink-2);
+  --color-rule: light-dark(#e0e1e6, #2e3135);
+  --color-accent: light-dark(#0d74ce, #70b8ff);
+  --color-accent-deep: light-dark(#085eac, #c2e6ff);
+  --color-accent-wash: light-dark(#e6f4fe, #0d2847);
+  --color-focus: var(--color-accent);
+  --color-error: light-dark(#d13415, #ff977d);
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--color-paper); color: var(--color-ink); }
+main { max-width: 880px; margin: 3rem auto; padding: 0 1rem; }
+main > p { margin: 0.5rem 0 1.5rem; }
+button { font: inherit; }
+button:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }

@@ -1,7 +1,7 @@
 import { useEffect, type ContextType } from 'react';
 import mitt from 'mitt';
 import { MicrophoneTranscriberContext } from '@katakit/transcription/react';
-import { BrowserBingoDemo } from '../../examples/demos/bingo-react/src/BrowserBingoDemo';
+import { BrowserBingoDemo } from '../../examples/demos/bingo/src/BrowserBingoDemo';
 import { createGalleryDemo, type GalleryDemoViewProps } from './createGalleryDemo';
 import type { GalleryInputSink } from './createGallerySpeech';
 import { useGallerySpeech } from './GallerySpeechProvider';

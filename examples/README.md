@@ -10,7 +10,7 @@ Standalone examples install Katakit packages from npm.
 To prepare a standalone copy from a checkout:
 
 ```sh
-pnpm examples:copy demos/transcription-react /tmp/my-transcriber
+pnpm examples:copy demos/transcription /tmp/my-transcriber
 # Or: pnpm examples:copy starters/react-web /tmp/my-app
 # Or: pnpm examples:copy gallery /tmp/my-gallery
 cd /tmp/my-transcriber

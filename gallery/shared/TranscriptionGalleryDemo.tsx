@@ -1,5 +1,5 @@
-import { TranscriptionDemo } from '../../examples/demos/transcription-react/src/TranscriptionDemo';
-import { createTranscriptionDemo } from '../../examples/demos/transcription-react/src/createTranscriptionDemo';
+import { TranscriptionDemo } from '../../examples/demos/transcription/src/TranscriptionDemo';
+import { createTranscriptionDemo } from '../../examples/demos/transcription/src/createTranscriptionDemo';
 import { createGalleryDemo, type GalleryDemoViewProps } from './createGalleryDemo';
 import { TranscriptionIntroduction } from './TranscriptionIntroduction';
 

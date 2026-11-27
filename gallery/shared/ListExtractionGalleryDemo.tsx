@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
-import { createListExtractionDemo } from '../../examples/demos/list-extraction-react/src/createListExtractionDemo';
-import { ListExtractionDemo } from '../../examples/demos/list-extraction-react/src/ListExtractionDemo';
-import { ExtractionError } from '../../examples/demos/list-extraction-react/src/extractionModel';
+import { createListExtractionDemo } from '../../examples/demos/list-extraction/src/createListExtractionDemo';
+import { ListExtractionDemo } from '../../examples/demos/list-extraction/src/ListExtractionDemo';
+import { ExtractionError } from '../../examples/demos/list-extraction/src/extractionModel';
 import { GalleryCaptureControls } from './GalleryCaptureControls';
 import { GalleryDemo } from './GalleryDemo';
 import { useGalleryDemoHeader } from './GalleryDemoHeader';

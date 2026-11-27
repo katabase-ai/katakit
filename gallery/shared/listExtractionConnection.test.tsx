@@ -5,13 +5,13 @@ import { afterEach, expect, test, vi } from 'vitest';
 import {
   createListExtractionDemo,
   type ListExtractionRuntime,
-} from '../../examples/demos/list-extraction-react/src/createListExtractionDemo';
-import { ListExtractionDemo } from '../../examples/demos/list-extraction-react/src/ListExtractionDemo';
+} from '../../examples/demos/list-extraction/src/createListExtractionDemo';
+import { ListExtractionDemo } from '../../examples/demos/list-extraction/src/ListExtractionDemo';
 import {
   ExtractionError,
   type ExtractionConnection,
   type ExtractionConnect,
-} from '../../examples/demos/list-extraction-react/src/extractionModel';
+} from '../../examples/demos/list-extraction/src/extractionModel';
 import { GalleryDemoHeader } from './GalleryDemoHeader';
 import { GallerySpeechProvider } from './GallerySpeechProvider';
 import { GalleryModelContext } from './galleryModel';

@@ -14,7 +14,7 @@ Follow the [example contract](../DEVELOPMENT.md#add-or-change-an-example),
   update its dependency manifest, copy inputs, and structural allowance together. Preserve the
   gallery's host input/model ownership and scoped presentation contracts.
 - After changing imports, assets, config, or dependencies, run `pnpm demos:copy-check <name>` or
-  `pnpm templates:copy-check <name>`. Run `pnpm bingo:check-copy` after canonical Bingo edits.
+  `pnpm templates:copy-check <name>`.
   Keep local credentials and generated output out of copies and commits.
 - A copied build is not a native-platform or real-model test. Follow the README's manual checks
   when the interaction changes and report any unavailable environment explicitly.
