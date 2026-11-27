@@ -39,4 +39,24 @@ describe('model switching', () => {
       'stop whisper-tiny',
     ]);
   });
+
+  it('unmount during model disposal prevents replacement and disposes once', async () => {
+    const pending = Promise.withResolvers<void>();
+    const dispose = vi.fn(() => pending.promise);
+    const create = vi.fn(() => ({
+      start: vi.fn(async () => {}),
+      stop: vi.fn(async () => {}),
+      dispose,
+    }));
+    const switcher = createModelSwitcher('moonshine-small', create);
+    const selection = switcher.select('whisper-tiny');
+    const teardown = switcher.dispose();
+    expect(await switcher.select('moonshine-medium')).toBe(false);
+    pending.resolve();
+    expect(await selection).toBe(false);
+    await teardown;
+    await switcher.dispose();
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(dispose).toHaveBeenCalledOnce();
+  });
 });

@@ -14,6 +14,10 @@ export const createModelSwitcher = <T extends Input>(
   let modelId = initial;
   let owner = create(initial);
   let switching = false;
+  let disposed = false;
+  let ownerDisposed = false;
+  let switchingPromise: Promise<boolean> | undefined;
+  let disposal: Promise<void> | undefined;
   return {
     get modelId() {
       return modelId;
@@ -21,20 +25,41 @@ export const createModelSwitcher = <T extends Input>(
     get busy() {
       return switching;
     },
-    start: () => (switching ? Promise.resolve() : owner.start()),
-    stop: () => owner.stop(),
-    select: async (id: ModelId) => {
-      if (switching || id === modelId) return false;
+    start: () => (switching || disposed ? Promise.resolve() : owner.start()),
+    stop: () => (ownerDisposed ? Promise.resolve() : owner.stop()),
+    select: (id: ModelId) => {
+      if (disposed || switching || id === modelId) return Promise.resolve(false);
       switching = true;
-      try {
-        await owner.dispose();
-        owner = create(id);
-        modelId = id;
-        return true;
-      } finally {
-        switching = false;
-      }
+      const operation = (async () => {
+        try {
+          await owner.dispose();
+          ownerDisposed = true;
+          if (disposed) return false;
+          owner = create(id);
+          ownerDisposed = false;
+          modelId = id;
+          return true;
+        } finally {
+          switching = false;
+        }
+      })();
+      switchingPromise = operation;
+      return operation;
     },
-    dispose: () => owner.dispose(),
+    dispose: () => {
+      if (disposal) return disposal;
+      disposed = true;
+      disposal = (async () => {
+        try {
+          await switchingPromise;
+        } finally {
+          if (!ownerDisposed) {
+            await owner.dispose();
+            ownerDisposed = true;
+          }
+        }
+      })();
+      return disposal;
+    },
   };
 };
