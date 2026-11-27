@@ -19,6 +19,8 @@ const conceptOrder = [
   'plugins.md',
   'persistence.md',
   'templates.md',
+  'event-sourcing.md',
+  'event-sourcing-in-practice.md',
 ];
 const clientStarters = [
   { label: 'React', slug: 'starters/react-web' },

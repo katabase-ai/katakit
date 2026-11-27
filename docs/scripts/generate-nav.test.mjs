@@ -24,6 +24,11 @@ test('navigation follows the section order and uses directory READMEs as landing
         { label: 'Add a plugin and an effect', slug: 'concepts/plugins' },
         { label: 'Restore and save history', slug: 'concepts/persistence' },
         { label: 'Connect an input and a view', slug: 'concepts/templates' },
+        { label: 'Designing event-sourced applications', slug: 'concepts/event-sourcing' },
+        {
+          label: 'Event-sourcing implementation standards',
+          slug: 'concepts/event-sourcing-in-practice',
+        },
       ],
     },
     {
@@ -50,7 +55,6 @@ test('navigation follows the section order and uses directory READMEs as landing
         { label: '@katakit/react', slug: 'reference/react' },
         { label: '@katakit/transcript-ingestion', slug: 'reference/plugins/transcript-ingestion' },
         { label: '@katakit/transcription', slug: 'reference/transcription' },
-        { label: 'Designing event-sourced applications', slug: 'reference/event-sourcing' },
       ],
     },
   ]);

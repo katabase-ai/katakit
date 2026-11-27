@@ -128,7 +128,7 @@ without generating turn IDs, restarting timers, or acquiring a recognizer. Pendi
 pending until live input or `flush()` advances it. Closing a restored instance adds no events.
 A restored draft describes recognition at capture time, not whether a microphone is now running.
 
-See [Designing event-sourced applications](https://github.com/katabase-ai/katakit/blob/main/docs/pages/reference/event-sourcing.md)
+See [Designing event-sourced applications](https://github.com/katabase-ai/katakit/blob/main/docs/pages/concepts/event-sourcing.md)
 and [Migrate an existing application](https://github.com/katabase-ai/katakit/blob/main/docs/pages/getting-started/migrate-to-event-sourcing.md)
 for the shared design method and a walkthrough starting from mutable state.
 

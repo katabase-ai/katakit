@@ -5,7 +5,7 @@ a store, or service objects to event sourcing. The result is one authoritative e
 and projections that reconstruct application content. You can preserve user-visible behavior
 while changing the internal state model and the interfaces that consume it.
 
-Read [Designing event-sourced applications](../reference/event-sourcing.md) for the design
+Read [Designing event-sourced applications](../concepts/event-sourcing.md) for the design
 principles and [Start a runtime](../concepts/runtime.md) for the Katakit APIs. This is an
 application architecture migration; upgrading an already event-sourced app's event schemas
 or package versions is a separate task.
@@ -138,7 +138,7 @@ projection itself.
 For a model-driven feature, record validated accepted output and the inputs it covers.
 Structured notes records the outline, its IDs, and a processed-turn cursor together. Replay
 then restores that result without re-prompting the model. New work on unprocessed inputs
-requires an explicit live connection. The [design guide](../reference/event-sourcing.md#own-live-work-and-shutdown)
+requires an explicit live connection. The [design guide](../concepts/event-sourcing.md#own-live-work-and-shutdown)
 explains how that cursor makes coalesced request triggers safe.
 
 Define session replacement and shutdown before connecting live inputs. Account for final

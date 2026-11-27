@@ -49,7 +49,7 @@ Use the smallest arrangement that makes the demo's owners and boundaries clear.
   transient microphone handles, retry status, provisional input, and display timing may stay
   local. Replay must not rerun input or generate replacement content. See the
   [repository event-sourcing rules](../../AGENTS.md#ownership-and-architecture).
-- Use [Designing event-sourced applications](../../docs/pages/reference/event-sourcing.md)
+- Use [Designing event-sourced applications](../../docs/pages/concepts/event-sourcing.md)
   to choose events, projections, session boundaries, and replay-safe live work. For an existing
   mutable-state demo, follow [Migrate an existing application](../../docs/pages/getting-started/migrate-to-event-sourcing.md).
   Agents designing a new event-sourced demo or migrating one must use the

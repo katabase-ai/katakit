@@ -36,6 +36,14 @@
       {
         "label": "Connect an input and a view",
         "slug": "concepts/templates"
+      },
+      {
+        "label": "Designing event-sourced applications",
+        "slug": "concepts/event-sourcing"
+      },
+      {
+        "label": "Event-sourcing implementation standards",
+        "slug": "concepts/event-sourcing-in-practice"
       }
     ]
   },
@@ -94,10 +102,6 @@
       {
         "label": "@katakit/transcription",
         "slug": "reference/transcription"
-      },
-      {
-        "label": "Designing event-sourced applications",
-        "slug": "reference/event-sourcing"
       }
     ]
   }

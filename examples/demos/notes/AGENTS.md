@@ -68,7 +68,7 @@ triggers does not discard turns that arrive during a request.
 Clear remains part of the same visit: `notesCleared` removes the outline while retaining the
 transcript and moving the cursor past existing turns. This differs from Bingo's new-runtime
 boundary for each round. Both follow their domain's carry-over requirements. See
-[Designing event-sourced applications](https://github.com/katabase-ai/katakit/blob/main/docs/pages/reference/event-sourcing.md)
+[Designing event-sourced applications](https://github.com/katabase-ai/katakit/blob/main/docs/pages/concepts/event-sourcing.md)
 for the shared principles, or
 [Migrate an existing application](https://github.com/katabase-ai/katakit/blob/main/docs/pages/getting-started/migrate-to-event-sourcing.md)
 to move from mutable state to this pattern.

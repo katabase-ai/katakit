@@ -11,7 +11,8 @@ website consumers. See [EXPORT.md](EXPORT.md) for that boundary and bundle contr
 - Write introductions and task instructions in `pages/getting-started/`, guided
   conceptual walkthroughs in `pages/concepts/`, platform walkthroughs in `pages/starters/`,
   and reusable API behavior, lifecycle, configuration, and examples in
-  `pages/reference/`. The copied `examples/starters/*/README.md` files own the exact
+  `pages/reference/`. The Tutorial also contains event-sourcing design and implementation
+  guidance. The copied `examples/starters/*/README.md` files own the exact
   install and run commands; docs pages explain how and why to adapt them.
 - The Contributing section in `pages/contributing/` links to co-located repository guidance
   and contains the gallery authoring guide; keep detailed area-specific instructions
@@ -38,7 +39,8 @@ website consumers. See [EXPORT.md](EXPORT.md) for that boundary and bundle contr
   the section without changing their URLs. The WIP MCP App page is omitted from navigation.
   Reference lists package pages directly under their full `@katakit/*` names, retaining
   existing plugin URLs.
-  Standalone conceptual explanations belong in Reference; Tutorial teaches through use.
+  Keep API contracts in Reference; Tutorial teaches event-sourcing design and implementation
+  through the message-list example and reviewable application standards.
 
 ## Verification
 
