@@ -165,7 +165,7 @@ const WordRushView = ({
       {state.connected && !failure && <p role="status">Judge connected.</p>}
       {!connect &&
         !state.connected &&
-        (connectionHelp ?? <p>Set up a judging connection to start a round.</p>)}
+        (connectionHelp ?? <p>Configure a judging connection to play.</p>)}
       {failure && <p role="alert">{failure.message}</p>}
       {state.failure && !state.failure.policy.terminal && !state.failure.policy.restart && (
         <Button onClick={runtime.retry}>Retry judging</Button>

@@ -3,6 +3,8 @@ import { createMicrophoneTranscriber } from '@katakit/transcription/browser';
 import type { TranscriptionState } from '@katakit/transcription';
 import { WordRushDemo } from './WordRushDemo';
 import { createWordRushDemo } from './createWordRushDemo';
+import { MicrophoneIndicator } from './ui/CaptureControls';
+import { StandaloneDemo, StandaloneCapture } from './ui/StandaloneDemo';
 
 type Capture = {
   runtime: ReturnType<typeof createWordRushDemo>;
@@ -15,6 +17,7 @@ type Capture = {
 export const App = ({ connect }: Pick<ComponentProps<typeof WordRushDemo>, 'connect'>) => {
   const [runtime, setRuntime] = useState<Capture['runtime']>();
   const [input, setInput] = useState<TranscriptionState>({ phase: 'idle' });
+  const [level, setLevel] = useState(0);
   const owner = useRef<Capture>(undefined);
   useEffect(() => {
     const current: Capture = { runtime: createWordRushDemo(), phase: 'idle' };
@@ -59,6 +62,9 @@ export const App = ({ connect }: Pick<ComponentProps<typeof WordRushDemo>, 'conn
               setInput(state);
             }
           },
+          onLevel: next => {
+            if (owner.current === current && current.helper === helper) setLevel(next);
+          },
           onFinal: segment => {
             if (current.helper === helper) current.runtime.ingestSegment(segment);
           },
@@ -91,19 +97,34 @@ export const App = ({ connect }: Pick<ComponentProps<typeof WordRushDemo>, 'conn
   const isListening = useCallback(() => owner.current?.phase === 'running', []);
   if (!runtime) return <p role="status">Preparing game…</p>;
   return (
-    <WordRushDemo
-      runtime={runtime}
-      listening={input.phase === 'running'}
-      startListening={startListening}
-      isListening={isListening}
-      stopListening={stopListening}
-      connect={connect}
-      setupMessage={
-        input.phase === 'loading'
-          ? `Downloading speech model…${input.progress === undefined ? '' : ` ${Math.round(input.progress * 100)}%`}`
-          : 'Allow microphone access in your browser.'
-      }
-      controls={input.error && <p role="alert">{input.error.message}</p>}
-    />
+    <StandaloneDemo
+      title="Word rush"
+      description="Race the clock and collect spoken answers on a shared sticky-note board."
+    >
+      <WordRushDemo
+        runtime={runtime}
+        showIntroduction={false}
+        listening={input.phase === 'running'}
+        startListening={startListening}
+        isListening={isListening}
+        stopListening={stopListening}
+        connect={connect}
+        setupMessage={
+          input.phase === 'loading'
+            ? `Downloading speech model…${input.progress === undefined ? '' : ` ${Math.round(input.progress * 100)}%`}`
+            : 'Allow microphone access in your browser.'
+        }
+        controls={input.error && <p role="alert">{input.error.message}</p>}
+        roundControlClassName="standalone-capture-button"
+        renderRoundControls={controls => (
+          <StandaloneCapture>
+            <div className="standalone-capture">
+              <MicrophoneIndicator active={input.phase === 'running'} level={level} />
+              {controls}
+            </div>
+          </StandaloneCapture>
+        )}
+      />
+    </StandaloneDemo>
   );
 };

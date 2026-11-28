@@ -176,7 +176,7 @@ const BingoBody = ({
             ))}
           </div>
         </section>
-        <aside className="bingo-controls" aria-label="Bingo controls">
+        <aside className="bingo-controls" aria-label="Bingo transcript and controls">
           {controls}
           <TranscriptTurns
             completed={completed}

@@ -10,15 +10,6 @@
   max-width: 55ch;
   line-height: 1.6;
 }
-.structured-notes-controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem;
-}
-.structured-notes-controls {
-  margin-block: 1.5rem;
-}
 .structured-notes button,
 .structured-notes-model-controls button {
   font: inherit;

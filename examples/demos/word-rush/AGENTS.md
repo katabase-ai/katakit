@@ -41,6 +41,9 @@ visit's runtime, request queue, and round clock.
 stable challenges across 20 categories and `src/challenges.ts` selects them. Generic buttons and
 selects and their CSS live in `src/ui/`; feature styles stay in `src/style.css`, while
 `src/standalone.css` supplies global defaults only to `main.tsx`.
+The standalone page header and passive microphone indicator are local presentation files;
+the round button is shown below the page description while its setup and timing remain
+owned by the game. Neither file connects to the gallery.
 Behavior tests live in `tests/`. Keep model transport/admission in the host and gallery-only
 adapters in `gallery/`, never in the copied demo.
 

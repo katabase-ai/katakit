@@ -5,6 +5,7 @@ import {
 } from '@katakit/transcription/react';
 import { ColorClash } from './ColorClash';
 import { createColorClash } from './createColorClash';
+import { StandaloneDemo } from '../ui/StandaloneDemo';
 
 /** A fresh owner after cancellation disposes the previous model request and capture. */
 const Game = ({ onCancel }: { onCancel: () => void }) => {
@@ -34,10 +35,11 @@ const Game = ({ onCancel }: { onCancel: () => void }) => {
 export const App = () => {
   const [session, setSession] = useState(0);
   return (
-    <main>
-      <h1>Color clash</h1>
-      <p>Say the ink color, not the word. Speech stays on your device.</p>
+    <StandaloneDemo
+      title="Color clash"
+      description="Say the ink color, not the word. Speech stays on your device."
+    >
       <Game key={session} onCancel={() => setSession(value => value + 1)} />
-    </main>
+    </StandaloneDemo>
   );
 };

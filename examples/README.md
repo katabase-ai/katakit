@@ -7,6 +7,12 @@ The [gallery](../gallery/README.md) is a separate host that composes the demos.
 All feature demos follow the [copyable example standards](demos/AGENTS.md);
 each demo's own guide covers its setup and manual checks.
 
+The standalone page and theme are maintained as identical local files in all six demos;
+the microphone presentation is copied into the five demos that use it. From this checkout,
+edit `scripts/standalone-ui/` and run
+`pnpm demos:ui-sync`; `pnpm demos:ui-check` detects drift and runs within `pnpm check`.
+Copies contain ordinary files and need neither these scripts nor the gallery to run.
+
 Standalone examples install Katakit packages from npm.
 
 To prepare a standalone copy from a checkout:

@@ -12,6 +12,8 @@ Configure `VITE_NOTES_ENDPOINT` and `VITE_NOTES_CREDENTIAL` in an ignored `.env.
 standalone inference. The endpoint must support browser CORS and OpenAI-compatible chat
 completions; the standalone host selects `z-ai/glm-5.3`. Vite variables are visible in the
 browser: use them only locally. Public hosts should use a proxy with anonymous admission.
+Without both variables, capture and local transcription still work, and the page explains
+that notes need a model connection.
 On first capture, the recognizer downloads its model and requests microphone permission.
 The Vite transcription-assets plugin serves worker/WASM assets and local isolation headers.
 Production must supply document COOP `same-origin`, document/worker COEP `require-corp`,
@@ -35,6 +37,9 @@ lifetime of the numbered transcript currently shown. Keep display timing outside
 log if the preview is used again.
 `main.tsx` is the local standalone transport and imports the feature CSS. Tests live in
 `tests/`. The feature CSS stays scoped so embedding does not import standalone defaults.
+`main.tsx` also imports the standalone-only theme; `App.tsx` renders the local page header
+and capture feedback above the feature view. These UI files are copied with this example
+and never import the gallery.
 
 Keep model transport and admission in the host. The host returns the chat-completions response
 body; `notesModel.ts` reads and validates it so every host reports the same failures.

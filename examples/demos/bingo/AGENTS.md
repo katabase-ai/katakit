@@ -44,11 +44,11 @@ Click a square to mark or unmark it, including to correct recognition mistakes.
 - `tests/` covers the plugin and word lists.
 - `src/ui/TranscriptTurns.tsx` renders completed, pending, and provisional transcript
   text from plain props; it does not import Bingo state. Its styles live alongside it.
-- `src/ui/` contains local visual primitives (`controls.tsx`, `AudioLevelMeter.tsx`)
-  and their styles. Keep domain components outside this directory.
-- `src/base.css` contains the standalone theme and global resets; import it only from
-  `src/app.tsx`. `src/ui/controls.tsx` imports its own `controls.css`, and
-  `src/ui/AudioLevelMeter.tsx` imports `audio-level-meter.css`.
+- `src/ui/` contains local controls, the standalone page header and passive microphone
+  display. The latter two are complete local copies shared with other demos; they do not
+  own capture or depend on the gallery. Keep domain components outside this directory.
+- `src/standalone.css` contains the standalone theme, reset and capture presentation;
+  import it only from `src/app.tsx`. `src/ui/controls.tsx` imports its own `controls.css`.
 - `src/bingo/style.css` contains Bingo-specific layout styling.
 
 ## Modification rules
