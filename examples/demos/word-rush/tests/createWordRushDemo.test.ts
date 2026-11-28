@@ -345,7 +345,7 @@ test('settings stay out of history until the started fact records the selected r
   const history = runtime.events$.getAll();
   expect(history).toHaveLength(1);
   expect(history[0]).toMatchObject({
-    type: 'started',
+    type: 'roundStarted',
     challengeId: 'animals-02',
     seconds: 120,
   });

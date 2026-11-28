@@ -35,7 +35,7 @@ const initial = (): WordRushContent => ({
 
 const project = (state: WordRushContent, event: WordRushEvent): WordRushContent => {
   switch (event.type) {
-    case 'started':
+    case 'roundStarted':
       return {
         ...initial(),
         challengeId: event.challengeId,
@@ -44,16 +44,16 @@ const project = (state: WordRushContent, event: WordRushEvent): WordRushContent 
         deadline: event.deadline,
         phase: 'running',
       };
-    case 'heard':
+    case 'speechSegmentRecorded':
       return { ...state, segments: [...state.segments, { id: event.id, text: event.text }] };
-    case 'judged':
+    case 'judgmentsAccepted':
       return {
         ...state,
         notes: [...state.notes, ...event.notes],
         judgments: [...state.judgments, ...event.judgments],
         cursor: event.cursor,
       };
-    case 'removed': {
+    case 'answerRemoved': {
       const note = state.notes.find(note => note.id === event.id);
       return note
         ? {
@@ -63,9 +63,9 @@ const project = (state: WordRushContent, event: WordRushEvent): WordRushContent 
           }
         : state;
     }
-    case 'finishing':
+    case 'roundEndingStarted':
       return { ...state, phase: 'finishing', endedAt: event.at };
-    case 'finished':
+    case 'roundInputSealed':
       return { ...state, phase: 'finished' };
   }
 };
@@ -78,7 +78,14 @@ export const WordRushPlugin = makeKatakitPlugin({
     content$: property(
       getObservables(EventLogPlugin).events$.pipe(
         filter((event): event is WordRushEvent =>
-          ['started', 'heard', 'judged', 'removed', 'finishing', 'finished'].includes(event.type)
+          [
+            'roundStarted',
+            'speechSegmentRecorded',
+            'judgmentsAccepted',
+            'answerRemoved',
+            'roundEndingStarted',
+            'roundInputSealed',
+          ].includes(event.type)
         ),
         scan(project, initial()),
         startWith(initial())
@@ -101,12 +108,12 @@ export const WordRushPlugin = makeKatakitPlugin({
           (seconds !== null && (!Number.isFinite(seconds) || seconds <= 0))
         )
           return;
-        emit({ type: 'started', roundId, challengeId, seconds, deadline });
+        emit({ type: 'roundStarted', roundId, challengeId, seconds, deadline });
       },
       recordSegment: (id: string, text: string) => {
         // Capture may deliver a final segment after the deadline but before flush seals input.
         if (['running', 'finishing'].includes(content$.get().phase))
-          emit({ type: 'heard', id, text });
+          emit({ type: 'speechSegmentRecorded', id, text });
       },
       recordJudgments: (judgments: WordRushJudgment[], cursor: number) => {
         const content = content$.get();
@@ -121,17 +128,18 @@ export const WordRushPlugin = makeKatakitPlugin({
           keys.add(key);
           notes.push({ text: answer.text, evidence: answer.evidence, id: crypto.randomUUID() });
         }
-        emit({ type: 'judged', notes, judgments, cursor });
+        emit({ type: 'judgmentsAccepted', notes, judgments, cursor });
         return { accepted: notes.length, qualified: answers.length };
       },
       removeNote: (id: string) => {
-        if (content$.get().notes.some(note => note.id === id)) emit({ type: 'removed', id });
+        if (content$.get().notes.some(note => note.id === id)) emit({ type: 'answerRemoved', id });
       },
       finishRound: (at: number) => {
-        if (content$.get().phase === 'running') emit({ type: 'finishing', at });
+        if (content$.get().phase === 'running') emit({ type: 'roundEndingStarted', at });
       },
       completeRound: () => {
-        if (['running', 'finishing'].includes(content$.get().phase)) emit({ type: 'finished' });
+        if (['running', 'finishing'].includes(content$.get().phase))
+          emit({ type: 'roundInputSealed' });
       },
     };
   },

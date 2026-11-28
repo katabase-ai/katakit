@@ -21,6 +21,14 @@ test('the plugin owns accepted facts and replays board content without live work
   game.completeRound();
 
   const history = live.getObservables(EventLogPlugin).events$.getAll();
+  expect(history.map(event => event.type)).toEqual([
+    'roundStarted',
+    'speechSegmentRecorded',
+    'judgmentsAccepted',
+    'answerRemoved',
+    'roundEndingStarted',
+    'roundInputSealed',
+  ]);
   const random = vi.spyOn(crypto, 'randomUUID');
   const clock = vi.spyOn(globalThis, 'setInterval');
   try {

@@ -44,7 +44,7 @@ selects and their CSS live in `src/ui/`; feature styles stay in `src/style.css`,
 Behavior tests live in `tests/`. Keep model transport/admission in the host and gallery-only
 adapters in `gallery/`, never in the copied demo.
 
-The next challenge and duration are visit-level settings, not events. `started` records the
+The next challenge and duration are visit-level settings, not events. `roundStarted` records the
 actual challenge, duration, round ID, and deadline, so replay reconstructs the chosen round.
 Events also record finalized turns, accepted notes and
 cursors, removals, and completion. Notes get stable IDs before recording. Provisional speech,

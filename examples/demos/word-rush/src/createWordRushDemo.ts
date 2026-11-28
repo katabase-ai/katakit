@@ -43,7 +43,7 @@ export const createWordRushDemo = (existingEvents: KatakitEvent[] = []) => {
   const seen = new Set(
     events$
       .getAll()
-      .filter(event => event.type === 'heard')
+      .filter(event => event.type === 'speechSegmentRecorded')
       .map(event => String(event.id))
   );
   let transient = {
