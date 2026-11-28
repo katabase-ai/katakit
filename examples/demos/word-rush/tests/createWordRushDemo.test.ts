@@ -47,6 +47,7 @@ afterEach(() => {
   games.forEach(runtime => runtime.close());
   games.length = 0;
   vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 test('the complete library has twenty categories, ten challenges each, and unique prompts and IDs', () => {
@@ -157,6 +158,94 @@ test('repeated final segment delivery is idempotent and removed notes stay remov
   expect(runtime.state$.value.removed).toEqual(['dolphin']);
 });
 
+test('full history reconstructs content without a model, IDs, or a clock, and snapshots cannot edit it', async () => {
+  const live = game();
+  live.configure({ seconds: null });
+  live.connect(connection(async () => completion('Seal', 'seal')));
+  live.begin();
+  live.ingestSegment({ id: 'seal', sourceId: 'mic', text: 'seal' });
+  await vi.waitFor(() => expect(live.state$.value.cursor).toBe(1));
+  const note = live.state$.value.notes[0]!;
+  const beforeUnknownRemoval = live.events$.getAll().length;
+  live.remove('not-a-note');
+  expect(live.events$.getAll()).toHaveLength(beforeUnknownRemoval);
+
+  const history = live.events$.getAll();
+  const saved = live.state$.value;
+  const newId = vi.spyOn(crypto, 'randomUUID');
+  const clock = vi.spyOn(globalThis, 'setInterval');
+  const restored = createWordRushDemo(history);
+  games.push(restored);
+  const current = restored.state$.value;
+  expect(current).toMatchObject({
+    roundId: saved.roundId,
+    challengeId: saved.challengeId,
+    phase: saved.phase,
+    notes: saved.notes,
+    judgments: saved.judgments,
+    segments: saved.segments,
+    cursor: saved.cursor,
+    remaining: null,
+  });
+  expect(restored.events$.getAll()).toEqual(history);
+  expect(newId).not.toHaveBeenCalled();
+  expect(clock).not.toHaveBeenCalled();
+  expect('next' in restored.state$).toBe(false);
+
+  current.notes[0]!.text = 'not an event';
+  expect(restored.state$.value.notes[0]!.text).toBe(note.text);
+  expect(restored.events$.getAll()).toEqual(history);
+});
+
+test('pending restored speech only starts judging on an explicit new connection', async () => {
+  const live = game();
+  let finishOld!: (value: unknown) => void;
+  live.connect(connection(() => new Promise(resolve => (finishOld = resolve))));
+  live.begin();
+  live.ingestSegment({ id: 'seal', sourceId: 'mic', text: 'seal' });
+  const history = live.events$.getAll();
+  live.close();
+  finishOld(completion('Seal', 'seal'));
+
+  const request = vi
+    .fn<WordRushConnection['requestCompletion']>()
+    .mockResolvedValue(completion('Seal', 'seal'));
+  const restored = createWordRushDemo(history);
+  games.push(restored);
+  expect(restored.state$.value.cursor).toBe(0);
+  expect(restored.events$.getAll()).toEqual(history);
+  expect(request).not.toHaveBeenCalled();
+  restored.connect(connection(request));
+  await vi.waitFor(() => expect(restored.state$.value.cursor).toBe(1));
+  expect(request).toHaveBeenCalledTimes(1);
+  expect(restored.state$.value.notes.map(note => note.text)).toEqual(['Seal']);
+  restored.connect(connection(request));
+  expect(request).toHaveBeenCalledTimes(1);
+});
+
+test('replacing a live connection aborts and rejects its old result', async () => {
+  const runtime = game();
+  let finishOld!: (value: unknown) => void;
+  let oldSignal!: AbortSignal;
+  runtime.connect(
+    connection(({ signal }) => {
+      oldSignal = signal;
+      return new Promise(resolve => (finishOld = resolve));
+    })
+  );
+  runtime.begin();
+  runtime.ingestSegment({ id: 'seal', sourceId: 'mic', text: 'seal' });
+  const freshRequest = vi
+    .fn<WordRushConnection['requestCompletion']>()
+    .mockResolvedValue(completion('Seal', 'seal'));
+  runtime.connect(connection(freshRequest));
+  expect(oldSignal.aborted).toBe(true);
+  finishOld(completion('Orca', 'orca'));
+  await vi.waitFor(() => expect(runtime.state$.value.cursor).toBe(1));
+  expect(freshRequest).toHaveBeenCalledTimes(1);
+  expect(runtime.state$.value.notes.map(note => note.text)).toEqual(['Seal']);
+});
+
 test('live judging accepts valid non-example answers and retains arrivals during a single-flight request', async () => {
   const runtime = game();
   let complete!: (value: unknown) => void;
@@ -242,6 +331,34 @@ test('a malformed batch pauses without advancing its cursor and explicit retry p
   expect(runtime.state$.value.notes.map(note => note.text)).toEqual(['Seal']);
 });
 
+test('settings stay out of history until the started fact records the selected round', () => {
+  const runtime = game();
+  const before = runtime.events$.getAll();
+  runtime.configure({ challengeId: 'animals-02', seconds: 120 });
+  expect(runtime.events$.getAll()).toEqual(before);
+  expect(runtime.state$.value).toMatchObject({
+    phase: 'idle',
+    challengeId: 'animals-02',
+    seconds: 120,
+  });
+  runtime.begin();
+  const history = runtime.events$.getAll();
+  expect(history).toHaveLength(1);
+  expect(history[0]).toMatchObject({
+    type: 'roundStarted',
+    challengeId: 'animals-02',
+    seconds: 120,
+  });
+  const restored = createWordRushDemo(history);
+  games.push(restored);
+  expect(restored.state$.value).toMatchObject({
+    phase: 'running',
+    challengeId: 'animals-02',
+    seconds: 120,
+    deadline: runtime.state$.value.deadline,
+  });
+});
+
 test('an old response cannot change a new round, even if transport ignores cancellation', async () => {
   const runtime = game();
   let complete!: (value: unknown) => void;
@@ -312,6 +429,9 @@ test('request sizing failure retains input and terminal host failures survive ne
   runtime.begin();
   hear(runtime, 'seal');
   await vi.waitFor(() => expect(runtime.state$.value.failure?.policy.code).toBe('quota'));
+  const publishedFailure = runtime.state$.value.failure!;
+  publishedFailure.policy.terminal = false;
+  expect(runtime.state$.value.failure?.policy.terminal).toBe(true);
   runtime.finish();
   runtime.flush();
   runtime.configure({});

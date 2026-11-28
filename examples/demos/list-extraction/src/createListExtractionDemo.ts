@@ -34,8 +34,11 @@ export const createListExtractionDemo = ({
   initialEvents = [],
 }: { initialEvents?: unknown[] } = {}) => {
   const extraction = makeExtractionPlugin();
+  const history = initialEvents.map(readExtractionEvent);
+  if (history.some((event, index) => event.meta.seq !== index))
+    throw new Error('Extraction history must be ordered and complete.');
   const kit = makeKatakit({
-    existingEvents: initialEvents.map(readExtractionEvent),
+    existingEvents: history,
     plugins: [extraction.configure({})],
   }).start();
   const inputs = new BehaviorSubject(createTranscriptInput());

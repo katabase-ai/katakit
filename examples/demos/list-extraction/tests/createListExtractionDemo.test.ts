@@ -180,10 +180,30 @@ test('replay restores rules, sources, edits and removal without allocating IDs o
   runtimes.push(replay);
   expect(random).not.toHaveBeenCalled();
   random.mockRestore();
+  expect(replay.events$.getAll()).toEqual(runtime.events$.getAll());
   expect(replay.state$.get().result).toEqual(runtime.state$.get().result);
+  expect(replay.state$.get().turns).toEqual(runtime.state$.get().turns);
+  expect(replay.state$.get().rules).toEqual(runtime.state$.get().rules);
+  expect(replay.state$.get().markdown).toBe(runtime.state$.get().markdown);
+  expect(replay.state$.get().request.phase).toBe('idle');
   replay.setHidden(id, false);
   expect(replay.state$.get().markdown).toContain('Email Sam with the revised proposal');
   expect(replay.state$.get().markdown).toContain('Source: [00:04]');
+});
+
+test('restored history rejects malformed metadata, missing events, and invalid payloads', () => {
+  const runtime = create();
+  runtime.loadSample();
+  const history = JSON.parse(JSON.stringify(runtime.events$.getAll()));
+  const invalid = [
+    [{ ...history[0], meta: { ...history[0].meta, seq: 1 } }, ...history.slice(1)],
+    [history[0], ...history.slice(2)],
+    [{ ...history[0], turn: { ...history[0].turn, text: 42 } }, ...history.slice(1)],
+    [{ ...history[0], meta: { ...history[0].meta, timestamp: 'not-a-date' } }, ...history.slice(1)],
+  ];
+  for (const initialEvents of invalid)
+    expect(() => createListExtractionDemo({ initialEvents })).toThrow(/./);
+  expect(runtime.events$.getAll()).toHaveLength(history.length);
 });
 
 test('terminal allowance failure survives clear, sample refresh, setup changes and new speech', async () => {

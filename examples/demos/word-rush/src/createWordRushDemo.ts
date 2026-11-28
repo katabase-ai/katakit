@@ -1,113 +1,20 @@
-import { EventLogPlugin, makeKatakit } from '@katakit/core';
+import { EventLogPlugin, makeKatakit, type KatakitEvent } from '@katakit/core';
 import type { MicrophoneOptions } from '@katakit/transcription/browser';
-import { BehaviorSubject } from 'rxjs';
-import * as v from 'valibot';
-import { answerKey, findChallenge } from './challenges';
+import { BehaviorSubject, type Observable } from 'rxjs';
+import { findChallenge } from './challenges';
+import { WordRushPlugin, type WordRushContent } from './wordRushPlugin';
 import {
   WordRushRequestError,
   createWordRushRequest,
   judgeWordRushCandidates,
   parseWordRushCompletion,
-  qualificationThreshold,
   requestWordRushModel,
   type WordRushConnection,
   type WordRushJudgment,
 } from './wordRushModel';
 
-const NoteSchema = v.object({ id: v.string(), text: v.string(), evidence: v.string() });
-const JudgmentSchema = v.object({
-  text: v.string(),
-  evidence: v.string(),
-  probability: v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(1)),
-});
-const EventSchema = v.variant('type', [
-  v.object({
-    type: v.literal('configured'),
-    challengeId: v.string(),
-    seconds: v.nullable(v.number()),
-  }),
-  v.object({ type: v.literal('started'), roundId: v.string(), deadline: v.nullable(v.number()) }),
-  v.object({ type: v.literal('heard'), id: v.string(), text: v.string() }),
-  v.object({
-    type: v.literal('judged'),
-    notes: v.array(NoteSchema),
-    judgments: v.array(JudgmentSchema),
-    cursor: v.number(),
-  }),
-  v.object({ type: v.literal('removed'), id: v.string() }),
-  v.object({ type: v.literal('finishing'), at: v.number() }),
-  v.object({ type: v.literal('finished') }),
-]);
-type GameEvent = v.InferOutput<typeof EventSchema>;
-export type WordRushNote = v.InferOutput<typeof NoteSchema>;
-type Content = {
-  roundId: string;
-  challengeId: string;
-  seconds: number | null;
-  deadline: number | null;
-  endedAt: number | null;
-  phase: 'idle' | 'running' | 'finishing' | 'finished';
-  notes: WordRushNote[];
-  judgments: WordRushJudgment[];
-  removed: string[];
-  segments: { id: string; text: string }[];
-  cursor: number;
-};
-const initial = (): Content => ({
-  roundId: '',
-  challengeId: 'animals-01',
-  seconds: 60,
-  deadline: null,
-  endedAt: null,
-  phase: 'idle',
-  notes: [],
-  judgments: [],
-  removed: [],
-  segments: [],
-  cursor: 0,
-});
-
-/** Board content is derived only from accepted events; clocks and requests are transient. */
-const reduce = (state: Content, event: GameEvent): Content => {
-  switch (event.type) {
-    case 'configured':
-      return { ...initial(), challengeId: event.challengeId, seconds: event.seconds };
-    case 'started':
-      return {
-        ...initial(),
-        challengeId: state.challengeId,
-        seconds: state.seconds,
-        roundId: event.roundId,
-        deadline: event.deadline,
-        phase: 'running',
-      };
-    case 'heard':
-      return { ...state, segments: [...state.segments, { id: event.id, text: event.text }] };
-    case 'judged':
-      return {
-        ...state,
-        notes: [...state.notes, ...event.notes],
-        judgments: [...state.judgments, ...event.judgments],
-        cursor: event.cursor,
-      };
-    case 'removed': {
-      const note = state.notes.find(note => note.id === event.id);
-      return note
-        ? {
-            ...state,
-            notes: state.notes.filter(note => note.id !== event.id),
-            removed: [...state.removed, note.text],
-          }
-        : state;
-    }
-    case 'finishing':
-      return { ...state, phase: 'finishing', endedAt: event.at };
-    case 'finished':
-      return { ...state, phase: 'finished' };
-  }
-};
-
-export type WordRushSnapshot = Content & {
+export type { WordRushNote } from './events';
+export type WordRushSnapshot = WordRushContent & {
   remaining: number | null;
   provisional: string;
   busy: boolean;
@@ -116,42 +23,73 @@ export type WordRushSnapshot = Content & {
   failure?: WordRushRequestError;
 };
 
-/** One visit owns its event log, single-flight judging queue, and round clock. */
-export const createWordRushDemo = () => {
-  const kit = makeKatakit({ plugins: [] }).start();
-  const log = kit.getMethods(EventLogPlugin);
-  const emitEvent = (event: GameEvent) => log.emitEvent(v.parse(EventSchema, event));
+/** One visit owns its event log, single-flight judging queue, and round clock.
+ * existingEvents is typed in-memory history; callers loading storage decode it first.
+ */
+export const createWordRushDemo = (existingEvents: KatakitEvent[] = []) => {
+  // Restoring typed in-memory facts reconstructs content; no connection or clock is restored.
+  const kit = makeKatakit({ plugins: [WordRushPlugin.configure({})], existingEvents }).start();
+  const game = kit.getMethods(WordRushPlugin);
+  const { content$ } = kit.getObservables(WordRushPlugin);
   const { events$ } = kit.getObservables(EventLogPlugin);
-  let content = initial();
   let connection: WordRushConnection | undefined;
   let controller: AbortController | undefined;
   let timer: ReturnType<typeof setInterval> | undefined;
   let closed = false;
   let accepting = false;
   let generation = 0;
-  const seen = new Set<string>();
+  // The next round's settings are a visit-level draft, not part of the accepted history.
+  let prepared: { challengeId: string; seconds: number | null } | undefined;
+  const seen = new Set(
+    events$
+      .getAll()
+      .filter(event => event.type === 'speechSegmentRecorded')
+      .map(event => String(event.id))
+  );
   let transient = {
     provisional: '',
     busy: false,
     connected: false,
     feedback: '',
-  } as Omit<WordRushSnapshot, keyof Content | 'remaining'>;
-  const snapshot = (): WordRushSnapshot => ({
-    ...content,
-    ...transient,
-    remaining:
-      content.deadline === null
-        ? content.seconds
-        : Math.max(0, Math.ceil((content.deadline - (content.endedAt ?? Date.now())) / 1000)),
-  });
+  } as Omit<WordRushSnapshot, keyof WordRushContent | 'remaining'>;
+  const snapshot = (): WordRushSnapshot => {
+    const recorded = content$.get();
+    // Applying settings presents an empty ready board; it does not rewrite the last round.
+    const content = prepared
+      ? {
+          ...recorded,
+          ...prepared,
+          roundId: '',
+          deadline: null,
+          endedAt: null,
+          phase: 'idle' as const,
+          notes: [],
+          judgments: [],
+          removed: [],
+          segments: [],
+          cursor: 0,
+        }
+      : recorded;
+    return {
+      ...structuredClone(content),
+      ...transient,
+      failure:
+        transient.failure &&
+        new WordRushRequestError(transient.failure.message, { ...transient.failure.policy }),
+      remaining:
+        content.deadline === null
+          ? content.seconds
+          : Math.max(0, Math.ceil((content.deadline - (content.endedAt ?? Date.now())) / 1000)),
+    };
+  };
   const state$ = new BehaviorSubject(snapshot());
+  const publicState$ = Object.defineProperty(state$.asObservable(), 'value', {
+    get: snapshot,
+  }) as Observable<WordRushSnapshot> & { readonly value: WordRushSnapshot };
   const publish = () => {
     if (!closed) state$.next(snapshot());
   };
-  const subscription = events$.subscribe(event => {
-    content = reduce(content, v.parse(EventSchema, event));
-    publish();
-  });
+  const subscription = content$.subscribe(publish);
   const clearTimer = () => {
     clearInterval(timer);
     timer = undefined;
@@ -169,43 +107,34 @@ export const createWordRushDemo = () => {
     transient = { ...transient, busy: false, provisional: '', failure };
   };
   const finish = () => {
-    if (closed || content.phase !== 'running') return;
+    if (closed || content$.get().phase !== 'running') return;
     clearTimer();
-    emitEvent({ type: 'finishing', at: Date.now() });
+    game.finishRound(Date.now());
   };
   const flush = () => {
-    if (closed || !['running', 'finishing'].includes(content.phase)) return;
+    if (closed || !['running', 'finishing'].includes(content$.get().phase)) return;
     finish();
     accepting = false;
     transient.provisional = '';
-    emitEvent({ type: 'finished' });
+    game.completeRound();
   };
   const accept = (judgments: WordRushJudgment[], cursor: number) => {
-    const answers = judgments.filter(answer => answer.probability >= qualificationThreshold);
-    const keys = new Set(
-      [...content.notes.map(note => note.text), ...content.removed].map(answerKey)
-    );
-    const notes: WordRushNote[] = [];
-    for (const answer of answers) {
-      const key = answerKey(answer.text);
-      if (!key || keys.has(key)) continue;
-      keys.add(key);
-      notes.push({ text: answer.text, evidence: answer.evidence, id: crypto.randomUUID() });
-    }
-    transient.feedback = notes.length
-      ? `Added ${notes.length} ${notes.length === 1 ? 'answer' : 'answers'}.`
-      : answers.length
+    const { accepted, qualified } = game.recordJudgments(judgments, cursor);
+    transient.feedback = accepted
+      ? `Added ${accepted} ${accepted === 1 ? 'answer' : 'answers'}.`
+      : qualified
         ? 'Already on the board.'
         : 'No new qualifying answers.';
-    emitEvent({ type: 'judged', notes, judgments, cursor });
+    publish();
   };
   const process = async () => {
     if (
       closed ||
       controller ||
+      prepared ||
       transient.failure ||
       !connection ||
-      content.cursor >= content.segments.length
+      content$.get().cursor >= content$.get().segments.length
     )
       return;
     const currentGeneration = generation;
@@ -215,9 +144,10 @@ export const createWordRushDemo = () => {
     transient.busy = true;
     publish();
     try {
-      while (content.cursor < content.segments.length) {
+      while (content$.get().cursor < content$.get().segments.length) {
         if (closed || generation !== currentGeneration || abort.signal.aborted) return;
         // Bound each request without discarding pending segments. New arrivals wait in order.
+        const content = content$.get();
         let end = content.cursor;
         let text = '';
         while (
@@ -268,16 +198,16 @@ export const createWordRushDemo = () => {
   };
 
   return {
-    state$,
+    state$: publicState$,
     events$,
     configure: ({
-      challengeId = content.challengeId,
-      seconds = content.seconds,
+      challengeId = prepared?.challengeId ?? content$.get().challengeId,
+      seconds = prepared?.seconds ?? content$.get().seconds,
     }: {
       challengeId?: string;
       seconds?: number | null;
     }) => {
-      if (closed || ['running', 'finishing'].includes(content.phase)) return;
+      if (closed || ['running', 'finishing'].includes(content$.get().phase)) return;
       if (
         !findChallenge(challengeId) ||
         (seconds !== null && (!Number.isFinite(seconds) || seconds <= 0))
@@ -285,10 +215,18 @@ export const createWordRushDemo = () => {
         return;
       cancelWork();
       transient.feedback = '';
-      emitEvent({ type: 'configured', challengeId, seconds });
+      prepared = { challengeId, seconds };
+      publish();
     },
     connect: (next: WordRushConnection) => {
       if (closed) return;
+      if (connection && connection !== next) {
+        // Explicit replacement cancels the old request before the new connection resumes pending input.
+        generation++;
+        controller?.abort();
+        controller = undefined;
+        transient.busy = false;
+      }
       connection = next;
       transient.connected = true;
       transient.failure = undefined;
@@ -298,8 +236,8 @@ export const createWordRushDemo = () => {
     begin: () => {
       if (
         closed ||
-        ['running', 'finishing'].includes(content.phase) ||
-        (content.phase === 'finished' && transient.busy) ||
+        ['running', 'finishing'].includes(content$.get().phase) ||
+        (content$.get().phase === 'finished' && transient.busy) ||
         !connection ||
         transient.failure?.policy.terminal
       )
@@ -307,14 +245,17 @@ export const createWordRushDemo = () => {
       cancelWork();
       accepting = true;
       transient.feedback = '';
-      emitEvent({
-        type: 'started',
-        roundId: crypto.randomUUID(),
-        deadline: content.seconds === null ? null : Date.now() + content.seconds * 1000,
-      });
-      if (content.deadline !== null)
+      const { challengeId, seconds } = prepared ?? content$.get();
+      prepared = undefined;
+      game.startRound(
+        crypto.randomUUID(),
+        challengeId,
+        seconds,
+        seconds === null ? null : Date.now() + seconds * 1000
+      );
+      if (content$.get().deadline !== null)
         timer = setInterval(() => {
-          if (content.deadline !== null && Date.now() >= content.deadline) finish();
+          if (content$.get().deadline !== null && Date.now() >= content$.get().deadline!) finish();
           else publish();
         }, 200);
     },
@@ -328,7 +269,7 @@ export const createWordRushDemo = () => {
       transient.provisional = '';
       // Preserve whole utterances, including answers spanning an arbitrary character boundary.
       // An oversized utterance pauses at the wire-size check rather than losing words.
-      emitEvent({ type: 'heard', id: key, text: segment.text });
+      game.recordSegment(key, segment.text);
       void process();
     }) satisfies MicrophoneOptions['onFinal'],
     updateProvisional: (text: string) => {
@@ -337,7 +278,7 @@ export const createWordRushDemo = () => {
       publish();
     },
     remove: (id: string) => {
-      if (!closed) emitEvent({ type: 'removed', id });
+      if (!closed) game.removeNote(id);
     },
     retry: () => {
       if (closed || transient.failure?.policy.terminal) return;
