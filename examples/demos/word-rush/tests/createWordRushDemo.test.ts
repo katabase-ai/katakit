@@ -331,6 +331,34 @@ test('a malformed batch pauses without advancing its cursor and explicit retry p
   expect(runtime.state$.value.notes.map(note => note.text)).toEqual(['Seal']);
 });
 
+test('settings stay out of history until the started fact records the selected round', () => {
+  const runtime = game();
+  const before = runtime.events$.getAll();
+  runtime.configure({ challengeId: 'animals-02', seconds: 120 });
+  expect(runtime.events$.getAll()).toEqual(before);
+  expect(runtime.state$.value).toMatchObject({
+    phase: 'idle',
+    challengeId: 'animals-02',
+    seconds: 120,
+  });
+  runtime.begin();
+  const history = runtime.events$.getAll();
+  expect(history).toHaveLength(1);
+  expect(history[0]).toMatchObject({
+    type: 'started',
+    challengeId: 'animals-02',
+    seconds: 120,
+  });
+  const restored = createWordRushDemo(history);
+  games.push(restored);
+  expect(restored.state$.value).toMatchObject({
+    phase: 'running',
+    challengeId: 'animals-02',
+    seconds: 120,
+    deadline: runtime.state$.value.deadline,
+  });
+});
+
 test('an old response cannot change a new round, even if transport ignores cancellation', async () => {
   const runtime = game();
   let complete!: (value: unknown) => void;

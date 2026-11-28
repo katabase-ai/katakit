@@ -44,7 +44,9 @@ selects and their CSS live in `src/ui/`; feature styles stay in `src/style.css`,
 Behavior tests live in `tests/`. Keep model transport/admission in the host and gallery-only
 adapters in `gallery/`, never in the copied demo.
 
-Events record challenge selection, round start/deadline, finalized turns, accepted notes and
+The next challenge and duration are visit-level settings, not events. `started` records the
+actual challenge, duration, round ID, and deadline, so replay reconstructs the chosen round.
+Events also record finalized turns, accepted notes and
 cursors, removals, and completion. Notes get stable IDs before recording. Provisional speech,
 clock ticks, retry, connection, and cancellation are transient. Do not keep a second writable
 authority for board content or regenerate IDs on replay. The plugin's `content$` is the sole

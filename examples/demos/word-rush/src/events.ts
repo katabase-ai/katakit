@@ -4,14 +4,11 @@ import type { WordRushJudgment } from './wordRushModel';
 
 export type WordRushNote = { id: string; text: string; evidence: string };
 
-export type ConfiguredEvent = KatakitEvent<{
-  type: 'configured';
-  challengeId: string;
-  seconds: number | null;
-}>;
 export type StartedEvent = KatakitEvent<{
   type: 'started';
   roundId: string;
+  challengeId: string;
+  seconds: number | null;
   deadline: number | null;
 }>;
 export type HeardEvent = KatakitEvent<{ type: 'heard'; id: string; text: string }>;
@@ -25,7 +22,6 @@ export type RemovedEvent = KatakitEvent<{ type: 'removed'; id: string }>;
 export type FinishingEvent = KatakitEvent<{ type: 'finishing'; at: number }>;
 export type FinishedEvent = KatakitEvent<{ type: 'finished' }>;
 export type WordRushEvent =
-  | ConfiguredEvent
   | StartedEvent
   | HeardEvent
   | JudgedEvent
@@ -42,11 +38,12 @@ const JudgmentSchema = v.object({
 /** Validate new facts before appending them; typed in-memory history is replayed as supplied. */
 export const WordRushEventSchema = v.variant('type', [
   v.object({
-    type: v.literal('configured'),
+    type: v.literal('started'),
+    roundId: v.string(),
     challengeId: v.string(),
     seconds: v.nullable(v.number()),
+    deadline: v.nullable(v.number()),
   }),
-  v.object({ type: v.literal('started'), roundId: v.string(), deadline: v.nullable(v.number()) }),
   v.object({ type: v.literal('heard'), id: v.string(), text: v.string() }),
   v.object({
     type: v.literal('judged'),

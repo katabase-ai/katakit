@@ -35,13 +35,11 @@ const initial = (): WordRushContent => ({
 
 const project = (state: WordRushContent, event: WordRushEvent): WordRushContent => {
   switch (event.type) {
-    case 'configured':
-      return { ...initial(), challengeId: event.challengeId, seconds: event.seconds };
     case 'started':
       return {
         ...initial(),
-        challengeId: state.challengeId,
-        seconds: state.seconds,
+        challengeId: event.challengeId,
+        seconds: event.seconds,
         roundId: event.roundId,
         deadline: event.deadline,
         phase: 'running',
@@ -80,9 +78,7 @@ export const WordRushPlugin = makeKatakitPlugin({
     content$: property(
       getObservables(EventLogPlugin).events$.pipe(
         filter((event): event is WordRushEvent =>
-          ['configured', 'started', 'heard', 'judged', 'removed', 'finishing', 'finished'].includes(
-            event.type
-          )
+          ['started', 'heard', 'judged', 'removed', 'finishing', 'finished'].includes(event.type)
         ),
         scan(project, initial()),
         startWith(initial())
@@ -93,18 +89,19 @@ export const WordRushPlugin = makeKatakitPlugin({
     const emit = (event: v.InferOutput<typeof WordRushEventSchema>) =>
       getMethods(EventLogPlugin).emitEvent(v.parse(WordRushEventSchema, event));
     return {
-      configureRound: (challengeId: string, seconds: number | null) => {
+      startRound: (
+        roundId: string,
+        challengeId: string,
+        seconds: number | null,
+        deadline: number | null
+      ) => {
         if (
           ['running', 'finishing'].includes(content$.get().phase) ||
           !findChallenge(challengeId) ||
           (seconds !== null && (!Number.isFinite(seconds) || seconds <= 0))
         )
           return;
-        emit({ type: 'configured', challengeId, seconds });
-      },
-      startRound: (roundId: string, deadline: number | null) => {
-        if (['running', 'finishing'].includes(content$.get().phase)) return;
-        emit({ type: 'started', roundId, deadline });
+        emit({ type: 'started', roundId, challengeId, seconds, deadline });
       },
       recordSegment: (id: string, text: string) => {
         // Capture may deliver a final segment after the deadline but before flush seals input.

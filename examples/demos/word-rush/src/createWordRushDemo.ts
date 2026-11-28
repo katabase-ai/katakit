@@ -38,6 +38,8 @@ export const createWordRushDemo = (existingEvents: KatakitEvent[] = []) => {
   let closed = false;
   let accepting = false;
   let generation = 0;
+  // The next round's settings are a visit-level draft, not part of the accepted history.
+  let prepared: { challengeId: string; seconds: number | null } | undefined;
   const seen = new Set(
     events$
       .getAll()
@@ -51,7 +53,23 @@ export const createWordRushDemo = (existingEvents: KatakitEvent[] = []) => {
     feedback: '',
   } as Omit<WordRushSnapshot, keyof WordRushContent | 'remaining'>;
   const snapshot = (): WordRushSnapshot => {
-    const content = content$.get();
+    const recorded = content$.get();
+    // Applying settings presents an empty ready board; it does not rewrite the last round.
+    const content = prepared
+      ? {
+          ...recorded,
+          ...prepared,
+          roundId: '',
+          deadline: null,
+          endedAt: null,
+          phase: 'idle' as const,
+          notes: [],
+          judgments: [],
+          removed: [],
+          segments: [],
+          cursor: 0,
+        }
+      : recorded;
     return {
       ...structuredClone(content),
       ...transient,
@@ -113,6 +131,7 @@ export const createWordRushDemo = (existingEvents: KatakitEvent[] = []) => {
     if (
       closed ||
       controller ||
+      prepared ||
       transient.failure ||
       !connection ||
       content$.get().cursor >= content$.get().segments.length
@@ -182,8 +201,8 @@ export const createWordRushDemo = (existingEvents: KatakitEvent[] = []) => {
     state$: publicState$,
     events$,
     configure: ({
-      challengeId = content$.get().challengeId,
-      seconds = content$.get().seconds,
+      challengeId = prepared?.challengeId ?? content$.get().challengeId,
+      seconds = prepared?.seconds ?? content$.get().seconds,
     }: {
       challengeId?: string;
       seconds?: number | null;
@@ -196,7 +215,8 @@ export const createWordRushDemo = (existingEvents: KatakitEvent[] = []) => {
         return;
       cancelWork();
       transient.feedback = '';
-      game.configureRound(challengeId, seconds);
+      prepared = { challengeId, seconds };
+      publish();
     },
     connect: (next: WordRushConnection) => {
       if (closed) return;
@@ -225,8 +245,14 @@ export const createWordRushDemo = (existingEvents: KatakitEvent[] = []) => {
       cancelWork();
       accepting = true;
       transient.feedback = '';
-      const seconds = content$.get().seconds;
-      game.startRound(crypto.randomUUID(), seconds === null ? null : Date.now() + seconds * 1000);
+      const { challengeId, seconds } = prepared ?? content$.get();
+      prepared = undefined;
+      game.startRound(
+        crypto.randomUUID(),
+        challengeId,
+        seconds,
+        seconds === null ? null : Date.now() + seconds * 1000
+      );
       if (content$.get().deadline !== null)
         timer = setInterval(() => {
           if (content$.get().deadline !== null && Date.now() >= content$.get().deadline!) finish();

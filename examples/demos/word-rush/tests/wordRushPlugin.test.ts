@@ -6,8 +6,7 @@ test('the plugin owns accepted facts and replays board content without live work
   const live = makeKatakit({ plugins: [WordRushPlugin.configure({})] }).start();
   const game = live.getMethods(WordRushPlugin);
   const content = live.getObservables(WordRushPlugin).content$;
-  game.configureRound('animals-01', 60);
-  game.startRound('round-1', 1000);
+  game.startRound('round-1', 'animals-01', 60, 1000);
   game.recordSegment('source:segment', 'seal');
   const { accepted } = game.recordJudgments(
     [{ text: 'Seal', evidence: 'seal', probability: 1 }],
@@ -16,7 +15,7 @@ test('the plugin owns accepted facts and replays board content without live work
   expect(accepted).toBe(1);
   const id = content.get().notes[0]!.id;
   game.removeNote('unknown');
-  expect(live.getObservables(EventLogPlugin).events$.getAll()).toHaveLength(4);
+  expect(live.getObservables(EventLogPlugin).events$.getAll()).toHaveLength(3);
   game.removeNote(id);
   game.finishRound(900);
   game.completeRound();
@@ -42,7 +41,7 @@ test('the plugin owns accepted facts and replays board content without live work
 test('a final segment can be recorded while a round is draining', () => {
   const kit = makeKatakit({ plugins: [WordRushPlugin.configure({})] }).start();
   const game = kit.getMethods(WordRushPlugin);
-  game.startRound('round-1', 1000);
+  game.startRound('round-1', 'animals-01', 60, 1000);
   game.finishRound(1000);
   game.recordSegment('late-final', 'dolphin');
   game.completeRound();
