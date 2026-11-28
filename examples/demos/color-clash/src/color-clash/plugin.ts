@@ -95,7 +95,7 @@ export const ColorClashPlugin = makeKatakitPlugin({
         if (!game || game.phase !== 'playing') return;
         if (!colorClashColors.includes(spokenColor)) throw new Error('Invalid spoken color.');
         if (spokenColor === game.target.ink) {
-          const nextTarget = chooseNext(game.target);
+          const nextTarget = chooseNext({ ...game.target });
           if (!validTarget(nextTarget, game.target.sequence + 1, game.target.ink))
             throw new Error('Invalid next Color Clash target.');
           emitEvent({

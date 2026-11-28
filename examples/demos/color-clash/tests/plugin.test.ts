@@ -81,3 +81,15 @@ test('rejects invalid commands without recording facts or retaining caller-owned
   expect(() => game.acceptAnswer('red', () => ({ ...next, ink: 'red' }))).toThrow('Invalid');
   expect(history.getAll()).toHaveLength(1);
 });
+
+test('the next-target chooser cannot mutate the recorded current target', () => {
+  const { game, content, history } = create();
+  game.startRound(first, 20000);
+  game.acceptAnswer('red', current => {
+    current.ink = 'blue';
+    return next;
+  });
+  expect(history.getAll()[0]).toMatchObject({ target: first });
+  expect(content.get()).toMatchObject({ popped: first, target: next });
+  expect(create(history.getAll()).content.get()).toEqual(content.get());
+});
