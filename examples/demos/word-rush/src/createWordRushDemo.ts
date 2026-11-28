@@ -55,6 +55,9 @@ export const createWordRushDemo = (existingEvents: KatakitEvent[] = []) => {
     return {
       ...structuredClone(content),
       ...transient,
+      failure:
+        transient.failure &&
+        new WordRushRequestError(transient.failure.message, { ...transient.failure.policy }),
       remaining:
         content.deadline === null
           ? content.seconds

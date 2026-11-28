@@ -401,6 +401,9 @@ test('request sizing failure retains input and terminal host failures survive ne
   runtime.begin();
   hear(runtime, 'seal');
   await vi.waitFor(() => expect(runtime.state$.value.failure?.policy.code).toBe('quota'));
+  const publishedFailure = runtime.state$.value.failure!;
+  publishedFailure.policy.terminal = false;
+  expect(runtime.state$.value.failure?.policy.terminal).toBe(true);
   runtime.finish();
   runtime.flush();
   runtime.configure({});
