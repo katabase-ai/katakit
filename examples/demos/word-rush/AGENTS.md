@@ -34,7 +34,9 @@ requests microphone access. Audio stays on the device; finalized text goes to th
 
 `src/main.tsx` is the standalone host and transport; `src/App.tsx` owns capture and its cleanup.
 `src/WordRushDemo.tsx` renders the game and settings; `src/useRoundSetup.ts` owns cancellable
-setup. `src/createWordRushDemo.ts` owns one visit's event log, request queue, and round clock.
+setup. `src/events.ts` defines typed facts and the live-emission schema; `src/wordRushPlugin.ts`
+projects board content and records accepted commands. `src/createWordRushDemo.ts` owns one
+visit's runtime, request queue, and round clock.
 `src/wordRushModel.ts` owns the extraction/judging contract; `src/challenges.json` holds 200
 stable challenges across 20 categories and `src/challenges.ts` selects them. Generic buttons and
 selects and their CSS live in `src/ui/`; feature styles stay in `src/style.css`, while
@@ -45,7 +47,9 @@ adapters in `gallery/`, never in the copied demo.
 Events record challenge selection, round start/deadline, finalized turns, accepted notes and
 cursors, removals, and completion. Notes get stable IDs before recording. Provisional speech,
 clock ticks, retry, connection, and cancellation are transient. Do not keep a second writable
-authority for board content or regenerate IDs on replay. The log lasts for one visit; there is
+authority for board content or regenerate IDs on replay. The plugin's `content$` is the sole
+board projection; the factory combines it with transient status in a detached, read-only
+`state$`. The log lasts for one visit; there is
 no disk storage. `createWordRushDemo(existingEvents)` reconstructs from typed in-memory history
 without restarting the clock or calling a model. An explicit `connect()` may resume recorded
 pending speech; directly replacing a connection aborts its old request before doing so.
