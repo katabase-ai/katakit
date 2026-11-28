@@ -85,7 +85,9 @@ export const useMicrophoneTranscriber = ({
       void (async () => {
         try {
           try {
-            if (current.phase === 'running') await current.transcriber.stop();
+            // A stop already in progress must drain before dispose suppresses callbacks.
+            if (current.phase === 'running' || current.phase === 'stopping')
+              await current.transcriber.stop();
           } finally {
             await current.transcriber.dispose();
           }

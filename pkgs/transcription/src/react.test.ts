@@ -101,6 +101,42 @@ test('an owned sink stays attached through an asynchronous unmount drain', async
   await vi.waitFor(() => expect(order).toEqual(['last words', 'flush', 'dispose', 'close']));
 });
 
+test('unmount waits for a stop already in progress before disposing the sink', async () => {
+  const order: string[] = [];
+  const drain = Promise.withResolvers<void>();
+  let disposed = false;
+  let stopping: Promise<void> | undefined;
+  vi.mocked(createMicrophoneTranscriber).mockImplementation(options => ({
+    load: vi.fn(),
+    start: vi.fn(async () => options.onState?.({ phase: 'running' })),
+    stop: vi.fn(() => {
+      stopping ??= (async () => {
+        options.onState?.({ phase: 'stopping' });
+        await drain.promise;
+        if (!disposed) options.onFinal({ id: 'last', sourceId: 'mic', text: 'last words' });
+        options.onStop?.();
+      })();
+      return stopping;
+    }),
+    dispose: vi.fn(async () => {
+      disposed = true;
+      order.push('dispose');
+    }),
+  }));
+  const createSink = () => ({
+    ingestSegment: (segment: { text: string }) => order.push(segment.text),
+    close: () => order.push('close'),
+  });
+  const view = renderHook(() => useMicrophoneTranscriber({ createSink }));
+  await act(() => view.result.current.toggle());
+  const stoppingToggle = view.result.current.toggle();
+  view.unmount();
+  expect(order).toEqual([]);
+  drain.resolve();
+  await stoppingToggle;
+  await vi.waitFor(() => expect(order).toEqual(['last words', 'dispose', 'close']));
+});
+
 test('toggle stops a running session and forwards level, provisional text, and state', async () => {
   const { transcribers } = setup();
   const onProvisionalUtterance = vi.fn();
