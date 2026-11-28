@@ -114,7 +114,8 @@ export const createTranscriber = (
         if (phase === 'loading') update({ phase: 'loading', progress });
       },
       onProvisional: (text: string) => {
-        if (!disposed && !failure) options.onProvisional?.(text);
+        // A stopped session cannot revive a draft in the next attached view.
+        if (!disposed && !failure && active) options.onProvisional?.(text);
       },
       onFinal: (segment: Parameters<TranscriptionCallbacks['onFinal']>[0]) => {
         if (!disposed && !failure) options.onFinal(segment);

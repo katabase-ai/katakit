@@ -18,6 +18,7 @@ export type TranscriptionState = {
 /** The same result callbacks work for streaming and chunked recognizers. */
 export type TranscriptionCallbacks = {
   onState?: (state: TranscriptionState) => void;
+  /** Live draft only; callbacks arriving after stop begins are ignored. */
   onProvisional?: (text: string) => void;
   onFinal: (segment: TranscriptionSegment) => void;
   /** All pending final results have been delivered; safe to flush a transcript turn. */
