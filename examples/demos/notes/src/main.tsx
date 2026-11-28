@@ -1,22 +1,19 @@
 import { createRoot } from 'react-dom/client';
+import type { ComponentProps } from 'react';
 import { App } from './App';
 import { NotesRequestError } from './notesModel';
 import './style.css';
+import './standalone.css';
 
-createRoot(document.getElementById('root')!).render(
-  <main style={{ maxWidth: 1000, margin: '2rem auto', padding: '0 1rem', fontFamily: 'system-ui' }}>
-    <App
-      connect={async () => ({
+const endpoint = import.meta.env.VITE_NOTES_ENDPOINT;
+const credential = import.meta.env.VITE_NOTES_CREDENTIAL;
+const connect: ComponentProps<typeof App>['connect'] =
+  endpoint && credential
+    ? async () => ({
         model: 'z-ai/glm-5.3',
         maxBodyBytes: 16_384,
         maxOutputTokens: 1024,
         requestCompletion: async ({ body, signal }) => {
-          const endpoint = import.meta.env.VITE_NOTES_ENDPOINT;
-          const credential = import.meta.env.VITE_NOTES_CREDENTIAL;
-          if (!endpoint || !credential)
-            throw new NotesRequestError(
-              'Configure a local model endpoint and credential as described in the README.'
-            );
           const response = await fetch(endpoint, {
             method: 'POST',
             signal,
@@ -29,7 +26,7 @@ createRoot(document.getElementById('root')!).render(
             );
           return await response.json();
         },
-      })}
-    />
-  </main>
-);
+      })
+    : undefined;
+
+createRoot(document.getElementById('root')!).render(<App connect={connect} />);

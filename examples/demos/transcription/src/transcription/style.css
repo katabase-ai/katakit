@@ -1,10 +1,8 @@
-.shell { min-height: 100svh; }
 .transcription-demo {
   --content-width: 780px;
   max-width: var(--content-width);
   margin: 0 auto;
   padding: clamp(2rem, 6vw, 4rem) 1.5rem 3rem;
-.transcription-audio-level { max-width: 26rem; margin-top: var(--space-md); }
 .intro h1 {
   margin: 0;
   font-size: var(--text-3xl);
@@ -16,43 +14,7 @@
   margin: 0.85rem 0 0;
   color: var(--color-muted);
 }
-.model-picker { margin-top: 2rem; }
-.controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 1rem 1.5rem;
-  margin: 2rem 0 2.5rem;
-}
-.record-button {
-  gap: 0.75rem;
-  min-height: 3rem;
-  padding: 0.6rem 1.25rem;
-}
-.record-button:focus-visible {
-  outline: 3px solid var(--color-focus);
-  outline-offset: 3px;
-}
-.record-button:active:not(:disabled) {
-  transform: translateY(1px);
-}
-.record-button[data-recording='true'] {
-  border-color: var(--color-accent);
-}
-.record-icon {
-  width: 0.75rem;
-  height: 0.75rem;
-  border: 2px solid currentColor;
-  border-radius: 50%;
-}
-.record-button[data-recording='true'] .record-icon {
-  border-radius: 2px;
-  background: currentColor;
-}
-.phase {
-  font-size: 0.9rem;
-  color: var(--color-muted);
-}
+.model-picker { margin: 0 0 2rem; max-width: 26rem; }
 .transcript-heading {
   display: flex;
   align-items: baseline;

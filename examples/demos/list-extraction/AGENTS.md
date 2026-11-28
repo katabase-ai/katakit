@@ -27,6 +27,9 @@ owns one visit's cancellable on-demand admission/request and transcript resource
 capture; the gallery adapter lives in the gallery and supplies shared capture/model controls.
 `main.tsx` owns the standalone transport and imports `standalone.css`; `style.css` is scoped
 feature styling. Tests live in `tests/`. Do not move global defaults into the reusable view.
+The standalone entry imports the local page theme; `App.tsx` puts microphone feedback
+above the feature view. Its header and capture presentation are ordinary local files,
+not a gallery dependency. The separate Extract action remains in the feature view.
 
 **Try sample** loads labeled transcript and results without capture or admission. It must not
 overwrite real speech. **Use my own dictation** clears the fixture without starting a model

@@ -1,14 +1,18 @@
 import { useEffect, useState, type ComponentProps } from 'react';
 import {
+  useMicrophoneLevel,
   useMicrophoneTranscriber,
   useMicrophoneTranscriberCallbacks,
 } from '@katakit/transcription/react';
 import { createNotesDemo } from './createNotesDemo';
 import { NotesDemo } from './NotesDemo';
+import { CaptureControls } from './ui/CaptureControls';
+import { StandaloneDemo } from './ui/StandaloneDemo';
 
 /** Standalone capture stays here; the gallery supplies its own shared input owner. */
 export const App = ({ connect }: Pick<ComponentProps<typeof NotesDemo>, 'connect'>) => {
   const microphone = useMicrophoneTranscriber();
+  const level = useMicrophoneLevel(microphone);
   const [runtime, setRuntime] = useState<ReturnType<typeof createNotesDemo>>();
 
   useEffect(() => {
@@ -28,18 +32,25 @@ export const App = ({ connect }: Pick<ComponentProps<typeof NotesDemo>, 'connect
 
   if (!runtime) return <p role="status">Preparing demo…</p>;
   return (
-    <NotesDemo
-      runtime={runtime}
-      connect={connect}
-      listening={microphone.listening}
+    <StandaloneDemo
+      title="Structured notes"
+      description="Talk through a plan. Notes take shape as you finish each thought."
       controls={
-        <div className="structured-notes-controls">
-          <button type="button" onClick={() => void microphone.toggle()} disabled={microphone.busy}>
-            {microphone.listening ? 'Stop listening' : 'Start listening'}
-          </button>
-          <span role="status">{microphone.state.error?.message ?? microphone.state.phase}</span>
-        </div>
+        <CaptureControls
+          input={microphone.state}
+          active={microphone.listening}
+          level={level}
+          busy={microphone.busy}
+          onToggle={() => void microphone.toggle()}
+        />
       }
-    />
+    >
+      <NotesDemo
+        runtime={runtime}
+        connect={connect}
+        listening={microphone.listening}
+        showIntroduction={false}
+      />
+    </StandaloneDemo>
   );
 };

@@ -1,14 +1,18 @@
 import { useEffect, useState, type ComponentProps } from 'react';
 import {
+  useMicrophoneLevel,
   useMicrophoneTranscriber,
   useMicrophoneTranscriberCallbacks,
 } from '@katakit/transcription/react';
 import { createListExtractionDemo } from './createListExtractionDemo';
 import { ListExtractionDemo } from './ListExtractionDemo';
+import { CaptureControls } from './ui/CaptureControls';
+import { StandaloneDemo } from './ui/StandaloneDemo';
 
 /** Standalone input ownership; gallery embeds supply their own shared capture controls. */
 export const App = ({ connect }: Pick<ComponentProps<typeof ListExtractionDemo>, 'connect'>) => {
   const microphone = useMicrophoneTranscriber();
+  const level = useMicrophoneLevel(microphone);
   const [runtime, setRuntime] = useState<ReturnType<typeof createListExtractionDemo>>();
 
   useEffect(() => {
@@ -28,22 +32,26 @@ export const App = ({ connect }: Pick<ComponentProps<typeof ListExtractionDemo>,
 
   if (!runtime) return <p role="status">Preparing dictation…</p>;
   return (
-    <ListExtractionDemo
-      runtime={runtime}
-      connect={connect}
-      listening={microphone.listening}
-      captureBusy={microphone.busy}
+    <StandaloneDemo
+      title="List extraction"
+      description="Tell it what to keep. Speak freely and collect selective lists."
       controls={
-        <div className="extraction-actions">
-          <button type="button" onClick={() => void microphone.toggle()} disabled={microphone.busy}>
-            {microphone.listening ? 'Stop listening' : 'Start listening'}
-          </button>
-          <span role="status">
-            {microphone.state.error?.message ??
-              (microphone.listening ? 'Listening locally' : 'Microphone off')}
-          </span>
-        </div>
+        <CaptureControls
+          input={microphone.state}
+          active={microphone.listening}
+          level={level}
+          busy={microphone.busy}
+          onToggle={() => void microphone.toggle()}
+        />
       }
-    />
+    >
+      <ListExtractionDemo
+        runtime={runtime}
+        connect={connect}
+        listening={microphone.listening}
+        captureBusy={microphone.busy}
+        showIntroduction={false}
+      />
+    </StandaloneDemo>
   );
 };

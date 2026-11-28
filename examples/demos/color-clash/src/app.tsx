@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client';
 import { App } from './color-clash/ColorClashApp';
-import './base.css';
+import './standalone.css';
 
 createRoot(document.getElementById('root')!).render(<App />);

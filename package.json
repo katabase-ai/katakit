@@ -28,7 +28,9 @@
     "examples:copy-check": "pnpm demos:copy-check && pnpm gallery:copy-check && pnpm templates:copy-check",
     "demos:copy-check": "node scripts/check-demo-copy.mjs",
     "gallery:copy-check": "node scripts/check-demo-copy.mjs gallery",
-    "structure:check": "node scripts/check-structure.mjs && node --test scripts/check-structure.test.mjs"
+    "demos:ui-sync": "node scripts/sync-standalone-ui.mjs",
+    "demos:ui-check": "node scripts/sync-standalone-ui.mjs --check",
+    "structure:check": "node scripts/check-structure.mjs && node --test scripts/check-structure.test.mjs scripts/sync-standalone-ui.test.mjs && pnpm demos:ui-check"
   },
   "devDependencies": {
     "@types/node": "24.13.3",

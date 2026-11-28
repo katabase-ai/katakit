@@ -49,11 +49,11 @@ and each recording gets a distinct source ID.
   `state$`, exposes typed history, and creates stable React-RxJS bindings for the visit.
 - `src/transcription/models.ts` describes model choices; `src/transcription/createModelSwitcher.ts` serializes
   model disposal and replacement.
-- `src/ui/` contains local visual primitives (`controls.tsx`, `AudioLevelMeter.tsx`)
-  and their styles. Keep domain components outside this directory.
-- `src/base.css` contains the standalone theme and global resets; import it only from
-  `src/app.tsx`. `src/ui/controls.tsx` imports its own `controls.css`, and
-  `src/ui/AudioLevelMeter.tsx` imports `audio-level-meter.css`.
+- `src/ui/` contains local controls, the standalone page header and passive microphone
+  display. The latter two are complete local copies shared with other demos; they do not
+  own capture or depend on the gallery. Keep domain components outside this directory.
+- `src/standalone.css` contains the standalone theme, reset and capture presentation;
+  import it only from `src/app.tsx`. `src/ui/controls.tsx` imports its own `controls.css`.
 - `src/transcription/style.css` contains demo-specific layout and transcript styling.
 - `tests/` covers typed replay, input admission, shutdown, model selection, transcript integration,
   and React remount/runtime replacement.

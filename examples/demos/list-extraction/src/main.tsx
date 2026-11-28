@@ -30,8 +30,4 @@ const connect: ExtractionConnect | undefined =
         },
       })
     : undefined;
-createRoot(document.getElementById('root')!).render(
-  <main className="extraction-standalone">
-    <App connect={connect} />
-  </main>
-);
+createRoot(document.getElementById('root')!).render(<App connect={connect} />);

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { AudioLevelMeter } from '../ui/AudioLevelMeter';
-import { Button, Notice, SelectField } from '../ui/controls';
+import { Notice, SelectField } from '../ui/controls';
+import { CaptureControls } from '../ui/CaptureControls';
+import { StandaloneDemo } from '../ui/StandaloneDemo';
 import { createMicrophoneTranscriber } from '@katakit/transcription/browser';
 import type { TranscriptionState } from '@katakit/transcription';
 import { defaultModel, models, type ModelId } from './models';
@@ -91,10 +92,33 @@ export const Transcription = () => {
     window.isSecureContext && typeof navigator.mediaDevices?.getUserMedia === 'function';
   if (!runtime) return <p role="status">Preparing transcript…</p>;
   return (
-    <TranscriptView
-      runtime={runtime}
+    <StandaloneDemo
+      title="Transcription"
+      description="Your browser turns microphone audio into text on this device."
       controls={
-        <>
+        <CaptureControls
+          input={input}
+          active={recording}
+          level={audioLevel}
+          busy={busy || !available}
+          startLabel="Start"
+          onToggle={() => {
+            if (!switchingRef.current) void toggleRecording();
+          }}
+        >
+          {!available && (
+            <Notice tone="error">
+              This browser needs microphone access and cross-origin isolation. Open the demo on
+              localhost or an HTTPS host configured with COOP/COEP headers.
+            </Notice>
+          )}
+        </CaptureControls>
+      }
+    >
+      <TranscriptView
+        runtime={runtime}
+        showIntroduction={false}
+        controls={
           <div className="model-picker">
             <SelectField
               id="transcription-model"
@@ -111,55 +135,8 @@ export const Transcription = () => {
               ))}
             </SelectField>
           </div>
-
-          <div className="controls">
-            <Button
-              variant={recording ? 'border' : 'blue'}
-              className="record-button"
-              data-recording={recording}
-              disabled={busy || !available}
-              onClick={() => {
-                if (switchingRef.current) return;
-                void toggleRecording();
-              }}
-            >
-              <span className="record-icon" aria-hidden="true" />
-              {recording
-                ? 'Stop recording'
-                : switching
-                  ? 'Switching…'
-                  : busy
-                    ? `${input.phase}…`
-                    : 'Start recording'}
-            </Button>
-            <span className="phase" role="status" aria-live="polite">
-              {input.phase === 'loading'
-                ? `Loading on-device model${input.progress === undefined ? '' : ` · ${Math.round(input.progress * 100)}%`}`
-                : input.phase === 'running'
-                  ? 'Listening locally'
-                  : input.phase === 'error'
-                    ? 'Recording unavailable'
-                    : 'Mic is off'}
-            </span>
-          </div>
-
-          <div className="transcription-audio-level">
-            <AudioLevelMeter active={recording} level={audioLevel} />
-          </div>
-
-          {!available && (
-            <Notice tone="error">
-              This browser needs microphone access and cross-origin isolation. Open the demo on
-              localhost or an HTTPS host configured with COOP/COEP headers.
-            </Notice>
-          )}
-          {input.error && (
-            <Notice tone="error">
-              {input.error.message} Try starting again or check microphone permission.
-            </Notice>
-          )}
-        </>
-      }
-    />
+        }
+      />
+    </StandaloneDemo>
   );
 };

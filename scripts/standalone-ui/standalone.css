@@ -1,0 +1,109 @@
+:root {
+  color-scheme: light dark;
+  --color-paper: light-dark(#fafbfd, #111820);
+  --color-paper-2: light-dark(#f0f3f8, #19212c);
+  --color-paper-3: light-dark(#e8edf5, #233041);
+  --color-ink: light-dark(#1a2333, #edf1f7);
+  --color-ink-2: light-dark(#586476, #b0baca);
+  --color-muted: var(--color-ink-2);
+  --color-rule: light-dark(#dce1e9, #374254);
+  --color-rule-2: light-dark(#788599, #78879e);
+  --color-accent: light-dark(#175fc9, #82b1fa);
+  --color-accent-ink: light-dark(#fafbfe, #111820);
+  --color-accent-deep: light-dark(#164d9c, #b4d2ff);
+  --color-accent-wash: light-dark(#e8f0fd, #203451);
+  --color-focus: var(--color-accent);
+  --color-error: light-dark(#ae301a, #ff9c85);
+  --color-success: light-dark(#287b3f, #6fcd8a);
+  --color-key-face: var(--color-paper-2);
+  --color-link: var(--color-accent-deep);
+  --font-display: system-ui, sans-serif;
+  --font-body: system-ui, sans-serif;
+  --font-outlier: ui-monospace, monospace;
+  --space-3xs: 2px;
+  --space-2xs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 40px;
+  --text-sm: 0.875rem;
+  --text-lg: 1.25rem;
+  --text-xl: 1.5625rem;
+  --text-3xl: 2.2rem;
+  --radius-card: 8px;
+  --radius-input: 6px;
+  --container: 1280px;
+  --gutter: 48px;
+  --dur-micro: 120ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --tracking-display: -0.028em;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font: 1rem/1.55 var(--font-body);
+}
+:root[data-theme='light'] { color-scheme: light; }
+:root[data-theme='dark'] { color-scheme: dark; }
+*, *::before, *::after { box-sizing: border-box; }
+html, body { overflow-x: clip; }
+body { margin: 0; }
+button, input, select, textarea { font: inherit; }
+:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 2px; }
+[hidden] { display: none !important; }
+@media (max-width: 60rem) { :root { --gutter: 24px; } }
+@media (max-width: 40rem) { :root { --gutter: 16px; } }
+.standalone-demo {
+  width: min(100% - 2 * clamp(16px, 4vw, 48px), 1100px);
+  margin: 0 auto;
+  padding: clamp(24px, 5vw, 48px) 0 3rem;
+}
+.standalone-demo-header { margin-bottom: 24px; }
+.standalone-demo-header h1 {
+  margin: 0 0 8px;
+  font: 600 clamp(28px, 4vw, 36px)/1.2 var(--font-display);
+  letter-spacing: var(--tracking-display);
+}
+.standalone-demo-header > p { max-width: 65ch; margin: 0; color: var(--color-muted); }
+.standalone-demo-controls { margin-top: 16px; }
+.standalone-demo-controls:empty { display: none; }
+.standalone-demo :is(.browser-bingo, .transcription-demo, .structured-notes, .list-extraction, .word-rush) { max-width: none; }
+.standalone-demo .transcription-demo { padding: 0; }
+.standalone-demo .word-rush-setup-status { margin-top: 0.5rem; }
+.standalone-capture { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.standalone-capture > [role='status'] { color: var(--color-muted); font-size: 0.8125rem; }
+.standalone-microphone {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-paper-3);
+  color: var(--color-muted);
+  box-shadow: 0 0 0 1px var(--color-rule);
+}
+.standalone-microphone[data-recording='true'] {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-rule-2), var(--color-accent) calc(var(--microphone-response) * 75%));
+}
+.standalone-microphone svg { width: 22px; height: 22px; }
+.standalone-microphone-glyph { position: relative; display: inline-flex; }
+.standalone-microphone-glyph > svg { opacity: 0.5; }
+.standalone-microphone-level {
+  position: absolute;
+  inset: 0;
+  color: var(--color-accent);
+  clip-path: inset(calc((1 - var(--microphone-response)) * 100%) 0 0 0);
+}
+.standalone-capture-button {
+  min-width: 6rem;
+  min-height: 44px;
+  padding: 0 0.85rem;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-input);
+  background: var(--color-accent);
+  color: var(--color-accent-ink);
+  font-weight: 600;
+  cursor: pointer;
+}
+.standalone-capture-button:hover:not(:disabled) { background: var(--color-accent-deep); }
+.standalone-capture-button:disabled { opacity: 0.6; cursor: default; }
+.standalone-capture-error { color: var(--color-error); margin: 0.75rem 0; }
